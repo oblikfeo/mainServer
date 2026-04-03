@@ -33,7 +33,8 @@ printf 'load1:%s\ncpus:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\n' "$load1"
 BASH;
 
         try {
-            $result = Process::timeout(18)
+            $result = Process::path(base_path())
+                ->timeout(18)
                 ->input($script)
                 ->run([
                     'ssh',
