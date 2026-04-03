@@ -4,11 +4,15 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionFeedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
+    ->name('subscription.feed');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -33,6 +37,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
+        Route::post('/subscription', [SubscriptionController::class, 'store'])
+            ->middleware('throttle:8,1')
+            ->name('subscription.store');
+        Route::get('/subscription/result/{subscription}', [SubscriptionController::class, 'show'])
+            ->name('subscription.show');
     });
 });
 
