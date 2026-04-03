@@ -13,7 +13,7 @@ class DashboardController extends Controller
     ) {}
 
     /**
-     * Главная админки: плитки разділов.
+     * Главная админки: плитки разделов.
      */
     public function index(): View
     {
