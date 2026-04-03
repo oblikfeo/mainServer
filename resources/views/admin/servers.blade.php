@@ -3,12 +3,12 @@
 @section('title', '')
 
 @php
-    $row = static function (?string $level): string {
+    $tile = static function (?string $level): string {
         return match ($level) {
-            'ok' => 'border-l-emerald-500 bg-emerald-50/60',
-            'warn' => 'border-l-amber-500 bg-amber-50/55',
-            'crit' => 'border-l-rose-600 bg-rose-50/65',
-            default => 'border-l-slate-200 bg-slate-50/90',
+            'ok' => 'from-emerald-50 to-emerald-100 border-emerald-200/80 shadow-sm',
+            'warn' => 'from-amber-50 to-amber-100 border-amber-200/80 shadow-sm',
+            'crit' => 'from-rose-50 to-rose-100 border-rose-200/80 shadow-sm',
+            default => 'from-slate-50 to-slate-100 border-slate-200/80 shadow-sm',
         };
     };
 @endphp
@@ -19,99 +19,91 @@
     </a>
 
     <ul class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 list-none p-0">
-        <li class="rounded-xl border border-slate-200/90 bg-white px-6 py-5 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Ключей выдано</div>
-            <div class="mt-2 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 leading-none">{{ $totalKeys }}</div>
+        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-6 shadow-md shadow-slate-200/40">
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Ключей выдано</div>
+            <div class="mt-3 text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalKeys }}</div>
         </li>
-        <li class="rounded-xl border border-slate-200/90 bg-white px-6 py-5 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Узлов онлайн</div>
-            <div class="mt-2 text-3xl sm:text-4xl font-bold tabular-nums text-emerald-600 leading-none">{{ $onlineCount }}</div>
+        <li class="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-md shadow-emerald-200/30">
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700/80">Узлов онлайн</div>
+            <div class="mt-3 text-4xl font-bold tabular-nums text-emerald-700 tracking-tight">{{ $onlineCount }}</div>
         </li>
-        <li class="rounded-xl border border-slate-200/90 bg-white px-6 py-5 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Узлов всего</div>
-            <div class="mt-2 text-3xl sm:text-4xl font-bold tabular-nums text-slate-800 leading-none">{{ $totalBundles }}</div>
+        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-6 shadow-md shadow-slate-200/40">
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Узлов всего</div>
+            <div class="mt-3 text-4xl font-bold tabular-nums text-slate-800 tracking-tight">{{ $totalBundles }}</div>
         </li>
     </ul>
 
-    <ol class="space-y-6 list-none p-0 m-0">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
         @foreach ($bundles as $bundle)
             @php
                 $m = $bundle['metrics'] ?? null;
                 $ctMax = $m ? (int) ($m['conntrack_max'] ?? 0) : 0;
             @endphp
-            <li>
-                <article
-                    class="rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5 overflow-hidden
-                        {{ $bundle['online'] ? '' : 'ring-rose-200/80 border-rose-200' }}"
-                >
-                    <div
-                        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-b border-slate-100
-                            {{ $bundle['online'] ? 'bg-gradient-to-b from-slate-50 to-white' : 'bg-rose-50/80' }}"
-                    >
-                        <div class="min-w-0">
-                            <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                                {{ $bundle['name'] }}
-                            </h2>
-                            @if (! empty($bundle['subtitle']))
-                                <p class="text-sm text-slate-500 mt-0.5">{{ $bundle['subtitle'] }}</p>
+            <article
+                class="rounded-3xl border-2 overflow-hidden flex flex-col min-h-0
+                    {{ $bundle['online']
+                        ? 'border-slate-200/90 bg-white shadow-xl shadow-slate-300/25'
+                        : 'border-rose-200 bg-rose-50/50 shadow-lg shadow-rose-200/20' }}"
+            >
+                <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 px-6 py-5 {{ $bundle['online'] ? 'bg-slate-900 text-white' : 'bg-rose-900 text-white' }}">
+                    <div class="min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold tracking-tight">
+                            {{ $bundle['name'] }}
+                        </h2>
+                        @if (! empty($bundle['subtitle']))
+                            <p class="text-sm text-white/75 mt-1">{{ $bundle['subtitle'] }}</p>
+                        @endif
+                    </div>
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shrink-0 {{ $bundle['online'] ? 'bg-white/15 text-white ring-1 ring-white/25' : 'bg-white/20 text-white ring-1 ring-white/30' }}">
+                        {{ $bundle['online'] ? 'Онлайн' : 'Офлайн' }}
+                    </span>
+                </header>
+
+                <div class="p-5 grid grid-cols-2 gap-3 flex-1 bg-slate-50/80">
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile($bundle['keys_level'] ?? null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Ключи</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $bundle['keys_count'] }}</span>
+                    </div>
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['cpu_level'] ?? null) : $tile(null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">CPU</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? $m['cpu_util_pct'].'%' : '—' }}</span>
+                    </div>
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['ram_level'] ?? null) : $tile(null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">RAM</span>
+                        <span class="text-lg sm:text-2xl font-bold tabular-nums text-slate-900 mt-2 leading-snug">
+                            @if ($m)
+                                {{ $m['mem_used_gb'] }} / {{ $m['mem_total_gb'] }} <span class="text-base font-semibold text-slate-600">ГБ</span>
+                            @else
+                                —
                             @endif
-                        </div>
-                        <span
-                            class="inline-flex items-center self-start sm:self-center px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wide shrink-0
-                                {{ $bundle['online'] ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white' }}"
-                        >
-                            {{ $bundle['online'] ? 'Онлайн' : 'Офлайн' }}
                         </span>
                     </div>
-
-                    <div class="p-0">
-                        <div class="divide-y divide-slate-100">
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-1 items-center min-h-[3.25rem] py-3 px-5 border-l-4 {{ $row($bundle['keys_level'] ?? null) }}">
-                                <span class="text-sm font-medium text-slate-600">Ключи</span>
-                                <span class="text-base sm:text-lg font-semibold tabular-nums text-slate-900 text-left sm:text-right">{{ $bundle['keys_count'] }}</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-1 items-center min-h-[3.25rem] py-3 px-5 border-l-4 {{ $m ? $row($m['cpu_level'] ?? null) : $row(null) }}">
-                                <span class="text-sm font-medium text-slate-600">CPU</span>
-                                <span class="text-base sm:text-lg font-semibold tabular-nums text-slate-900 text-left sm:text-right">{{ $m ? $m['cpu_util_pct'].'%' : '—' }}</span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-1 items-center min-h-[3.25rem] py-3 px-5 border-l-4 {{ $m ? $row($m['ram_level'] ?? null) : $row(null) }}">
-                                <span class="text-sm font-medium text-slate-600">RAM</span>
-                                <span class="text-base sm:text-lg font-semibold tabular-nums text-slate-900 text-left sm:text-right">
-                                    @if ($m)
-                                        {{ $m['mem_used_gb'] }} / {{ $m['mem_total_gb'] }} ГБ
-                                    @else
-                                        —
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-1 items-center min-h-[3.25rem] py-3 px-5 border-l-4 {{ $m && $ctMax > 0 ? $row($m['conntrack_level'] ?? null) : $row(null) }}">
-                                <span class="text-sm font-medium text-slate-600">NAT-сессии</span>
-                                <span class="text-base sm:text-lg font-semibold tabular-nums text-slate-900 text-left sm:text-right break-all sm:break-normal">
-                                    @if ($m && $ctMax > 0)
-                                        {{ number_format((int) $m['conntrack_used'], 0, '.', ' ') }} / {{ number_format($ctMax, 0, '.', ' ') }}
-                                    @else
-                                        —
-                                    @endif
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-1 items-center min-h-[3.25rem] py-3 px-5 border-l-4 {{ $m ? $row($bundle['traffic_level'] ?? null) : $row(null) }}">
-                                <span class="text-sm font-medium text-slate-600">Трафик</span>
-                                <span class="text-base sm:text-lg font-semibold tabular-nums text-slate-900 text-left sm:text-right">
-                                    @if ($m)
-                                        @php
-                                            $b = (int) $m['traffic_total_bytes'];
-                                            $tb = $b / 1_000_000_000_000;
-                                        @endphp
-                                        {{ number_format($tb, 2, '.', ' ') }} ТБ
-                                    @else
-                                        —
-                                    @endif
-                                </span>
-                            </div>
-                        </div>
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">NAT</span>
+                        <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">
+                            @if ($m && $ctMax > 0)
+                                {{ number_format((int) $m['conntrack_used'], 0, '.', ' ') }}<span class="text-slate-500 font-semibold"> / </span>{{ number_format($ctMax, 0, '.', ' ') }}
+                            @else
+                                —
+                            @endif
+                        </span>
                     </div>
-                </article>
-            </li>
+                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 shrink-0">Трафик</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
+                            @if ($m)
+                                @php
+                                    $b = (int) $m['traffic_total_bytes'];
+                                    $tb = $b / 1_000_000_000_000;
+                                @endphp
+                                {{ number_format($tb, 2, '.', ' ') }} <span class="text-lg font-semibold text-slate-600">ТБ</span>
+                            @else
+                                —
+                            @endif
+                        </span>
+                    </div>
+                </div>
+            </article>
         @endforeach
-    </ol>
+    </div>
 @endsection
