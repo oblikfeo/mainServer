@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Subscription extends Model
 {
@@ -39,6 +40,23 @@ class Subscription extends Model
         $n = self::bundleNodeCount();
 
         return max(1, intdiv((int) $this->quota_gb * self::BYTES_PER_GB, $n));
+    }
+
+    public function expiresAt(): ?Carbon
+    {
+        $ms = (int) $this->expiry_ms;
+        if ($ms <= 0) {
+            return null;
+        }
+
+        return Carbon::createFromTimestampMs($ms);
+    }
+
+    public function isExpired(): bool
+    {
+        $at = $this->expiresAt();
+
+        return $at === null ? false : $at->isPast();
     }
 
 }

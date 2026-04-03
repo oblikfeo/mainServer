@@ -21,6 +21,12 @@
                         Надежда
                     </span>
                 </a>
+                <nav class="flex flex-wrap items-center gap-1 sm:gap-2 order-3 sm:order-none w-full sm:w-auto justify-center sm:justify-end text-sm sm:text-base font-medium" aria-label="Админ-меню">
+                    <a href="{{ route('admin.dashboard') }}" class="px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 {{ request()->routeIs('admin.dashboard') ? 'text-slate-900 bg-slate-100' : '' }}">Главная</a>
+                    <a href="{{ route('admin.servers') }}" class="px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 {{ request()->routeIs('admin.servers') ? 'text-slate-900 bg-slate-100' : '' }}">Серверы</a>
+                    <a href="{{ route('admin.subscription.create') }}" class="px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 {{ request()->routeIs('admin.subscription.*') ? 'text-slate-900 bg-slate-100' : '' }}">Подписка</a>
+                    <a href="{{ route('admin.report') }}" class="px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 {{ request()->routeIs('admin.report') ? 'text-slate-900 bg-slate-100' : '' }}">Отчёт</a>
+                </nav>
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
                     <button type="submit" class="text-base font-medium text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">

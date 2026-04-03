@@ -35,4 +35,7 @@ return [
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     'sub_profile_update_hours' => env('SUB_PROFILE_UPDATE_HOURS', '12'),
     'sub_output_b64' => env('SUB_OUTPUT_B64', '0') === '1',
+
+    /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
+    'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
 ];

@@ -62,4 +62,25 @@ final class XuiPanelClient
             throw new XuiPanelException($j['msg'] ?? 'restartXrayService отклонён');
         }
     }
+
+    /**
+     * Список inbound (3x-ui: GET panel/api/inbounds/list). Нужен предварительный login().
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getInboundsList(): array
+    {
+        $r = $this->http->get('panel/api/inbounds/list');
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'inbounds/list: ответ панели некорректен');
+        }
+
+        $obj = $j['obj'] ?? null;
+        if (! is_array($obj)) {
+            return [];
+        }
+
+        return $obj;
+    }
 }

@@ -21,5 +21,14 @@
                 Создание подписки
             </span>
         </a>
+
+        <a
+            href="{{ route('admin.report') }}"
+            class="group flex items-center justify-center rounded-2xl border-2 border-slate-200 bg-white p-10 shadow-sm hover:border-slate-900 hover:shadow-lg transition-all min-h-[140px]"
+        >
+            <span class="text-2xl sm:text-3xl font-bold text-slate-900 text-center group-hover:text-slate-700">
+                Отчёт
+            </span>
+        </a>
     </div>
 @endsection
