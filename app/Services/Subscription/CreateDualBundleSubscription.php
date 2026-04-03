@@ -146,11 +146,11 @@ final class CreateDualBundleSubscription
             return [
                 'fi' => VlessSubscriptionHelper::setVlessFragment(
                     VlessSubscriptionHelper::decodeSubLine($fiRaw),
-                    $subscription->vlessDisplayLabel((string) ($fiNode['vless_display_name'] ?? 'FI'))
+                    (string) ($fiNode['vless_display_name'] ?? 'FI')
                 ),
                 'nl' => VlessSubscriptionHelper::setVlessFragment(
                     VlessSubscriptionHelper::decodeSubLine($nlRaw),
-                    $subscription->vlessDisplayLabel((string) ($nlNode['vless_display_name'] ?? 'NL'))
+                    (string) ($nlNode['vless_display_name'] ?? 'NL')
                 ),
                 'warning' => null,
             ];

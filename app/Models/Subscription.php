@@ -41,18 +41,4 @@ class Subscription extends Model
         return max(1, intdiv((int) $this->quota_gb * self::BYTES_PER_GB, $n));
     }
 
-    /** Целые ГБ на узел для подписи в Happ (100 ГБ / 2 → 50). */
-    public function perNodeQuotaGbDisplay(): int
-    {
-        $n = self::bundleNodeCount();
-
-        return max(1, intdiv((int) $this->quota_gb, $n));
-    }
-
-    public function vlessDisplayLabel(string $nodeBaseName): string
-    {
-        $base = trim($nodeBaseName);
-
-        return $base.' · '.$this->perNodeQuotaGbDisplay().' ГБ';
-    }
 }
