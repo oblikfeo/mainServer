@@ -1,8 +1,12 @@
 <?php
 
 /**
- * Панели 3x-ui: создание клиентов и выдача подписки (как в avavpn-mvp).
- * Порядок в bundle_order — сначала FI, потом NL (как в эталонном скрипте).
+ * Панели 3x-ui: создание клиентов и объединённая подписка для Happ.
+ *
+ * Квота в Happ (заголовок subscription-userinfo и тело) — одна на всю подписку (поле quota в БД).
+ * В 3x-ui у каждого inbound свой счётчик totalGB; без общего биллинга на хабе суммарный потолок по всем узлам
+ * нельзя выразить одним числом в панели, поэтому лимит в байтах на узел = intdiv(quota_в_байтах, count(bundle_order)).
+ * Когда добавите узлы — расширяйте bundle_order и env; делитель — число узлов в этом списке.
  */
 return [
     'panel_username' => env('XUI_PANEL_USER', ''),
@@ -23,7 +27,7 @@ return [
             'panel_base' => rtrim((string) env('XUI_NL_BASE', ''), '/'),
             'sub_origin' => rtrim((string) env('XUI_NL_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_NL_PUB_HOST', ''),
-            'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 1),
+            'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
             'vless_display_name' => env('XUI_NL_VLESS_NAME', 'Нидерланды'),
         ],

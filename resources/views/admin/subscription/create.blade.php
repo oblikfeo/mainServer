@@ -9,9 +9,6 @@
 
     <div class="max-w-2xl">
         <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">Создание подписки</h1>
-        <p class="text-slate-600 text-sm sm:text-base mb-6">
-            Клиент на обе связки (FI и NL), общая ссылка для Happ и две строки VLESS. Лимит ГБ делится пополам между панелями.
-        </p>
 
         @if ($errors->has('xui'))
             <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900 text-sm">
@@ -51,7 +48,7 @@
             </div>
 
             <div>
-                <label for="gb" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Трафик (ГБ, на всю подписку)</label>
+                <label for="gb" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Трафик (ГБ)</label>
                 <select name="gb" id="gb" class="w-full max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400">
                     @foreach ([30, 50, 70, 100, 150, 200] as $g)
                         <option value="{{ $g }}" @selected((int) old('gb', 100) === $g)>{{ $g }}</option>

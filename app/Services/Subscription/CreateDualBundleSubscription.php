@@ -29,7 +29,13 @@ final class CreateDualBundleSubscription
         }
 
         $expiryMs = (int) ((time() + $days * 86400) * 1000);
-        $bytesPerNode = max(1, (int) (($quotaGb * self::BYTES_PER_GB) / 2));
+
+        $nodeCount = count($order);
+        if ($nodeCount < 1) {
+            throw new XuiPanelException('Пустой список узлов в config/xui.php (bundle_order)');
+        }
+        $quotaBytes = $quotaGb * self::BYTES_PER_GB;
+        $bytesPerNode = max(1, intdiv($quotaBytes, $nodeCount));
 
         $subIds = [];
 
