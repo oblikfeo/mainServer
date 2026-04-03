@@ -4,7 +4,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>@yield('title', 'Админка') — Надежда</title>
+        @php
+            $__pageTitle = trim($__env->yieldContent('title'));
+        @endphp
+        <title>{{ $__pageTitle !== '' ? $__pageTitle.' — ' : '' }}Надежда</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased min-h-screen bg-slate-100">
