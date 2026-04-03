@@ -24,6 +24,9 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         @foreach ($bundles as $bundle)
+            @php
+                $m = $bundle['metrics'] ?? null;
+            @endphp
             <article
                 class="rounded-2xl border-2 p-8 shadow-md
                     {{ $bundle['online'] ? 'border-emerald-200 bg-white' : 'border-rose-300 bg-rose-50/50' }}"
@@ -51,16 +54,34 @@
                         <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">ключей на узле</div>
                     </div>
                     <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 col-span-2 sm:col-span-1">
-                        <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">нагрузка</div>
+                        @if ($m)
+                            <div class="text-2xl font-bold tabular-nums text-slate-900">{{ $m['load1'] }}</div>
+                            <div class="text-xs text-slate-500 font-medium mt-1">{{ $m['cpus'] }} CPU · {{ $m['load_per_cpu'] }} на ядро</div>
+                        @else
+                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">нагрузка</div>
+                        @endif
                     </div>
                     <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 col-span-2 sm:col-span-1">
-                        <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">трафик / 30 дн</div>
+                        @if ($m)
+                            <div class="text-2xl font-bold tabular-nums text-slate-900">{{ $m['mem_avail_gb'] }}</div>
+                            <div class="text-xs text-slate-500 font-medium mt-1">ГБ RAM своб.</div>
+                        @else
+                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">RAM</div>
+                        @endif
                     </div>
                     <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 col-span-2 sm:col-span-1">
-                        <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                        <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">CPU</div>
+                        @if ($m)
+                            @php
+                                $gib = $m['traffic_total_bytes'] / 1073741824;
+                            @endphp
+                            <div class="text-2xl font-bold tabular-nums text-slate-900">{{ number_format($gib, 2, '.', ' ') }}</div>
+                            <div class="text-xs text-slate-500 font-medium mt-1">ГБ Σ ↓+↑</div>
+                        @else
+                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
+                            <div class="text-xs text-slate-500 font-medium uppercase tracking-wide mt-1">трафик Σ</div>
+                        @endif
                     </div>
                 </div>
             </article>
