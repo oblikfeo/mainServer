@@ -30,7 +30,15 @@ if [ -n "$iface" ] && [ -r "/sys/class/net/$iface/statistics/rx_bytes" ]; then
   rx=$(cat "/sys/class/net/$iface/statistics/rx_bytes")
   tx=$(cat "/sys/class/net/$iface/statistics/tx_bytes")
 fi
-printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx"
+ct_used=0
+ct_max=0
+if [ -r /proc/sys/net/netfilter/nf_conntrack_count ]; then
+  ct_used=$(cat /proc/sys/net/netfilter/nf_conntrack_count)
+fi
+if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
+  ct_max=$(cat /proc/sys/net/netfilter/nf_conntrack_max)
+fi
+printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max"
 BASH;
 
         try {
@@ -84,6 +92,10 @@ BASH;
         $tx = max(0, (int) $data['tx_bytes']);
         $trafficTotal = $rx + $tx;
 
+        $ctUsed = (int) ($data['conntrack_used'] ?? 0);
+        $ctMax = (int) ($data['conntrack_max'] ?? 0);
+        $ctPct = $ctMax > 0 ? (int) min(100, max(0, round(100 * $ctUsed / $ctMax))) : null;
+
         $loadPerCpu = $load1 / $cpus;
         $cpuUtilPct = (int) min(100, max(0, round($loadPerCpu * 100)));
         $memUsedPct = (int) min(100, max(0, round(100 * $memUsedKb / $memTotalKb)));
@@ -103,9 +115,26 @@ BASH;
             'rx_bytes' => $rx,
             'tx_bytes' => $tx,
             'traffic_total_bytes' => $trafficTotal,
+            'conntrack_used' => $ctUsed,
+            'conntrack_max' => $ctMax,
+            'conntrack_pct' => $ctPct,
+            'conntrack_level' => $ctMax > 0 && $ctPct !== null ? $this->conntrackLevel($ctPct) : null,
             'cpu_level' => $this->loadLevel($loadPerCpu),
             'ram_level' => $this->ramLevel($memUsedPct),
         ];
+    }
+
+    /** Заполнение таблицы conntrack (NAT под нагрузкой клиентов). */
+    private function conntrackLevel(int $pct): string
+    {
+        if ($pct < 75) {
+            return 'ok';
+        }
+        if ($pct < 90) {
+            return 'warn';
+        }
+
+        return 'crit';
     }
 
     /**
