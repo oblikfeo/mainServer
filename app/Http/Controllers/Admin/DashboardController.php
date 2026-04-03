@@ -12,7 +12,18 @@ class DashboardController extends Controller
         protected BundleHealthChecker $bundleHealth
     ) {}
 
+    /**
+     * Главная админки: плитки разділов.
+     */
     public function index(): View
+    {
+        return view('admin.hub');
+    }
+
+    /**
+     * Статус связок: реальная TCP-проверка с этого сервера до IP:порт из config/links.php.
+     */
+    public function servers(): View
     {
         $bundles = collect(config('links.bundles', []))
             ->map(function (array $bundle) {
@@ -26,7 +37,7 @@ class DashboardController extends Controller
 
         $onlineCount = collect($bundles)->where('online', true)->count();
 
-        return view('admin.dashboard', [
+        return view('admin.servers', [
             'bundles' => $bundles,
             'onlineCount' => $onlineCount,
             'totalBundles' => count($bundles),
