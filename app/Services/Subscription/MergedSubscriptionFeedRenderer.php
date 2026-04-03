@@ -17,9 +17,9 @@ final class MergedSubscriptionFeedRenderer
         $fiNode = $nodes['fi'] ?? [];
         $nlNode = $nodes['nl'] ?? [];
 
-        $lines = [];
         $fiUi = [];
         $nlUi = [];
+        $body = '';
 
         try {
             $fiResp = $this->fetchSubResponse(
@@ -43,25 +43,40 @@ final class MergedSubscriptionFeedRenderer
             $fiUi = $this->parseUserinfoHeader($fiResp->header('subscription-userinfo'));
             $nlUi = $this->parseUserinfoHeader($nlResp->header('subscription-userinfo'));
 
+            $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
+            if ($expireSec === 0) {
+                $expireSec = max($fiUi['expire'] ?? 0, $nlUi['expire'] ?? 0);
+            }
+
+            $nodeTotalBytes = $sub->perNodeTotalBytes();
+
             $pairs = [
-                [trim($fiResp->body()), (string) ($fiNode['vless_display_name'] ?? 'FI')],
-                [trim($nlResp->body()), (string) ($nlNode['vless_display_name'] ?? 'NL')],
+                [trim($fiResp->body()), $fiUi, (string) ($fiNode['vless_display_name'] ?? 'FI')],
+                [trim($nlResp->body()), $nlUi, (string) ($nlNode['vless_display_name'] ?? 'NL')],
             ];
 
-            foreach ($pairs as [$raw, $name]) {
+            $bodyChunks = [];
+            foreach ($pairs as [$raw, $ui, $baseName]) {
                 if ($raw === '') {
                     continue;
                 }
                 $line = VlessSubscriptionHelper::decodeSubLine($raw);
-                if ($line !== '') {
-                    $lines[] = VlessSubscriptionHelper::setVlessFragment($line, $name);
+                if ($line === '') {
+                    continue;
                 }
+                $label = $sub->vlessDisplayLabel($baseName);
+                $vless = VlessSubscriptionHelper::setVlessFragment($line, $label);
+                $up = (int) ($ui['upload'] ?? 0);
+                $down = (int) ($ui['download'] ?? 0);
+                $nodeUserinfo = $this->formatUserinfoValue($up, $down, $nodeTotalBytes, $expireSec);
+                $bodyChunks[] = '#subscription-userinfo: '.$nodeUserinfo;
+                $bodyChunks[] = $vless;
             }
+
+            $body = implode("\n", $bodyChunks)."\n";
         } catch (Throwable $e) {
             return new Response('Error: '.$e->getMessage(), 502, ['Content-Type' => 'text/plain; charset=utf-8']);
         }
-
-        $body = implode("\n", array_filter($lines))."\n";
 
         $quotaGb = max(1, (int) $sub->quota_gb);
         $totalCap = $quotaGb * self::BYTES_PER_GB;
@@ -72,14 +87,10 @@ final class MergedSubscriptionFeedRenderer
 
         $up = ($fiUi['upload'] ?? 0) + ($nlUi['upload'] ?? 0);
         $down = ($fiUi['download'] ?? 0) + ($nlUi['download'] ?? 0);
-        $userinfo = "upload={$up}; download={$down}; total={$totalCap}; expire={$expireSec}";
-
-        $meta = "#subscription-userinfo: {$userinfo}\n";
+        $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
         if (config('xui.sub_output_b64', false)) {
-            $body = base64_encode($meta.$body)."\n";
-        } else {
-            $body = $meta.$body;
+            $body = base64_encode($body)."\n";
         }
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
@@ -127,5 +138,10 @@ final class MergedSubscriptionFeedRenderer
         }
 
         return $out;
+    }
+
+    private function formatUserinfoValue(int $upload, int $download, int $total, int $expireSec): string
+    {
+        return "upload={$upload}; download={$download}; total={$total}; expire={$expireSec}";
     }
 }

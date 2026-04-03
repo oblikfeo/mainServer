@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subscription extends Model
 {
+    private const BYTES_PER_GB = 1_073_741_824;
+
     protected $fillable = [
         'token',
         'fi_sub_id',
@@ -22,5 +24,35 @@ class Subscription extends Model
             'expiry_ms' => 'integer',
             'devices' => 'integer',
         ];
+    }
+
+    public static function bundleNodeCount(): int
+    {
+        $order = config('xui.bundle_order', ['fi', 'nl']);
+
+        return max(1, count($order));
+    }
+
+    /** Лимит в байтах на один узел (как в 3x-ui totalGB). */
+    public function perNodeTotalBytes(): int
+    {
+        $n = self::bundleNodeCount();
+
+        return max(1, intdiv((int) $this->quota_gb * self::BYTES_PER_GB, $n));
+    }
+
+    /** Целые ГБ на узел для подписи в Happ (100 ГБ / 2 → 50). */
+    public function perNodeQuotaGbDisplay(): int
+    {
+        $n = self::bundleNodeCount();
+
+        return max(1, intdiv((int) $this->quota_gb, $n));
+    }
+
+    public function vlessDisplayLabel(string $nodeBaseName): string
+    {
+        $base = trim($nodeBaseName);
+
+        return $base.' · '.$this->perNodeQuotaGbDisplay().' ГБ';
     }
 }
