@@ -29,14 +29,19 @@ class DashboardController extends Controller
             ->pluck('c', 'bundle_id');
 
         $ttl = max(15, config('links.metrics_cache_ttl', 45));
+        $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
         $th = config('links.thresholds', []);
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($keyCounts, $ttl, $th) {
-                $port = (int) ($bundle['check_port'] ?? 22);
+            ->map(function (array $bundle) use ($keyCounts, $ttl, $healthTtl, $th) {
                 $id = $bundle['id'];
 
-                $bundle['online'] = $this->bundleHealth->tcpReachable($bundle['ip'], $port);
+                $bundleForHealth = $bundle;
+                $bundle['online'] = Cache::remember(
+                    'bundle_health_v1_'.$id,
+                    $healthTtl,
+                    fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
+                );
                 $bundle['keys_count'] = (int) ($keyCounts[$id] ?? 0);
 
                 $bundleForSsh = $bundle;
@@ -60,7 +65,7 @@ class DashboardController extends Controller
                     )
                     : null;
 
-                unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['check_port'], $bundle['ip']);
+                unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['client_tcp_port'], $bundle['ip']);
 
                 return $bundle;
             })

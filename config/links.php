@@ -12,7 +12,7 @@ return [
             'ip' => '158.160.208.31',
             'ssh_user' => 'ubuntu',
             'ssh_private_key' => env('LINK_NL_SSH_KEY', ''),
-            'check_port' => 22,
+            'client_tcp_port' => (int) env('LINK_NL_CLIENT_TCP_PORT', 443),
         ],
         [
             'id' => 'fi',
@@ -21,8 +21,18 @@ return [
             'ip' => '158.160.241.36',
             'ssh_user' => 'oblik',
             'ssh_private_key' => env('LINK_FI_SSH_KEY', ''),
-            'check_port' => 22,
+            'client_tcp_port' => (int) env('LINK_FI_CLIENT_TCP_PORT', 443),
         ],
+    ],
+
+    /*
+    | Проверка «онлайн» для статистики: TCP с хаба + по SSH маршрут, :443, Xray, egress HTTPS.
+    | Без SSH-ключа остаётся только TCP до client_tcp_port.
+    */
+    'health' => [
+        'cache_ttl' => (int) env('LINK_HEALTH_CACHE_TTL', 30),
+        'client_tcp_port' => (int) env('LINK_CLIENT_TCP_PORT', 443),
+        'ssh_timeout_seconds' => (int) env('LINK_HEALTH_SSH_TIMEOUT', 22),
     ],
 
     'tcp_timeout_seconds' => 2,
