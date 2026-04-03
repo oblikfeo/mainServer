@@ -3,12 +3,12 @@
 @section('title', '')
 
 @php
-    $cell = static function (?string $level): string {
+    $fill = static function (?string $level): string {
         return match ($level) {
-            'ok' => 'bg-emerald-50 border-emerald-200 ring-1 ring-emerald-100',
-            'warn' => 'bg-amber-50 border-amber-300 ring-1 ring-amber-200',
-            'crit' => 'bg-rose-50 border-rose-400 ring-1 ring-rose-200',
-            default => 'bg-slate-50 border-slate-200 ring-1 ring-slate-100',
+            'ok' => 'bg-emerald-300',
+            'warn' => 'bg-amber-300',
+            'crit' => 'bg-rose-400',
+            default => 'bg-stone-300',
         };
     };
 @endphp
@@ -42,7 +42,7 @@
                 class="rounded-2xl border-2 p-8 shadow-md
                     {{ $bundle['online'] ? 'border-emerald-200 bg-white' : 'border-rose-300 bg-rose-50/50' }}"
             >
-                <div class="flex flex-wrap items-start justify-between gap-4 mb-8">
+                <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
                     <div>
                         <h2 class="text-3xl sm:text-4xl font-bold text-slate-900">
                             {{ $bundle['name'] }}
@@ -59,50 +59,40 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="rounded-xl border-2 p-4 col-span-2 sm:col-span-1 {{ $cell(null) }}">
-                        <div class="text-2xl font-bold tabular-nums text-slate-900">{{ $bundle['keys_count'] }}</div>
-                        <div class="text-xs text-slate-600 font-medium mt-1 leading-snug">ключей на узле</div>
-                    </div>
-                    <div class="rounded-xl border-2 p-4 col-span-2 sm:col-span-1 {{ $m ? $cell($m['cpu_level'] ?? null) : $cell(null) }}">
-                        @if ($m)
-                            <div class="text-2xl font-bold tabular-nums text-slate-900">{{ $m['cpu_util_pct'] }}%</div>
-                            <div class="text-xs text-slate-600 font-medium mt-1 leading-snug">нагрузка CPU</div>
-                            <div class="text-[11px] text-slate-500 mt-1 tabular-nums">{{ $m['cpus'] }} ядер · load 1 мин {{ $m['load1'] }}</div>
-                        @else
-                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                            <div class="text-xs text-slate-600 font-medium mt-1">нагрузка CPU</div>
-                        @endif
-                    </div>
-                    <div class="rounded-xl border-2 p-4 col-span-2 sm:col-span-1 {{ $m ? $cell($m['ram_level'] ?? null) : $cell(null) }}">
-                        @if ($m)
-                            <div class="text-2xl font-bold tabular-nums text-slate-900">
-                                <span class="tabular-nums">{{ $m['mem_used_gb'] }}</span>
-                                <span class="text-slate-400 font-semibold">/</span>
-                                <span class="tabular-nums">{{ $m['mem_total_gb'] }}</span>
-                                <span class="text-lg font-semibold text-slate-600">ГБ</span>
-                            </div>
-                            <div class="text-xs text-slate-600 font-medium mt-1 leading-snug">RAM занято / всего</div>
-                            <div class="text-[11px] text-slate-500 mt-1 tabular-nums">≈ {{ $m['mem_used_pct'] }}% занято</div>
-                        @else
-                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                            <div class="text-xs text-slate-600 font-medium mt-1">RAM</div>
-                        @endif
-                    </div>
-                    <div class="rounded-xl border-2 p-4 col-span-2 sm:col-span-1 {{ $cell(null) }}">
-                        @if ($m)
-                            @php
-                                $gib = $m['traffic_total_bytes'] / 1073741824;
-                            @endphp
-                            <div class="text-2xl font-bold tabular-nums text-slate-900">{{ number_format($gib, 2, '.', ' ') }}</div>
-                            <div class="text-xs text-slate-600 font-medium mt-1 leading-snug">ГБ накоплено</div>
-                            <div class="text-[11px] text-slate-500 mt-1">с загрузки ОС, приём и передача суммой</div>
-                        @else
-                            <div class="text-2xl font-bold tabular-nums text-slate-400">—</div>
-                            <div class="text-xs text-slate-600 font-medium mt-1">трафик</div>
-                        @endif
-                    </div>
-                </div>
+                <ul class="space-y-1 text-slate-900">
+                    <li class="flex justify-between items-center gap-4 px-4 py-3.5 rounded-lg {{ $fill($bundle['keys_level'] ?? null) }}">
+                        <span class="font-medium">Ключи</span>
+                        <span class="text-xl font-bold tabular-nums">{{ $bundle['keys_count'] }}</span>
+                    </li>
+                    <li class="flex justify-between items-center gap-4 px-4 py-3.5 rounded-lg {{ $m ? $fill($m['cpu_level'] ?? null) : $fill(null) }}">
+                        <span class="font-medium">CPU</span>
+                        <span class="text-xl font-bold tabular-nums">{{ $m ? $m['cpu_util_pct'].'%' : '—' }}</span>
+                    </li>
+                    <li class="flex justify-between items-center gap-4 px-4 py-3.5 rounded-lg {{ $m ? $fill($m['ram_level'] ?? null) : $fill(null) }}">
+                        <span class="font-medium">RAM</span>
+                        <span class="text-xl font-bold tabular-nums">
+                            @if ($m)
+                                {{ $m['mem_used_gb'] }} / {{ $m['mem_total_gb'] }} ГБ
+                            @else
+                                —
+                            @endif
+                        </span>
+                    </li>
+                    <li class="flex justify-between items-center gap-4 px-4 py-3.5 rounded-lg {{ $m ? $fill($bundle['traffic_level'] ?? null) : $fill(null) }}">
+                        <span class="font-medium">Трафик</span>
+                        <span class="text-xl font-bold tabular-nums">
+                            @if ($m)
+                                @php
+                                    $b = (int) $m['traffic_total_bytes'];
+                                    $tb = $b / 1_000_000_000_000;
+                                @endphp
+                                {{ number_format($tb, 2, '.', ' ') }} ТБ
+                            @else
+                                —
+                            @endif
+                        </span>
+                    </li>
+                </ul>
             </article>
         @endforeach
     </div>
