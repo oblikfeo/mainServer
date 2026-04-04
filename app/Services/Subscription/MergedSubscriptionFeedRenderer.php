@@ -64,7 +64,8 @@ final class MergedSubscriptionFeedRenderer
                 $lines[] = VlessSubscriptionHelper::setVlessFragment(
                     $line,
                     $row['name'],
-                    (string) config('xui.vless_server_description', '')
+                    (string) config('xui.vless_server_description', ''),
+                    (string) config('xui.vless_server_description_format', 'dual')
                 );
             }
         } catch (Throwable $e) {

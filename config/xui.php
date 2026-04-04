@@ -4,7 +4,7 @@
  * Панели 3x-ui: создание клиентов и объединённая подписка для Happ.
  *
  * Заголовок и строка #subscription-userinfo в теле — суммарный трафик по подписке (0/100 в Happ).
- * Имя узла после # в vless://; в Happ вторая строка (вместо «VLESS») — через #Title?serverDescription=… (см. happ.su dev-docs).
+ * Вторая строка в Happ: после title в фрагменте через «?» (см. happ.su app-management). Режим задаётся vless_server_description_format.
  * В 3x-ui на каждом inbound свой totalGB = intdiv(quota_в_байтах, count(bundle_order)).
  */
 return [
@@ -33,10 +33,16 @@ return [
     ],
 
     /**
-     * Подпись под заголовком узла в Happ (вместо «VLESS»). Пустая строка в .env — не подставлять, останется VLESS.
-     * @see https://www.happ.su/main/dev-docs/examples-of-links-and-parameters
+     * Подпись под заголовком узла в Happ (вместо «VLESS»). Пусто — не добавлять вторую часть.
+     * @see https://www.happ.su/main/dev-docs/app-management
      */
     'vless_server_description' => trim((string) env('XUI_VLESS_SERVER_DESCRIPTION', 'белый список')),
+
+    /**
+     * dual = #Title?подпись (как в инструкции Happ для vless: «через ? после title»).
+     * b64 = #Title?serverDescription=<base64> (как в примерах socks/ss в той же доке).
+     */
+    'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'dual'))),
 
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     /** Имя профиля в Happ (до 25 символов): заголовок и #profile-title в теле */

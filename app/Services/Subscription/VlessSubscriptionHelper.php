@@ -26,10 +26,11 @@ final class VlessSubscriptionHelper
     }
 
     /**
-     * Фрагмент vless:// для Happ: первая строка — $title (до 30 символов), вторая — serverDescription вместо «VLESS».
-     * Формат Happ (app-management): #Title?serverDescription=<base64 UTF-8> (не urlencode).
+     * Фрагмент vless:// для Happ: первая строка — title (до 30 симв.), вторая — подпись вместо «VLESS».
+     *
+     * @param  string  $format  dual | b64
      */
-    public static function setVlessFragment(string $url, string $title, string $serverDescription = ''): string
+    public static function setVlessFragment(string $url, string $title, string $serverDescription = '', string $format = 'dual'): string
     {
         if ($url === '' || ! str_starts_with($url, 'vless://')) {
             return $url;
@@ -47,16 +48,23 @@ final class VlessSubscriptionHelper
         }
 
         $serverDescription = trim($serverDescription);
-        if ($serverDescription !== '') {
-            // Happ: подпись под именем — max 30 символов, значение в фрагменте передаётся в Base64 (док. app-management).
-            if (function_exists('mb_substr')) {
-                $serverDescription = mb_substr($serverDescription, 0, 30);
-            } else {
-                $serverDescription = substr($serverDescription, 0, 30);
-            }
+        if ($serverDescription === '') {
+            return $base.'#'.$title;
+        }
+
+        if (function_exists('mb_substr')) {
+            $serverDescription = mb_substr($serverDescription, 0, 30);
+        } else {
+            $serverDescription = substr($serverDescription, 0, 30);
+        }
+
+        $format = strtolower(trim($format)) === 'b64' ? 'b64' : 'dual';
+
+        if ($format === 'b64') {
             $fragment = $title.'?serverDescription='.base64_encode($serverDescription);
         } else {
-            $fragment = $title;
+            // Инструкция Happ: «Set after title via the ? separator» — #ИмяУзла?подпись
+            $fragment = $title.'?'.$serverDescription;
         }
 
         return $base.'#'.$fragment;
