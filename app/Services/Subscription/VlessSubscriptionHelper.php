@@ -25,14 +25,40 @@ final class VlessSubscriptionHelper
         return $raw;
     }
 
-    public static function setVlessFragment(string $url, string $displayName): string
+    /**
+     * Фрагмент vless:// для Happ: первая строка — $title (до 30 символов), вторая — serverDescription вместо «VLESS».
+     * Формат из документации Happ: #Title?serverDescription=...
+     */
+    public static function setVlessFragment(string $url, string $title, string $serverDescription = ''): string
     {
         if ($url === '' || ! str_starts_with($url, 'vless://')) {
             return $url;
         }
         $base = explode('#', $url, 2)[0];
+        $title = trim($title);
+        if ($title === '') {
+            return $base;
+        }
 
-        return $base.'#'.$displayName;
+        if (function_exists('mb_substr')) {
+            $title = mb_substr($title, 0, 30);
+        } else {
+            $title = substr($title, 0, 30);
+        }
+
+        $serverDescription = trim($serverDescription);
+        if ($serverDescription !== '') {
+            if (function_exists('mb_substr')) {
+                $serverDescription = mb_substr($serverDescription, 0, 64);
+            } else {
+                $serverDescription = substr($serverDescription, 0, 64);
+            }
+            $fragment = $title.'?serverDescription='.rawurlencode($serverDescription);
+        } else {
+            $fragment = $title;
+        }
+
+        return $base.'#'.$fragment;
     }
 
     /**

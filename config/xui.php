@@ -4,7 +4,7 @@
  * Панели 3x-ui: создание клиентов и объединённая подписка для Happ.
  *
  * Заголовок и строка #subscription-userinfo в теле — суммарный трафик по подписке (0/100 в Happ).
- * Отдельного такого же счётчика «на каждое соединение» у формата подписки нет — только имя узла после # в vless://.
+ * Имя узла после # в vless://; в Happ вторая строка (вместо «VLESS») — через #Title?serverDescription=… (см. happ.su dev-docs).
  * В 3x-ui на каждом inbound свой totalGB = intdiv(quota_в_байтах, count(bundle_order)).
  */
 return [
@@ -31,6 +31,12 @@ return [
             'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'Нидерланды 🇳🇱',
         ],
     ],
+
+    /**
+     * Подпись под заголовком узла в Happ (вместо «VLESS»). Пустая строка в .env — не подставлять, останется VLESS.
+     * @see https://www.happ.su/main/dev-docs/examples-of-links-and-parameters
+     */
+    'vless_server_description' => trim((string) env('XUI_VLESS_SERVER_DESCRIPTION', 'белый список')),
 
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     /** Имя профиля в Happ (до 25 символов): заголовок и #profile-title в теле */

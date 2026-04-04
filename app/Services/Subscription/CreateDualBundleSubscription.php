@@ -146,14 +146,18 @@ final class CreateDualBundleSubscription
             $fiLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($fiRaw);
             $nlLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($nlRaw);
 
+            $subDesc = (string) config('xui.vless_server_description', '');
+
             return [
                 'fi' => VlessSubscriptionHelper::setVlessFragment(
                     $fiLine,
-                    (string) ($fiNode['vless_display_name'] ?? 'FI')
+                    (string) ($fiNode['vless_display_name'] ?? 'FI'),
+                    $subDesc
                 ),
                 'nl' => VlessSubscriptionHelper::setVlessFragment(
                     $nlLine,
-                    (string) ($nlNode['vless_display_name'] ?? 'NL')
+                    (string) ($nlNode['vless_display_name'] ?? 'NL'),
+                    $subDesc
                 ),
                 'warning' => ($fiLine === '' || $nlLine === '')
                     ? 'В ответе одной из панелей не найдена строка vless://'

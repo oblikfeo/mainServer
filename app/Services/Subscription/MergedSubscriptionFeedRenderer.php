@@ -61,7 +61,11 @@ final class MergedSubscriptionFeedRenderer
                         $row['label'].': в ответе нет vless:// (часто из‑за строк #meta в теле подписки панели — уже обрабатывается; проверьте subId и доступность sub_origin с сервера Laravel)'
                     );
                 }
-                $lines[] = VlessSubscriptionHelper::setVlessFragment($line, $row['name']);
+                $lines[] = VlessSubscriptionHelper::setVlessFragment(
+                    $line,
+                    $row['name'],
+                    (string) config('xui.vless_server_description', '')
+                );
             }
         } catch (Throwable $e) {
             Log::warning('subscription.feed.error', [
