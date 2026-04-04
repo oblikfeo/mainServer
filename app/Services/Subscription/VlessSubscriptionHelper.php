@@ -27,7 +27,7 @@ final class VlessSubscriptionHelper
 
     /**
      * Фрагмент vless:// для Happ: первая строка — $title (до 30 символов), вторая — serverDescription вместо «VLESS».
-     * Формат из документации Happ: #Title?serverDescription=...
+     * Формат Happ (app-management): #Title?serverDescription=<base64 UTF-8> (не urlencode).
      */
     public static function setVlessFragment(string $url, string $title, string $serverDescription = ''): string
     {
@@ -48,12 +48,13 @@ final class VlessSubscriptionHelper
 
         $serverDescription = trim($serverDescription);
         if ($serverDescription !== '') {
+            // Happ: подпись под именем — max 30 символов, значение в фрагменте передаётся в Base64 (док. app-management).
             if (function_exists('mb_substr')) {
-                $serverDescription = mb_substr($serverDescription, 0, 64);
+                $serverDescription = mb_substr($serverDescription, 0, 30);
             } else {
-                $serverDescription = substr($serverDescription, 0, 64);
+                $serverDescription = substr($serverDescription, 0, 30);
             }
-            $fragment = $title.'?serverDescription='.rawurlencode($serverDescription);
+            $fragment = $title.'?serverDescription='.base64_encode($serverDescription);
         } else {
             $fragment = $title;
         }
