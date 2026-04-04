@@ -3,12 +3,12 @@
 @section('title', 'Подписка')
 
 @section('content')
-    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-8 text-lg font-medium">
+    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-6 sm:mb-8 text-base sm:text-lg font-medium py-1">
         ←
     </a>
 
-    <div class="max-w-2xl">
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">Создание подписки</h1>
+    <div class="max-w-2xl w-full mx-auto">
+        <h1 class="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">Создание подписки</h1>
 
         @if ($errors->has('xui'))
             <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900 text-sm">
@@ -25,7 +25,7 @@
 
             <div>
                 <label for="devices" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Устройства (limitIp)</label>
-                <select name="devices" id="devices" class="w-full max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400">
+                <select name="devices" id="devices" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]">
                     @foreach ([1, 2, 3, 4, 5] as $n)
                         <option value="{{ $n }}" @selected((int) old('devices', 3) === $n)>{{ $n }}</option>
                     @endforeach
@@ -49,7 +49,7 @@
 
             <div>
                 <label for="gb" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Трафик (ГБ)</label>
-                <select name="gb" id="gb" class="w-full max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400">
+                <select name="gb" id="gb" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]">
                     @foreach ([30, 50, 70, 100, 150, 200] as $g)
                         <option value="{{ $g }}" @selected((int) old('gb', 100) === $g)>{{ $g }}</option>
                     @endforeach
@@ -62,7 +62,7 @@
             <div class="pt-2">
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-slate-800 transition-colors"
+                    class="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-slate-800 transition-colors min-h-[48px]"
                 >
                     Создать
                 </button>

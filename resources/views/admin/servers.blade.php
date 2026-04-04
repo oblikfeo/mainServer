@@ -14,26 +14,26 @@
 @endphp
 
 @section('content')
-    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-8 text-lg font-medium">
+    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-6 sm:mb-8 text-base sm:text-lg font-medium min-h-[44px] min-w-[44px] flex items-center">
         ←
     </a>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 list-none p-0">
-        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-6 shadow-md shadow-slate-200/40">
+    <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10 list-none p-0">
+        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 shadow-md shadow-slate-200/40">
             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Ключей выдано</div>
-            <div class="mt-3 text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalKeys }}</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalKeys }}</div>
         </li>
-        <li class="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-md shadow-emerald-200/30">
+        <li class="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-4 sm:p-6 shadow-md shadow-emerald-200/30">
             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700/80">Узлов онлайн</div>
-            <div class="mt-3 text-4xl font-bold tabular-nums text-emerald-700 tracking-tight">{{ $onlineCount }}</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-emerald-700 tracking-tight">{{ $onlineCount }}</div>
         </li>
-        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-6 shadow-md shadow-slate-200/40">
+        <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 shadow-md shadow-slate-200/40">
             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Узлов всего</div>
-            <div class="mt-3 text-4xl font-bold tabular-nums text-slate-800 tracking-tight">{{ $totalBundles }}</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-800 tracking-tight">{{ $totalBundles }}</div>
         </li>
     </ul>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
         @foreach ($bundles as $bundle)
             @php
                 $m = $bundle['metrics'] ?? null;
