@@ -38,13 +38,7 @@ return [
      */
     'vless_server_description' => trim((string) env('XUI_VLESS_SERVER_DESCRIPTION', 'белый список')),
 
-    /**
-     * Подпись вместо «VLESS» в списке узлов (HTTP-подписка = только через фрагмент vless://).
-     * JSON из доки Happ с корневыми remarks + meta.serverDescription — это другой сценарий: импорт целого JSON-конфига, не текстовой /sub.
-     *
-     * b64 = #Title?serverDescription=<base64 UTF-8> (как socks/ss/wireguard в app-management).
-     * dual = #Title?подпись без ключа (короткая формулировка «через ?» в той же доке).
-     */
+    /** b64 = #Title?serverDescription=<base64>; dual = #Title?подпись. @see happ.su app-management */
     'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'b64'))),
 
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
