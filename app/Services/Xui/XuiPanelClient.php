@@ -63,6 +63,16 @@ final class XuiPanelClient
         }
     }
 
+    public function deleteInboundClientByEmail(int $inboundId, string $email): void
+    {
+        $path = 'panel/api/inbounds/'.$inboundId.'/delClientByEmail/'.rawurlencode($email);
+        $r = $this->http->post($path);
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'delClientByEmail отклонён');
+        }
+    }
+
     /**
      * Список inbound (3x-ui: GET panel/api/inbounds/list). Нужен предварительный login().
      *

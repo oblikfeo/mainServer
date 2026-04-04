@@ -8,6 +8,18 @@
         ←
     </a>
 
+    @if (session('status'))
+        <div class="mb-5 sm:mb-6 rounded-2xl border border-emerald-200/90 bg-emerald-50 px-4 sm:px-5 py-4 text-emerald-950 text-sm font-medium shadow-sm ring-1 ring-emerald-900/5">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    @if ($errors->has('xui'))
+        <div class="mb-5 sm:mb-6 rounded-2xl border border-rose-200/90 bg-rose-50 px-4 sm:px-5 py-4 text-rose-950 text-sm shadow-sm ring-1 ring-rose-900/5">
+            {{ $errors->first('xui') }}
+        </div>
+    @endif
+
     @if (! empty($trafficErrors))
         <div class="mb-5 sm:mb-6 rounded-2xl border border-amber-200/90 bg-amber-50 px-4 sm:px-5 py-4 text-amber-950 text-sm shadow-sm ring-1 ring-amber-900/5 space-y-2">
             <p class="font-bold text-amber-900">Трафик с панелей частично или полностью недоступен</p>
@@ -127,6 +139,18 @@
                     >
                         @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt])
                     </div>
+                    <div class="px-4 pb-4 pt-2 border-t border-slate-200">
+                        <form
+                            method="post"
+                            action="{{ route('admin.subscription.destroy', $subscription) }}"
+                            onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+                        >
+                            @csrf
+                            <button type="submit" class="w-full rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-900 hover:bg-rose-100 min-h-[48px]">
+                                Удалить подписку
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </article>
         @empty
@@ -152,6 +176,7 @@
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90" scope="col">Статус</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Квота</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Трафик</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Действия</th>
                         </tr>
                     </thead>
                     @foreach ($subscriptions as $subscription)
@@ -202,9 +227,22 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $subscription->quota_gb }} ГБ</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</td>
+                                <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
+                                    <form
+                                        method="post"
+                                        action="{{ route('admin.subscription.destroy', $subscription) }}"
+                                        class="inline"
+                                        onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+                                    >
+                                        @csrf
+                                        <button type="submit" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-900 hover:bg-rose-100">
+                                            Удалить
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                             <tr x-show="open" x-cloak class="bg-gradient-to-br from-slate-50 to-slate-100/90">
-                                <td colspan="7" class="px-5 py-5 border-t border-slate-200/80">
+                                <td colspan="8" class="px-5 py-5 border-t border-slate-200/80">
                                     @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt])
                                 </td>
                             </tr>

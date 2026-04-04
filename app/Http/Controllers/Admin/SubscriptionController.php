@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Services\Subscription\CreateDualBundleSubscription;
+use App\Services\Subscription\DestroySubscription;
 use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,5 +72,20 @@ class SubscriptionController extends Controller
             'nlVless' => $nlVless,
             'decodeWarning' => $decodeWarning,
         ]);
+    }
+
+    public function destroy(Subscription $subscription, DestroySubscription $destroyer): RedirectResponse
+    {
+        try {
+            $destroyer->destroy($subscription);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('admin.report')
+                ->withErrors(['xui' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('admin.report')
+            ->with('status', 'Подписка удалена (панели FI/NL и запись в БД).');
     }
 }

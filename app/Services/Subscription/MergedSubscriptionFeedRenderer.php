@@ -2,8 +2,11 @@
 
 namespace App\Services\Subscription;
 
+use App\Models\AppSetting;
 use App\Models\Subscription;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -22,16 +25,7 @@ final class MergedSubscriptionFeedRenderer
         $lines = [];
 
         try {
-            $fiResp = $this->fetchSubResponse(
-                (string) ($fiNode['sub_origin'] ?? ''),
-                $sub->fi_sub_id,
-                (string) ($fiNode['pub_host'] ?? '')
-            );
-            $nlResp = $this->fetchSubResponse(
-                (string) ($nlNode['sub_origin'] ?? ''),
-                $sub->nl_sub_id,
-                (string) ($nlNode['pub_host'] ?? '')
-            );
+            [$fiResp, $nlResp] = $this->fetchPanelSubsParallel($fiNode, $nlNode, $sub);
 
             if (! $fiResp->successful()) {
                 throw new \RuntimeException('FI подписка: HTTP '.$fiResp->status());
@@ -44,21 +38,41 @@ final class MergedSubscriptionFeedRenderer
             $nlUi = $this->parseUserinfoHeader($nlResp->header('subscription-userinfo'));
 
             $pairs = [
-                [trim($fiResp->body()), (string) ($fiNode['vless_display_name'] ?? 'FI')],
-                [trim($nlResp->body()), (string) ($nlNode['vless_display_name'] ?? 'NL')],
+                [
+                    'raw' => trim($fiResp->body()),
+                    'label' => 'FI',
+                    'name' => (string) ($fiNode['vless_display_name'] ?? 'FI'),
+                ],
+                [
+                    'raw' => trim($nlResp->body()),
+                    'label' => 'NL',
+                    'name' => (string) ($nlNode['vless_display_name'] ?? 'NL'),
+                ],
             ];
 
-            foreach ($pairs as [$raw, $name]) {
+            foreach ($pairs as $row) {
+                $raw = $row['raw'];
                 if ($raw === '') {
-                    continue;
+                    throw new \RuntimeException($row['label'].': пустой ответ панели по ссылке sub');
                 }
-                $line = VlessSubscriptionHelper::decodeSubLine($raw);
-                if ($line !== '') {
-                    $lines[] = VlessSubscriptionHelper::setVlessFragment($line, $name);
+                $line = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($raw);
+                if ($line === '' || ! str_starts_with($line, 'vless://')) {
+                    throw new \RuntimeException(
+                        $row['label'].': в ответе нет vless:// (часто из‑за строк #meta в теле подписки панели — уже обрабатывается; проверьте subId и доступность sub_origin с сервера Laravel)'
+                    );
                 }
+                $lines[] = VlessSubscriptionHelper::setVlessFragment($line, $row['name']);
             }
         } catch (Throwable $e) {
-            return new Response('Error: '.$e->getMessage(), 502, ['Content-Type' => 'text/plain; charset=utf-8']);
+            Log::warning('subscription.feed.error', [
+                'message' => $e->getMessage(),
+                'token_tail' => substr($sub->token, -6),
+            ]);
+
+            return new Response('Error: '.$e->getMessage(), 503, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Retry-After' => '30',
+            ]);
         }
 
         $body = implode("\n", array_filter($lines))."\n";
@@ -74,7 +88,8 @@ final class MergedSubscriptionFeedRenderer
         $down = ($fiUi['download'] ?? 0) + ($nlUi['download'] ?? 0);
         $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
-        $meta = "#subscription-userinfo: {$userinfo}\n";
+        $profileTitle = $this->profileTitleForHapp();
+        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n";
 
         if (config('xui.sub_output_b64', false)) {
             $body = base64_encode($meta.$body)."\n";
@@ -84,6 +99,7 @@ final class MergedSubscriptionFeedRenderer
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
 
+        // Имя профиля только в теле (#profile-title) — в HTTP-заголовке UTF-8/прокси часто ломают ответ.
         return new Response($body, 200, [
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
@@ -91,18 +107,64 @@ final class MergedSubscriptionFeedRenderer
         ]);
     }
 
-    private function fetchSubResponse(string $subOrigin, string $subId, string $pubHost): \Illuminate\Http\Client\Response
+    /**
+     * Параллельно FI+NL: два последовательных запроса часто упираются в proxy_read_timeout nginx → «502» без тела.
+     *
+     * @param  array<string, mixed>  $fiNode
+     * @param  array<string, mixed>  $nlNode
+     * @return array{0: \Illuminate\Http\Client\Response, 1: \Illuminate\Http\Client\Response}
+     */
+    private function fetchPanelSubsParallel(array $fiNode, array $nlNode, Subscription $sub): array
     {
-        $url = rtrim($subOrigin, '/').'/sub/'.$subId;
+        $fiOrigin = rtrim((string) ($fiNode['sub_origin'] ?? ''), '/');
+        $nlOrigin = rtrim((string) ($nlNode['sub_origin'] ?? ''), '/');
+        if ($fiOrigin === '' || $nlOrigin === '') {
+            throw new \RuntimeException('Пустой XUI_FI_SUB_ORIGIN или XUI_NL_SUB_ORIGIN в .env');
+        }
 
-        return Http::withoutVerifying()
-            ->withHeaders([
-                'X-Forwarded-Host' => $pubHost,
-                'X-Real-IP' => $pubHost,
-                'Accept' => '*/*',
-            ])
-            ->timeout(45)
-            ->get($url);
+        $fiUrl = $fiOrigin.'/sub/'.rawurlencode((string) $sub->fi_sub_id);
+        $nlUrl = $nlOrigin.'/sub/'.rawurlencode((string) $sub->nl_sub_id);
+
+        $fiHeaders = $this->panelSubHeaders((string) ($fiNode['pub_host'] ?? ''));
+        $nlHeaders = $this->panelSubHeaders((string) ($nlNode['pub_host'] ?? ''));
+
+        $responses = Http::pool(fn (Pool $pool) => [
+            $pool->as('fi')
+                ->withoutVerifying()
+                ->withHeaders($fiHeaders)
+                ->connectTimeout(12)
+                ->timeout(28)
+                ->get($fiUrl),
+            $pool->as('nl')
+                ->withoutVerifying()
+                ->withHeaders($nlHeaders)
+                ->connectTimeout(12)
+                ->timeout(28)
+                ->get($nlUrl),
+        ]);
+
+        return [$responses['fi'], $responses['nl']];
+    }
+
+    /**
+     * Пустые X-Forwarded-* ломают часть инсталляций 3x-ui/nginx; не шлём, если pub_host не задан.
+     *
+     * @return array<string, string>
+     */
+    private function panelSubHeaders(string $pubHost): array
+    {
+        $headers = [
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'identity',
+        ];
+        $pubHost = trim($pubHost);
+        if ($pubHost !== '') {
+            $headers['X-Forwarded-Host'] = $pubHost;
+            $headers['X-Real-IP'] = $pubHost;
+        }
+
+        return $headers;
     }
 
     /**
@@ -132,5 +194,25 @@ final class MergedSubscriptionFeedRenderer
     private function formatUserinfoValue(int $upload, int $download, int $total, int $expireSec): string
     {
         return "upload={$upload}; download={$download}; total={$total}; expire={$expireSec}";
+    }
+
+    private function profileTitleForHapp(): string
+    {
+        $fromDb = null;
+        try {
+            $fromDb = AppSetting::getValue('happ_profile_title');
+        } catch (Throwable) {
+        }
+
+        $raw = trim((string) ($fromDb !== null && $fromDb !== '' ? $fromDb : config('xui.sub_profile_title', 'nadezhda VPN')));
+        if ($raw === '') {
+            return 'nadezhda VPN';
+        }
+
+        if (function_exists('mb_substr')) {
+            return mb_substr($raw, 0, 25);
+        }
+
+        return substr($raw, 0, 25);
     }
 }

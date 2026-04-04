@@ -10,6 +10,12 @@
     <div class="max-w-3xl w-full mx-auto space-y-4 sm:space-y-6">
         <h1 class="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Готово</h1>
 
+        @if ($errors->has('xui'))
+            <div class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-950 text-sm">
+                {{ $errors->first('xui') }}
+            </div>
+        @endif
+
         @if ($decodeWarning)
             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 text-sm">
                 Предупреждение при разборе ссылок панелей: {{ $decodeWarning }}
@@ -47,5 +53,17 @@
             Квота {{ $subscription->quota_gb }} ГБ · срок до
             {{ \Illuminate\Support\Carbon::createFromTimestamp((int) floor($subscription->expiry_ms / 1000))->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
         </p>
+
+        <form
+            method="post"
+            action="{{ route('admin.subscription.destroy', $subscription) }}"
+            class="pt-4 border-t border-slate-200"
+            onsubmit="return confirm('Удалить эту подписку? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+        >
+            @csrf
+            <button type="submit" class="w-full rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-900 hover:bg-rose-100 min-h-[48px]">
+                Удалить подписку
+            </button>
+        </form>
     </div>
 @endsection

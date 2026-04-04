@@ -105,8 +105,8 @@ final class CreateDualBundleSubscription
             'devices' => $devices,
         ]);
 
-        IssuedKey::query()->create(['bundle_id' => 'fi']);
-        IssuedKey::query()->create(['bundle_id' => 'nl']);
+        IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
+        IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
 
         $publicBase = rtrim((string) config('app.url'), '/');
         $subscriptionUrl = $publicBase.'/sub/'.$token;
@@ -143,16 +143,21 @@ final class CreateDualBundleSubscription
                 (string) ($nlNode['pub_host'] ?? '')
             );
 
+            $fiLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($fiRaw);
+            $nlLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($nlRaw);
+
             return [
                 'fi' => VlessSubscriptionHelper::setVlessFragment(
-                    VlessSubscriptionHelper::decodeSubLine($fiRaw),
+                    $fiLine,
                     (string) ($fiNode['vless_display_name'] ?? 'FI')
                 ),
                 'nl' => VlessSubscriptionHelper::setVlessFragment(
-                    VlessSubscriptionHelper::decodeSubLine($nlRaw),
+                    $nlLine,
                     (string) ($nlNode['vless_display_name'] ?? 'NL')
                 ),
-                'warning' => null,
+                'warning' => ($fiLine === '' || $nlLine === '')
+                    ? 'В ответе одной из панелей не найдена строка vless://'
+                    : null,
             ];
         } catch (Throwable $e) {
             return [
@@ -165,16 +170,22 @@ final class CreateDualBundleSubscription
 
     private function fetchSubRaw(string $subOrigin, string $subId, string $pubHost): string
     {
-        $url = rtrim($subOrigin, '/').'/sub/'.$subId;
-        $req = Http::withoutVerifying()
-            ->withHeaders([
-                'X-Forwarded-Host' => $pubHost,
-                'X-Real-IP' => $pubHost,
-                'Accept' => '*/*',
-            ])
-            ->timeout(45);
-
-        $response = $req->get($url);
+        $url = rtrim($subOrigin, '/').'/sub/'.rawurlencode((string) $subId);
+        $headers = [
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'identity',
+        ];
+        $pubHost = trim($pubHost);
+        if ($pubHost !== '') {
+            $headers['X-Forwarded-Host'] = $pubHost;
+            $headers['X-Real-IP'] = $pubHost;
+        }
+        $response = Http::withoutVerifying()
+            ->withHeaders($headers)
+            ->connectTimeout(12)
+            ->timeout(28)
+            ->get($url);
         if (! $response->successful()) {
             throw new XuiPanelException('Подписка '.$subId.': HTTP '.$response->status());
         }

@@ -8,6 +8,7 @@ class IssuedKey extends Model
 {
     protected $fillable = [
         'bundle_id',
+        'subscription_id',
     ];
 
     public static function countForBundle(string $bundleId): int
