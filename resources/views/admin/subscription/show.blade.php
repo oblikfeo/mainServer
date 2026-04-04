@@ -32,7 +32,7 @@
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">VLESS · FI</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.fi.vless_display_name', 'FI') }} · FI</div>
             <textarea
                 readonly
                 rows="4"
@@ -41,7 +41,7 @@
         </div>
 
         <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">VLESS · NL</div>
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.nl.vless_display_name', 'NL') }} · NL</div>
             <textarea
                 readonly
                 rows="4"

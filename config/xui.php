@@ -20,7 +20,7 @@ return [
             'pub_host' => env('XUI_FI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'Франция 🇫🇷',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'белый список',
         ],
         'nl' => [
             'panel_base' => rtrim((string) env('XUI_NL_BASE', ''), '/'),
@@ -28,7 +28,7 @@ return [
             'pub_host' => env('XUI_NL_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'Нидерланды 🇳🇱',
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'белый список',
         ],
     ],
 
