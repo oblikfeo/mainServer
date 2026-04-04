@@ -54,8 +54,8 @@
         </div>
     </form>
 
-    {{-- Мобильная вёрстка: карточки --}}
-    <div class="lg:hidden space-y-4">
+    {{-- Мобильная вёрстка: только до lg (hidden + max-lg:block надёжнее, чем одно lg:hidden в CSS-бандле) --}}
+    <div class="hidden max-lg:block space-y-4">
         @forelse ($subscriptions as $subscription)
             @php
                 $order = config('xui.bundle_order', ['fi', 'nl']);
