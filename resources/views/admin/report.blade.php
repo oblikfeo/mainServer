@@ -66,8 +66,8 @@
         </div>
     </form>
 
-    {{-- Мобильная вёрстка: только до lg (hidden + max-lg:block надёжнее, чем одно lg:hidden в CSS-бандле) --}}
-    <div class="hidden max-lg:block space-y-4">
+    {{-- Мобильная: до lg; не использовать hidden+max-lg:block — .hidden может перебить max-lg:block в бандле --}}
+    <div class="block lg:hidden space-y-4">
         @forelse ($subscriptions as $subscription)
             @php
                 $order = config('xui.bundle_order', ['fi', 'nl']);
