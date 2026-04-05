@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $title ?? config('app.name').' — вход' }}</title>
+        <title>{{ $title ?? config('marketing.brand_name', 'Надежда').' — вход' }}</title>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -13,7 +13,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-8 pb-10 sm:pt-0 px-4">
             <div>
                 <a href="{{ url('/') }}" class="inline-flex items-center justify-center rounded-2xl bg-slate-900 text-white px-5 py-2 text-sm font-bold tracking-tight hover:bg-slate-800 transition-colors">
-                    {{ config('app.name') }}
+                    {{ config('marketing.brand_name', 'Надежда') }}
                 </a>
             </div>
 

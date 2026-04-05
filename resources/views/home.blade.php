@@ -1,7 +1,11 @@
 @extends('layouts.marketing')
 
-@section('title', config('app.name').' — VPN Финляндия и Нидерланды')
-@section('meta_description', 'Безлимитный трафик, связка серверов FI и NL, подписка для личного использования или семьи. Личный кабинет с доступом к ключам.')
+@php
+    $brand = config('marketing.brand_name', 'Надежда');
+@endphp
+
+@section('title', $brand.' — защищённый доступ в сеть')
+@section('meta_description', 'Подписка «'.config('marketing.brand_name', 'Надежда').'»: основные или все локации, личный кабинет, без лимита объёма на нашей стороне. Тарифы для одного пользователя и семьи.')
 
 @section('content')
     @php
@@ -9,10 +13,9 @@
     @endphp
     <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-4">
-            <a href="{{ url('/') }}" class="text-lg font-bold tracking-tight text-slate-900 shrink-0">{{ config('app.name') }}</a>
+            <a href="{{ url('/') }}" class="text-lg font-bold tracking-tight text-slate-900 shrink-0">{{ $brand }}</a>
             <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
                 <a href="#about" class="hover:text-slate-900 transition-colors">О сервисе</a>
-                <a href="#locations" class="hover:text-slate-900 transition-colors">Локации</a>
                 <a href="#tarify" class="hover:text-slate-900 transition-colors">Тарифы</a>
                 <a href="#contacts" class="hover:text-slate-900 transition-colors">Контакты</a>
             </nav>
@@ -31,12 +34,11 @@
         <section class="relative overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white">
             <div class="absolute inset-0 opacity-[0.07] bg-[radial-gradient(circle_at_30%_20%,#fff_0%,transparent_50%)]"></div>
             <div class="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 relative">
-                <p class="text-sm font-bold uppercase tracking-[0.2em] text-teal-400/90 mb-4">Надёжный доступ</p>
                 <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl">
-                    VPN с двумя точками выхода: Финляндия и Нидерланды
+                    {{ $brand }}: одна подписка — много точек доступа по всему миру
                 </h1>
                 <p class="mt-6 text-lg text-slate-300 max-w-2xl leading-relaxed">
-                    Один ключ — два региона в одной подписке. Шифрование трафика, без лимита объёма на нашей стороне, удобный импорт в Happ и другие клиенты.
+                    Один ключ открывает сразу много регионов. Защищённое соединение, без ограничения объёма трафика на нашей стороне, простой импорт в привычные приложения.
                 </p>
                 <div class="mt-10 flex flex-wrap gap-4">
                     <a href="#tarify" class="inline-flex items-center justify-center rounded-xl bg-teal-500 text-slate-900 px-6 py-3.5 text-sm font-bold hover:bg-teal-400 transition-colors min-h-[48px]">
@@ -54,37 +56,18 @@
                 <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Почему мы</h2>
                 <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     <article class="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 ring-1 ring-slate-900/5">
-                        <h3 class="text-lg font-bold text-slate-900">Две локации в одной подписке</h3>
-                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">Переключайтесь между узлами под ваши задачи: задержка, доступ к сервисам, устойчивость канала.</p>
+                        <h3 class="text-lg font-bold text-slate-900">Много локаций в одной подписке</h3>
+                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">Выбирайте подходящую точку под задачу: скорость, стабильность, доступ к нужным сервисам — без отдельных оплат за каждый регион.</p>
                     </article>
                     <article class="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 ring-1 ring-slate-900/5">
-                        <h3 class="text-lg font-bold text-slate-900">Современный протокол</h3>
-                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">Подключение через VLESS/Reality — привычный стек для мобильных и десктопных клиентов.</p>
+                        <h3 class="text-lg font-bold text-slate-900">Удобно на всех устройствах</h3>
+                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">Подключайтесь с телефона, планшета или компьютера — настраивается за пару шагов в популярных клиентах.</p>
                     </article>
                     <article class="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 ring-1 ring-slate-900/5 sm:col-span-2 lg:col-span-1">
                         <h3 class="text-lg font-bold text-slate-900">Личный кабинет</h3>
-                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">После регистрации вы видите свои подписки, ссылку для импорта и отдельные строки для каждого узла.</p>
+                        <p class="mt-3 text-slate-600 text-sm leading-relaxed">После регистрации видите свои подписки, общую ссылку для импорта и отдельные строки подключения.</p>
                     </article>
                 </div>
-            </div>
-        </section>
-
-        <section id="locations" class="py-16 sm:py-20 bg-slate-50 border-b border-slate-200/80">
-            <div class="max-w-6xl mx-auto px-4 sm:px-6">
-                <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Локации</h2>
-                <p class="mt-4 text-slate-600 max-w-2xl">Инфраструктура в Европе: низкая задержка для большинства пользователей и резерв за счёт второго узла.</p>
-                <ul class="mt-10 grid sm:grid-cols-2 gap-6">
-                    <li class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm ring-1 ring-slate-900/5">
-                        <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Узел 1</span>
-                        <p class="mt-2 text-xl font-bold text-slate-900">Финляндия</p>
-                        <p class="mt-1 text-sm text-slate-600">Точка выхода в сеть для вашего трафика.</p>
-                    </li>
-                    <li class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm ring-1 ring-slate-900/5">
-                        <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Узел 2</span>
-                        <p class="mt-2 text-xl font-bold text-slate-900">Нидерланды</p>
-                        <p class="mt-1 text-sm text-slate-600">Дополнительная локация в той же подписке.</p>
-                    </li>
-                </ul>
             </div>
         </section>
 
@@ -99,7 +82,7 @@
                         <p class="mt-8 text-4xl font-extrabold text-slate-900 tabular-nums">250&nbsp;₽</p>
                         <p class="text-sm text-slate-500 mt-1">на 30 дней</p>
                         <ul class="mt-6 space-y-2 text-sm text-slate-700">
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Две локации (FI + NL)</li>
+                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Доступ к <strong>основным</strong> локациям (набор постоянно развивается)</li>
                             <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Личный кабинет</li>
                         </ul>
                         <a href="#contacts" class="mt-8 inline-flex justify-center rounded-xl bg-slate-900 text-white py-3.5 text-sm font-bold hover:bg-slate-800 transition-colors">Связаться</a>
@@ -111,8 +94,9 @@
                         <p class="mt-8 text-4xl font-extrabold text-slate-900 tabular-nums">590&nbsp;₽</p>
                         <p class="text-sm text-slate-500 mt-1">на 30 дней</p>
                         <ul class="mt-6 space-y-2 text-sm text-slate-700">
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Всё из личного тарифа</li>
+                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Доступ ко <strong>всем</strong> локациям сети (список расширяется)</li>
                             <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Больше устройств для дома</li>
+                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Личный кабинет</li>
                         </ul>
                         <a href="#contacts" class="mt-8 inline-flex justify-center rounded-xl bg-teal-600 text-white py-3.5 text-sm font-bold hover:bg-teal-500 transition-colors">Оформить</a>
                     </article>
@@ -123,7 +107,7 @@
         <section id="contacts" class="py-16 sm:py-20 bg-slate-900 text-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center">
                 <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Контакты</h2>
-                <p class="mt-4 text-slate-300 max-w-lg mx-auto text-sm sm:text-base">Напишите в Telegram — подскажем по тарифу, оплате и настройке клиента.</p>
+                <p class="mt-4 text-slate-300 max-w-lg mx-auto text-sm sm:text-base">Напишите в Telegram — подскажем по тарифу, оплате и подключению.</p>
                 <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="mt-8 inline-flex items-center justify-center rounded-xl bg-teal-500 text-slate-900 px-8 py-3.5 text-sm font-bold hover:bg-teal-400 transition-colors min-h-[48px]">
                     Открыть Telegram
                 </a>
@@ -136,7 +120,7 @@
 
     <footer class="border-t border-slate-200 bg-white py-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-            <p>© {{ date('Y') }} {{ config('app.name') }}. Сервис для пользователей 18+.</p>
+            <p>© {{ date('Y') }} {{ $brand }}. Сервис для пользователей 18+.</p>
             <div class="flex gap-6">
                 @guest
                     <a href="{{ route('login') }}" class="hover:text-slate-800">Вход</a>

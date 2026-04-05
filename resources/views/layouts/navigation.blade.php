@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ url('/') }}" class="text-base font-bold text-gray-800 tracking-tight">
-                        {{ config('app.name') }}
+                        {{ config('marketing.brand_name', 'Надежда') }}
                     </a>
                 </div>
 
