@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,14 +18,14 @@ Route::get('/', function () {
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
 
-Route::get('/dashboard', [CabinetController::class, 'index'])
-    ->middleware('auth')
-    ->name('dashboard');
-
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
+    Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
+    Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
+    Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
+
+    Route::redirect('/profile', '/dashboard/profile')->name('profile.edit');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {

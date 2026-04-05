@@ -34,4 +34,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Subscription::class);
     }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<Purchase, self> */
+    public function purchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Purchase::class);
+    }
 }
