@@ -5,7 +5,7 @@
 @endphp
 
 @section('title', $brand.' — защищённый доступ в сеть')
-@section('meta_description', 'Подписка «'.config('marketing.brand_name', 'Надежда').'»: основные или все локации, личный кабинет, без лимита объёма на нашей стороне. Тарифы для одного пользователя и семьи.')
+@section('meta_description', 'Подписка «'.config('marketing.brand_name', 'Надежда').'»: основные или все локации, личный кабинет. Тарифы для одного пользователя и семьи.')
 
 @section('content')
     @php
@@ -35,10 +35,10 @@
             <div class="absolute inset-0 opacity-[0.07] bg-[radial-gradient(circle_at_30%_20%,#fff_0%,transparent_50%)]"></div>
             <div class="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 relative">
                 <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl">
-                    {{ $brand }}: одна подписка — много точек доступа по всему миру
+                    {{ $brand }} — связь, на которую можно опереться
                 </h1>
                 <p class="mt-6 text-lg text-slate-300 max-w-2xl leading-relaxed">
-                    Один ключ открывает сразу много регионов. Защищённое соединение, без ограничения объёма трафика на нашей стороне, простой импорт в привычные приложения.
+                    Один ключ открывает много направлений. Защищённое соединение, спокойная работа в сети и простой импорт в привычные приложения.
                 </p>
                 <div class="mt-10 flex flex-wrap gap-4">
                     <a href="#tarify" class="inline-flex items-center justify-center rounded-xl bg-teal-500 text-slate-900 px-6 py-3.5 text-sm font-bold hover:bg-teal-400 transition-colors min-h-[48px]">
@@ -74,16 +74,22 @@
         <section id="tarify" class="py-16 sm:py-24 bg-white">
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight text-center">Тарифы</h2>
-                <p class="mt-3 text-center text-slate-600 max-w-xl mx-auto text-sm sm:text-base">Период 30 дней. Оплата и продление — по договорённости с поддержкой (скоро — онлайн-оплата).</p>
+                <p class="mt-3 text-center text-slate-600 max-w-xl mx-auto text-sm sm:text-base">Период 30 дней. Оплата и продление — по договорённости с поддержкой.</p>
                 <div class="mt-12 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     <article class="rounded-3xl border-2 border-slate-200 bg-slate-50/80 p-8 flex flex-col ring-1 ring-slate-900/5">
                         <h3 class="text-xl font-bold text-slate-900">Личный</h3>
                         <p class="mt-2 text-slate-600 text-sm">До 2 устройств одновременно.</p>
                         <p class="mt-8 text-4xl font-extrabold text-slate-900 tabular-nums">250&nbsp;₽</p>
                         <p class="text-sm text-slate-500 mt-1">на 30 дней</p>
-                        <ul class="mt-6 space-y-2 text-sm text-slate-700">
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Доступ к <strong>основным</strong> локациям (набор постоянно развивается)</li>
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Личный кабинет</li>
+                        <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                            <li class="flex items-start gap-2.5">
+                                <span class="text-teal-600 font-bold shrink-0 leading-relaxed" aria-hidden="true">✓</span>
+                                <span class="min-w-0 leading-relaxed">В тариф входят <strong class="font-semibold text-slate-900">основные локации</strong> сети; перечень актуален в личном кабинете.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="text-teal-600 font-bold shrink-0 leading-relaxed" aria-hidden="true">✓</span>
+                                <span class="min-w-0 leading-relaxed">Личный кабинет</span>
+                            </li>
                         </ul>
                         <a href="#contacts" class="mt-8 inline-flex justify-center rounded-xl bg-slate-900 text-white py-3.5 text-sm font-bold hover:bg-slate-800 transition-colors">Связаться</a>
                     </article>
@@ -93,10 +99,19 @@
                         <p class="mt-2 text-slate-600 text-sm">До 5 устройств одновременно.</p>
                         <p class="mt-8 text-4xl font-extrabold text-slate-900 tabular-nums">590&nbsp;₽</p>
                         <p class="text-sm text-slate-500 mt-1">на 30 дней</p>
-                        <ul class="mt-6 space-y-2 text-sm text-slate-700">
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Доступ ко <strong>всем</strong> локациям сети (список расширяется)</li>
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Больше устройств для дома</li>
-                            <li class="flex gap-2"><span class="text-teal-600 font-bold">✓</span> Личный кабинет</li>
+                        <ul class="mt-6 space-y-3 text-sm text-slate-700">
+                            <li class="flex items-start gap-2.5">
+                                <span class="text-teal-600 font-bold shrink-0 leading-relaxed" aria-hidden="true">✓</span>
+                                <span class="min-w-0 leading-relaxed">В тариф входят <strong class="font-semibold text-slate-900">все локации</strong> сети; перечень актуален в личном кабинете.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="text-teal-600 font-bold shrink-0 leading-relaxed" aria-hidden="true">✓</span>
+                                <span class="min-w-0 leading-relaxed">Больше устройств для дома</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="text-teal-600 font-bold shrink-0 leading-relaxed" aria-hidden="true">✓</span>
+                                <span class="min-w-0 leading-relaxed">Личный кабинет</span>
+                            </li>
                         </ul>
                         <a href="#contacts" class="mt-8 inline-flex justify-center rounded-xl bg-teal-600 text-white py-3.5 text-sm font-bold hover:bg-teal-500 transition-colors">Оформить</a>
                     </article>
