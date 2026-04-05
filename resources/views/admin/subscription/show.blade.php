@@ -54,6 +54,8 @@
             {{ \Illuminate\Support\Carbon::createFromTimestamp((int) floor($subscription->expiry_ms / 1000))->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
         </p>
 
+        @include('admin.subscription._assign_owner', ['subscription' => $subscription])
+
         <form
             method="post"
             action="{{ route('admin.subscription.destroy', $subscription) }}"

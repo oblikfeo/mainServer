@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         \App\Console\Commands\SubscriptionDestroyCommand::class,
+        \App\Console\Commands\SubscriptionAttachUserCommand::class,
+        \App\Console\Commands\ProvisionCabinetUsersCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');

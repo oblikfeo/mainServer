@@ -30,4 +30,8 @@
     <p class="text-xs text-slate-500 break-all pt-1 border-t border-slate-200/60 font-mono leading-relaxed">
         {{ rtrim(config('app.url'), '/') }}/sub/{{ $subscription->token }}
     </p>
+
+    <div class="pt-4 border-t border-slate-200/60">
+        @include('admin.subscription._assign_owner', ['subscription' => $subscription])
+    </div>
 </div>

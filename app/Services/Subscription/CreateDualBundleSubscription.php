@@ -17,7 +17,7 @@ final class CreateDualBundleSubscription
     /**
      * @throws XuiPanelException
      */
-    public function create(int $devices, int $days, int $quotaGb): CreatedSubscriptionResult
+    public function create(int $devices, int $days, int $quotaGb, ?int $userId = null): CreatedSubscriptionResult
     {
         $user = (string) config('xui.panel_username');
         $pass = (string) config('xui.panel_password');
@@ -97,6 +97,7 @@ final class CreateDualBundleSubscription
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
         $subscription = Subscription::query()->create([
+            'user_id' => $userId,
             'token' => $token,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,

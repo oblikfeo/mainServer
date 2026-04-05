@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Services\Subscription\CreateDualBundleSubscription;
 use App\Services\Subscription\DestroySubscription;
 use App\Services\Xui\XuiPanelException;
@@ -50,15 +51,17 @@ class SubscriptionController extends Controller
 
     public function show(Subscription $subscription, CreateDualBundleSubscription $service): View
     {
+        $subscription->loadMissing('user');
+
         $payload = session('subscription_result');
 
         if (is_array($payload)) {
-            $subscriptionUrl = $payload['subscription_url'] ?? route('subscription.feed', ['token' => $subscription->token]);
+            $subscriptionUrl = $payload['subscription_url'] ?? url('/sub/'.$subscription->token);
             $fiVless = $payload['fi_vless'] ?? '';
             $nlVless = $payload['nl_vless'] ?? '';
             $decodeWarning = $payload['decode_warning'] ?? null;
         } else {
-            $subscriptionUrl = route('subscription.feed', ['token' => $subscription->token]);
+            $subscriptionUrl = url('/sub/'.$subscription->token);
             $decoded = $service->decodeLinesForSubscription($subscription);
             $fiVless = $decoded['fi'];
             $nlVless = $decoded['nl'];
@@ -72,6 +75,19 @@ class SubscriptionController extends Controller
             'nlVless' => $nlVless,
             'decodeWarning' => $decodeWarning,
         ]);
+    }
+
+    public function attachOwner(Request $request, Subscription $subscription): RedirectResponse
+    {
+        $data = $request->validate([
+            'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'exists:users,email'],
+        ]);
+
+        $user = User::query()->where('email', $data['owner_email'])->firstOrFail();
+        $subscription->user_id = $user->id;
+        $subscription->save();
+
+        return back()->with('status', 'Подписка #'.$subscription->id.' привязана к '.$user->email.'.');
     }
 
     public function destroy(Subscription $subscription, DestroySubscription $destroyer): RedirectResponse

@@ -16,7 +16,7 @@ class ReportController extends Controller
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
 
-        $q = Subscription::query()->orderByDesc('created_at');
+        $q = Subscription::query()->with('user')->orderByDesc('created_at');
 
         if (is_string($dateFrom) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
             $q->whereDate('created_at', '>=', $dateFrom);

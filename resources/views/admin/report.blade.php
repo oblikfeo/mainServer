@@ -117,9 +117,13 @@
                             <dt class="text-slate-500 font-medium shrink-0">Квота</dt>
                             <dd class="text-slate-900 font-semibold tabular-nums">{{ $subscription->quota_gb }} ГБ</dd>
                         </div>
-                        <div class="flex justify-between gap-3 py-2">
+                        <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
                             <dt class="text-slate-500 font-medium shrink-0">Трафик</dt>
                             <dd class="text-slate-900 font-semibold tabular-nums text-right">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</dd>
+                        </div>
+                        <div class="flex justify-between gap-3 py-2">
+                            <dt class="text-slate-500 font-medium shrink-0">Владелец</dt>
+                            <dd class="text-slate-900 font-semibold text-right break-all text-xs">{{ $subscription->user?->email ?? '—' }}</dd>
                         </div>
                     </dl>
                     <button
@@ -166,7 +170,7 @@
             <p class="px-6 py-16 text-center text-slate-500 text-base bg-slate-50/50">Нет записей за выбранный период.</p>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse min-w-[56rem]">
+                <table class="w-full text-sm text-left border-collapse min-w-[64rem]">
                     <thead>
                         <tr class="bg-slate-900 text-white">
                             <th class="w-12 px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90" scope="col"></th>
@@ -176,6 +180,7 @@
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90" scope="col">Статус</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Квота</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Трафик</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[10rem] max-w-[14rem]" scope="col">Владелец</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Действия</th>
                         </tr>
                     </thead>
@@ -227,6 +232,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $subscription->quota_gb }} ГБ</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-800 align-middle text-xs break-all max-w-[14rem]" title="{{ $subscription->user?->email ?? '' }}">{{ $subscription->user?->email ?? '—' }}</td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                     <form
                                         method="post"
@@ -242,7 +248,7 @@
                                 </td>
                             </tr>
                             <tr x-show="open" x-cloak class="bg-gradient-to-br from-slate-50 to-slate-100/90">
-                                <td colspan="8" class="px-5 py-5 border-t border-slate-200/80">
+                                <td colspan="9" class="px-5 py-5 border-t border-slate-200/80">
                                     @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt])
                                 </td>
                             </tr>

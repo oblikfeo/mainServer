@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 class Subscription extends Model
@@ -10,6 +11,7 @@ class Subscription extends Model
     private const BYTES_PER_GB = 1_073_741_824;
 
     protected $fillable = [
+        'user_id',
         'token',
         'fi_sub_id',
         'nl_sub_id',
@@ -25,6 +27,11 @@ class Subscription extends Model
             'expiry_ms' => 'integer',
             'devices' => 'integer',
         ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public static function bundleNodeCount(): int

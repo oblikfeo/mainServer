@@ -5,20 +5,21 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
+use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionFeedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 });
 
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [CabinetController::class, 'index'])
+    ->middleware('auth')
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -45,6 +46,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/subscription', [SubscriptionController::class, 'store'])
             ->middleware('throttle:8,1')
             ->name('subscription.store');
+        Route::post('/subscription/{subscription}/owner', [SubscriptionController::class, 'attachOwner'])
+            ->middleware('throttle:60,1')
+            ->name('subscription.owner');
         Route::post('/subscription/{subscription}/destroy', [SubscriptionController::class, 'destroy'])
             ->middleware('throttle:30,1')
             ->name('subscription.destroy');
