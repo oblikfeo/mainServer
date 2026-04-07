@@ -86,12 +86,17 @@ final class MergedSubscriptionFeedRenderer
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
 
-        // Имя профиля только в теле (#profile-title) — в HTTP-заголовке UTF-8/прокси часто ломают ответ.
-        return new Response($body, 200, [
+        $headers = [
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ]);
+        ];
+        if (config('xui.feed_require_hwid', true)) {
+            $headers['subscription-always-hwid-enable'] = '1';
+        }
+
+        // Имя профиля только в теле (#profile-title) — в HTTP-заголовке UTF-8/прокси часто ломают ответ.
+        return new Response($body, 200, $headers);
     }
 
     /**

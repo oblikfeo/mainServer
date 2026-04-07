@@ -19,10 +19,12 @@ php artisan view:cache
 
 Если на сервере собираете фронт (Vite): `npm ci && npm run build` перед `php artisan view:cache` (или собирайте артефакты в CI и выкладывайте `public/build`).
 
-## Планировщик (лимит устройств по IP)
+## Лимит устройств (Happ HWID + 3x-ui limitIp)
 
-Команда `subscription:enforce-device-limits` зарегистрирована в расписании (раз в минуту). Нужен системный cron от пользователя веб-сервера:
+Подписка `/sub/{token}`: при `SUBSCRIPTION_FEED_REQUIRE_HWID=true` (по умолчанию) приложение Happ шлёт заголовок `X-Hwid`; хаб сохраняет до `devices` разных отпечатков (sha256), остальные получают 403. Новым клиентам в панели выставляется `limitIp = devices` на FI и NL.
 
-`* * * * * cd /var/www/vpn-hub && php artisan schedule:run >> /dev/null 2>&1`
+После деплоя для **уже созданных** подписок один раз: `php artisan subscription:sync-panel-limit-ip`
 
-В `.env`: `XUI_ENFORCE_DEVICE_LIMITS=true` — при превышении числа уникальных IP (FI+NL) клиенты в 3x-ui отключаются. `XUI_AUTO_REENABLE_CLIENTS=false` — не включать обратно автоматически после снятия превышения.
+Сброс привязки устройств (поддержка): `php artisan subscription:clear-bound-hwid {id}`
+
+Тест без Happ: в `.env` временно `SUBSCRIPTION_FEED_REQUIRE_HWID=false` или запрос с заголовком `X-Hwid: test`.

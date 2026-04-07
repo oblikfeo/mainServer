@@ -3,11 +3,10 @@
 namespace App\Services\Xui;
 
 use App\Models\Subscription;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Уникальные IP по подписке: объединение IP клиентов FI и NL (панель 3x-ui, clientIps).
+ * Справочно: уникальные IP по подписке (объединение clientIps FI+NL) для отчёта в админке.
  */
 final class XuiSubscriptionConnectionInspector
 {
@@ -18,9 +17,7 @@ final class XuiSubscriptionConnectionInspector
      *         limit: int,
      *         over: bool,
      *         fi_email: ?string,
-     *         nl_email: ?string,
-     *         fi_online: bool,
-     *         nl_online: bool
+     *         nl_email: ?string
      *     }>,
      *     errors: list<string>
      * }
@@ -64,15 +61,9 @@ final class XuiSubscriptionConnectionInspector
         $fiIpCache = [];
         $nlIpCache = [];
 
-        $fiOnlines = $fiCtx['onlines'];
-        $nlOnlines = $nlCtx['onlines'];
-
         foreach ($subs as $sub) {
             $fiEmail = $fiCtx['sub_to_email'][$sub->fi_sub_id] ?? null;
             $nlEmail = $nlCtx['sub_to_email'][$sub->nl_sub_id] ?? null;
-
-            $fiOnline = is_string($fiEmail) && $fiEmail !== '' && isset($fiOnlines[$fiEmail]);
-            $nlOnline = is_string($nlEmail) && $nlEmail !== '' && isset($nlOnlines[$nlEmail]);
 
             $ips = [];
             if (is_string($fiEmail) && $fiEmail !== '') {
@@ -86,12 +77,8 @@ final class XuiSubscriptionConnectionInspector
                 }
             }
 
+            $count = count($ips);
             $limit = max(0, (int) $sub->devices);
-            $unionCount = count($ips);
-            $count = $unionCount;
-            if ($unionCount === 0 && $limit > 0 && $fiOnline && $nlOnline) {
-                $count = 2;
-            }
             $over = $limit > 0 && $count > $limit;
 
             $byId[(int) $sub->id] = [
@@ -100,63 +87,10 @@ final class XuiSubscriptionConnectionInspector
                 'over' => $over,
                 'fi_email' => $fiEmail,
                 'nl_email' => $nlEmail,
-                'fi_online' => $fiOnline,
-                'nl_online' => $nlOnline,
             ];
         }
 
         return ['by_subscription_id' => $byId, 'errors' => $errors];
-    }
-
-    /**
-     * Отключить или включить клиентов подписки на обеих панелях (по subId в inbound).
-     */
-    public function setSubscriptionClientsEnabled(Subscription $sub, bool $enabled): void
-    {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
-        if ($user === '' || $pass === '') {
-            return;
-        }
-
-        $pairs = [
-            ['key' => 'fi', 'subId' => (string) $sub->fi_sub_id],
-            ['key' => 'nl', 'subId' => (string) $sub->nl_sub_id],
-        ];
-
-        foreach ($pairs as $pair) {
-            $node = config('xui.nodes.'.$pair['key'], []);
-            if (! is_array($node)) {
-                continue;
-            }
-            $base = (string) ($node['panel_base'] ?? '');
-            $inboundId = (int) ($node['inbound_id'] ?? 0);
-            if ($base === '' || $inboundId < 1 || $pair['subId'] === '') {
-                continue;
-            }
-
-            try {
-                $client = new XuiPanelClient($base);
-                $client->login($user, $pass);
-                $inbound = $client->getInboundById($inboundId);
-                $row = $this->clientRowBySubId($inbound, $pair['subId']);
-                if ($row === null) {
-                    continue;
-                }
-                $uuid = (string) ($row['id'] ?? '');
-                if ($uuid === '') {
-                    continue;
-                }
-                $row['enable'] = $enabled;
-                $client->updateInboundClient($inboundId, $uuid, $row);
-            } catch (Throwable $e) {
-                Log::warning('xui.subscription.enable_failed', [
-                    'subscription_id' => $sub->id,
-                    'node' => $pair['key'],
-                    'message' => $e->getMessage(),
-                ]);
-            }
-        }
     }
 
     /**
@@ -174,7 +108,7 @@ final class XuiSubscriptionConnectionInspector
 
     /**
      * @param  list<string>  $errors
-     * @return array{client: XuiPanelClient, inbound_id: int, sub_to_email: array<string, string>, onlines: array<string, true>}|null
+     * @return array{client: XuiPanelClient, inbound_id: int, sub_to_email: array<string, string>}|null
      */
     private function buildNodeContext(string $bundleKey, array &$errors): ?array
     {
@@ -207,18 +141,11 @@ final class XuiSubscriptionConnectionInspector
             }
 
             $map = $this->subIdToEmailFromInbound($inbound);
-            $onlines = [];
-            foreach ($client->getOnlineClientEmails() as $em) {
-                if ($em !== '') {
-                    $onlines[$em] = true;
-                }
-            }
 
             return [
                 'client' => $client,
                 'inbound_id' => $inboundId,
                 'sub_to_email' => $map,
-                'onlines' => $onlines,
             ];
         } catch (Throwable $e) {
             $errors[] = "Узел «{$bundleKey}»: ".$e->getMessage();
@@ -256,31 +183,5 @@ final class XuiSubscriptionConnectionInspector
         }
 
         return $map;
-    }
-
-    /**
-     * @param  array<string, mixed>  $inbound
-     * @return array<string, mixed>|null
-     */
-    private function clientRowBySubId(array $inbound, string $subId): ?array
-    {
-        $settings = json_decode((string) ($inbound['settings'] ?? ''), true);
-        if (! is_array($settings)) {
-            return null;
-        }
-        $clients = $settings['clients'] ?? [];
-        if (! is_array($clients)) {
-            return null;
-        }
-        foreach ($clients as $c) {
-            if (! is_array($c)) {
-                continue;
-            }
-            if ((string) ($c['subId'] ?? '') === $subId) {
-                return $c;
-            }
-        }
-
-        return null;
     }
 }

@@ -27,7 +27,7 @@
             @csrf
 
             <div>
-                <label for="devices" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Устройства (лимит уникальных IP, FI+NL)</label>
+                <label for="devices" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Устройства (Happ HWID + limitIp в панели на каждый узел)</label>
                 <select name="devices" id="devices" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]">
                     @foreach ([1, 2, 3, 4, 5] as $n)
                         <option value="{{ $n }}" @selected((int) old('devices', 3) === $n)>{{ $n }}</option>

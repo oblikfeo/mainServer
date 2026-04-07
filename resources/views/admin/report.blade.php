@@ -139,15 +139,14 @@
                             $crow = $connectionBySubId[$subscription->id] ?? null;
                         @endphp
                         <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
-                            <dt class="text-slate-500 font-medium shrink-0">Уник. IP</dt>
-                            <dd class="text-slate-900 font-semibold tabular-nums text-right">
+                            <dt class="text-slate-500 font-medium shrink-0">Устройства</dt>
+                            <dd class="text-slate-900 font-semibold tabular-nums text-right text-xs">
+                                @php
+                                    $bh = is_array($subscription->bound_hwid_hashes) ? count($subscription->bound_hwid_hashes) : 0;
+                                @endphp
+                                Happ {{ $bh }}/{{ $subscription->devices }}
                                 @if ($crow)
-                                    {{ $crow['online_ip_count'] }} / {{ $crow['limit'] ?: '∞' }}
-                                    @if ($crow['over'])
-                                        <span class="block text-xs text-rose-600 font-bold mt-0.5">Превышение</span>
-                                    @endif
-                                @else
-                                    —
+                                    <span class="block text-slate-500 font-normal mt-0.5">IP панель {{ $crow['online_ip_count'] }}</span>
                                 @endif
                             </dd>
                         </div>
@@ -210,7 +209,7 @@
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90" scope="col">Статус</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Квота</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Трафик</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col" title="Уникальные IP (FI+NL), панель">IP / лимит</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col" title="Happ HWID и справочно IP с панели">Устр.</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[10rem] max-w-[14rem]" scope="col">Владелец</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Действия</th>
                         </tr>
@@ -233,6 +232,7 @@
                             $totalUsed = $sums === [] ? null : array_sum($sums);
                             $exp = $subscription->expiresAt();
                             $crow = $connectionBySubId[$subscription->id] ?? null;
+                            $bhCount = is_array($subscription->bound_hwid_hashes) ? count($subscription->bound_hwid_hashes) : 0;
                         @endphp
                         <tbody
                             class="border-b border-slate-200 last:border-b-0"
@@ -265,13 +265,9 @@
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $subscription->quota_gb }} ГБ</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap text-xs">
+                                    Happ {{ $bhCount }}/{{ $subscription->devices }}
                                     @if ($crow)
-                                        {{ $crow['online_ip_count'] }} / {{ $crow['limit'] ?: '∞' }}
-                                        @if ($crow['over'])
-                                            <span class="block text-[10px] text-rose-600 font-bold">превыш.</span>
-                                        @endif
-                                    @else
-                                        —
+                                        <span class="block text-[10px] text-slate-500 font-normal">IP {{ $crow['online_ip_count'] }}</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-slate-800 align-middle text-xs break-all max-w-[14rem]" title="{{ $subscription->user?->email ?? '' }}">{{ $subscription->user?->email ?? '—' }}</td>

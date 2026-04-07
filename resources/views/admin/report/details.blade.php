@@ -1,18 +1,22 @@
 <div class="text-sm text-slate-700 space-y-4 max-w-4xl">
     <p class="flex flex-wrap gap-x-2 gap-y-1 items-baseline">
-        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">Устройства (лимит уник. IP FI+NL)</span>
+        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">Лимит устройств (Happ)</span>
         <span class="font-semibold text-slate-900">{{ $subscription->devices }}</span>
+        @php
+            $nb = is_array($subscription->bound_hwid_hashes) ? count($subscription->bound_hwid_hashes) : 0;
+        @endphp
+        <span class="text-slate-600 text-sm">· привязано: {{ $nb }}</span>
     </p>
     @php
         $crow = isset($connectionBySubId) ? ($connectionBySubId[$subscription->id] ?? null) : null;
     @endphp
     @if ($crow)
         <p class="text-xs text-slate-600 rounded-xl border border-slate-200 bg-white px-3 py-2">
-            Сейчас уникальных IP (панель): <span class="font-bold text-slate-900">{{ $crow['online_ip_count'] }}</span>
+            Уник. IP с панели (справочно): <span class="font-bold text-slate-900">{{ $crow['online_ip_count'] }}</span>
             @if ($crow['limit'] > 0)
-                · лимит {{ $crow['limit'] }}
+                · к лимиту устройств {{ $crow['limit'] }}
                 @if ($crow['over'])
-                    <span class="text-rose-600 font-bold"> — превышение</span>
+                    <span class="text-amber-700 font-semibold"> — много IP (основной контроль — Happ HWID)</span>
                 @endif
             @endif
         </p>

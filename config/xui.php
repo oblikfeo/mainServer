@@ -54,10 +54,8 @@ return [
     'report_connection_cache_ttl' => (int) env('XUI_REPORT_CONNECTION_CACHE_TTL', 60),
 
     /**
-     * Периодически: subscription:enforce-device-limits — отключение клиентов при превышении лимита уникальных IP (FI+NL).
+     * GET /sub/{token}: требовать заголовок HWID от Happ и хранить до devices уникальных отпечатков.
+     * Отключите (false), если тестируете curl без X-Hwid.
      */
-    'enforce_device_limits' => filter_var(env('XUI_ENFORCE_DEVICE_LIMITS', false), FILTER_VALIDATE_BOOL),
-
-    /** После снятия превышения снова включить клиентов в панели. */
-    'auto_reenable_clients_within_limit' => filter_var(env('XUI_AUTO_REENABLE_CLIENTS', true), FILTER_VALIDATE_BOOL),
+    'feed_require_hwid' => filter_var(env('SUBSCRIPTION_FEED_REQUIRE_HWID', true), FILTER_VALIDATE_BOOL),
 ];
