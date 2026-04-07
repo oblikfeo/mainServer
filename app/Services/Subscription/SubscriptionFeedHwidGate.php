@@ -5,46 +5,14 @@ namespace App\Services\Subscription;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Привязка подписки к устройствам Happ: заголовок X-Hwid при GET /sub/{token}.
  * До N разных HWID (N = поле devices), храним только sha256.
- *
- * При отказе отдаём 200 + announce (док. Happ): иначе клиент показывает только «403», тело не видно.
  */
 final class SubscriptionFeedHwidGate
 {
-    /**
-     * Заголовки, чтобы кэш не отдал ответ другого устройства (HWID в Vary).
-     *
-     * @return array<string, string>
-     */
-    public static function subscriptionNoStoreHeaders(): array
-    {
-        return [
-            'Cache-Control' => 'private, no-store, max-age=0, must-revalidate',
-            'Pragma' => 'no-cache',
-            'Vary' => 'X-Hwid',
-        ];
-    }
-
-    /**
-     * Сообщение в интерфейсе Happ через announce (тело + заголовок, base64 по доке).
-     */
-    public static function happAnnounceDenialResponse(string $message): Response
-    {
-        $message = Str::limit($message, 200, '');
-        $b64 = 'base64:'.base64_encode($message);
-        $body = "#announce: {$b64}\n";
-
-        return new Response($body, 200, array_merge([
-            'Content-Type' => 'text/plain; charset=utf-8',
-            'announce' => $b64,
-        ], self::subscriptionNoStoreHeaders()));
-    }
-
     /**
      * @return list<string>
      */
@@ -84,8 +52,11 @@ final class SubscriptionFeedHwidGate
 
         $hwid = self::peekHwidFromRequest($request);
         if ($hwid === null) {
-            return self::happAnnounceDenialResponse(
-                'Добавьте ссылку в приложение Happ (нужен идентификатор устройства).'
+            return new Response(
+                "Подписка защищена привязкой к устройству.\n"
+                ."Добавьте ссылку в приложение Happ — обновление из браузера без идентификатора устройства недоступно.\n",
+                403,
+                ['Content-Type' => 'text/plain; charset=utf-8']
             );
         }
 
@@ -108,7 +79,11 @@ final class SubscriptionFeedHwidGate
             }
 
             if (count($hashes) >= $max) {
-                return self::happAnnounceDenialResponse('Превышено число соединений');
+                return new Response(
+                    "Превышено число соединений\n",
+                    403,
+                    ['Content-Type' => 'text/plain; charset=utf-8']
+                );
             }
 
             $hashes[] = $hash;

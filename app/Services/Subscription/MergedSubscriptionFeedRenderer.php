@@ -4,7 +4,6 @@ namespace App\Services\Subscription;
 
 use App\Models\AppSetting;
 use App\Models\Subscription;
-use App\Services\Subscription\SubscriptionFeedHwidGate;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -87,11 +86,11 @@ final class MergedSubscriptionFeedRenderer
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
 
-        $headers = array_merge([
+        $headers = [
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ], SubscriptionFeedHwidGate::subscriptionNoStoreHeaders());
+        ];
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }
