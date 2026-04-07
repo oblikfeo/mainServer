@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\IssuedKey;
 use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
@@ -26,17 +25,26 @@ class DashboardController extends Controller
     {
         $nowMs = (int) (now()->getTimestamp() * 1000);
 
-        $subsPerBundle = IssuedKey::query()
-            ->join('subscriptions', 'subscriptions.id', '=', 'issued_keys.subscription_id')
-            ->where(function ($q) use ($nowMs) {
-                $q->where('subscriptions.expiry_ms', '<=', 0)
-                    ->orWhere('subscriptions.expiry_ms', '>', $nowMs);
-            })
-            ->selectRaw('issued_keys.bundle_id, COUNT(DISTINCT issued_keys.subscription_id) as c')
-            ->groupBy('issued_keys.bundle_id')
-            ->pluck('c', 'bundle_id');
+        $activeSubQ = Subscription::query()->where(function ($q) use ($nowMs) {
+            $q->where('expiry_ms', '<=', 0)
+                ->orWhere('expiry_ms', '>', $nowMs);
+        });
 
-        $ttl = max(15, config('links.metrics_cache_ttl', 45));
+        $subsCountFi = (clone $activeSubQ)
+            ->whereNotNull('fi_sub_id')
+            ->where('fi_sub_id', '!=', '')
+            ->count();
+        $subsCountNl = (clone $activeSubQ)
+            ->whereNotNull('nl_sub_id')
+            ->where('nl_sub_id', '!=', '')
+            ->count();
+
+        $subsPerBundle = [
+            'fi' => $subsCountFi,
+            'nl' => $subsCountNl,
+        ];
+
+        $ttl = max(10, config('links.metrics_cache_ttl', 20));
         $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
         $th = config('links.thresholds', []);
 
@@ -54,7 +62,7 @@ class DashboardController extends Controller
 
                 $bundleForSsh = $bundle;
                 $bundle['metrics'] = Cache::remember(
-                    'bundle_ssh_metrics_v4_'.$id,
+                    'bundle_ssh_metrics_v5_'.$id,
                     $ttl,
                     fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
                 );

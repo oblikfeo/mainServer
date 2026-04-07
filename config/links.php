@@ -37,7 +37,7 @@ return [
 
     'tcp_timeout_seconds' => 2,
 
-    'metrics_cache_ttl' => (int) env('LINK_METRICS_CACHE_TTL', 45),
+    'metrics_cache_ttl' => (int) env('LINK_METRICS_CACHE_TTL', 20),
 
     /*
     | Пороги для цвета строк в админке.

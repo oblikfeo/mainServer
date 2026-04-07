@@ -93,19 +93,29 @@
                             @endif
                         </span>
                     </div>
-                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 shrink-0">Трафик</span>
-                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
-                            @if ($m)
-                                @php
-                                    $b = (int) $m['traffic_total_bytes'];
-                                    $tb = $b / 1_000_000_000_000;
-                                @endphp
-                                {{ number_format($tb, 2, '.', ' ') }} <span class="text-lg font-semibold text-slate-600">ТБ</span>
-                            @else
-                                —
-                            @endif
-                        </span>
+                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 shrink-0">Трафик (интерфейс сервера)</span>
+                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
+                                @if ($m)
+                                    @php
+                                        $b = (int) $m['traffic_total_bytes'];
+                                        $tb = $b / 1_000_000_000_000;
+                                        $gb = $b / 1_000_000_000;
+                                    @endphp
+                                    {{ number_format($tb, 3, '.', ' ') }} <span class="text-lg font-semibold text-slate-600">ТБ</span>
+                                    <span class="block sm:inline sm:ml-2 text-sm font-semibold text-slate-500">({{ number_format($gb, 1, '.', ' ') }} ГБ)</span>
+                                @else
+                                    —
+                                @endif
+                            </span>
+                        </div>
+                        @if ($m)
+                            <p class="text-[11px] text-slate-500 leading-snug">
+                                Счётчик с основного сетевого интерфейса ВМ (сумма приёма и отдачи), накопительно с последней перезагрузки сервера.
+                                Обновление на странице — раз в ~{{ (int) config('links.metrics_cache_ttl', 20) }} сек (кэш). В терабайтах мелкий рост долго не виден — смотрите гигабайты в скобках.
+                            </p>
+                        @endif
                     </div>
                 </div>
             </article>
