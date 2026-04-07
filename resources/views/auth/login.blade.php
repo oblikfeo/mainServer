@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-lg font-bold text-slate-900 mb-6">Вход</h1>
+    <h1 class="lp-auth-title">Вход</h1>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -18,20 +18,18 @@
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-slate-300 text-slate-900 shadow-sm focus:ring-slate-500" name="remember">
-                <span class="ms-2 text-sm text-slate-600">Запомнить меня</span>
+        <div class="lp-checkbox-row">
+            <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer">
+                <input id="remember_me" type="checkbox" name="remember">
+                <span>Запомнить меня</span>
             </label>
         </div>
 
-        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 mt-6">
+        <div class="lp-auth-actions">
             @if (Route::has('password.request'))
-                <a class="text-sm font-semibold text-teal-700 hover:text-teal-900 sm:mr-auto" href="{{ route('password.request') }}">
-                    Забыли пароль?
-                </a>
+                <a class="lp-auth-secondary sm:mr-auto" href="{{ route('password.request') }}">Забыли пароль?</a>
             @endif
-            <x-primary-button class="w-full sm:w-auto justify-center bg-slate-900 hover:bg-slate-800 focus:ring-slate-600">
+            <x-primary-button class="w-full sm:w-auto justify-center">
                 Войти
             </x-primary-button>
         </div>

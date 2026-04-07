@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <h1 class="text-lg font-bold text-slate-900 mb-2">Сброс пароля</h1>
-    <p class="mb-6 text-sm text-slate-600 leading-relaxed">
+    <h1 class="lp-auth-title">Сброс пароля</h1>
+    <p class="lp-auth-lead">
         Укажите email аккаунта — отправим ссылку для установки нового пароля (нужна настроенная почта на сервере).
     </p>
 
@@ -15,8 +15,8 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-6">
-            <x-primary-button class="bg-slate-900 hover:bg-slate-800 focus:ring-slate-600 normal-case tracking-normal text-sm px-5 py-2.5 rounded-xl">
+        <div class="lp-auth-actions">
+            <x-primary-button class="w-full sm:w-auto justify-center">
                 Отправить ссылку
             </x-primary-button>
         </div>

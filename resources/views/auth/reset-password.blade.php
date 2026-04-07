@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <h1 class="text-lg font-bold text-slate-900 mb-6">Новый пароль</h1>
+    <h1 class="lp-auth-title">Новый пароль</h1>
 
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
@@ -24,8 +24,8 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-6">
-            <x-primary-button class="bg-slate-900 hover:bg-slate-800 focus:ring-slate-600 normal-case tracking-normal text-sm px-5 py-2.5 rounded-xl">
+        <div class="lp-auth-actions">
+            <x-primary-button class="w-full sm:w-auto justify-center">
                 Сохранить пароль
             </x-primary-button>
         </div>
