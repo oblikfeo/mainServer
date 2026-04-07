@@ -18,7 +18,9 @@ final class XuiSubscriptionConnectionInspector
      *         limit: int,
      *         over: bool,
      *         fi_email: ?string,
-     *         nl_email: ?string
+     *         nl_email: ?string,
+     *         fi_online: bool,
+     *         nl_online: bool
      *     }>,
      *     errors: list<string>
      * }
@@ -62,9 +64,15 @@ final class XuiSubscriptionConnectionInspector
         $fiIpCache = [];
         $nlIpCache = [];
 
+        $fiOnlines = $fiCtx['onlines'];
+        $nlOnlines = $nlCtx['onlines'];
+
         foreach ($subs as $sub) {
             $fiEmail = $fiCtx['sub_to_email'][$sub->fi_sub_id] ?? null;
             $nlEmail = $nlCtx['sub_to_email'][$sub->nl_sub_id] ?? null;
+
+            $fiOnline = is_string($fiEmail) && $fiEmail !== '' && isset($fiOnlines[$fiEmail]);
+            $nlOnline = is_string($nlEmail) && $nlEmail !== '' && isset($nlOnlines[$nlEmail]);
 
             $ips = [];
             if (is_string($fiEmail) && $fiEmail !== '') {
@@ -78,8 +86,12 @@ final class XuiSubscriptionConnectionInspector
                 }
             }
 
-            $count = count($ips);
             $limit = max(0, (int) $sub->devices);
+            $unionCount = count($ips);
+            $count = $unionCount;
+            if ($unionCount === 0 && $limit > 0 && $fiOnline && $nlOnline) {
+                $count = 2;
+            }
             $over = $limit > 0 && $count > $limit;
 
             $byId[(int) $sub->id] = [
@@ -88,6 +100,8 @@ final class XuiSubscriptionConnectionInspector
                 'over' => $over,
                 'fi_email' => $fiEmail,
                 'nl_email' => $nlEmail,
+                'fi_online' => $fiOnline,
+                'nl_online' => $nlOnline,
             ];
         }
 
@@ -160,7 +174,7 @@ final class XuiSubscriptionConnectionInspector
 
     /**
      * @param  list<string>  $errors
-     * @return array{client: XuiPanelClient, inbound_id: int, sub_to_email: array<string, string>}|null
+     * @return array{client: XuiPanelClient, inbound_id: int, sub_to_email: array<string, string>, onlines: array<string, true>}|null
      */
     private function buildNodeContext(string $bundleKey, array &$errors): ?array
     {
@@ -193,11 +207,18 @@ final class XuiSubscriptionConnectionInspector
             }
 
             $map = $this->subIdToEmailFromInbound($inbound);
+            $onlines = [];
+            foreach ($client->getOnlineClientEmails() as $em) {
+                if ($em !== '') {
+                    $onlines[$em] = true;
+                }
+            }
 
             return [
                 'client' => $client,
                 'inbound_id' => $inboundId,
                 'sub_to_email' => $map,
+                'onlines' => $onlines,
             ];
         } catch (Throwable $e) {
             $errors[] = "Узел «{$bundleKey}»: ".$e->getMessage();

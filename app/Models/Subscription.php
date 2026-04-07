@@ -18,6 +18,7 @@ class Subscription extends Model
         'quota_gb',
         'expiry_ms',
         'devices',
+        'device_limit_locked_at',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class Subscription extends Model
             'quota_gb' => 'integer',
             'expiry_ms' => 'integer',
             'devices' => 'integer',
+            'device_limit_locked_at' => 'datetime',
         ];
     }
 

@@ -156,16 +156,69 @@ final class XuiPanelClient
 
         $ips = [];
         foreach ($obj as $item) {
-            if (! is_string($item) || $item === '') {
-                continue;
-            }
-            $head = trim(explode(' ', $item, 2)[0]);
-            if (filter_var($head, FILTER_VALIDATE_IP)) {
-                $ips[$head] = true;
+            foreach (self::ipsFromClientIpsItem($item) as $ip) {
+                $ips[$ip] = true;
             }
         }
 
         return array_keys($ips);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function ipsFromClientIpsItem(mixed $item): array
+    {
+        if (is_string($item) && $item !== '') {
+            $n = self::normalizeIpToken($item);
+
+            return $n !== null ? [$n] : [];
+        }
+        if (is_array($item)) {
+            foreach (['ip', 'IP', 'address', 'Address'] as $k) {
+                if (isset($item[$k]) && is_string($item[$k]) && $item[$k] !== '') {
+                    $n = self::normalizeIpToken($item[$k]);
+
+                    return $n !== null ? [$n] : [];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    private static function normalizeIpToken(string $raw): ?string
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return null;
+        }
+        if (str_starts_with($raw, '[')) {
+            $end = strpos($raw, ']');
+            if ($end !== false) {
+                $inner = substr($raw, 1, $end - 1);
+                if (filter_var($inner, FILTER_VALIDATE_IP)) {
+                    return $inner;
+                }
+            }
+        }
+        $head = trim(explode(' ', $raw, 2)[0]);
+        if (preg_match('/^\[?([0-9a-fA-F:.]+)\]?:\d+$/', $head, $m)) {
+            $candidate = $m[1];
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                return $candidate;
+            }
+        }
+        if (preg_match('/^([0-9.]+):\d+$/', $head, $m)) {
+            if (filter_var($m[1], FILTER_VALIDATE_IP)) {
+                return $m[1];
+            }
+        }
+        if (filter_var($head, FILTER_VALIDATE_IP)) {
+            return $head;
+        }
+
+        return null;
     }
 
     /**

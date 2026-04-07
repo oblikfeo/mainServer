@@ -32,13 +32,39 @@ class SubscriptionEnforceDeviceLimitsCommand extends Command
 
             if ($row['over']) {
                 $inspector->setSubscriptionClientsEnabled($sub, false);
+                $sub->forceFill(['device_limit_locked_at' => now()])->save();
                 Log::warning('subscription.device_limit.exceeded', [
                     'subscription_id' => $subId,
                     'online_ip_count' => $row['online_ip_count'],
                     'limit' => $row['limit'],
                 ]);
                 $this->line("Подписка #{$subId}: превышение ({$row['online_ip_count']} IP > {$row['limit']}) — клиенты отключены.");
-            } elseif (config('xui.auto_reenable_clients_within_limit', true)) {
+
+                continue;
+            }
+
+            if (! config('xui.auto_reenable_clients_within_limit', true)) {
+                continue;
+            }
+
+            $locked = $sub->device_limit_locked_at !== null;
+            if ($locked) {
+                $count = (int) $row['online_ip_count'];
+                $limit = (int) $row['limit'];
+                $fiOn = (bool) ($row['fi_online'] ?? false);
+                $nlOn = (bool) ($row['nl_online'] ?? false);
+                if ($limit <= 0) {
+                    $safe = true;
+                } elseif ($count > 0) {
+                    $safe = $count <= $limit;
+                } else {
+                    $safe = ! ($fiOn && $nlOn);
+                }
+                if ($safe) {
+                    $inspector->setSubscriptionClientsEnabled($sub, true);
+                    $sub->forceFill(['device_limit_locked_at' => null])->save();
+                }
+            } else {
                 $inspector->setSubscriptionClientsEnabled($sub, true);
             }
         }
