@@ -43,12 +43,24 @@ if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
 fi
 unique_remote_ips=0
 if command -v ss >/dev/null 2>&1; then
-  # Входящие на этот сервер: локальный порт = $port (колонка Local), не sport в фильтре ss.
+  # ss -Hnt: бывает «tcp ESTAB … local peer» (6+ полей) или «ESTAB … local peer» (5 полей) — local/peer не всегда $4/$5.
   unique_remote_ips=$(ss -Hnt state established 2>/dev/null | awk -v p="$port" '
+  function local_port_ok(s,    n, a) {
+    if (s ~ ":" p "$") return 1
+    if (s ~ "]:" p "$") return 1
+    return 0
+  }
   {
-    loc = $4
-    peer = $5
-    if (!(loc ~ ":" p "$" || loc ~ "]:" p "$")) next
+    if (NF < 5) next
+    if ($1 == "tcp" || $1 == "tcp6" || $1 == "udp" || $1 == "udp6") {
+      if (NF < 6) next
+      loc = $5
+      peer = $6
+    } else {
+      loc = $4
+      peer = $5
+    }
+    if (!local_port_ok(loc)) next
     if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) {
       sub(/:[0-9]+$/, "", peer)
     } else if (peer ~ /^\[[^]]+\]:[0-9]+$/) {
@@ -58,6 +70,7 @@ if command -v ss >/dev/null 2>&1; then
     if (peer == "" || peer == "*" || peer == "127.0.0.1" || peer == "::1") next
     print peer
   }' | sort -u | wc -l | tr -d " ")
+  unique_remote_ips=${unique_remote_ips:-0}
 fi
 printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nunique_remote_ips:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$unique_remote_ips"
 BASH;
