@@ -14,8 +14,11 @@
 @endphp
 
 @section('content')
-    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-6 sm:mb-8 text-base sm:text-lg font-medium min-h-[44px] min-w-[44px] flex items-center">
-        ←
+    <a
+        href="{{ route('admin.dashboard') }}"
+        class="inline-flex items-center justify-center self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm sm:text-base font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 mb-6 sm:mb-8 min-h-[44px]"
+    >
+        ← В меню
     </a>
 
     <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10 list-none p-0">
@@ -24,12 +27,12 @@
             <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalActiveSubs }}</div>
         </li>
         <li class="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-4 sm:p-6 shadow-md shadow-emerald-200/30">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700/80">Узлов онлайн</div>
-            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-emerald-700 tracking-tight">{{ $onlineCount }}</div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700/80">Узлы</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-emerald-700 tracking-tight">{{ $onlineCount }}<span class="text-emerald-600/70 font-bold">/{{ $totalBundles }}</span></div>
         </li>
         <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 shadow-md shadow-slate-200/40">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Узлов всего</div>
-            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-800 tracking-tight">{{ $totalBundles }}</div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Соединений (все узлы)</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalConnections }}</div>
         </li>
     </ul>
 

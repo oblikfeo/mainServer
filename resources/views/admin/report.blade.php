@@ -4,8 +4,11 @@
 
 @section('content')
     <style>[x-cloak]{display:none!important}</style>
-    <a href="{{ route('admin.dashboard') }}" class="inline-block text-slate-600 hover:text-slate-900 mb-6 sm:mb-8 text-base sm:text-lg font-medium">
-        ←
+    <a
+        href="{{ route('admin.dashboard') }}"
+        class="inline-flex items-center justify-center self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm sm:text-base font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 mb-6 sm:mb-8 min-h-[44px]"
+    >
+        ← В меню
     </a>
 
     @if (session('status'))

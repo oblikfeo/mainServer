@@ -88,6 +88,7 @@ class DashboardController extends Controller
             ->all();
 
         $onlineCount = collect($bundles)->where('online', true)->count();
+        $totalBundles = count($bundles);
         $totalActiveSubs = Subscription::query()
             ->where(function ($q) use ($nowMs) {
                 $q->where('expiry_ms', '<=', 0)
@@ -95,11 +96,18 @@ class DashboardController extends Controller
             })
             ->count();
 
+        $totalConnections = (int) collect($bundles)->sum(function (array $b) {
+            $m = $b['metrics'] ?? null;
+
+            return is_array($m) ? (int) ($m['unique_remote_ips'] ?? 0) : 0;
+        });
+
         return view('admin.servers', [
             'bundles' => $bundles,
             'onlineCount' => $onlineCount,
-            'totalBundles' => count($bundles),
+            'totalBundles' => $totalBundles,
             'totalActiveSubs' => $totalActiveSubs,
+            'totalConnections' => $totalConnections,
         ]);
     }
 
