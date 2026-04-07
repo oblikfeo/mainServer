@@ -10,6 +10,7 @@
         <meta property="og:description" content="@yield('meta_description', '')">
         <meta property="og:type" content="website">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @stack('styles')
     </head>
     <body class="font-sans text-slate-900 antialiased bg-slate-50">
         @yield('content')
