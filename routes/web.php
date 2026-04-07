@@ -15,6 +15,10 @@ Route::get('/', function () {
     return view('home');
 });
 
+Route::get('/agreement', function () {
+    return view('agreement');
+})->name('agreement');
+
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
 

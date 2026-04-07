@@ -826,4 +826,110 @@
         color: #444 !important;
         font-weight: 500 !important;
     }
+
+    .lp-f1 .lp-container--agreement { max-width: 720px; }
+    @media (min-width: 768px) {
+        .lp-f1 .lp-container--agreement { max-width: 760px; }
+    }
+    .lp-f1 .lp-agreement-hero {
+        padding: 1.5rem 1.25rem;
+        border-bottom: 4px solid var(--lp-ink);
+        background: #fffde7;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-agreement-hero { padding: 1.75rem 1.75rem; }
+    }
+    .lp-f1 .lp-agreement-hero h1 {
+        font-size: 1.125rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin: 0 0 0.5rem 0;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-agreement-hero h1 { font-size: 1.35rem; }
+    }
+    .lp-f1 .lp-agreement-hero .lp-agreement-sub {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        line-height: 1.5;
+    }
+    .lp-f1 .lp-agreement-hero .lp-agreement-meta {
+        margin-top: 0.85rem;
+        font-size: 0.6875rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #444;
+    }
+    .lp-f1 .lp-agreement-section {
+        padding: 1.25rem 1.25rem 1.35rem;
+        border-bottom: 4px solid var(--lp-ink);
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-agreement-section { padding: 1.35rem 1.75rem 1.5rem; }
+    }
+    .lp-f1 .lp-agreement-section:last-of-type { border-bottom: none; }
+    .lp-f1 .lp-agreement-section h2 {
+        font-size: 1rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin: 0 0 0.85rem 0;
+        letter-spacing: -0.02em;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-agreement-section h2 { font-size: 1.125rem; }
+    }
+    .lp-f1 .lp-agreement-section h3 {
+        font-size: 0.8125rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin: 1rem 0 0.5rem 0;
+        letter-spacing: 0.02em;
+    }
+    .lp-f1 .lp-agreement-section p,
+    .lp-f1 .lp-agreement-section li {
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.55;
+        color: #222;
+        margin: 0 0 0.65rem 0;
+    }
+    .lp-f1 .lp-agreement-section p:last-child { margin-bottom: 0; }
+    .lp-f1 .lp-agreement-section ol {
+        margin: 0 0 0.5rem 0;
+        padding-left: 1.15rem;
+    }
+    .lp-f1 .lp-agreement-section ol li { margin-bottom: 0.5rem; }
+    .lp-f1 .lp-agreement-section ol ul {
+        margin-top: 0.4rem;
+        margin-bottom: 0.35rem;
+    }
+    .lp-f1 .lp-agreement-section ul {
+        list-style: none;
+        margin: 0.35rem 0 0 0;
+        padding: 0;
+    }
+    .lp-f1 .lp-agreement-section ul li {
+        position: relative;
+        padding-left: 1rem;
+        margin-bottom: 0.35rem;
+    }
+    .lp-f1 .lp-agreement-section ul li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        font-weight: 900;
+        color: var(--lp-orange);
+    }
+    .lp-f1 .lp-agreement-requisites span {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1.55;
+    }
 </style>
