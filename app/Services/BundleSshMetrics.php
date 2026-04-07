@@ -43,7 +43,21 @@ if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
 fi
 unique_remote_ips=0
 if command -v ss >/dev/null 2>&1; then
-  unique_remote_ips=$(ss -Hnt state established "sport = :${port}" 2>/dev/null | awk '{print $5}' | sed -E 's/^\[//;s/\]//;s/:[0-9]+$//' | sort -u | grep -cE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|^[0-9a-fA-F:]+$' || echo 0)
+  # Входящие на этот сервер: локальный порт = $port (колонка Local), не sport в фильтре ss.
+  unique_remote_ips=$(ss -Hnt state established 2>/dev/null | awk -v p="$port" '
+  {
+    loc = $4
+    peer = $5
+    if (!(loc ~ ":" p "$" || loc ~ "]:" p "$")) next
+    if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) {
+      sub(/:[0-9]+$/, "", peer)
+    } else if (peer ~ /^\[[^]]+\]:[0-9]+$/) {
+      sub(/^\[/, "", peer)
+      sub(/\]:[0-9]+$/, "", peer)
+    } else next
+    if (peer == "" || peer == "*" || peer == "127.0.0.1" || peer == "::1") next
+    print peer
+  }' | sort -u | wc -l | tr -d " ")
 fi
 printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nunique_remote_ips:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$unique_remote_ips"
 BASH;
