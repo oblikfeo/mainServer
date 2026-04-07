@@ -18,7 +18,10 @@ class BundleSshMetrics
             return null;
         }
 
+        $clientPort = max(1, min(65535, (int) ($bundle['client_tcp_port'] ?? 443)));
+
         $script = <<<'BASH'
+port="${1:-443}"
 load1=$(awk '{print $1}' /proc/loadavg)
 cpus=$(nproc)
 mem_total=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
@@ -38,7 +41,11 @@ fi
 if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
   ct_max=$(cat /proc/sys/net/netfilter/nf_conntrack_max)
 fi
-printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max"
+unique_remote_ips=0
+if command -v ss >/dev/null 2>&1; then
+  unique_remote_ips=$(ss -Hnt state established "sport = :${port}" 2>/dev/null | awk '{print $5}' | sed -E 's/^\[//;s/\]//;s/:[0-9]+$//' | sort -u | grep -cE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|^[0-9a-fA-F:]+$' || echo 0)
+fi
+printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nunique_remote_ips:%s\n' "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$unique_remote_ips"
 BASH;
 
         try {
@@ -54,6 +61,8 @@ BASH;
                     '-o', 'ConnectTimeout=10',
                     "{$user}@{$host}",
                     'bash', '-s',
+                    '--',
+                    (string) $clientPort,
                 ]);
         } catch (Throwable $e) {
             Log::debug('bundle ssh metrics', ['bundle' => $bundle['id'] ?? '', 'error' => $e->getMessage()]);
@@ -100,6 +109,8 @@ BASH;
         $cpuUtilPct = (int) min(100, max(0, round($loadPerCpu * 100)));
         $memUsedPct = (int) min(100, max(0, round(100 * $memUsedKb / $memTotalKb)));
 
+        $uniqueIps = (int) ($data['unique_remote_ips'] ?? 0);
+
         return [
             'load1' => $load1,
             'cpus' => $cpus,
@@ -121,6 +132,7 @@ BASH;
             'conntrack_level' => $ctMax > 0 && $ctPct !== null ? $this->conntrackLevel($ctPct) : null,
             'cpu_level' => $this->loadLevel($loadPerCpu),
             'ram_level' => $this->ramLevel($memUsedPct),
+            'unique_remote_ips' => $uniqueIps,
         ];
     }
 

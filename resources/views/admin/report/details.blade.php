@@ -1,8 +1,22 @@
 <div class="text-sm text-slate-700 space-y-4 max-w-4xl">
     <p class="flex flex-wrap gap-x-2 gap-y-1 items-baseline">
-        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">Устройства</span>
+        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500">Устройства (лимит уник. IP FI+NL)</span>
         <span class="font-semibold text-slate-900">{{ $subscription->devices }}</span>
     </p>
+    @php
+        $crow = isset($connectionBySubId) ? ($connectionBySubId[$subscription->id] ?? null) : null;
+    @endphp
+    @if ($crow)
+        <p class="text-xs text-slate-600 rounded-xl border border-slate-200 bg-white px-3 py-2">
+            Сейчас уникальных IP (панель): <span class="font-bold text-slate-900">{{ $crow['online_ip_count'] }}</span>
+            @if ($crow['limit'] > 0)
+                · лимит {{ $crow['limit'] }}
+                @if ($crow['over'])
+                    <span class="text-rose-600 font-bold"> — превышение</span>
+                @endif
+            @endif
+        </p>
+    @endif
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         @foreach (config('xui.bundle_order', ['fi', 'nl']) as $bundleKey)
             @php

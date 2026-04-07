@@ -20,8 +20,8 @@
 
     <ul class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-10 list-none p-0">
         <li class="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 sm:p-6 shadow-md shadow-slate-200/40">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Ключей выдано</div>
-            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalKeys }}</div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Подписок активных</div>
+            <div class="mt-2 sm:mt-3 text-3xl sm:text-4xl font-bold tabular-nums text-slate-900 tracking-tight">{{ $totalActiveSubs }}</div>
         </li>
         <li class="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-white p-4 sm:p-6 shadow-md shadow-emerald-200/30">
             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700/80">Узлов онлайн</div>
@@ -60,9 +60,14 @@
                 </header>
 
                 <div class="p-5 grid grid-cols-2 gap-3 flex-1 bg-slate-50/80">
-                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile($bundle['keys_level'] ?? null) }}">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Ключи</span>
-                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $bundle['keys_count'] }}</span>
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile($bundle['subs_level'] ?? null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Подписок</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $bundle['subs_count'] }}</span>
+                    </div>
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
+                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Активные IP</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
+                        <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные исходящие IP на порту {{ (int) ($bundle['client_tcp_port'] ?? 443) }} (SSH)</span>
                     </div>
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['cpu_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">CPU</span>
@@ -78,7 +83,7 @@
                             @endif
                         </span>
                     </div>
-                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
+                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">NAT</span>
                         <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">
                             @if ($m && $ctMax > 0)

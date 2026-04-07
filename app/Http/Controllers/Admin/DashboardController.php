@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\IssuedKey;
+use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
 use Illuminate\Support\Facades\Cache;
@@ -23,9 +24,16 @@ class DashboardController extends Controller
 
     public function servers(): View
     {
-        $keyCounts = IssuedKey::query()
-            ->selectRaw('bundle_id, COUNT(*) as c')
-            ->groupBy('bundle_id')
+        $nowMs = (int) (now()->getTimestamp() * 1000);
+
+        $subsPerBundle = IssuedKey::query()
+            ->join('subscriptions', 'subscriptions.id', '=', 'issued_keys.subscription_id')
+            ->where(function ($q) use ($nowMs) {
+                $q->where('subscriptions.expiry_ms', '<=', 0)
+                    ->orWhere('subscriptions.expiry_ms', '>', $nowMs);
+            })
+            ->selectRaw('issued_keys.bundle_id, COUNT(DISTINCT issued_keys.subscription_id) as c')
+            ->groupBy('issued_keys.bundle_id')
             ->pluck('c', 'bundle_id');
 
         $ttl = max(15, config('links.metrics_cache_ttl', 45));
@@ -33,7 +41,7 @@ class DashboardController extends Controller
         $th = config('links.thresholds', []);
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($keyCounts, $ttl, $healthTtl, $th) {
+            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -42,11 +50,11 @@ class DashboardController extends Controller
                     $healthTtl,
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
-                $bundle['keys_count'] = (int) ($keyCounts[$id] ?? 0);
+                $bundle['subs_count'] = (int) ($subsPerBundle[$id] ?? 0);
 
                 $bundleForSsh = $bundle;
                 $bundle['metrics'] = Cache::remember(
-                    'bundle_ssh_metrics_v3_'.$id,
+                    'bundle_ssh_metrics_v4_'.$id,
                     $ttl,
                     fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
                 );
@@ -54,7 +62,7 @@ class DashboardController extends Controller
                 $capacity = max(1, (int) ($th['keys_capacity'] ?? 200));
                 $warnR = (float) ($th['keys_warn_ratio'] ?? 0.65);
                 $critR = (float) ($th['keys_crit_ratio'] ?? 0.90);
-                $bundle['keys_level'] = $this->keysStressLevel($bundle['keys_count'], $capacity, $warnR, $critR);
+                $bundle['subs_level'] = $this->keysStressLevel($bundle['subs_count'], $capacity, $warnR, $critR);
 
                 $m = $bundle['metrics'];
                 $bundle['traffic_level'] = is_array($m)
@@ -72,13 +80,18 @@ class DashboardController extends Controller
             ->all();
 
         $onlineCount = collect($bundles)->where('online', true)->count();
-        $totalKeys = IssuedKey::query()->count();
+        $totalActiveSubs = Subscription::query()
+            ->where(function ($q) use ($nowMs) {
+                $q->where('expiry_ms', '<=', 0)
+                    ->orWhere('expiry_ms', '>', $nowMs);
+            })
+            ->count();
 
         return view('admin.servers', [
             'bundles' => $bundles,
             'onlineCount' => $onlineCount,
             'totalBundles' => count($bundles),
-            'totalKeys' => $totalKeys,
+            'totalActiveSubs' => $totalActiveSubs,
         ]);
     }
 

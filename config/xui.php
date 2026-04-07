@@ -49,4 +49,15 @@ return [
 
     /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
     'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
+
+    /** Кэш блока «уникальные IP по подписке» на отчёте (секунды). */
+    'report_connection_cache_ttl' => (int) env('XUI_REPORT_CONNECTION_CACHE_TTL', 60),
+
+    /**
+     * Периодически: subscription:enforce-device-limits — отключение клиентов при превышении лимита уникальных IP (FI+NL).
+     */
+    'enforce_device_limits' => filter_var(env('XUI_ENFORCE_DEVICE_LIMITS', false), FILTER_VALIDATE_BOOL),
+
+    /** После снятия превышения снова включить клиентов в панели. */
+    'auto_reenable_clients_within_limit' => filter_var(env('XUI_AUTO_REENABLE_CLIENTS', true), FILTER_VALIDATE_BOOL),
 ];

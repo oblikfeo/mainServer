@@ -10,10 +10,14 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+        $schedule->command('subscription:enforce-device-limits')->everyMinute();
+    })
     ->withCommands([
         \App\Console\Commands\SubscriptionDestroyCommand::class,
         \App\Console\Commands\SubscriptionAttachUserCommand::class,
         \App\Console\Commands\ProvisionCabinetUsersCommand::class,
+        \App\Console\Commands\SubscriptionEnforceDeviceLimitsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');

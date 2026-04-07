@@ -27,46 +27,28 @@ final class MergedSubscriptionFeedRenderer
         try {
             [$fiResp, $nlResp] = $this->fetchPanelSubsParallel($fiNode, $nlNode, $sub);
 
-            if (! $fiResp->successful()) {
-                throw new \RuntimeException('FI подписка: HTTP '.$fiResp->status());
+            $fiOk = $this->appendVlessLineIfOk($lines, $fiResp, $fiNode, 'FI');
+            $nlOk = $this->appendVlessLineIfOk($lines, $nlResp, $nlNode, 'NL');
+
+            if ($fiOk) {
+                $fiUi = $this->parseUserinfoHeader($fiResp->header('subscription-userinfo'));
             }
-            if (! $nlResp->successful()) {
-                throw new \RuntimeException('NL подписка: HTTP '.$nlResp->status());
+            if ($nlOk) {
+                $nlUi = $this->parseUserinfoHeader($nlResp->header('subscription-userinfo'));
             }
 
-            $fiUi = $this->parseUserinfoHeader($fiResp->header('subscription-userinfo'));
-            $nlUi = $this->parseUserinfoHeader($nlResp->header('subscription-userinfo'));
+            if ($lines === []) {
+                $msg = 'Ни один узел не отдал рабочую подписку (FI: '
+                    .($fiOk ? 'ok' : 'ошибка HTTP '.($fiResp->successful() ? 'тело' : $fiResp->status()))
+                    .', NL: '
+                    .($nlOk ? 'ok' : 'ошибка HTTP '.($nlResp->successful() ? 'тело' : $nlResp->status()))
+                    .').';
 
-            $pairs = [
-                [
-                    'raw' => trim($fiResp->body()),
-                    'label' => 'FI',
-                    'name' => (string) ($fiNode['vless_display_name'] ?? 'FI'),
-                ],
-                [
-                    'raw' => trim($nlResp->body()),
-                    'label' => 'NL',
-                    'name' => (string) ($nlNode['vless_display_name'] ?? 'NL'),
-                ],
-            ];
+                throw new \RuntimeException($msg);
+            }
 
-            foreach ($pairs as $row) {
-                $raw = $row['raw'];
-                if ($raw === '') {
-                    throw new \RuntimeException($row['label'].': пустой ответ панели по ссылке sub');
-                }
-                $line = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($raw);
-                if ($line === '' || ! str_starts_with($line, 'vless://')) {
-                    throw new \RuntimeException(
-                        $row['label'].': в ответе нет vless:// (часто из‑за строк #meta в теле подписки панели — уже обрабатывается; проверьте subId и доступность sub_origin с сервера Laravel)'
-                    );
-                }
-                $lines[] = VlessSubscriptionHelper::setVlessFragment(
-                    $line,
-                    $row['name'],
-                    (string) config('xui.vless_server_description', ''),
-                    (string) config('xui.vless_server_description_format', 'dual')
-                );
+            if (((int) sprintf('%u', crc32($sub->token)) & 1) === 1) {
+                $lines = array_reverse($lines);
             }
         } catch (Throwable $e) {
             Log::warning('subscription.feed.error', [
@@ -149,6 +131,33 @@ final class MergedSubscriptionFeedRenderer
         ]);
 
         return [$responses['fi'], $responses['nl']];
+    }
+
+    /**
+     * @param  list<string>  $lines
+     * @param  array<string, mixed>  $node
+     */
+    private function appendVlessLineIfOk(array &$lines, \Illuminate\Http\Client\Response $resp, array $node, string $label): bool
+    {
+        if (! $resp->successful()) {
+            return false;
+        }
+        $raw = trim($resp->body());
+        if ($raw === '') {
+            return false;
+        }
+        $line = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($raw);
+        if ($line === '' || ! str_starts_with($line, 'vless://')) {
+            return false;
+        }
+        $lines[] = VlessSubscriptionHelper::setVlessFragment(
+            $line,
+            (string) ($node['vless_display_name'] ?? $label),
+            (string) config('xui.vless_server_description', ''),
+            (string) config('xui.vless_server_description_format', 'dual')
+        );
+
+        return true;
     }
 
     /**

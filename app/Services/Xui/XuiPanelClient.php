@@ -93,4 +93,96 @@ final class XuiPanelClient
 
         return $obj;
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getInboundById(int $inboundId): array
+    {
+        $r = $this->http->get('panel/api/inbounds/get/'.$inboundId);
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'inbounds/get: ответ панели некорректен');
+        }
+        $obj = $j['obj'] ?? null;
+
+        return is_array($obj) ? $obj : [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getOnlineClientEmails(): array
+    {
+        $r = $this->http->post('panel/api/inbounds/onlines');
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'inbounds/onlines: ответ панели некорректен');
+        }
+        $obj = $j['obj'] ?? [];
+        if (! is_array($obj)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($obj as $email) {
+            if (is_string($email) && $email !== '') {
+                $out[] = $email;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Нормализованные уникальные IP из записи клиента в панели.
+     *
+     * @return list<string>
+     */
+    public function getClientIpsNormalized(string $email): array
+    {
+        $r = $this->http->post('panel/api/inbounds/clientIps/'.rawurlencode($email));
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            return [];
+        }
+        $obj = $j['obj'] ?? null;
+        if ($obj === null || $obj === 'No IP Record') {
+            return [];
+        }
+        if (! is_array($obj)) {
+            return [];
+        }
+
+        $ips = [];
+        foreach ($obj as $item) {
+            if (! is_string($item) || $item === '') {
+                continue;
+            }
+            $head = trim(explode(' ', $item, 2)[0]);
+            if (filter_var($head, FILTER_VALIDATE_IP)) {
+                $ips[$head] = true;
+            }
+        }
+
+        return array_keys($ips);
+    }
+
+    /**
+     * @param  array<string, mixed>  $clientRow  один элемент clients[] (полная строка из настроек inbound)
+     */
+    public function updateInboundClient(int $inboundId, string $clientUuid, array $clientRow): void
+    {
+        $settings = ['clients' => [$clientRow]];
+        $r = $this->http->post('panel/api/inbounds/updateClient/'.rawurlencode($clientUuid), [
+            'json' => [
+                'id' => $inboundId,
+                'settings' => json_encode($settings, JSON_UNESCAPED_SLASHES),
+            ],
+        ]);
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'updateClient отклонён');
+        }
+    }
 }

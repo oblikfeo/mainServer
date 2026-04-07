@@ -64,7 +64,7 @@ final class CreateDualBundleSubscription
                 'id' => $uid,
                 'email' => $email,
                 'flow' => 'xtls-rprx-vision',
-                'limitIp' => $devices,
+                'limitIp' => 0,
                 'totalGB' => $bytesPerNode,
                 'expiryTime' => $expiryMs,
                 'enable' => true,

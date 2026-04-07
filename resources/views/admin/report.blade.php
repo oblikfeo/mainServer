@@ -31,6 +31,17 @@
         </div>
     @endif
 
+    @if (! empty($connectionErrors))
+        <div class="mb-5 sm:mb-6 rounded-2xl border border-amber-200/90 bg-amber-50 px-4 sm:px-5 py-4 text-amber-950 text-sm shadow-sm ring-1 ring-amber-900/5 space-y-2">
+            <p class="font-bold text-amber-900">Данные по IP (3x-ui) частично недоступны</p>
+            <ul class="list-disc list-inside text-amber-900/90 space-y-0.5">
+                @foreach ($connectionErrors as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form
         method="get"
         action="{{ route('admin.report') }}"
@@ -121,6 +132,22 @@
                             <dt class="text-slate-500 font-medium shrink-0">Трафик</dt>
                             <dd class="text-slate-900 font-semibold tabular-nums text-right">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</dd>
                         </div>
+                        @php
+                            $crow = $connectionBySubId[$subscription->id] ?? null;
+                        @endphp
+                        <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
+                            <dt class="text-slate-500 font-medium shrink-0">Уник. IP</dt>
+                            <dd class="text-slate-900 font-semibold tabular-nums text-right">
+                                @if ($crow)
+                                    {{ $crow['online_ip_count'] }} / {{ $crow['limit'] ?: '∞' }}
+                                    @if ($crow['over'])
+                                        <span class="block text-xs text-rose-600 font-bold mt-0.5">Превышение</span>
+                                    @endif
+                                @else
+                                    —
+                                @endif
+                            </dd>
+                        </div>
                         <div class="flex justify-between gap-3 py-2">
                             <dt class="text-slate-500 font-medium shrink-0">Владелец</dt>
                             <dd class="text-slate-900 font-semibold text-right break-all text-xs">{{ $subscription->user?->email ?? '—' }}</dd>
@@ -141,7 +168,7 @@
                         x-cloak
                         class="border-t border-slate-200 pt-4 -mx-4 px-4 bg-slate-50/90 -mb-4 pb-4 rounded-b-xl"
                     >
-                        @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt])
+                        @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt, 'connectionBySubId' => $connectionBySubId])
                     </div>
                     <div class="px-4 pb-4 pt-2 border-t border-slate-200">
                         <form
@@ -180,6 +207,7 @@
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90" scope="col">Статус</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Квота</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Трафик</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col" title="Уникальные IP (FI+NL), панель">IP / лимит</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[10rem] max-w-[14rem]" scope="col">Владелец</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Действия</th>
                         </tr>
@@ -201,6 +229,7 @@
                             }
                             $totalUsed = $sums === [] ? null : array_sum($sums);
                             $exp = $subscription->expiresAt();
+                            $crow = $connectionBySubId[$subscription->id] ?? null;
                         @endphp
                         <tbody
                             class="border-b border-slate-200 last:border-b-0"
@@ -232,6 +261,16 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $subscription->quota_gb }} ГБ</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap text-xs">
+                                    @if ($crow)
+                                        {{ $crow['online_ip_count'] }} / {{ $crow['limit'] ?: '∞' }}
+                                        @if ($crow['over'])
+                                            <span class="block text-[10px] text-rose-600 font-bold">превыш.</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-slate-800 align-middle text-xs break-all max-w-[14rem]" title="{{ $subscription->user?->email ?? '' }}">{{ $subscription->user?->email ?? '—' }}</td>
                                 <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                     <form
@@ -248,8 +287,8 @@
                                 </td>
                             </tr>
                             <tr x-show="open" x-cloak class="bg-gradient-to-br from-slate-50 to-slate-100/90">
-                                <td colspan="9" class="px-5 py-5 border-t border-slate-200/80">
-                                    @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt])
+                                <td colspan="10" class="px-5 py-5 border-t border-slate-200/80">
+                                    @include('admin.report.details', ['subscription' => $subscription, 'trafficMaps' => $trafficMaps, 'byteFmt' => $byteFmt, 'connectionBySubId' => $connectionBySubId])
                                 </td>
                             </tr>
                         </tbody>
