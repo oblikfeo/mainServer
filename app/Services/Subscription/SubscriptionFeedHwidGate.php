@@ -80,8 +80,7 @@ final class SubscriptionFeedHwidGate
 
             if (count($hashes) >= $max) {
                 return new Response(
-                    "Лимит устройств ({$max}) исчерпан.\n"
-                    ."Это устройство не привязано к подписке. Доступ только с уже добавленных в Happ устройств.\n",
+                    "Превышено число соединений\n",
                     403,
                     ['Content-Type' => 'text/plain; charset=utf-8']
                 );
