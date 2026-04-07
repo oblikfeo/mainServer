@@ -62,7 +62,7 @@ class DashboardController extends Controller
 
                 $bundleForSsh = $bundle;
                 $bundle['metrics'] = Cache::remember(
-                    'bundle_ssh_metrics_v7_'.$id,
+                    'bundle_ssh_metrics_v8_'.$id,
                     $ttl,
                     fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
                 );

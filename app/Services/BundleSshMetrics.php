@@ -43,16 +43,38 @@ if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
 fi
 unique_remote_ips=0
 if command -v ss >/dev/null 2>&1; then
-  # ss -Hnt: бывает «tcp ESTAB … local peer» (6+ полей) или «ESTAB … local peer» (5 полей) — local/peer не всегда $4/$5.
+  # Реальный вывод на Yandex ВМ: «Recv-Q Send-Q Local Peer» (4 поля), без префикса tcp.
+  # Бывает и «tcp ESTAB 0 0 local peer» — оба варианта.
   unique_remote_ips=$(ss -Hnt state established 2>/dev/null | awk -v p="$port" '
-  function local_port_ok(s,    n, a) {
-    if (s ~ ":" p "$") return 1
-    if (s ~ "]:" p "$") return 1
-    return 0
+  function local_port_ok(s) {
+    return (s ~ ":" p "$" || s ~ "]:" p "$")
+  }
+  function peer_normalize(peer,    ip) {
+    if (peer ~ /^\[::ffff:[0-9.]+\]:[0-9]+$/) {
+      ip = peer
+      sub(/^\[::ffff:/, "", ip)
+      sub(/\]:[0-9]+$/, "", ip)
+      return ip
+    }
+    if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) {
+      ip = peer
+      sub(/:[0-9]+$/, "", ip)
+      return ip
+    }
+    if (peer ~ /^\[[^]]+\]:[0-9]+$/) {
+      ip = peer
+      sub(/^\[/, "", ip)
+      sub(/\]:[0-9]+$/, "", ip)
+      return ip
+    }
+    return ""
   }
   {
-    if (NF < 5) next
-    if ($1 == "tcp" || $1 == "tcp6" || $1 == "udp" || $1 == "udp6") {
+    if (NF < 4) next
+    if ($1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ && $3 ~ /:/ ) {
+      loc = $3
+      peer = $4
+    } else if ($1 == "tcp" || $1 == "tcp6" || $1 == "udp" || $1 == "udp6") {
       if (NF < 6) next
       loc = $5
       peer = $6
@@ -61,12 +83,7 @@ if command -v ss >/dev/null 2>&1; then
       peer = $5
     }
     if (!local_port_ok(loc)) next
-    if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) {
-      sub(/:[0-9]+$/, "", peer)
-    } else if (peer ~ /^\[[^]]+\]:[0-9]+$/) {
-      sub(/^\[/, "", peer)
-      sub(/\]:[0-9]+$/, "", peer)
-    } else next
+    peer = peer_normalize(peer)
     if (peer == "" || peer == "*" || peer == "127.0.0.1" || peer == "::1") next
     print peer
   }' | sort -u | wc -l | tr -d " ")
