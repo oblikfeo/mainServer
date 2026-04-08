@@ -19,6 +19,9 @@ Route::get('/agreement', function () {
     return view('agreement');
 })->name('agreement');
 
+Route::view('/spasibo', 'spasibo')->name('payment.success');
+Route::view('/oshibka', 'oshibka')->name('payment.failure');
+
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
 

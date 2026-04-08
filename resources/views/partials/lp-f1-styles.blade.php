@@ -117,6 +117,7 @@
         .lp-f1 .lp-cta-btn { padding: 1.5rem 1.75rem; font-size: 1.125rem; }
     }
     .lp-f1 .lp-cta-btn:hover { background: #E03E00; color: #fff; }
+    .lp-f1 button.lp-cta-btn { font-family: inherit; }
     .lp-f1 .lp-micro-copy {
         display: block;
         text-align: center;

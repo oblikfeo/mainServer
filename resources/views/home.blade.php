@@ -132,6 +132,10 @@
                     </div>
                 </article>
             </div>
+            <button type="button" class="lp-cta-btn" id="lp-tariff-connect-btn">
+                <span>Подключиться</span>
+                <span aria-hidden="true">→</span>
+            </button>
             <div class="lp-payment-info">
                 <span>✓ Оплата через СБП или банковской картой РФ.</span>
                 <span>✓ <strong>Без автопродлений:</strong> мы не списываем деньги втихую. Вы сами продлеваете доступ.</span>
