@@ -768,6 +768,100 @@
         resize: vertical;
         min-height: 5rem;
     }
+
+    .lp-f1 .lp-copy-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        align-items: flex-start;
+    }
+    .lp-f1 .lp-copy-hint {
+        font-size: 0.75rem;
+        color: #475569;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+    .lp-f1 .lp-btn.lp-btn--copy {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        border: 3px solid var(--lp-ink);
+        background: #fff;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .lp-f1 .lp-btn.lp-btn--copy:hover {
+        background: var(--lp-ink);
+        color: #fff;
+    }
+
+    .lp-f1 .lp-howto-list {
+        margin: 0.5rem 0 0 0;
+        padding-left: 1.1rem;
+        font-size: 0.875rem;
+        line-height: 1.45;
+        color: #1f2937;
+        font-weight: 600;
+    }
+    .lp-f1 .lp-howto-list li { margin: 0.35rem 0; }
+
+    .lp-f1 .lp-store-grid {
+        margin-top: 0.85rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    @media (min-width: 560px) {
+        .lp-f1 .lp-store-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .lp-f1 .lp-store-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        border: 3px solid var(--lp-ink);
+        box-shadow: 6px 6px 0 var(--lp-ink);
+        padding: 0.85rem 0.95rem;
+        text-decoration: none;
+        color: var(--lp-ink);
+        background: #fff;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .lp-f1 .lp-store-btn:hover {
+        transform: translate(1px, 1px);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-store-btn__icon {
+        width: 2.1rem;
+        height: 2.1rem;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--lp-ink);
+        background: #fbfbfb;
+    }
+    .lp-f1 .lp-store-btn__icon svg { width: 1.45rem; height: 1.45rem; }
+    .lp-f1 .lp-store-btn__kicker {
+        display: block;
+        font-size: 0.625rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #475569;
+        margin-bottom: 0.1rem;
+    }
+    .lp-f1 .lp-store-btn__title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+    }
     .lp-f1 .lp-empty {
         text-align: center;
         padding: 2rem 1.25rem;
