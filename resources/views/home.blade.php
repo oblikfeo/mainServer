@@ -95,7 +95,7 @@
                             <span class="lp-tariff-card__period">6 месяцев</span>
                             <div class="lp-tariff-card__price-block">
                                 <span class="lp-tariff-card__amount">990&nbsp;₽</span>
-                                <span class="lp-price-sub">165&nbsp;₽/мес — как чашка кофе</span>
+                                <span class="lp-price-sub">165&nbsp;₽/мес<br>как чашка кофе</span>
                             </div>
                         </div>
                     </div>
@@ -122,7 +122,7 @@
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">6 месяцев</span>
                             <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount-line">
+                                <span class="lp-tariff-card__amount-line lp-tariff-card__amount-line--stack">
                                     <span class="lp-tariff-card__amount">2400&nbsp;₽</span>
                                     <span class="lp-badge">Выбор семей</span>
                                 </span>

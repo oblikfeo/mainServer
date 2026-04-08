@@ -304,6 +304,17 @@
     .lp-f1 .lp-tariff-card__amount-line .lp-tariff-card__amount {
         display: inline;
     }
+    .lp-f1 .lp-tariff-card__amount-line--stack {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.4rem;
+    }
+    .lp-f1 .lp-tariff-card__amount-line--stack .lp-tariff-card__amount {
+        display: block;
+    }
+    .lp-f1 .lp-tariff-card__amount-line--stack .lp-badge {
+        margin-left: 0;
+    }
     .lp-f1 .lp-tariff-card--family .lp-badge {
         background: var(--lp-orange);
         color: #fff;
