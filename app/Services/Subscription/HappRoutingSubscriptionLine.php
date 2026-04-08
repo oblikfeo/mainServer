@@ -28,14 +28,30 @@ final class HappRoutingSubscriptionLine
 
     /**
      * @param  list<string>  $directSites
+     * @param  list<string>  $extraDirectIp  Доп. DirectIp (CIDR, geoip:, одиночный IPv4).
      */
     public static function buildOnAddLine(
         string $profileName,
         array $directSites,
         bool $useOnAdd = true,
+        array $extraDirectIp = [],
     ): ?string {
         $directSites = array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== ''));
-        if ($directSites === []) {
+        $extraDirectIp = array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== ''));
+
+        $directIpMerged = array_merge(self::defaultDirectIp(), $extraDirectIp);
+        $seenIp = [];
+        $directIp = [];
+        foreach ($directIpMerged as $ip) {
+            $k = strtolower($ip);
+            if (isset($seenIp[$k])) {
+                continue;
+            }
+            $seenIp[$k] = true;
+            $directIp[] = $ip;
+        }
+
+        if ($directSites === [] && $extraDirectIp === []) {
             return null;
         }
 
@@ -57,7 +73,7 @@ final class HappRoutingSubscriptionLine
                 'dns.google' => '8.8.8.8',
             ],
             'DirectSites' => $directSites,
-            'DirectIp' => self::defaultDirectIp(),
+            'DirectIp' => $directIp,
             'DomainStrategy' => 'AsIs',
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),
