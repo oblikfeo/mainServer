@@ -58,4 +58,25 @@ return [
      * Отключите (false), если тестируете curl без X-Hwid.
      */
     'feed_require_hwid' => filter_var(env('SUBSCRIPTION_FEED_REQUIRE_HWID', true), FILTER_VALIDATE_BOOL),
+
+    /**
+     * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
+     *
+     * @see https://www.happ.su/main/dev-docs/routing
+     */
+    'happ_routing' => [
+        'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
+        /** true = happ://routing/onadd/... (активировать при получении) */
+        'onadd' => filter_var(env('HAPP_ROUTING_ONADD', true), FILTER_VALIDATE_BOOL),
+        /** Имя профиля в Happ (короткое) */
+        'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
+        /**
+         * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, geosite: …).
+         * По умолчанию 2ip.ru — для проверки «без VPN».
+         */
+        'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'HAPP_DIRECT_SITES',
+            'full:2ip.ru,domain:2ip.ru'
+        ))))),
+    ],
 ];
