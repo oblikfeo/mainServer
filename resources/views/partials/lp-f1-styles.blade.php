@@ -855,6 +855,9 @@
     @media (min-width: 560px) {
         .lp-f1 .lp-store-grid { grid-template-columns: 1fr 1fr; }
     }
+    @media (min-width: 860px) {
+        .lp-f1 .lp-store-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
     .lp-f1 .lp-store-btn {
         display: flex;
         align-items: center;

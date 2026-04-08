@@ -14,6 +14,7 @@
                     $exp = $sub->expiresAt();
                     $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/search?term=hiddify');
                     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
+                    $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
                 @endphp
                 <article class="lp-card">
                     <div class="lp-card__head">
@@ -38,27 +39,6 @@
                                 {{ $row['decodeWarning'] }}
                             </div>
                         @endif
-
-                        <div>
-                            <div class="lp-field-label">Ссылка подписки</div>
-                            <div class="lp-copy-row" x-data="{ copied: false }">
-                                <button
-                                    type="button"
-                                    class="lp-btn lp-btn--copy"
-                                    :class="copied ? 'lp-btn--copied' : ''"
-                                    x-on:click="
-                                        (async () => {
-                                            try { await navigator.clipboard.writeText(@js($row['subscriptionUrl'])); copied = true; setTimeout(() => copied = false, 1600); }
-                                            catch (e) { copied = false; }
-                                        })()
-                                    "
-                                >
-                                    <span x-show="!copied">Скопировать ссылку</span>
-                                    <span x-show="copied" x-cloak>Скопировано</span>
-                                </button>
-                                <span class="lp-copy-hint">Вставьте её в приложение при добавлении подписки.</span>
-                            </div>
-                        </div>
 
                         <div class="lp-howto">
                             <div class="lp-field-label">Как подключиться</div>
@@ -98,6 +78,19 @@
                                                     <span class="lp-store-btn__title">Android</span>
                                                 </span>
                                             </a>
+                                            <a class="lp-store-btn" role="listitem" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
+                                                <span class="lp-store-btn__icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M4 5.5h16v10H4z"/>
+                                                        <path d="M9 19h6"/>
+                                                        <path d="M12 15.5V19"/>
+                                                    </svg>
+                                                </span>
+                                                <span class="lp-store-btn__text">
+                                                    <span class="lp-store-btn__kicker">Desktop</span>
+                                                    <span class="lp-store-btn__title">ПК</span>
+                                                </span>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -106,7 +99,23 @@
                                     <div class="lp-step__num">2</div>
                                     <div class="lp-step__content">
                                         <div class="lp-step__title">Копируем ссылку</div>
-                                        <div class="lp-step__text">Нажмите кнопку «Скопировать ссылку» вверху — ссылка окажется в буфере обмена.</div>
+                                        <div class="lp-copy-row" x-data="{ copied: false }">
+                                            <button
+                                                type="button"
+                                                class="lp-btn lp-btn--copy"
+                                                :class="copied ? 'lp-btn--copied' : ''"
+                                                x-on:click="
+                                                    (async () => {
+                                                        try { await navigator.clipboard.writeText(@js($row['subscriptionUrl'])); copied = true; setTimeout(() => copied = false, 1600); }
+                                                        catch (e) { copied = false; }
+                                                    })()
+                                                "
+                                            >
+                                                <span x-show="!copied">Скопировать ссылку</span>
+                                                <span x-show="copied" x-cloak>Скопировано</span>
+                                            </button>
+                                            <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                        </div>
                                     </div>
                                 </div>
 

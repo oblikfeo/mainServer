@@ -16,5 +16,6 @@ return [
     'apps' => [
         'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/app/happ-proxy-utility/id6504287215'),
         'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),
+        'desktop_url' => env('MARKETING_DESKTOP_APP_URL', 'https://www.happ.su/main/ru'),
     ],
 ];
