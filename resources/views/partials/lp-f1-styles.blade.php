@@ -475,6 +475,28 @@
         font-weight: 600;
         color: #333;
     }
+    .lp-f1 .lp-checkbox-row--wrap {
+        align-items: flex-start;
+    }
+    .lp-f1 .lp-checkbox-row--wrap input[type="checkbox"] {
+        margin-top: 0.2rem;
+    }
+    .lp-f1 .lp-checkbox-label {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #222;
+        line-height: 1.45;
+        cursor: pointer;
+    }
+    .lp-f1 .lp-checkbox-label a {
+        color: var(--lp-orange);
+        font-weight: 800;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .lp-f1 .lp-checkbox-label a:hover {
+        color: #c03a00;
+    }
     .lp-f1 .lp-cabinet-header { flex-wrap: wrap; }
     .lp-f1 .lp-cabinet-header__row {
         display: flex;

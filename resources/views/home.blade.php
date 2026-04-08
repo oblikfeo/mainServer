@@ -2,7 +2,8 @@
 
 @php
     $brand = config('marketing.brand_name', 'Надежда');
-    $tg = config('marketing.telegram_url', 'https://t.me/');
+    $tg = config('marketing.telegram_support_url', config('marketing.telegram_url', 'https://t.me/nadezhda_tehsup'));
+    $tgHandle = config('marketing.telegram_support_handle', 'nadezhda_tehsup');
 @endphp
 
 @section('title', $brand.' — стабильный интернет без зависаний')
@@ -106,6 +107,9 @@
             <h2 class="lp-support-title">Поддержка</h2>
             <p class="lp-support-text">У нас нет роботов. Вам ответит живой человек, который поможет с настройкой и ответит на любые вопросы.</p>
             <div class="lp-support-time">Среднее время ответа — 7 минут</div>
+            <p class="lp-support-text" style="font-size:0.75rem;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.5rem;">
+                Техподдержка: <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" style="color:#2980b9;">{{ '@'.$tgHandle }}</a>
+            </p>
             <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
             @if (filled(config('marketing.support_email')))
                 <p class="lp-support-text" style="margin-top: 1rem;">Почта: <a href="mailto:{{ config('marketing.support_email') }}" style="color: #2980b9; font-weight: 700;">{{ config('marketing.support_email') }}</a></p>

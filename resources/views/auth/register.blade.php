@@ -17,6 +17,15 @@
             <p class="lp-muted">Минимум 8 символов. При ошибке можно сбросить пароль по почте.</p>
         </div>
 
+        <div class="lp-checkbox-row lp-checkbox-row--wrap mt-4">
+            <input type="checkbox" name="offer_accepted" id="offer_accepted" value="1" @checked(old('offer_accepted'))>
+            <label for="offer_accepted" class="lp-checkbox-label">
+                Соглашаюсь с
+                <a href="{{ route('agreement') }}" target="_blank" rel="noopener noreferrer">публичной офертой</a>
+            </label>
+        </div>
+        <x-input-error :messages="$errors->get('offer_accepted')" class="mt-2" />
+
         <div class="lp-auth-actions">
             <a class="lp-auth-secondary" href="{{ route('login') }}">Уже есть аккаунт</a>
             <x-primary-button class="w-full sm:w-auto justify-center">

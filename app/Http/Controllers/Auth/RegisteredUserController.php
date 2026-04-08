@@ -28,6 +28,9 @@ class RegisteredUserController extends Controller
         $request->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::min(8)],
+            'offer_accepted' => ['accepted'],
+        ], [
+            'offer_accepted.accepted' => 'Нужно согласие с публичной офертой.',
         ]);
 
         $email = (string) $request->email;
