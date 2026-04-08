@@ -71,29 +71,66 @@
 
         <div id="tarify" class="lp-pricing">
             <h2 class="lp-section-title">Понятные цены</h2>
-            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                <table class="lp-price-table">
-                    <tr>
-                        <th>Период</th>
-                        <th>Для себя (2 устройства)</th>
-                        <th>Для семьи (5 устройств)</th>
-                    </tr>
-                    <tr>
-                        <td>1 месяц</td>
-                        <td>250&nbsp;₽</td>
-                        <td>550&nbsp;₽</td>
-                    </tr>
-                    <tr>
-                        <td>3 месяца</td>
-                        <td>600&nbsp;₽<br><span class="lp-price-sub">Выгода 150&nbsp;₽</span></td>
-                        <td>1350&nbsp;₽<br><span class="lp-price-sub">Выгода 300&nbsp;₽</span></td>
-                    </tr>
-                    <tr>
-                        <td>6 месяцев</td>
-                        <td>990&nbsp;₽<br><span class="lp-price-sub">165&nbsp;₽/мес — как чашка кофе</span></td>
-                        <td>2400&nbsp;₽ <span class="lp-badge">Выбор семей</span><br><span class="lp-price-sub">Максимальная выгода</span></td>
-                    </tr>
-                </table>
+            <div class="lp-tariff-cards">
+                <article class="lp-tariff-card lp-tariff-card--solo" aria-labelledby="tariff-solo-title">
+                    <header class="lp-tariff-card__head">
+                        <h3 class="lp-tariff-card__title" id="tariff-solo-title">Для себя</h3>
+                        <p class="lp-tariff-card__meta">2 устройства</p>
+                    </header>
+                    <div class="lp-tariff-card__body">
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">1 месяц</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">250&nbsp;₽</span>
+                            </div>
+                        </div>
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">3 месяца</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">600&nbsp;₽</span>
+                                <span class="lp-price-sub">Выгода 150&nbsp;₽</span>
+                            </div>
+                        </div>
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">6 месяцев</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">990&nbsp;₽</span>
+                                <span class="lp-price-sub">165&nbsp;₽/мес — как чашка кофе</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                <article class="lp-tariff-card lp-tariff-card--family" aria-labelledby="tariff-family-title">
+                    <header class="lp-tariff-card__head">
+                        <h3 class="lp-tariff-card__title" id="tariff-family-title">Для семьи</h3>
+                        <p class="lp-tariff-card__meta">5 устройств</p>
+                    </header>
+                    <div class="lp-tariff-card__body">
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">1 месяц</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">550&nbsp;₽</span>
+                            </div>
+                        </div>
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">3 месяца</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">1350&nbsp;₽</span>
+                                <span class="lp-price-sub">Выгода 300&nbsp;₽</span>
+                            </div>
+                        </div>
+                        <div class="lp-tariff-card__row">
+                            <span class="lp-tariff-card__period">6 месяцев</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount-line">
+                                    <span class="lp-tariff-card__amount">2400&nbsp;₽</span>
+                                    <span class="lp-badge">Выбор семей</span>
+                                </span>
+                                <span class="lp-price-sub">Максимальная выгода</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
             </div>
             <div class="lp-payment-info">
                 <span>✓ Оплата через СБП или банковской картой РФ.</span>
