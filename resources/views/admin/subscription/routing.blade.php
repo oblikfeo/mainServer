@@ -31,42 +31,13 @@
                 </p>
             @endif
             <p class="text-sm text-slate-600">
-                Строки для Happ: трафик «без VPN». Одна строка = одно правило. К <span class="font-mono text-xs">HAPP_DIRECT_SITES</span> <strong>дописываются</strong>. <span class="font-mono text-xs">#</span> в начале строки — комментарий.
+                Одна строка = одно правило (ссылка, домен, IP/CIDR или запись как для Xray — см. парсер на бэке). Новая строка в поле — клавиша <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>. К <span class="font-mono text-xs">HAPP_DIRECT_SITES</span> список <strong>дописывается</strong>. Строка с <span class="font-mono text-xs">#</span> в начале — комментарий.
             </p>
             @if (count($routingConfigSites) > 0)
                 <p class="text-xs text-slate-500">
                     Уже из конфига: @foreach ($routingConfigSites as $t)<span class="font-mono bg-slate-100 px-1 rounded">{{ $t }}</span>@if (! $loop->last) · @endif @endforeach
                 </p>
             @endif
-
-            <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50/80 p-4 space-y-3">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Добавить в список</p>
-                <div class="flex flex-col sm:flex-row gap-2 sm:items-end">
-                    <div class="flex-1 min-w-0">
-                        <label for="rr_kind" class="sr-only">Тип</label>
-                        <select id="rr_kind" class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 text-sm min-h-[44px]">
-                            <option value="url">Ссылка (URL)</option>
-                            <option value="domain">Домен</option>
-                            <option value="ip">IP или сеть (CIDR)</option>
-                            <option value="raw">Своя строка (как для Xray)</option>
-                        </select>
-                    </div>
-                    <div class="flex-[2] min-w-0">
-                        <label for="rr_val" class="sr-only">Значение</label>
-                        <input
-                            type="text"
-                            id="rr_val"
-                            class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 text-sm min-h-[44px] font-mono"
-                            placeholder="Например bank.ru или 192.168.1.0/24"
-                            autocomplete="off"
-                        >
-                    </div>
-                    <button type="button" id="rr_add" class="rounded-xl border-2 border-slate-900 bg-white text-slate-900 px-4 py-2.5 text-sm font-bold min-h-[44px] hover:bg-slate-900 hover:text-white transition-colors shrink-0">
-                        Вставить
-                    </button>
-                </div>
-                <p class="text-xs text-slate-500">«Своя строка» — например <span class="font-mono">geosite:category-ads-all</span>.</p>
-            </div>
 
             <div>
                 <label for="routing_rules" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Список правил</label>
@@ -105,30 +76,4 @@
             </div>
         </form>
     </div>
-    <script>
-        (function () {
-            var ta = document.getElementById('routing_rules');
-            var kind = document.getElementById('rr_kind');
-            var val = document.getElementById('rr_val');
-            var btn = document.getElementById('rr_add');
-            if (!ta || !kind || !val || !btn) return;
-            btn.addEventListener('click', function () {
-                var v = (val.value || '').trim();
-                if (!v) return;
-                var line;
-                switch (kind.value) {
-                    case 'url':
-                        line = /^https?:\/\//i.test(v) ? v : 'https://' + v.replace(/^\/+/, '');
-                        break;
-                    default:
-                        line = v;
-                        break;
-                }
-                var cur = ta.value.replace(/\s+$/, '');
-                ta.value = (cur ? cur + '\n' : '') + line;
-                val.value = '';
-                val.focus();
-            });
-        })();
-    </script>
 @endsection
