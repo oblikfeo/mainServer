@@ -18,13 +18,19 @@ class SubscriptionSettingsController extends Controller
             ? $stored
             : (string) config('xui.sub_profile_title', 'nadezhda VPN');
 
+        return view('admin.subscription.profile', [
+            'profileTitle' => $profileTitle,
+            'fromEnvDefault' => (string) config('xui.sub_profile_title', 'nadezhda VPN'),
+        ]);
+    }
+
+    public function editRouting(): View
+    {
         $routingRaw = AppSetting::getValue('happ_routing_rules') ?? '';
         $routingPreview = HappRoutingRulesParser::parse((string) $routingRaw);
         $configSites = config('xui.happ_routing.direct_sites', []);
 
-        return view('admin.subscription.settings', [
-            'profileTitle' => $profileTitle,
-            'fromEnvDefault' => (string) config('xui.sub_profile_title', 'nadezhda VPN'),
+        return view('admin.subscription.routing', [
             'routingRules' => (string) $routingRaw,
             'routingPreviewSites' => $routingPreview['sites'],
             'routingPreviewIps' => $routingPreview['ips'],
@@ -37,7 +43,6 @@ class SubscriptionSettingsController extends Controller
     {
         $data = $request->validate([
             'profile_title' => ['nullable', 'string', 'max:25'],
-            'routing_rules' => ['nullable', 'string', 'max:12000'],
         ]);
 
         $v = trim((string) ($data['profile_title'] ?? ''));
@@ -47,6 +52,17 @@ class SubscriptionSettingsController extends Controller
             AppSetting::setValue('happ_profile_title', $v);
         }
 
+        return redirect()
+            ->route('admin.subscription.settings')
+            ->with('status', 'Сохранено. В Happ обновите подписку.');
+    }
+
+    public function updateRouting(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'routing_rules' => ['nullable', 'string', 'max:12000'],
+        ]);
+
         $rules = trim((string) ($data['routing_rules'] ?? ''));
         if ($rules === '') {
             AppSetting::forgetKey('happ_routing_rules');
@@ -55,7 +71,7 @@ class SubscriptionSettingsController extends Controller
         }
 
         return redirect()
-            ->route('admin.subscription.settings')
+            ->route('admin.subscription.routing')
             ->with('status', 'Сохранено. В Happ обновите подписку.');
     }
 }
