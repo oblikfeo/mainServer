@@ -76,7 +76,7 @@ return [
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
-            'full:2ip.ru,domain:2ip.ru'
+            'domain:2ip.ru,full:2ip.ru,full:www.2ip.ru,keyword:2ip.ru'
         ))))),
     ],
 ];

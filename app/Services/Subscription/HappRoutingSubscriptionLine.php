@@ -39,6 +39,8 @@ final class HappRoutingSubscriptionLine
             return null;
         }
 
+        // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
+        // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
         $profile = [
             'Name' => $profileName,
             'GlobalProxy' => 'true',
@@ -56,8 +58,9 @@ final class HappRoutingSubscriptionLine
             ],
             'DirectSites' => $directSites,
             'DirectIp' => self::defaultDirectIp(),
-            'DomainStrategy' => 'IPIfNonMatch',
+            'DomainStrategy' => 'AsIs',
             'FakeDNS' => 'false',
+            'LastUpdated' => (string) time(),
         ];
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
