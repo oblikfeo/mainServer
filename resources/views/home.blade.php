@@ -80,17 +80,23 @@
                     <div class="lp-tariff-card__body">
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">1 месяц</span>
-                            <span class="lp-tariff-card__amount">250&nbsp;₽</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">250&nbsp;₽</span>
+                            </div>
                         </div>
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">3 месяца</span>
-                            <span class="lp-tariff-card__amount">600&nbsp;₽</span>
-                            <span class="lp-price-sub">Выгода 150&nbsp;₽</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">600&nbsp;₽</span>
+                                <span class="lp-price-sub">Выгода 150&nbsp;₽</span>
+                            </div>
                         </div>
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">6 месяцев</span>
-                            <span class="lp-tariff-card__amount">990&nbsp;₽</span>
-                            <span class="lp-price-sub lp-price-sub--wrap">165&nbsp;₽/мес — как чашка кофе</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">990&nbsp;₽</span>
+                                <span class="lp-price-sub">165&nbsp;₽/мес — как чашка кофе</span>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -102,18 +108,26 @@
                     <div class="lp-tariff-card__body">
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">1 месяц</span>
-                            <span class="lp-tariff-card__amount">550&nbsp;₽</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">550&nbsp;₽</span>
+                            </div>
                         </div>
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">3 месяца</span>
-                            <span class="lp-tariff-card__amount">1350&nbsp;₽</span>
-                            <span class="lp-price-sub">Выгода 300&nbsp;₽</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount">1350&nbsp;₽</span>
+                                <span class="lp-price-sub">Выгода 300&nbsp;₽</span>
+                            </div>
                         </div>
                         <div class="lp-tariff-card__row">
                             <span class="lp-tariff-card__period">6 месяцев</span>
-                            <span class="lp-badge lp-badge--tariff">Выбор семей</span>
-                            <span class="lp-tariff-card__amount">2400&nbsp;₽</span>
-                            <span class="lp-price-sub">Максимальная выгода</span>
+                            <div class="lp-tariff-card__price-block">
+                                <span class="lp-tariff-card__amount-line">
+                                    <span class="lp-tariff-card__amount">2400&nbsp;₽</span>
+                                    <span class="lp-badge">Выбор семей</span>
+                                </span>
+                                <span class="lp-price-sub">Максимальная выгода</span>
+                            </div>
                         </div>
                     </div>
                 </article>
