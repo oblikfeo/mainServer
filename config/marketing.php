@@ -14,7 +14,7 @@ return [
     /** Если пусто — подставляется support_email */
     'offer_executor_email' => env('MARKETING_OFFER_EXECUTOR_EMAIL', ''),
     'apps' => [
-        'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/ru/search?term=hiddify'),
-        'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/search?q=hiddify&c=apps'),
+        'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/app/happ-proxy-utility/id6504287215'),
+        'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),
     ],
 ];

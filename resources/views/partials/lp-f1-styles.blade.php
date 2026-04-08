@@ -799,19 +799,55 @@
         background: var(--lp-ink);
         color: #fff;
     }
+    .lp-f1 .lp-btn.lp-btn--copy.lp-btn--copied {
+        background: var(--lp-orange);
+        color: #fff;
+    }
+    .lp-f1 .lp-btn.lp-btn--copy.lp-btn--copied:hover {
+        background: #E03E00;
+        color: #fff;
+    }
 
-    .lp-f1 .lp-howto-list {
-        margin: 0.5rem 0 0 0;
-        padding-left: 1.1rem;
+    .lp-f1 .lp-steps { margin-top: 0.35rem; }
+    .lp-f1 .lp-step {
+        display: grid;
+        grid-template-columns: 2.25rem minmax(0, 1fr);
+        gap: 0.75rem;
+        align-items: start;
+        padding: 0.85rem 0.9rem;
+        border: 3px solid var(--lp-ink);
+        background: #fffef5;
+    }
+    .lp-f1 .lp-step + .lp-step { margin-top: 0.75rem; }
+    .lp-f1 .lp-step__num {
+        width: 2.25rem;
+        height: 2.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--lp-ink);
+        background: var(--lp-orange);
+        color: #fff;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+    .lp-f1 .lp-step__title {
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        font-size: 0.75rem;
+        margin: 0 0 0.35rem 0;
+    }
+    .lp-f1 .lp-step__text {
         font-size: 0.875rem;
         line-height: 1.45;
-        color: #1f2937;
         font-weight: 600;
+        color: #1f2937;
     }
-    .lp-f1 .lp-howto-list li { margin: 0.35rem 0; }
 
     .lp-f1 .lp-store-grid {
-        margin-top: 0.85rem;
+        margin-top: 0.6rem;
         display: grid;
         grid-template-columns: 1fr;
         gap: 0.75rem;

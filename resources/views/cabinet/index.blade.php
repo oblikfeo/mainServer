@@ -45,6 +45,7 @@
                                 <button
                                     type="button"
                                     class="lp-btn lp-btn--copy"
+                                    :class="copied ? 'lp-btn--copied' : ''"
                                     x-on:click="
                                         (async () => {
                                             try { await navigator.clipboard.writeText(@js($row['subscriptionUrl'])); copied = true; setTimeout(() => copied = false, 1600); }
@@ -61,42 +62,61 @@
 
                         <div class="lp-howto">
                             <div class="lp-field-label">Как подключиться</div>
-                            <ol class="lp-howto-list">
-                                <li>Скачайте приложение для iOS или Android.</li>
-                                <li>Откройте приложение и выберите «Добавить подписку» / «Import from clipboard» (название может отличаться).</li>
-                                <li>Нажмите «Скопировать ссылку» выше и вставьте её в приложение.</li>
-                            </ol>
-                            <div class="lp-store-grid" role="list" aria-label="Скачать приложение">
-                                <a class="lp-store-btn" role="listitem" href="{{ $iosAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                    <span class="lp-store-btn__icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M16.2 13.2c-.1 2.2 2 2.9 2 2.9s-1.4 4.1-3.4 4.1c-1 0-1.8-.6-2.9-.6-1.1 0-2.1.6-2.9.6-1.9 0-4.2-3.8-4.2-7.5 0-3.2 2-5 3.9-5 1 0 2 .7 2.7.7.7 0 1.9-.8 3.2-.8.5 0 2.1.1 3.1 1.6-.1.1-1.8 1-1.6 3z"/>
-                                            <path d="M13.9 3.8c.7-.9 1.9-1.6 2.9-1.6.1 1.2-.4 2.4-1.1 3.3-.7.9-1.8 1.6-2.9 1.5-.1-1.2.4-2.4 1.1-3.2z"/>
-                                        </svg>
-                                    </span>
-                                    <span class="lp-store-btn__text">
-                                        <span class="lp-store-btn__kicker">Скачать для</span>
-                                        <span class="lp-store-btn__title">iOS</span>
-                                    </span>
-                                </a>
-                                <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                    <span class="lp-store-btn__icon" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M8.5 9.5l-1.6-2.1"/>
-                                            <path d="M15.5 9.5l1.6-2.1"/>
-                                            <path d="M7.2 10.2c-1 1.1-1.6 2.6-1.6 4.3V18c0 1 .8 1.8 1.8 1.8h9.2c1 0 1.8-.8 1.8-1.8v-3.5c0-1.7-.6-3.2-1.6-4.3-1-1.1-2.4-1.7-4.2-1.7s-3.2.6-4.2 1.7z"/>
-                                            <path d="M9 13v3"/>
-                                            <path d="M15 13v3"/>
-                                            <path d="M10 7.2l-.8-1.2"/>
-                                            <path d="M14 7.2l.8-1.2"/>
-                                            <path d="M9.3 7.8c.5-.5 1.4-.8 2.7-.8s2.2.3 2.7.8"/>
-                                        </svg>
-                                    </span>
-                                    <span class="lp-store-btn__text">
-                                        <span class="lp-store-btn__kicker">Скачать для</span>
-                                        <span class="lp-store-btn__title">Android</span>
-                                    </span>
-                                </a>
+                            <div class="lp-steps">
+                                <div class="lp-step">
+                                    <div class="lp-step__num">1</div>
+                                    <div class="lp-step__content">
+                                        <div class="lp-step__title">Скачиваем Happ</div>
+                                        <div class="lp-store-grid" role="list" aria-label="Скачать Happ">
+                                            <a class="lp-store-btn" role="listitem" href="{{ $iosAppUrl }}" target="_blank" rel="noopener noreferrer">
+                                                <span class="lp-store-btn__icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M16.2 13.2c-.1 2.2 2 2.9 2 2.9s-1.4 4.1-3.4 4.1c-1 0-1.8-.6-2.9-.6-1.1 0-2.1.6-2.9.6-1.9 0-4.2-3.8-4.2-7.5 0-3.2 2-5 3.9-5 1 0 2 .7 2.7.7.7 0 1.9-.8 3.2-.8.5 0 2.1.1 3.1 1.6-.1.1-1.8 1-1.6 3z"/>
+                                                        <path d="M13.9 3.8c.7-.9 1.9-1.6 2.9-1.6.1 1.2-.4 2.4-1.1 3.3-.7.9-1.8 1.6-2.9 1.5-.1-1.2.4-2.4 1.1-3.2z"/>
+                                                    </svg>
+                                                </span>
+                                                <span class="lp-store-btn__text">
+                                                    <span class="lp-store-btn__kicker">App Store</span>
+                                                    <span class="lp-store-btn__title">iOS</span>
+                                                </span>
+                                            </a>
+                                            <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
+                                                <span class="lp-store-btn__icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M8.5 9.5l-1.6-2.1"/>
+                                                        <path d="M15.5 9.5l1.6-2.1"/>
+                                                        <path d="M7.2 10.2c-1 1.1-1.6 2.6-1.6 4.3V18c0 1 .8 1.8 1.8 1.8h9.2c1 0 1.8-.8 1.8-1.8v-3.5c0-1.7-.6-3.2-1.6-4.3-1-1.1-2.4-1.7-4.2-1.7s-3.2.6-4.2 1.7z"/>
+                                                        <path d="M9 13v3"/>
+                                                        <path d="M15 13v3"/>
+                                                        <path d="M10 7.2l-.8-1.2"/>
+                                                        <path d="M14 7.2l.8-1.2"/>
+                                                        <path d="M9.3 7.8c.5-.5 1.4-.8 2.7-.8s2.2.3 2.7.8"/>
+                                                    </svg>
+                                                </span>
+                                                <span class="lp-store-btn__text">
+                                                    <span class="lp-store-btn__kicker">Google Play</span>
+                                                    <span class="lp-store-btn__title">Android</span>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="lp-step">
+                                    <div class="lp-step__num">2</div>
+                                    <div class="lp-step__content">
+                                        <div class="lp-step__title">Копируем ссылку</div>
+                                        <div class="lp-step__text">Нажмите кнопку «Скопировать ссылку» вверху — ссылка окажется в буфере обмена.</div>
+                                    </div>
+                                </div>
+
+                                <div class="lp-step">
+                                    <div class="lp-step__num">3</div>
+                                    <div class="lp-step__content">
+                                        <div class="lp-step__title">Вставляем в Happ</div>
+                                        <div class="lp-step__text">Откройте Happ и нажмите «Вставить из буфера обмена» (или «Import from clipboard»).</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
