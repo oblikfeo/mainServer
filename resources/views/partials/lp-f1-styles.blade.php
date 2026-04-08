@@ -229,12 +229,22 @@
     .lp-f1 .lp-tariff-card__head {
         padding: 1rem 1.1rem;
         border-bottom: 4px solid var(--lp-ink);
-        background: #f5f5f5;
     }
-    .lp-f1 .lp-tariff-card--family .lp-tariff-card__head {
+    .lp-f1 .lp-tariff-card--solo .lp-tariff-card__head {
         background: var(--lp-ink);
         color: #fff;
         border-bottom: 4px solid var(--lp-orange);
+    }
+    .lp-f1 .lp-tariff-card--solo .lp-tariff-card__meta {
+        color: rgba(255, 255, 255, 0.78);
+    }
+    .lp-f1 .lp-tariff-card--family .lp-tariff-card__head {
+        background: #fff;
+        color: var(--lp-ink);
+        border-bottom: 4px solid var(--lp-ink);
+    }
+    .lp-f1 .lp-tariff-card--family .lp-tariff-card__meta {
+        color: #555;
     }
     .lp-f1 .lp-tariff-card__title {
         margin: 0;
@@ -255,16 +265,18 @@
         letter-spacing: 0.06em;
         color: #555;
     }
-    .lp-f1 .lp-tariff-card--family .lp-tariff-card__meta {
-        color: rgba(255, 255, 255, 0.78);
+    .lp-f1 .lp-tariff-card--solo .lp-tariff-card__body {
+        background: #ececec;
     }
     .lp-f1 .lp-tariff-card__body { flex: 1; }
     .lp-f1 .lp-tariff-card__row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 0.5rem 1rem;
-        align-items: start;
-        padding: 0.95rem 1.1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 0.45rem;
+        padding: 1rem 0.85rem;
         border-bottom: 2px solid var(--lp-ink);
     }
     .lp-f1 .lp-tariff-card__row:last-child { border-bottom: none; }
@@ -273,12 +285,7 @@
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #444;
-        padding-top: 0.2rem;
-    }
-    .lp-f1 .lp-tariff-card__price-block {
-        text-align: right;
-        min-width: 0;
+        color: #333;
     }
     .lp-f1 .lp-tariff-card__amount {
         display: block;
@@ -291,20 +298,22 @@
     @media (min-width: 480px) {
         .lp-f1 .lp-tariff-card__amount { font-size: 1.5rem; }
     }
-    .lp-f1 .lp-tariff-card__price-block .lp-price-sub {
-        margin-top: 0.35rem;
+    .lp-f1 .lp-tariff-card__row .lp-price-sub {
+        margin-top: 0;
+        white-space: normal;
+        max-width: 100%;
+        padding: 0 0.35rem;
+        line-height: 1.45;
+        overflow-wrap: break-word;
     }
-    .lp-f1 .lp-tariff-card__amount-line {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        justify-content: flex-end;
-        gap: 0.35rem 0.5rem;
+    .lp-f1 .lp-price-sub--wrap {
+        white-space: normal;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
-    .lp-f1 .lp-tariff-card__amount-line .lp-tariff-card__amount {
-        display: inline;
-    }
-    .lp-f1 .lp-tariff-card--family .lp-badge {
+    .lp-f1 .lp-badge--tariff {
+        margin: 0.1rem 0;
+        margin-left: 0;
         background: var(--lp-orange);
         color: #fff;
         border: 2px solid var(--lp-ink);
