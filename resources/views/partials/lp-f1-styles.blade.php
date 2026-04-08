@@ -232,8 +232,8 @@
         background: #f5f5f5;
     }
     .lp-f1 .lp-tariff-card--family .lp-tariff-card__head {
-        background: var(--lp-ink);
-        color: #fff;
+        background: white;
+        color: var(--lp-ink);
         border-bottom: 4px solid var(--lp-orange);
     }
     .lp-f1 .lp-tariff-card__title {
@@ -256,14 +256,14 @@
         color: #555;
     }
     .lp-f1 .lp-tariff-card--family .lp-tariff-card__meta {
-        color: rgba(255, 255, 255, 0.78);
+        color: black;
     }
     .lp-f1 .lp-tariff-card__body { flex: 1; }
     .lp-f1 .lp-tariff-card__row {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         gap: 0.5rem 1rem;
-        align-items: start;
+        align-items: center;
         padding: 0.95rem 1.1rem;
         border-bottom: 2px solid var(--lp-ink);
     }
