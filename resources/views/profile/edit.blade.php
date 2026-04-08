@@ -10,7 +10,7 @@
                     <dd>{{ $user->name }}</dd>
                 </div>
                 <div>
-                    <dt>Email</dt>
+                    <dt>Эл. почта</dt>
                     <dd class="font-mono break-all">{{ $user->email }}</dd>
                 </div>
                 <div class="sm:col-span-2">

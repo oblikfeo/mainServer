@@ -28,4 +28,19 @@ class ProfileUpdateRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Укажите имя.',
+            'name.max' => 'Имя не должно быть длиннее :max символов.',
+            'email.required' => 'Укажите адрес электронной почты.',
+            'email.email' => 'Введите корректный адрес электронной почты.',
+            'email.max' => 'Адрес почты не должен быть длиннее :max символов.',
+            'email.unique' => 'Этот адрес почты уже используется.',
+        ];
+    }
 }
