@@ -78,13 +78,10 @@ final class MergedSubscriptionFeedRenderer
         $profileTitle = $this->profileTitleForHapp();
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n";
 
-        $routingLine = $this->happRoutingLineForBody();
-
         if (config('xui.sub_output_b64', false)) {
-            $encoded = base64_encode($meta.$body)."\n";
-            $body = ($routingLine !== null ? $routingLine."\n" : '').$encoded;
+            $body = base64_encode($meta.$body)."\n";
         } else {
-            $body = ($routingLine !== null ? $routingLine."\n" : '').$meta.$body;
+            $body = $meta.$body;
         }
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
@@ -96,9 +93,6 @@ final class MergedSubscriptionFeedRenderer
         ];
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
-        }
-        if ($routingLine !== null) {
-            $headers['routing'] = $routingLine;
         }
 
         // Имя профиля только в теле (#profile-title) — в HTTP-заголовке UTF-8/прокси часто ломают ответ.
@@ -219,28 +213,6 @@ final class MergedSubscriptionFeedRenderer
     private function formatUserinfoValue(int $upload, int $download, int $total, int $expireSec): string
     {
         return "upload={$upload}; download={$download}; total={$total}; expire={$expireSec}";
-    }
-
-    private function happRoutingLineForBody(): ?string
-    {
-        $cfg = config('xui.happ_routing', []);
-        if (! is_array($cfg) || ! filter_var($cfg['enabled'] ?? false, FILTER_VALIDATE_BOOL)) {
-            return null;
-        }
-
-        $name = trim((string) ($cfg['profile_name'] ?? 'direct'));
-        if ($name === '') {
-            $name = 'direct';
-        }
-
-        $sites = $cfg['direct_sites'] ?? [];
-        if (! is_array($sites)) {
-            $sites = [];
-        }
-
-        $onAdd = filter_var($cfg['onadd'] ?? true, FILTER_VALIDATE_BOOL);
-
-        return HappRoutingSubscriptionLine::buildOnAddLine($name, $sites, $onAdd);
     }
 
     private function profileTitleForHapp(): string
