@@ -92,8 +92,6 @@ final class HappRoutingSubscriptionLine
             'DomesticDNSType' => 'DoH',
             'DomesticDNSDomain' => 'https://dns.google/dns-query',
             'DomesticDNSIP' => '8.8.8.8',
-            'Geoipurl' => $needGeo ? 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat' : '',
-            'Geositeurl' => $needGeo ? 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat' : '',
             'DnsHosts' => [
                 'cloudflare-dns.com' => '1.1.1.1',
                 'dns.google' => '8.8.8.8',
@@ -104,6 +102,11 @@ final class HappRoutingSubscriptionLine
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),
         ];
+
+        if ($needGeo) {
+            $profile['Geoipurl'] = 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat';
+            $profile['Geositeurl'] = 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat';
+        }
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {

@@ -25,26 +25,6 @@
             class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm ring-1 ring-slate-900/5 space-y-4"
         >
             @csrf
-            @if (! $happRoutingEnabled)
-                <p class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    Выключено в .env: <span class="font-mono text-xs">HAPP_ROUTING_ENABLED=false</span> — список сохраняется, в клиент не уходит.
-                </p>
-            @endif
-            <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700 space-y-2">
-                <p class="font-bold text-slate-900">Как добавлять исключения</p>
-                <ul class="list-disc pl-5 space-y-1">
-                    <li><strong>Одна строка = одно исключение</strong>. Новая строка — <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>.</li>
-                    <li>Можно вставлять <strong>URL</strong> (<span class="font-mono text-xs">https://site.ru/…</span>) или <strong>домен</strong> (<span class="font-mono text-xs">site.ru</span>) или <strong>IP/CIDR</strong> (<span class="font-mono text-xs">1.2.3.4</span>, <span class="font-mono text-xs">1.2.3.0/24</span>).</li>
-                    <li>Если вставили <span class="font-mono text-xs">yandex.ru/internet</span> — мы берём только домен <span class="font-mono text-xs">yandex.ru</span> (без «хвоста»).</li>
-                    <li><span class="font-mono text-xs">#</span> в начале строки — комментарий.</li>
-                </ul>
-            </div>
-            @if (count($routingConfigSites) > 0)
-                <p class="text-xs text-slate-500">
-                    Уже из конфига: @foreach ($routingConfigSites as $t)<span class="font-mono bg-slate-100 px-1 rounded">{{ $t }}</span>@if (! $loop->last) · @endif @endforeach
-                </p>
-            @endif
-
             <div>
                 <label for="routing_rules" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Список правил</label>
                 <textarea
@@ -52,47 +32,52 @@
                     id="routing_rules"
                     rows="10"
                     class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 font-mono text-sm focus:border-slate-400 focus:ring-slate-400"
-                    placeholder="https://2ip.ru/&#10;sberbank.ru&#10;geoip:ru&#10;# комментарий"
+                    placeholder=""
                 >{{ old('routing_rules', $routingRules) }}</textarea>
                 @error('routing_rules')
                     <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
             </div>
-            <div class="rounded-xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-700 space-y-2">
-                <p class="font-bold text-slate-900">Что сейчас сохранено в БД</p>
-                @if (trim((string) $routingRules) === '')
-                    <p class="text-slate-500">Пусто.</p>
-                @else
-                    <pre class="whitespace-pre-wrap break-words font-mono bg-slate-50 border border-slate-100 rounded-lg p-3">{{ $routingRules }}</pre>
-                @endif
-            </div>
-
-            @if (count($routingPreviewSites) > 0 || count($routingPreviewIps) > 0 || (isset($routingMergedSites) && count($routingMergedSites) > 0))
-                <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-700 space-y-2">
-                    <p class="font-bold text-slate-900">Как применится в Happ</p>
-                    @if (count($routingPreviewSites) > 0)
-                        <p><span class="font-semibold text-slate-600">DirectSites:</span>
-                            @foreach ($routingPreviewSites as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
-                        </p>
-                    @endif
-                    @if (count($routingPreviewIps) > 0)
-                        <p><span class="font-semibold text-slate-600">DirectIp:</span>
-                            @foreach ($routingPreviewIps as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
-                        </p>
-                    @endif
-                    @if (isset($routingMergedSites) && count($routingMergedSites) > 0)
-                        <p><span class="font-semibold text-slate-600">Итог DirectSites (config + БД):</span>
-                            @foreach ($routingMergedSites as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
-                        </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div class="rounded-xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-700 space-y-2">
+                    <p class="font-bold text-slate-900">Что в списке (БД)</p>
+                    @if (trim((string) $routingRules) === '')
+                        <p class="text-slate-500">Пусто</p>
+                    @else
+                        <pre class="whitespace-pre-wrap break-words font-mono bg-slate-50 border border-slate-100 rounded-lg p-3">{{ $routingRules }}</pre>
                     @endif
                 </div>
-            @endif
+                <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-700 space-y-2">
+                    <p class="font-bold text-slate-900">Что реально уходит в Happ (DirectSites/DirectIp)</p>
+                    <div class="space-y-2">
+                        <div>
+                            <div class="font-semibold text-slate-600">DirectSites (итог)</div>
+                            @if (isset($routingMergedSites) && count($routingMergedSites) > 0)
+                                <div class="font-mono break-words">
+                                    @foreach ($routingMergedSites as $s)<span class="mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
+                                </div>
+                            @else
+                                <div class="text-slate-500">Пусто</div>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-600">DirectIp</div>
+                            @if (count($routingPreviewIps) > 0)
+                                <div class="font-mono break-words">
+                                    @foreach ($routingPreviewIps as $s)<span class="mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
+                                </div>
+                            @else
+                                <div class="text-slate-500">Пусто</div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
                 <button type="submit" class="rounded-xl bg-slate-900 text-white px-5 py-3 text-sm font-bold shadow-sm hover:bg-slate-800 min-h-[44px]">
                     Сохранить
                 </button>
-                <p class="text-xs text-slate-500 self-center">Очистите список и сохраните — сброс правил в БД.</p>
             </div>
         </form>
     </div>
