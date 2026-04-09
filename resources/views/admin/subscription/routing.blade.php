@@ -40,31 +40,39 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div class="rounded-xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-700 space-y-2">
-                    <p class="font-bold text-slate-900">Что в списке (БД)</p>
-                    @if (trim((string) $routingRules) === '')
+                    <p class="font-bold text-slate-900">Что в списке</p>
+                    @if (empty($routingRawLines))
                         <p class="text-slate-500">Пусто</p>
                     @else
-                        <pre class="whitespace-pre-wrap break-words font-mono bg-slate-50 border border-slate-100 rounded-lg p-3">{{ $routingRules }}</pre>
+                        <div class="font-mono break-words">
+                            @foreach ($routingRawLines as $s)
+                                <div>{{ $s }}</div>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
                 <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-700 space-y-2">
-                    <p class="font-bold text-slate-900">Что реально уходит в Happ (DirectSites/DirectIp)</p>
+                    <p class="font-bold text-slate-900">Что уйдёт в Happ</p>
                     <div class="space-y-2">
                         <div>
-                            <div class="font-semibold text-slate-600">DirectSites (итог)</div>
-                            @if (isset($routingMergedSites) && count($routingMergedSites) > 0)
+                            <div class="font-semibold text-slate-600">Сайты</div>
+                            @if (! empty($routingMergedSitesDisplay))
                                 <div class="font-mono break-words">
-                                    @foreach ($routingMergedSites as $s)<span class="mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
+                                    @foreach ($routingMergedSitesDisplay as $s)
+                                        <div>{{ $s }}</div>
+                                    @endforeach
                                 </div>
                             @else
                                 <div class="text-slate-500">Пусто</div>
                             @endif
                         </div>
                         <div>
-                            <div class="font-semibold text-slate-600">DirectIp</div>
-                            @if (count($routingPreviewIps) > 0)
+                            <div class="font-semibold text-slate-600">IP</div>
+                            @if (! empty($routingDirectIpDisplay))
                                 <div class="font-mono break-words">
-                                    @foreach ($routingPreviewIps as $s)<span class="mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
+                                    @foreach ($routingDirectIpDisplay as $s)
+                                        <div>{{ $s }}</div>
+                                    @endforeach
                                 </div>
                             @else
                                 <div class="text-slate-500">Пусто</div>

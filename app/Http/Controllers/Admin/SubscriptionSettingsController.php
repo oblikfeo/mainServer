@@ -46,12 +46,36 @@ class SubscriptionSettingsController extends Controller
             $mergedSites[] = $s;
         }
 
+        $displaySite = static function (string $s): string {
+            $s = trim($s);
+            foreach (['domain:', 'full:'] as $p) {
+                if (str_starts_with(strtolower($s), $p)) {
+                    return trim(substr($s, strlen($p)));
+                }
+            }
+
+            return $s;
+        };
+
+        $mergedSitesDisplay = array_values(array_filter(array_map($displaySite, $mergedSites), fn (string $s): bool => $s !== ''));
+        $directIpDisplay = array_values(array_filter(array_map('trim', $routingPreview['ips']), fn (string $s): bool => $s !== ''));
+
+        $rawLines = [];
+        foreach (preg_split('/\r\n|\r|\n/', (string) $routingRaw) ?: [] as $line) {
+            $line = trim((string) $line);
+            if ($line === '' || str_starts_with($line, '#')) {
+                continue;
+            }
+            $rawLines[] = $line;
+        }
+
         return view('admin.subscription.routing', [
             'routingRules' => (string) $routingRaw,
-            'routingPreviewSites' => $routingPreview['sites'],
-            'routingPreviewIps' => $routingPreview['ips'],
             'routingConfigSites' => $configSites,
             'routingMergedSites' => $mergedSites,
+            'routingRawLines' => $rawLines,
+            'routingMergedSitesDisplay' => $mergedSitesDisplay,
+            'routingDirectIpDisplay' => $directIpDisplay,
             'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
         ]);
     }
@@ -81,9 +105,8 @@ class SubscriptionSettingsController extends Controller
         ]);
 
         $rules = trim((string) ($data['routing_rules'] ?? ''));
-        if ($rules === '') {
-            AppSetting::forgetKey('happ_routing_rules');
-        } else {
+        // Поле ввода специально пустое по умолчанию. Пустая отправка не должна стирать сохранённый список.
+        if ($rules !== '') {
             AppSetting::setValue('happ_routing_rules', $rules);
         }
 
