@@ -33,7 +33,7 @@
                     rows="10"
                     class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 font-mono text-sm focus:border-slate-400 focus:ring-slate-400"
                     placeholder=""
-                >{{ old('routing_rules', $routingRules) }}</textarea>
+                ></textarea>
                 @error('routing_rules')
                     <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
