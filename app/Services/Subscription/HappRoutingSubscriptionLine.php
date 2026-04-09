@@ -104,8 +104,10 @@ final class HappRoutingSubscriptionLine
         ];
 
         if ($needGeo) {
-            $profile['Geoipurl'] = 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat';
-            $profile['Geositeurl'] = 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat';
+            // Российские geo файлы (обновляются автоматически).
+            // @see https://github.com/runetfreedom/russia-v2ray-rules-dat
+            $profile['Geoipurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geoip.dat';
+            $profile['Geositeurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat';
         }
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
