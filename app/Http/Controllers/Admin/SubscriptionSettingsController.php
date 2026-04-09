@@ -104,10 +104,57 @@ class SubscriptionSettingsController extends Controller
             'routing_rules' => ['nullable', 'string', 'max:12000'],
         ]);
 
-        $rules = trim((string) ($data['routing_rules'] ?? ''));
-        // Поле ввода специально пустое по умолчанию. Пустая отправка не должна стирать сохранённый список.
-        if ($rules !== '') {
-            AppSetting::setValue('happ_routing_rules', $rules);
+        $input = trim((string) ($data['routing_rules'] ?? ''));
+        // Поле ввода пустое по умолчанию; по кнопке «Сохранить» добавляем новые строки в общий список.
+        if ($input !== '') {
+            $existingRaw = (string) (AppSetting::getValue('happ_routing_rules') ?? '');
+
+            $existingParsed = HappRoutingRulesParser::parse($existingRaw);
+            $inputParsed = HappRoutingRulesParser::parse($input);
+
+            $displaySite = static function (string $s): string {
+                $s = trim($s);
+                foreach (['domain:', 'full:'] as $p) {
+                    if (str_starts_with(strtolower($s), $p)) {
+                        return trim(substr($s, strlen($p)));
+                    }
+                }
+
+                return $s;
+            };
+
+            $sites = [];
+            $seen = [];
+            foreach ([...$existingParsed['sites'], ...$inputParsed['sites']] as $s) {
+                $s = $displaySite((string) $s);
+                $s = trim($s);
+                if ($s === '') {
+                    continue;
+                }
+                $k = strtolower($s);
+                if (isset($seen[$k])) {
+                    continue;
+                }
+                $seen[$k] = true;
+                $sites[] = $s;
+            }
+
+            $ips = [];
+            foreach ([...$existingParsed['ips'], ...$inputParsed['ips']] as $s) {
+                $s = trim((string) $s);
+                if ($s === '') {
+                    continue;
+                }
+                $k = strtolower($s);
+                if (isset($seen[$k])) {
+                    continue;
+                }
+                $seen[$k] = true;
+                $ips[] = $s;
+            }
+
+            $newStored = trim(implode("\n", [...$sites, ...$ips]));
+            AppSetting::setValue('happ_routing_rules', $newStored);
         }
 
         return redirect()
