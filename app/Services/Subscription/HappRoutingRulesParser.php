@@ -7,8 +7,6 @@ namespace App\Services\Subscription;
  */
 final class HappRoutingRulesParser
 {
-    public const MAX_LINES = 200;
-
     public const MAX_OUTPUT_ENTRIES = 150;
 
     /**
@@ -46,6 +44,17 @@ final class HappRoutingRulesParser
 
             if (self::isProbablyUrl($line)) {
                 $host = self::hostFromUrl($line);
+                if ($host !== null && self::isSafeHost($host)) {
+                    $sites[] = 'domain:'.$host;
+                }
+
+                continue;
+            }
+
+            // Частый кейс из админки: "yandex.ru/internet" без схемы.
+            // Пробуем интерпретировать как URL с https:// и взять host.
+            if (str_contains($line, '/') && str_contains($line, '.')) {
+                $host = self::hostFromUrl('https://'.ltrim($line, '/'));
                 if ($host !== null && self::isSafeHost($host)) {
                     $sites[] = 'domain:'.$host;
                 }

@@ -31,7 +31,10 @@
                 </p>
             @endif
             <p class="text-sm text-slate-600">
-                Одна строка = одно правило (ссылка, домен, IP/CIDR или запись как для Xray — см. парсер на бэке). Новая строка в поле — клавиша <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>. К <span class="font-mono text-xs">HAPP_DIRECT_SITES</span> список <strong>дописывается</strong>. Строка с <span class="font-mono text-xs">#</span> в начале — комментарий.
+                Одна строка = одно правило. Можно вставлять: ссылку, домен, IP/CIDR, либо готовую запись <span class="font-mono text-xs">domain:</span>/<span class="font-mono text-xs">full:</span>/<span class="font-mono text-xs">geoip:</span>/<span class="font-mono text-xs">geosite:</span>.
+                Ввод вида <span class="font-mono text-xs">yandex.ru/internet</span> тоже норм — берётся домен <span class="font-mono text-xs">yandex.ru</span>.
+                Новая строка — <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>.
+                К <span class="font-mono text-xs">HAPP_DIRECT_SITES</span> список <strong>дописывается</strong>. Строка с <span class="font-mono text-xs">#</span> — комментарий.
             </p>
             @if (count($routingConfigSites) > 0)
                 <p class="text-xs text-slate-500">
