@@ -51,12 +51,13 @@ final class HappRoutingRulesParser
                 continue;
             }
 
-            // Частый кейс из админки: "yandex.ru/internet" без схемы.
-            // Пробуем интерпретировать как URL с https:// и взять host.
+            // Если вставили "домен/путь" — берём только домен до первого "/".
+            // Это позволяет вставлять ссылки без схемы, не сохраняя мусор в списке.
             if (str_contains($line, '/') && str_contains($line, '.')) {
-                $host = self::hostFromUrl('https://'.ltrim($line, '/'));
-                if ($host !== null && self::isSafeHost($host)) {
-                    $sites[] = 'domain:'.$host;
+                $candidate = explode('/', ltrim($line, '/'), 2)[0] ?? '';
+                $candidate = trim($candidate);
+                if ($candidate !== '' && self::isSafeHost($candidate)) {
+                    $sites[] = 'domain:'.strtolower($candidate);
                 }
 
                 continue;

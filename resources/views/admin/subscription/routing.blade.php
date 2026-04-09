@@ -30,12 +30,15 @@
                     Выключено в .env: <span class="font-mono text-xs">HAPP_ROUTING_ENABLED=false</span> — список сохраняется, в клиент не уходит.
                 </p>
             @endif
-            <p class="text-sm text-slate-600">
-                Одна строка = одно правило. Можно вставлять: ссылку, домен, IP/CIDR, либо готовую запись <span class="font-mono text-xs">domain:</span>/<span class="font-mono text-xs">full:</span>/<span class="font-mono text-xs">geoip:</span>/<span class="font-mono text-xs">geosite:</span>.
-                Ввод вида <span class="font-mono text-xs">yandex.ru/internet</span> тоже норм — берётся домен <span class="font-mono text-xs">yandex.ru</span>.
-                Новая строка — <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>.
-                К <span class="font-mono text-xs">HAPP_DIRECT_SITES</span> список <strong>дописывается</strong>. Строка с <span class="font-mono text-xs">#</span> — комментарий.
-            </p>
+            <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700 space-y-2">
+                <p class="font-bold text-slate-900">Как добавлять исключения</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><strong>Одна строка = одно исключение</strong>. Новая строка — <kbd class="px-1 rounded border border-slate-300 bg-slate-100 font-mono text-xs">Enter</kbd>.</li>
+                    <li>Можно вставлять <strong>URL</strong> (<span class="font-mono text-xs">https://site.ru/…</span>) или <strong>домен</strong> (<span class="font-mono text-xs">site.ru</span>) или <strong>IP/CIDR</strong> (<span class="font-mono text-xs">1.2.3.4</span>, <span class="font-mono text-xs">1.2.3.0/24</span>).</li>
+                    <li>Если вставили <span class="font-mono text-xs">yandex.ru/internet</span> — мы берём только домен <span class="font-mono text-xs">yandex.ru</span> (без «хвоста»).</li>
+                    <li><span class="font-mono text-xs">#</span> в начале строки — комментарий.</li>
+                </ul>
+            </div>
             @if (count($routingConfigSites) > 0)
                 <p class="text-xs text-slate-500">
                     Уже из конфига: @foreach ($routingConfigSites as $t)<span class="font-mono bg-slate-100 px-1 rounded">{{ $t }}</span>@if (! $loop->last) · @endif @endforeach
@@ -55,9 +58,18 @@
                     <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
             </div>
-            @if (count($routingPreviewSites) > 0 || count($routingPreviewIps) > 0)
+            <div class="rounded-xl border border-slate-100 bg-white px-4 py-3 text-xs text-slate-700 space-y-2">
+                <p class="font-bold text-slate-900">Что сейчас сохранено в БД</p>
+                @if (trim((string) $routingRules) === '')
+                    <p class="text-slate-500">Пусто.</p>
+                @else
+                    <pre class="whitespace-pre-wrap break-words font-mono bg-slate-50 border border-slate-100 rounded-lg p-3">{{ $routingRules }}</pre>
+                @endif
+            </div>
+
+            @if (count($routingPreviewSites) > 0 || count($routingPreviewIps) > 0 || (isset($routingMergedSites) && count($routingMergedSites) > 0))
                 <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-700 space-y-2">
-                    <p class="font-bold text-slate-900">После сохранения (плюс конфиг)</p>
+                    <p class="font-bold text-slate-900">Как применится в Happ</p>
                     @if (count($routingPreviewSites) > 0)
                         <p><span class="font-semibold text-slate-600">DirectSites:</span>
                             @foreach ($routingPreviewSites as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
@@ -66,6 +78,11 @@
                     @if (count($routingPreviewIps) > 0)
                         <p><span class="font-semibold text-slate-600">DirectIp:</span>
                             @foreach ($routingPreviewIps as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
+                        </p>
+                    @endif
+                    @if (isset($routingMergedSites) && count($routingMergedSites) > 0)
+                        <p><span class="font-semibold text-slate-600">Итог DirectSites (config + БД):</span>
+                            @foreach ($routingMergedSites as $s)<span class="font-mono mr-1">{{ $s }}</span>@if (! $loop->last) · @endif @endforeach
                         </p>
                     @endif
                 </div>

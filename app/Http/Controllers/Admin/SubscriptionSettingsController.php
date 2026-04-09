@@ -30,11 +30,28 @@ class SubscriptionSettingsController extends Controller
         $routingPreview = HappRoutingRulesParser::parse((string) $routingRaw);
         $configSites = config('xui.happ_routing.direct_sites', []);
 
+        $configSites = is_array($configSites) ? $configSites : [];
+        $mergedSites = [];
+        $seen = [];
+        foreach ([...$configSites, ...$routingPreview['sites']] as $s) {
+            $s = trim((string) $s);
+            if ($s === '') {
+                continue;
+            }
+            $k = strtolower($s);
+            if (isset($seen[$k])) {
+                continue;
+            }
+            $seen[$k] = true;
+            $mergedSites[] = $s;
+        }
+
         return view('admin.subscription.routing', [
             'routingRules' => (string) $routingRaw,
             'routingPreviewSites' => $routingPreview['sites'],
             'routingPreviewIps' => $routingPreview['ips'],
-            'routingConfigSites' => is_array($configSites) ? $configSites : [],
+            'routingConfigSites' => $configSites,
+            'routingMergedSites' => $mergedSites,
             'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
         ]);
     }

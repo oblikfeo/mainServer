@@ -10,6 +10,30 @@ namespace App\Services\Subscription;
 final class HappRoutingSubscriptionLine
 {
     /**
+     * Geo файлы нужны только если используются токены geoip:/geosite:.
+     *
+     * @param  list<string>  $directSites
+     * @param  list<string>  $directIp
+     */
+    private static function needsGeoFiles(array $directSites, array $directIp): bool
+    {
+        foreach ($directSites as $s) {
+            $s = strtolower(trim((string) $s));
+            if (str_starts_with($s, 'geosite:')) {
+                return true;
+            }
+        }
+        foreach ($directIp as $s) {
+            $s = strtolower(trim((string) $s));
+            if (str_starts_with($s, 'geoip:')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Стандартные приватные сети + broadcast (как в примере Happ).
      *
      * @return list<string>
@@ -55,6 +79,8 @@ final class HappRoutingSubscriptionLine
             return null;
         }
 
+        $needGeo = self::needsGeoFiles($directSites, $directIp);
+
         // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
         // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
         $profile = [
@@ -66,8 +92,8 @@ final class HappRoutingSubscriptionLine
             'DomesticDNSType' => 'DoH',
             'DomesticDNSDomain' => 'https://dns.google/dns-query',
             'DomesticDNSIP' => '8.8.8.8',
-            'Geoipurl' => 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat',
-            'Geositeurl' => 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat',
+            'Geoipurl' => $needGeo ? 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat' : '',
+            'Geositeurl' => $needGeo ? 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat' : '',
             'DnsHosts' => [
                 'cloudflare-dns.com' => '1.1.1.1',
                 'dns.google' => '8.8.8.8',
