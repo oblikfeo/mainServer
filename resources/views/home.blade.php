@@ -60,7 +60,10 @@
                 <p class="lp-feature-desc">Видео, сайты и приложения загружаются без задержек и подвисаний.</p>
             </div>
             <div class="lp-feature-cell">
-                <h3 class="lp-feature-title">Современные сервисы</h3>
+                <div class="lp-feature-title-row">
+                    <img src="{{ asset('gemini-svg.svg') }}" alt="" class="lp-feature-icon" width="28" height="28" decoding="async">
+                    <h3 class="lp-feature-title">Современные сервисы</h3>
+                </div>
                 <p class="lp-feature-desc">Поддержка стабильной работы популярных онлайн-платформ и инструментов, включая нейросети.</p>
             </div>
             <div class="lp-feature-cell">
