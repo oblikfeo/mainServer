@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\ProvisionCabinetUsersCommand::class,
         \App\Console\Commands\SubscriptionSyncPanelLimitIpCommand::class,
         \App\Console\Commands\SubscriptionClearBoundHwidCommand::class,
+        \App\Console\Commands\SubscriptionCreateAdminCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
