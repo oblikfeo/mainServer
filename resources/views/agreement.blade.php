@@ -7,11 +7,6 @@
         ? $publishedConfig
         : now()->timezone(config('app.timezone'))->format('d.m.Y');
     $tg = config('marketing.telegram_support_url', config('marketing.telegram_url', 'https://t.me/nadezhda_tehsup'));
-    $fio = filled(config('marketing.offer_executor_name')) ? config('marketing.offer_executor_name') : '—';
-    $inn = filled(config('marketing.offer_executor_inn')) ? config('marketing.offer_executor_inn') : '—';
-    $execEmail = filled(config('marketing.offer_executor_email'))
-        ? config('marketing.offer_executor_email')
-        : (filled(config('marketing.support_email')) ? config('marketing.support_email') : '—');
 @endphp
 
 @section('title', $brand.' — публичная оферта')
@@ -133,7 +128,7 @@
                         <li>Сервис не функционировал надлежащим образом по причинам, зависящим от Исполнителя, в течение более 72 часов суммарно за оплаченный период.</li>
                     </ul>
                 </li>
-                <li>Для получения возврата Пользователь обращается в службу поддержки через Telegram <a class="underline font-black text-inherit" href="{{ $tg }}" target="_blank" rel="noopener noreferrer">@nadezhda_tehsup</a> или email, указанный в разделе 11, с описанием проблемы.</li>
+                <li>Для получения возврата Пользователь обращается в службу поддержки через Telegram <a class="underline font-black text-inherit" href="{{ $tg }}" target="_blank" rel="noopener noreferrer">@nadezhda_tehsup</a> с описанием проблемы.</li>
                 <li>Исполнитель рассматривает обращение в срок не более 10 рабочих дней и принимает решение о возврате.</li>
                 <li>При подтверждении основания для возврата средства перечисляются тем же способом, которым была произведена оплата, в срок не более 10 рабочих дней.</li>
                 <li>Возврат не производится, если Пользователь не использовал Сервис по собственному усмотрению при наличии технической возможности его использования.</li>
@@ -178,22 +173,14 @@
         </section>
 
         <section class="lp-agreement-section" aria-labelledby="agreement-s11">
-            <h2 id="agreement-s11">11. Реквизиты Исполнителя</h2>
+            <h2 id="agreement-s11">11. Контакты Исполнителя</h2>
             <div class="lp-agreement-requisites">
-                <span>ФИО: {{ $fio }}</span>
-                <span>ИНН: {{ $inn }}</span>
-                <span>Статус: самозанятый (НПД)</span>
-                <span>Email:
-                    @if ($execEmail !== '—')
-                        <a href="mailto:{{ $execEmail }}" class="underline font-black text-inherit">{{ $execEmail }}</a>
-                    @else
-                        —
-                    @endif
-                </span>
                 <span>Telegram: <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="underline font-black text-inherit">@nadezhda_tehsup</a></span>
                 <span>Сайт: {{ request()->getHost() }}</span>
             </div>
-            <p>Чек об оплате формируется и направляется Пользователю в соответствии с требованиями законодательства о налоге на профессиональный доход.</p>
+            @if (filled(config('marketing.support_email')))
+                <p>Электронная почта для связи: <a href="mailto:{{ config('marketing.support_email') }}" class="underline font-black text-inherit">{{ config('marketing.support_email') }}</a></p>
+            @endif
             <p>Настоящая оферта вступает в силу с даты публикации и действует бессрочно до момента её отзыва Исполнителем.</p>
         </section>
     </div>

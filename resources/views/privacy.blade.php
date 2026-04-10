@@ -7,11 +7,6 @@
         ? $publishedConfig
         : now()->timezone(config('app.timezone'))->format('d.m.Y');
     $tg = config('marketing.telegram_support_url', config('marketing.telegram_url', 'https://t.me/nadezhda_tehsup'));
-    $fio = filled(config('marketing.offer_executor_name')) ? config('marketing.offer_executor_name') : '—';
-    $inn = filled(config('marketing.offer_executor_inn')) ? config('marketing.offer_executor_inn') : '—';
-    $execEmail = filled(config('marketing.offer_executor_email'))
-        ? config('marketing.offer_executor_email')
-        : (filled(config('marketing.support_email')) ? config('marketing.support_email') : '—');
 @endphp
 
 @section('title', $brand.' — политика конфиденциальности')
@@ -148,20 +143,7 @@
 
         <section class="lp-agreement-section" aria-labelledby="privacy-s10">
             <h2 id="privacy-s10">10. Контактные данные оператора</h2>
-            <p>По всем вопросам, связанным с обработкой персональных данных, вы можете обратиться:</p>
-            <div class="lp-agreement-requisites">
-                <span>Telegram: <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="underline font-black text-inherit">@nadezhda_tehsup</a></span>
-                <span>Email:
-                    @if ($execEmail !== '—')
-                        <a href="mailto:{{ $execEmail }}" class="underline font-black text-inherit">{{ $execEmail }}</a>
-                    @else
-                        —
-                    @endif
-                </span>
-                <span>ФИО: {{ $fio }}</span>
-                <span>ИНН: {{ $inn }}</span>
-                <span>Статус: самозанятый (НПД)</span>
-            </div>
+            <p>По вопросам обработки персональных данных вы можете обратиться в Telegram: <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="underline font-black text-inherit">@nadezhda_tehsup</a>@if (filled(config('marketing.support_email'))), либо на электронную почту: <a href="mailto:{{ config('marketing.support_email') }}" class="underline font-black text-inherit">{{ config('marketing.support_email') }}</a>@endif.</p>
             <p>Срок ответа на обращения — не более 30 календарных дней с момента получения.</p>
         </section>
     </div>
