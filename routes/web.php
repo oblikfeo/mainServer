@@ -19,6 +19,14 @@ Route::get('/agreement', function () {
     return view('agreement');
 })->name('agreement');
 
+Route::get('/privacy', function () {
+    return view('privacy');
+})->name('privacy');
+
+Route::get('/privacy-policy', function () {
+    return view('privacy');
+});
+
 Route::view('/spasibo', 'spasibo')->name('payment.success');
 Route::view('/oshibka', 'oshibka')->name('payment.failure');
 
