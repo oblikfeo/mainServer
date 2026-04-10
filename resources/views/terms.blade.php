@@ -6,7 +6,7 @@
 @endphp
 
 @section('title', $brand.' — пользовательское соглашение')
-@section('meta_description', 'Пользовательское соглашение в отношении использования онлайн-сервиса.')
+@section('meta_description', 'Пользовательское соглашение.')
 
 @push('styles')
     @include('partials.lp-f1-styles')
@@ -26,8 +26,6 @@
 
         <div class="lp-agreement-hero">
             <h1>Пользовательское соглашение</h1>
-            <p class="lp-agreement-sub">в отношении использования онлайн-сервиса</p>
-            <p class="lp-agreement-meta">Platega · 1 апреля 2026 г. · 23:30</p>
         </div>
 
         <section class="lp-agreement-section" aria-labelledby="terms-s1">
