@@ -6,13 +6,16 @@ return [
     'telegram_url' => env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
     /** Если задано — используется в блоке «Поддержка» вместо telegram_url */
     'telegram_support_url' => env('MARKETING_TELEGRAM_SUPPORT_URL') ?: env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
-    'support_email' => env('MARKETING_SUPPORT_EMAIL', ''),
+    /** Почта для контактов и службы поддержки (футер, блок «Поддержка»). */
+    'support_email' => env('MARKETING_SUPPORT_EMAIL', 'karpovanovaelena@gmail.com'),
+    'support_phone' => env('MARKETING_SUPPORT_PHONE', '+79659892384'),
+    'support_address' => env('MARKETING_SUPPORT_ADDRESS', 'г. Омск, Шаронова 9, кв 203'),
     /** Дата публикации оферты (строка, напр. 07.04.2026). Пусто — текущая дата на сервере. */
     'offer_published_at' => env('MARKETING_OFFER_PUBLISHED_AT', ''),
-    'offer_executor_name' => env('MARKETING_OFFER_EXECUTOR_NAME', ''),
-    'offer_executor_inn' => env('MARKETING_OFFER_EXECUTOR_INN', ''),
+    'offer_executor_name' => env('MARKETING_OFFER_EXECUTOR_NAME', 'Пухов Максим Андреевич'),
+    'offer_executor_inn' => env('MARKETING_OFFER_EXECUTOR_INN', '550524187601'),
     /** Если пусто — подставляется support_email */
-    'offer_executor_email' => env('MARKETING_OFFER_EXECUTOR_EMAIL', ''),
+    'offer_executor_email' => env('MARKETING_OFFER_EXECUTOR_EMAIL', 'kfc.kurochka@gmail.com'),
     'apps' => [
         'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/app/happ-proxy-utility/id6504287215'),
         'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),

@@ -394,6 +394,13 @@
     @media (min-width: 480px) {
         .lp-f1 .lp-footer { padding: 1.5rem 1.75rem; font-size: 0.6875rem; }
     }
+    .lp-f1 .lp-footer-support {
+        margin: 0.75rem 0 1rem;
+        text-transform: none;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .lp-f1 .lp-footer-support > div { margin: 0.35rem 0; }
 
     .lp-f1-body.lp-f1-cabinet {
         align-items: flex-start;

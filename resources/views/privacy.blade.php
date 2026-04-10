@@ -167,6 +167,7 @@
 
         <div class="lp-footer">
             Настоящая Политика конфиденциальности является неотъемлемой частью публичной оферты сервиса «{{ $brand }}».<br><br>
+            @include('partials.lp-footer-support')
             <a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a>
             · <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">Публичная оферта</a>
         </div>

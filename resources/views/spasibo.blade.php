@@ -29,6 +29,7 @@
         </div>
 
         <div class="lp-footer">
+            @include('partials.lp-footer-support')
             <a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a>
         </div>
     </div>

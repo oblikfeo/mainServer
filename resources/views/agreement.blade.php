@@ -199,6 +199,7 @@
 
         <div class="lp-footer">
             Документ носит информационный характер. Акцепт оферты — оплата услуг.<br><br>
+            @include('partials.lp-footer-support')
             <a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a>
             @if ($execEmail !== '—')
                 · <a href="mailto:{{ $execEmail }}" class="text-inherit underline underline-offset-2">Связь с Исполнителем</a>

@@ -2,7 +2,6 @@
 
 @php
     $brand = config('marketing.brand_name', 'Надежда');
-    $tg = config('marketing.telegram_support_url', config('marketing.telegram_url', 'https://t.me/nadezhda_tehsup'));
 @endphp
 
 @section('title', $brand.' — ошибка оплаты')
@@ -30,8 +29,8 @@
         </div>
 
         <div class="lp-footer">
+            @include('partials.lp-footer-support')
             <a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a>
-            · <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="text-inherit underline underline-offset-2">Telegram</a>
         </div>
     </div>
 </div>

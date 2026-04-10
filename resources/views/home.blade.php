@@ -156,6 +156,7 @@
         <div class="lp-footer">
             {{ $brand }} — сервис стабильной передачи данных.<br><br>
             Пользователь самостоятельно определяет цели использования сервиса и несёт ответственность за соблюдение применимого законодательства.<br><br>
+            @include('partials.lp-footer-support')
             <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">Публичная оферта</a>
             · <a href="{{ route('privacy') }}" class="text-inherit underline underline-offset-2">Политика конфиденциальности</a>
         </div>
