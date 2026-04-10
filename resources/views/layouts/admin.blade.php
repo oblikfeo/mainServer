@@ -8,6 +8,7 @@
             $__pageTitle = trim($__env->yieldContent('title'));
         @endphp
         <title>{{ $__pageTitle !== '' ? $__pageTitle.' — ' : '' }}Надежда</title>
+        @include('partials.favicon')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased min-h-screen bg-slate-100">

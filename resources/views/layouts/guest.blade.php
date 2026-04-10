@@ -18,6 +18,7 @@
             };
         @endphp
         <title>{{ $brand }} — {{ $pageTitle }}</title>
+        @include('partials.favicon')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @include('partials.lp-f1-styles')
     </head>

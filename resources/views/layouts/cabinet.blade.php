@@ -11,6 +11,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ $brand }} — личный кабинет</title>
+        @include('partials.favicon')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @include('partials.lp-f1-styles')
     </head>

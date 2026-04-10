@@ -9,6 +9,7 @@
         <meta property="og:title" content="@yield('title', config('marketing.brand_name', 'Надежда'))">
         <meta property="og:description" content="@yield('meta_description', '')">
         <meta property="og:type" content="website">
+        @include('partials.favicon')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('styles')
     </head>

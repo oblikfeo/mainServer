@@ -178,22 +178,6 @@
     @media (max-width: 519px) {
         .lp-f1 .lp-feature-cell:last-child { border-bottom: none; }
     }
-    .lp-f1 .lp-feature-title-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin: 0 0 0.65rem 0;
-    }
-    .lp-f1 .lp-feature-title-row .lp-feature-title { margin: 0; }
-    .lp-f1 .lp-feature-icon {
-        flex-shrink: 0;
-        width: 1.75rem;
-        height: 1.75rem;
-        display: block;
-    }
-    @media (min-width: 480px) {
-        .lp-f1 .lp-feature-icon { width: 2rem; height: 2rem; }
-    }
     .lp-f1 .lp-feature-title { font-size: 1rem; font-weight: 900; text-transform: uppercase; margin: 0 0 0.65rem 0; }
     @media (min-width: 480px) {
         .lp-f1 .lp-feature-title { font-size: 1.125rem; }
