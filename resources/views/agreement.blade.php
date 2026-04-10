@@ -196,16 +196,6 @@
             <p>Чек об оплате формируется и направляется Пользователю в соответствии с требованиями законодательства о налоге на профессиональный доход.</p>
             <p>Настоящая оферта вступает в силу с даты публикации и действует бессрочно до момента её отзыва Исполнителем.</p>
         </section>
-
-        <div class="lp-footer">
-            Документ носит информационный характер. Акцепт оферты — оплата услуг.<br><br>
-            @include('partials.lp-footer-support')
-            <a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a>
-            @if ($execEmail !== '—')
-                · <a href="mailto:{{ $execEmail }}" class="text-inherit underline underline-offset-2">Связь с Исполнителем</a>
-            @endif
-            · <a href="{{ route('privacy') }}" class="text-inherit underline underline-offset-2">Политика конфиденциальности</a>
-        </div>
     </div>
 </div>
 @endsection

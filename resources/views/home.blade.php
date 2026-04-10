@@ -148,9 +148,6 @@
             <p class="lp-support-text">У нас нет роботов. Вам ответит живой человек, который поможет с настройкой и ответит на любые вопросы.</p>
             <div class="lp-support-time">Среднее время ответа — 7 минут</div>
             <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
-            @if (filled(config('marketing.support_email')))
-                <p class="lp-support-text" style="margin-top: 1rem;">Почта: <a href="mailto:{{ config('marketing.support_email') }}" style="color: #2980b9; font-weight: 700;">{{ config('marketing.support_email') }}</a></p>
-            @endif
         </div>
 
         <div class="lp-footer">
