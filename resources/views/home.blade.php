@@ -156,6 +156,7 @@
             @include('partials.lp-footer-support')
             <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">Публичная оферта</a>
             · <a href="{{ route('privacy') }}" class="text-inherit underline underline-offset-2">Политика конфиденциальности</a>
+            · <a href="{{ route('terms') }}" class="text-inherit underline underline-offset-2">Пользовательское соглашение</a>
         </div>
     </div>
 </div>

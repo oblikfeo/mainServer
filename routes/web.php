@@ -23,6 +23,10 @@ Route::get('/privacy', function () {
     return view('privacy');
 })->name('privacy');
 
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
 Route::get('/privacy-policy', function () {
     return view('privacy');
 });
