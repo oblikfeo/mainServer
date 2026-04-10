@@ -6,6 +6,7 @@
     $offerDate = filled($publishedConfig)
         ? $publishedConfig
         : now()->timezone(config('app.timezone'))->format('d.m.Y');
+    $tg = config('marketing.telegram_support_url', config('marketing.telegram_url', 'https://t.me/nadezhda_tehsup'));
     $fio = filled(config('marketing.offer_executor_name')) ? config('marketing.offer_executor_name') : '—';
     $inn = filled(config('marketing.offer_executor_inn')) ? config('marketing.offer_executor_inn') : '—';
     $execEmail = filled(config('marketing.offer_executor_email'))
