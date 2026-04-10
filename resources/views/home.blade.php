@@ -132,10 +132,17 @@
                     </div>
                 </article>
             </div>
-            <button type="button" class="lp-cta-btn" id="lp-tariff-connect-btn">
-                <span>Подключиться</span>
-                <span aria-hidden="true">→</span>
-            </button>
+            @guest
+                <a href="{{ route('login') }}" class="lp-cta-btn">
+                    <span>Подключиться</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            @else
+                <a href="{{ route('dashboard') }}" class="lp-cta-btn">
+                    <span>Подключиться</span>
+                    <span aria-hidden="true">→</span>
+                </a>
+            @endguest
             <div class="lp-payment-info">
                 <span>✓ Оплата через СБП или банковской картой РФ.</span>
                 <span>✓ <strong>Без автопродлений:</strong> мы не списываем деньги втихую. Вы сами продлеваете доступ.</span>
