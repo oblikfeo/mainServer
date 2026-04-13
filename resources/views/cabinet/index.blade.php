@@ -10,9 +10,7 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
                 </div>
-                <p class="lp-card__head-note">
-                    Получите тестовую подписку в один клик. Для этого нужно подтвердить почту в профиле.
-                </p>
+                <p class="lp-card__head-note">&nbsp;</p>
             </div>
             <div class="lp-card__body lp-stack">
                 @if (session('status') === 'test-subscription-created')
@@ -29,16 +27,15 @@
 
                 @if (! $me->hasVerifiedEmail())
                     <div class="lp-warn-box">
-                        Чтобы получить тестовую подписку, подтвердите почту в профиле.
-                        <div class="mt-2 text-sm">
-                            Текущий email: <span class="lp-mono">{{ $me->email }}</span>
-                        </div>
+                        Чтобы получить тестовую подписку, подтвердите почту в
+                        <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
                     </div>
-                    <button
-                        type="button"
-                        class="lp-secondary-outline"
-                        onclick="window.location.href='{{ route('cabinet.profile') }}'"
-                    >Перейти в профиль</button>
+                    <div
+                        class="lp-mono"
+                        style="border:3px solid #000;background:#fffef5;padding:0.75rem 0.85rem;font-weight:900;font-size:0.875rem;letter-spacing:-0.01em;"
+                    >
+                        {{ $me->email }}
+                    </div>
                 @else
                     <form method="POST" action="{{ route('cabinet.test_subscription') }}">
                         @csrf
@@ -65,7 +62,13 @@
                     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
                 @endphp
                 <article class="lp-card" x-data="{ open: false }">
-                    <div class="lp-card__head">
+                    <button
+                        type="button"
+                        class="lp-card__head"
+                        style="width:100%;text-align:left;cursor:pointer;"
+                        x-on:click="open = !open"
+                        :aria-expanded="open"
+                    >
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="lp-mono">#{{ $sub->id }}</span>
                             @if ($sub->isExpired())
@@ -73,16 +76,10 @@
                             @else
                                 <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
                             @endif
-                            <button
-                                type="button"
-                                class="lp-secondary-outline"
-                                style="margin-left:auto;"
-                                x-on:click="open = !open"
-                                :aria-expanded="open"
-                            >
+                            <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
                                 <span x-show="!open">Развернуть</span>
                                 <span x-show="open" x-cloak>Свернуть</span>
-                            </button>
+                            </span>
                         </div>
                         <p class="lp-card__head-note">
                             {{ $sub->devices }} устр. · квота {{ $sub->quota_gb }} ГБ
@@ -90,7 +87,7 @@
                                 · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
                             @endif
                         </p>
-                    </div>
+                    </button>
                     <div class="lp-card__body lp-stack" x-show="open" x-cloak x-transition>
                         @if (! empty($row['decodeWarning']))
                             <div class="lp-warn-box">

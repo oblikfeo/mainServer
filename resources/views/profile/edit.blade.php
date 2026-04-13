@@ -20,21 +20,12 @@
             </dl>
 
             @if (! $user->hasVerifiedEmail())
-                <div class="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="lp-badge-pill lp-badge-pill--bad">Почта не подтверждена</span>
-                        <span class="text-xs font-bold uppercase tracking-wide text-slate-600">
-                            Нужно для тестовой подписки
-                        </span>
-                    </div>
-                    <button
+                <div class="mt-4">
+                    <x-primary-button
                         type="button"
-                        class="lp-secondary-outline"
                         x-data=""
                         x-on:click.prevent="$dispatch('open-modal', 'verify-email-by-code')"
-                    >
-                        Подтвердить почту
-                    </button>
+                    >Подтвердить почту</x-primary-button>
                 </div>
 
                 <x-modal name="verify-email-by-code" :show="$errors->has('code') || $errors->has('email_code') || session('status') === 'email-code-sent'" focusable>
