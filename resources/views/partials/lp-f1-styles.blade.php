@@ -1053,6 +1053,16 @@
     .lp-f1 .lp-cabinet-main .lp-account-verify-btn:hover {
         background: #E03E00 !important;
     }
+    .lp-f1 .lp-verify-email-modal-address {
+        margin-top: 0.35rem;
+        padding: 0.5rem 0.75rem;
+        font-family: ui-monospace, monospace;
+        font-size: 0.875rem;
+        font-weight: 700;
+        word-break: break-all;
+        border: 3px solid var(--lp-ink);
+        background: #f8fafc;
+    }
     .lp-f1 .lp-dl-grid dt {
         font-size: 0.5625rem;
         font-weight: 800;
