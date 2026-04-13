@@ -19,6 +19,19 @@ php artisan view:cache
 
 Если на сервере собираете фронт (Vite): `npm ci && npm run build` перед `php artisan view:cache` (или собирайте артефакты в CI и выкладывайте `public/build`).
 
+## Почта (Resend)
+
+В проекте уже настроен транспорт `resend` (Laravel). На сервере в `.env`:
+
+- `MAIL_MAILER=resend`
+- `RESEND_API_KEY=...`
+- `MAIL_FROM_ADDRESS=no-reply@nadezhda.space` (или другой адрес на домене, который Verified в Resend)
+- `MAIL_FROM_NAME="Nadezhda"` (опционально)
+
+Быстрый тест после деплоя:
+
+`php artisan mail:test you@example.com`
+
 ## Лимит устройств (Happ HWID + 3x-ui limitIp)
 
 Подписка `/sub/{token}`: при `SUBSCRIPTION_FEED_REQUIRE_HWID=true` (по умолчанию) приложение Happ шлёт заголовок `X-Hwid`; хаб сохраняет до `devices` разных отпечатков (sha256), остальные получают 403. Новым клиентам в панели выставляется `limitIp = devices` на FI и NL.

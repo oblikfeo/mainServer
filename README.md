@@ -4,7 +4,7 @@
 
 ## Локальная разработка
 
-Требования: PHP 8.2+, Composer, Node 20+, расширения PHP для Laravel.
+Требования: PHP 8.3+, Composer, Node 20+, расширения PHP для Laravel.
 
 ```bash
 cp .env.example .env
@@ -17,6 +17,18 @@ php artisan serve
 ```
 
 В `.env` задайте `DB_*`, затем **`ADMIN_USERNAME`** и **`ADMIN_PASSWORD`** для входа в админку.
+
+## Почта (Resend)
+
+Для отправки писем через Resend выставьте в `.env`:
+
+- `MAIL_MAILER=resend`
+- `RESEND_API_KEY=...`
+- `MAIL_FROM_ADDRESS=no-reply@nadezhda.space` (адрес на verified-домене в Resend)
+
+Тестовая отправка:
+
+`php artisan mail:test you@example.com`
 
 ## Деплой на сервер
 
