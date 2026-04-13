@@ -1018,6 +1018,42 @@
     @media (min-width: 520px) {
         .lp-f1 .lp-dl-grid { grid-template-columns: 1fr 1fr; }
     }
+    .lp-f1 .lp-dl-grid--account {
+        grid-template-columns: 1fr;
+    }
+    @media (min-width: 520px) {
+        .lp-f1 .lp-dl-grid--account {
+            grid-template-columns: 1fr 1fr;
+            align-items: stretch;
+        }
+    }
+    .lp-f1 .lp-dl-grid--account > div {
+        min-width: 0;
+    }
+    .lp-f1 .lp-dl-grid__action {
+        margin: 0.2rem 0 0 0;
+    }
+    .lp-f1 .lp-cabinet-main .lp-account-verify-btn {
+        display: inline-flex;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--lp-orange) !important;
+        color: #fff !important;
+        border: 3px solid var(--lp-ink) !important;
+        border-radius: 0 !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.04em !important;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: none !important;
+    }
+    .lp-f1 .lp-cabinet-main .lp-account-verify-btn:hover {
+        background: #E03E00 !important;
+    }
     .lp-f1 .lp-dl-grid dt {
         font-size: 0.5625rem;
         font-weight: 800;

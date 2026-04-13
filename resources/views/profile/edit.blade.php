@@ -4,7 +4,7 @@
 
         <div class="lp-profile-block">
             <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Данные аккаунта</h2>
-            <dl class="lp-dl-grid">
+            <dl class="lp-dl-grid lp-dl-grid--account">
                 <div>
                     <dt>Имя</dt>
                     <dd>{{ $user->name }}</dd>
@@ -13,21 +13,33 @@
                     <dt>Эл. почта</dt>
                     <dd class="font-mono break-all">{{ $user->email }}</dd>
                 </div>
-                <div class="sm:col-span-2">
+                <div>
                     <dt>Дата регистрации</dt>
                     <dd class="tabular-nums">{{ $user->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—' }}</dd>
                 </div>
+                @if (! $user->hasVerifiedEmail())
+                    <div>
+                        <dt>Подтверждение</dt>
+                        <dd class="lp-dl-grid__action">
+                            <button
+                                type="button"
+                                class="lp-account-verify-btn"
+                                x-data=""
+                                x-on:click.prevent="$dispatch('open-modal', 'verify-email-by-code')"
+                            >Подтвердить почту</button>
+                        </dd>
+                    </div>
+                @else
+                    <div>
+                        <dt>Статус</dt>
+                        <dd>
+                            <span class="lp-badge-pill lp-badge-pill--ok">Почта подтверждена</span>
+                        </dd>
+                    </div>
+                @endif
             </dl>
 
             @if (! $user->hasVerifiedEmail())
-                <div class="mt-4">
-                    <x-primary-button
-                        type="button"
-                        x-data=""
-                        x-on:click.prevent="$dispatch('open-modal', 'verify-email-by-code')"
-                    >Подтвердить почту</x-primary-button>
-                </div>
-
                 <x-modal name="verify-email-by-code" :show="$errors->has('code') || $errors->has('email_code') || session('status') === 'email-code-sent'" focusable>
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900">
