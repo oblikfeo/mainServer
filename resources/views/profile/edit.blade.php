@@ -34,10 +34,11 @@
                             Подтверждение почты
                         </h2>
 
-                        <p class="mt-1 text-sm text-gray-600">
-                            Мы отправим код на <span class="font-mono">{{ $user->email }}</span>. Введите 4 цифры из письма.
-                            Отправка доступна раз в час.
-                        </p>
+                        <div class="mt-1 text-sm text-gray-600 leading-relaxed">
+                            <div>Мы отправим код на <span class="font-mono">{{ $user->email }}</span>.</div>
+                            <div>Введите 4 цифры из письма.</div>
+                            <div>Отправка доступна раз в час.</div>
+                        </div>
 
                         @if (session('status') === 'email-code-sent')
                             <div class="mt-4 lp-warn-box" style="background:#ecfeff;">
@@ -46,9 +47,14 @@
                         @endif
 
                         <div class="mt-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                            <form method="POST" action="{{ route('cabinet.email_code.send') }}">
+                            <form method="POST" action="{{ route('cabinet.email_code.send') }}" x-data="{ sending: false }" x-on:submit="sending = true">
                                 @csrf
-                                <button type="submit" class="lp-secondary-outline">Отправить код</button>
+                                @if (session('status') !== 'email-code-sent')
+                                    <button type="submit" class="lp-secondary-outline" :disabled="sending">
+                                        <span x-show="!sending">Отправить код</span>
+                                        <span x-show="sending" x-cloak>Отправляем…</span>
+                                    </button>
+                                @endif
                             </form>
 
                             <form method="POST" action="{{ route('cabinet.email_code.verify') }}" class="flex flex-col md:flex-row gap-3 md:items-end">

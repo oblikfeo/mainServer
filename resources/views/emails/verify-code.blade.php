@@ -22,15 +22,17 @@
             </div>
 
             <div style="padding:18px;">
-                <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin:10px 0 14px 0;">
-                    @foreach (str_split($code) as $digit)
-                        <div style="width:54px;height:54px;border:3px solid #000000;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#ffffff;">
-                            <span style="font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;font-weight:900;font-size:24px;line-height:1;color:#000000;">
-                                {{ $digit }}
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:18px auto 14px auto;border-collapse:separate;border-spacing:12px 0;">
+                    <tr>
+                        @foreach (str_split($code) as $digit)
+                            <td align="center" valign="middle" style="width:72px;height:72px;border:3px solid #000000;border-radius:14px;background:#ffffff;">
+                                <span style="display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,monospace;font-weight:900;font-size:34px;line-height:1;color:#000000;letter-spacing:0.02em;">
+                                    {{ $digit }}
+                                </span>
+                            </td>
+                        @endforeach
+                    </tr>
+                </table>
 
                 <div style="margin-top:14px;background:#f1f5f9;border:2px solid #000000;border-radius:12px;padding:12px 12px;">
                     <div style="font-size:12px;line-height:1.5;color:#0f172a;">

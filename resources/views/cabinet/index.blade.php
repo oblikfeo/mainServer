@@ -30,12 +30,6 @@
                         Чтобы получить тестовую подписку, подтвердите почту в
                         <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
                     </div>
-                    <div
-                        class="lp-mono"
-                        style="border:3px solid #000;background:#fffef5;padding:0.75rem 0.85rem;font-weight:900;font-size:0.875rem;letter-spacing:-0.01em;"
-                    >
-                        {{ $me->email }}
-                    </div>
                 @else
                     <form method="POST" action="{{ route('cabinet.test_subscription') }}">
                         @csrf
