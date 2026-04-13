@@ -30,6 +30,7 @@ class EmailCodeVerificationController extends Controller
                     'ok' => true,
                     'email' => $user->email,
                     'alreadySent' => true,
+                    'message' => 'Код уже был отправлен недавно. Повторная отправка письма — не чаще раза в час. Введите цифры из письма или дождитесь таймера.',
                 ]);
             }
 

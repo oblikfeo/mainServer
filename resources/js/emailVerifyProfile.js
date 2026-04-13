@@ -4,12 +4,17 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('emailVerifyProfile', (config) => ({
         sending: false,
         sendError: '',
+        sendInfo: '',
         sendUrl: config.sendUrl,
         modalName: config.modalName,
         csrfToken: config.csrfToken,
 
         async sendCode() {
+            if (this.sending) {
+                return;
+            }
             this.sendError = '';
+            this.sendInfo = '';
             this.sending = true;
 
             const body = new FormData();
@@ -34,6 +39,11 @@ document.addEventListener('alpine:init', () => {
                 }
 
                 if (data.ok) {
+                    if (data.alreadySent) {
+                        this.sendInfo =
+                            data.message ||
+                            'Код уже был отправлен недавно. Новое письмо можно запросить через час. Введите цифры из последнего письма.';
+                    }
                     this.$dispatch('open-modal', this.modalName);
                 }
             } catch {

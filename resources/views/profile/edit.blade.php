@@ -47,6 +47,12 @@
                                     x-text="sendError"
                                     class="mt-2 text-xs font-bold text-red-700 border-2 border-black bg-red-50 px-2 py-1"
                                 ></p>
+                                <p
+                                    x-show="sendInfo !== ''"
+                                    x-cloak
+                                    x-text="sendInfo"
+                                    class="mt-2 text-xs font-bold text-amber-900 border-2 border-black bg-amber-50 px-2 py-1"
+                                ></p>
                             </dd>
                         </div>
                     </dl>
