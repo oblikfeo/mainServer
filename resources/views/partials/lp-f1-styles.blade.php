@@ -1034,11 +1034,10 @@
         margin: 0.2rem 0 0 0;
     }
     .lp-f1 .lp-cabinet-main .lp-account-verify-btn {
-        display: inline-flex;
-        width: 100%;
-        justify-content: center;
-        align-items: center;
-        padding: 0.75rem 1rem;
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        padding: 0.1rem 0.5rem !important;
         background: var(--lp-orange) !important;
         color: #fff !important;
         border: 3px solid var(--lp-ink) !important;
@@ -1047,7 +1046,7 @@
         text-transform: uppercase !important;
         font-size: 0.75rem !important;
         letter-spacing: 0.04em !important;
-        cursor: pointer;
+        cursor: pointer !important;
         font-family: inherit;
         box-shadow: none !important;
     }

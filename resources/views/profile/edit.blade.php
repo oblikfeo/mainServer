@@ -19,7 +19,7 @@
                 </div>
                 @if (! $user->hasVerifiedEmail())
                     <div>
-                        <dt>Подтверждение</dt>
+                        <dt class="sr-only">Подтвердить адрес электронной почты</dt>
                         <dd class="lp-dl-grid__action">
                             <button
                                 type="button"
