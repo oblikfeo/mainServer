@@ -3,37 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Mail\EmailVerificationCodeMail;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class EmailCodeVerificationController extends Controller
 {
-    public function send(Request $request): JsonResponse|RedirectResponse
+    public function send(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $wantsJson = $request->expectsJson();
 
         if ($user->hasVerifiedEmail()) {
-            if ($wantsJson) {
-                return response()->json(['message' => 'Почта уже подтверждена.'], 422);
-            }
-
             return back()->with('status', 'email-code-already-verified');
         }
 
         $sentAt = $user->email_verification_code_sent_at;
         if ($sentAt !== null && now()->diffInSeconds($sentAt) < 3600) {
-            if ($wantsJson) {
-                // Письмо уже уходило недавно — новое не шлём, но модалку можно открыть для ввода кода
-                return response()->json([
-                    'ok' => true,
-                    'email' => $user->email,
-                    'alreadySent' => true,
-                ]);
-            }
-
             return back()->withErrors([
                 'email_code' => 'Код уже отправлен. Повторная отправка доступна раз в час.',
             ]);
@@ -56,14 +41,6 @@ class EmailCodeVerificationController extends Controller
             supportFromAddress: $fromAddress,
             supportFromName: $fromName,
         ));
-
-        if ($wantsJson) {
-            return response()->json([
-                'ok' => true,
-                'email' => $user->email,
-                'alreadySent' => false,
-            ]);
-        }
 
         return back()->with('status', 'email-code-sent');
     }
