@@ -10,6 +10,7 @@ use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
+use App\Http\Controllers\TestSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,6 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
+
+    Route::post('/dashboard/test-subscription', [TestSubscriptionController::class, 'store'])
+        ->middleware('throttle:5,60')
+        ->name('cabinet.test_subscription');
 
     Route::post('/dashboard/email/verify-code/send', [EmailCodeVerificationController::class, 'send'])
         ->name('cabinet.email_code.send');

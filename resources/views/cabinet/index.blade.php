@@ -5,59 +5,43 @@
             $me = Auth::user();
         @endphp
 
-        @if (! $me->hasVerifiedEmail())
-            <article class="lp-card" style="margin-bottom: 1rem;">
-                <div class="lp-card__head">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение email</span>
-                    </div>
-                    <p class="lp-card__head-note">
-                        Для получения тестового ключа подтвердите почту. Код отправляется раз в час.
-                    </p>
+        <article class="lp-card" style="margin-bottom: 1rem;">
+            <div class="lp-card__head">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
                 </div>
-                <div class="lp-card__body lp-stack">
-                    @if (session('status') === 'email-code-sent')
-                        <div class="lp-warn-box" style="background:#ecfeff;">
-                            Код отправлен на <span class="lp-mono">{{ $me->email }}</span>. Проверьте почту и введите 4 цифры ниже.
-                        </div>
-                    @elseif (session('status') === 'email-code-verified')
-                        <div class="lp-warn-box" style="background:#dcfce7;">
-                            Почта подтверждена.
-                        </div>
-                    @endif
-
-                    <div class="flex flex-col gap-3 md:flex-row md:items-end">
-                        <form method="POST" action="{{ route('cabinet.email_code.send') }}">
-                            @csrf
-                            <button type="submit" class="lp-btn lp-secondary-outline">Отправить код на почту</button>
-                        </form>
-
-                        <form method="POST" action="{{ route('cabinet.email_code.verify') }}" class="flex flex-col md:flex-row gap-3 md:items-end">
-                            @csrf
-                            <div style="min-width: 14rem;">
-                                <label class="block text-sm font-bold uppercase tracking-wide text-slate-600">Код (4 цифры)</label>
-                                <input
-                                    name="code"
-                                    inputmode="numeric"
-                                    autocomplete="one-time-code"
-                                    maxlength="4"
-                                    class="mt-1 block w-full"
-                                    style="border:3px solid #000;border-radius:12px;padding:10px 12px;font-weight:900;letter-spacing:0.2em;"
-                                    value="{{ old('code') }}"
-                                />
-                                @error('code')
-                                    <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
-                                @enderror
-                                @error('email_code')
-                                    <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <button type="submit" class="lp-btn">Подтвердить</button>
-                        </form>
+                <p class="lp-card__head-note">
+                    Получите тестовую подписку в один клик. Для этого нужно подтвердить почту в профиле.
+                </p>
+            </div>
+            <div class="lp-card__body lp-stack">
+                @if (session('status') === 'test-subscription-created')
+                    <div class="lp-warn-box" style="background:#dcfce7;">
+                        Тестовая подписка создана. Она появится ниже в списке.
                     </div>
-                </div>
-            </article>
-        @endif
+                @endif
+
+                @error('test_subscription')
+                    <div class="lp-warn-box">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+                @if (! $me->hasVerifiedEmail())
+                    <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                        <div class="text-sm text-slate-700">
+                            Почта не подтверждена: <span class="lp-mono">{{ $me->email }}</span>
+                        </div>
+                        <a href="{{ route('cabinet.profile') }}" class="lp-btn lp-secondary-outline">Перейти в профиль</a>
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('cabinet.test_subscription') }}">
+                        @csrf
+                        <button type="submit" class="lp-btn">Получить тестовую подписку</button>
+                    </form>
+                @endif
+            </div>
+        </article>
 
         @if ($items === [])
             <div class="lp-empty">
@@ -75,8 +59,14 @@
                     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
                     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
                 @endphp
-                <article class="lp-card">
-                    <div class="lp-card__head">
+                <article class="lp-card" x-data="{ open: false }">
+                    <button
+                        type="button"
+                        class="lp-card__head"
+                        style="width:100%;text-align:left;cursor:pointer;"
+                        x-on:click="open = !open"
+                        :aria-expanded="open"
+                    >
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="lp-mono">#{{ $sub->id }}</span>
                             @if ($sub->isExpired())
@@ -84,6 +74,10 @@
                             @else
                                 <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
                             @endif
+                            <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
+                                <span x-show="!open">Развернуть</span>
+                                <span x-show="open" x-cloak>Свернуть</span>
+                            </span>
                         </div>
                         <p class="lp-card__head-note">
                             {{ $sub->devices }} устр. · квота {{ $sub->quota_gb }} ГБ
@@ -91,8 +85,8 @@
                                 · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
                             @endif
                         </p>
-                    </div>
-                    <div class="lp-card__body lp-stack">
+                    </button>
+                    <div class="lp-card__body lp-stack" x-show="open" x-cloak x-transition>
                         @if (! empty($row['decodeWarning']))
                             <div class="lp-warn-box">
                                 {{ $row['decodeWarning'] }}
