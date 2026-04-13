@@ -20,10 +20,16 @@
             </dl>
 
             @if (! $user->hasVerifiedEmail())
-                <div class="mt-4">
+                <div class="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="lp-badge-pill lp-badge-pill--bad">Почта не подтверждена</span>
+                        <span class="text-xs font-bold uppercase tracking-wide text-slate-600">
+                            Нужно для тестовой подписки
+                        </span>
+                    </div>
                     <button
                         type="button"
-                        class="lp-btn lp-secondary-outline"
+                        class="lp-secondary-outline"
                         x-data=""
                         x-on:click.prevent="$dispatch('open-modal', 'verify-email-by-code')"
                     >
@@ -51,7 +57,7 @@
                         <div class="mt-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                             <form method="POST" action="{{ route('cabinet.email_code.send') }}">
                                 @csrf
-                                <button type="submit" class="lp-btn lp-secondary-outline">Отправить код</button>
+                                <button type="submit" class="lp-secondary-outline">Отправить код</button>
                             </form>
 
                             <form method="POST" action="{{ route('cabinet.email_code.verify') }}" class="flex flex-col md:flex-row gap-3 md:items-end">
@@ -74,7 +80,7 @@
                                         <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <button type="submit" class="lp-btn">Подтвердить</button>
+                                <button type="submit">Подтвердить</button>
                             </form>
                         </div>
 
