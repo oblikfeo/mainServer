@@ -1,5 +1,64 @@
 <x-cabinet-layout>
     <div class="max-w-4xl mx-auto">
+        @php
+            /** @var \App\Models\User $me */
+            $me = Auth::user();
+        @endphp
+
+        @if (! $me->hasVerifiedEmail())
+            <article class="lp-card" style="margin-bottom: 1rem;">
+                <div class="lp-card__head">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение email</span>
+                    </div>
+                    <p class="lp-card__head-note">
+                        Для получения тестового ключа подтвердите почту. Код отправляется раз в час.
+                    </p>
+                </div>
+                <div class="lp-card__body lp-stack">
+                    @if (session('status') === 'email-code-sent')
+                        <div class="lp-warn-box" style="background:#ecfeff;">
+                            Код отправлен на <span class="lp-mono">{{ $me->email }}</span>. Проверьте почту и введите 4 цифры ниже.
+                        </div>
+                    @elseif (session('status') === 'email-code-verified')
+                        <div class="lp-warn-box" style="background:#dcfce7;">
+                            Почта подтверждена.
+                        </div>
+                    @endif
+
+                    <div class="flex flex-col gap-3 md:flex-row md:items-end">
+                        <form method="POST" action="{{ route('cabinet.email_code.send') }}">
+                            @csrf
+                            <button type="submit" class="lp-btn lp-secondary-outline">Отправить код на почту</button>
+                        </form>
+
+                        <form method="POST" action="{{ route('cabinet.email_code.verify') }}" class="flex flex-col md:flex-row gap-3 md:items-end">
+                            @csrf
+                            <div style="min-width: 14rem;">
+                                <label class="block text-sm font-bold uppercase tracking-wide text-slate-600">Код (4 цифры)</label>
+                                <input
+                                    name="code"
+                                    inputmode="numeric"
+                                    autocomplete="one-time-code"
+                                    maxlength="4"
+                                    class="mt-1 block w-full"
+                                    style="border:3px solid #000;border-radius:12px;padding:10px 12px;font-weight:900;letter-spacing:0.2em;"
+                                    value="{{ old('code') }}"
+                                />
+                                @error('code')
+                                    <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
+                                @enderror
+                                @error('email_code')
+                                    <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <button type="submit" class="lp-btn">Подтвердить</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        @endif
+
         @if ($items === [])
             <div class="lp-empty">
                 <p>У вас пока нет привязанных подписок.</p>

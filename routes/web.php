@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\CabinetController;
+use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
@@ -43,6 +44,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
+
+    Route::post('/dashboard/email/verify-code/send', [EmailCodeVerificationController::class, 'send'])
+        ->name('cabinet.email_code.send');
+    Route::post('/dashboard/email/verify-code/check', [EmailCodeVerificationController::class, 'verify'])
+        ->name('cabinet.email_code.verify');
 
     Route::redirect('/profile', '/dashboard/profile')->name('profile.edit');
 });
