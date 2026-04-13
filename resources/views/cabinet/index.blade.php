@@ -33,7 +33,9 @@
                 @else
                     <form method="POST" action="{{ route('cabinet.test_subscription') }}">
                         @csrf
-                        <button type="submit">Получить тестовую подписку</button>
+                        <button type="submit" {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? '' : 'disabled' }}>
+                            {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? 'Получить тестовую подписку' : 'Тестовые ключи скоро' }}
+                        </button>
                     </form>
                 @endif
             </div>

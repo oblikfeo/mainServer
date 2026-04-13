@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\Subscription\CreateDualBundleSubscription;
-use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -12,6 +11,12 @@ class TestSubscriptionController extends Controller
     public function store(Request $request, CreateDualBundleSubscription $service): RedirectResponse
     {
         $user = $request->user();
+
+        if (! filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL)) {
+            return back()->withErrors([
+                'test_subscription' => 'Тестовые ключи временно недоступны. Мы подключим отдельную связку и вернём эту функцию.',
+            ]);
+        }
 
         if (! $user->hasVerifiedEmail()) {
             return back()->withErrors([
@@ -29,13 +34,7 @@ class TestSubscriptionController extends Controller
         $days = (int) env('TEST_SUBSCRIPTION_DAYS', 1);
         $quotaGb = (int) env('TEST_SUBSCRIPTION_QUOTA_GB', 2);
 
-        try {
-            $service->create($devices, $days, $quotaGb, $user->id);
-        } catch (XuiPanelException $e) {
-            return back()->withErrors([
-                'test_subscription' => $e->getMessage(),
-            ]);
-        }
+        $service->create($devices, $days, $quotaGb, $user->id);
 
         return redirect()
             ->route('dashboard')
