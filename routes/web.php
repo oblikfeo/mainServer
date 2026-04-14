@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetPaymentController;
+use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
@@ -47,6 +48,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
     Route::get('/dashboard/payment', CabinetPaymentController::class)->name('cabinet.payment');
+    Route::get('/dashboard/settings', [CabinetSettingsController::class, 'index'])->name('cabinet.settings');
+    Route::post('/dashboard/settings/subscriptions/{subscription}/devices/detach', [CabinetSettingsController::class, 'detachDevice'])
+        ->middleware('throttle:30,1')
+        ->name('cabinet.settings.device.detach');
+    Route::post('/dashboard/settings/subscriptions/{subscription}/devices/clear', [CabinetSettingsController::class, 'clearAllDevices'])
+        ->middleware('throttle:10,1')
+        ->name('cabinet.settings.devices.clear');
 
     Route::post('/dashboard/test-subscription', [TestSubscriptionController::class, 'store'])
         ->middleware('throttle:5,60')
