@@ -70,7 +70,11 @@
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Активные IP</span>
                         <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
-                        <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные исходящие IP на порту {{ (int) ($bundle['client_tcp_port'] ?? 443) }} (SSH)</span>
+                        @if (($bundle['id'] ?? '') === 'trial')
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">IP по активным test_keys (3x-ui)</span>
+                        @else
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные исходящие IP на порту {{ (int) ($bundle['client_tcp_port'] ?? 443) }} (SSH)</span>
+                        @endif
                     </div>
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['cpu_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">CPU</span>

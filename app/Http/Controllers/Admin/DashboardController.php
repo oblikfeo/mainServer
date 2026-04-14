@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Models\TestKey;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
+use App\Services\Xui\XuiPanelClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
@@ -55,8 +56,45 @@ class DashboardController extends Controller
         $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
         $th = config('links.thresholds', []);
 
+        // Для trial-связки «уникальные IP» по SSH на :443 включает сканеры/шум.
+        // Поэтому считаем уникальные IP только по активным test_keys через API панели.
+        $trialUniqueIps = Cache::remember('trial_test_keys_unique_ips_v1', $ttl, function (): ?int {
+            $base = (string) config('test_keys.panel_base');
+            $user = (string) config('test_keys.panel_username');
+            $pass = (string) config('test_keys.panel_password');
+            if ($base === '' || $user === '' || $pass === '') {
+                return null;
+            }
+
+            $emails = TestKey::query()
+                ->whereNull('revoked_at')
+                ->where('expires_at', '>', now())
+                ->orderByDesc('id')
+                ->limit(200)
+                ->pluck('panel_email')
+                ->filter()
+                ->values()
+                ->all();
+
+            if ($emails === []) {
+                return 0;
+            }
+
+            $client = new XuiPanelClient($base);
+            $client->login($user, $pass);
+
+            $ips = [];
+            foreach ($emails as $email) {
+                foreach ($client->getClientIpsNormalized((string) $email) as $ip) {
+                    $ips[$ip] = true;
+                }
+            }
+
+            return count($ips);
+        });
+
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th) {
+            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th, $trialUniqueIps) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -73,6 +111,15 @@ class DashboardController extends Controller
                     $ttl,
                     fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
                 );
+
+                if ($id === 'trial') {
+                    $m = is_array($bundle['metrics']) ? $bundle['metrics'] : [];
+                    if ($trialUniqueIps !== null) {
+                        $m['unique_remote_ips'] = $trialUniqueIps;
+                    }
+                    $m['unique_remote_ips_note'] = 'test_keys';
+                    $bundle['metrics'] = $m;
+                }
 
                 $capacity = max(1, (int) ($th['keys_capacity'] ?? 200));
                 $warnR = (float) ($th['keys_warn_ratio'] ?? 0.65);
