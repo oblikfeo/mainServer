@@ -76,7 +76,7 @@ final class TestKeyManager
 
         $vlessUrl = $this->buildVlessUrl(
             clientUuid: $clientUuid,
-            label: 'test-'.$user->id,
+            label: 'nadezhda.space trial',
         );
 
         return TestKey::query()->create([
