@@ -5,41 +5,43 @@
             $me = Auth::user();
         @endphp
 
-        <article class="lp-card" style="margin-bottom: 1rem;">
-            <div class="lp-card__head">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
+        @unless ($me->shouldHideTestSubscriptionOffer())
+            <article class="lp-card" style="margin-bottom: 1rem;">
+                <div class="lp-card__head">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
+                    </div>
+                    <p class="lp-card__head-note">&nbsp;</p>
                 </div>
-                <p class="lp-card__head-note">&nbsp;</p>
-            </div>
-            <div class="lp-card__body lp-stack">
-                @if (session('status') === 'test-subscription-created')
-                    <div class="lp-warn-box" style="background:#dcfce7;">
-                        Тестовая подписка создана. Она появится ниже в списке.
-                    </div>
-                @endif
+                <div class="lp-card__body lp-stack">
+                    @if (session('status') === 'test-subscription-created')
+                        <div class="lp-warn-box" style="background:#dcfce7;">
+                            Тестовая подписка создана. Она появится ниже в списке.
+                        </div>
+                    @endif
 
-                @error('test_subscription')
-                    <div class="lp-warn-box">
-                        {{ $message }}
-                    </div>
-                @enderror
+                    @error('test_subscription')
+                        <div class="lp-warn-box">
+                            {{ $message }}
+                        </div>
+                    @enderror
 
-                @if (! $me->hasVerifiedEmail())
-                    <div class="lp-warn-box">
-                        Чтобы получить тестовую подписку, подтвердите почту в
-                        <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
-                    </div>
-                @else
-                    <form method="POST" action="{{ route('cabinet.test_subscription') }}">
-                        @csrf
-                        <button type="submit" {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? '' : 'disabled' }}>
-                            {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? 'Получить тестовую подписку' : 'Тестовые ключи скоро' }}
-                        </button>
-                    </form>
-                @endif
-            </div>
-        </article>
+                    @if (! $me->hasVerifiedEmail())
+                        <div class="lp-warn-box">
+                            Чтобы получить тестовую подписку, подтвердите почту в
+                            <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
+                        </div>
+                    @else
+                        <form method="POST" action="{{ route('cabinet.test_subscription') }}">
+                            @csrf
+                            <button type="submit" {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? '' : 'disabled' }}>
+                                {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? 'Получить тестовую подписку' : 'Тестовые ключи скоро' }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </article>
+        @endunless
 
         @if ($items === [])
             <div class="lp-empty">

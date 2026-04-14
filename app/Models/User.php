@@ -40,4 +40,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(Purchase::class);
     }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscriptions
+            ->contains(fn (Subscription $subscription) => ! $subscription->isExpired());
+    }
+
+    /**
+     * Есть запись о покупке и сейчас активна хотя бы одна подписка — тестовый ключ не показываем.
+     */
+    public function shouldHideTestSubscriptionOffer(): bool
+    {
+        return $this->purchases()->exists() && $this->hasActiveSubscription();
+    }
 }
