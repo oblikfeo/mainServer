@@ -43,12 +43,21 @@
                             <div class="lp-warn-box" style="background:#f8fafc;">
                                 <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Ссылка (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})</div>
                                 <div class="lp-mono text-xs break-all">{{ $activeTestKey->vless_url }}</div>
-                                <div class="mt-3">
+                                <div class="mt-3" x-data="{ copied: false }">
                                     <button
                                         type="button"
                                         class="lp-btn lp-btn--copy"
-                                        x-data="{ copied: false }"
-                                        x-on:click=\"(async () => { try { await navigator.clipboard.writeText(@js($activeTestKey->vless_url)); copied = true; setTimeout(() => copied = false, 1600); } catch (e) { copied = false; } })()\"
+                                        x-on:click="
+                                            (async () => {
+                                                try {
+                                                    await navigator.clipboard.writeText(@js($activeTestKey->vless_url));
+                                                    copied = true;
+                                                    setTimeout(() => copied = false, 1600);
+                                                } catch (e) {
+                                                    copied = false;
+                                                }
+                                            })()
+                                        "
                                     >
                                         <span x-show="!copied">Скопировать</span>
                                         <span x-show="copied" x-cloak>Скопировано</span>

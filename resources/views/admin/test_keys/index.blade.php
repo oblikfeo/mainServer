@@ -27,16 +27,16 @@
 
     <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm mb-6">
         <h2 class="text-base sm:text-lg font-bold text-slate-900 mb-4">Выдать тестовый ключ</h2>
-        <form method="POST" action="{{ route('admin.test_keys.store') }}" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+        <form method="POST" action="{{ route('admin.test_keys.store') }}" class="grid grid-cols-1 sm:grid-cols-[1fr_10rem_auto] gap-3 items-end">
             @csrf
-            <div class="flex-1 min-w-0">
+            <div class="min-w-0">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Email пользователя</label>
                 <input name="email" value="{{ old('email') }}" class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]" placeholder="user@example.com" />
                 @error('email')
                     <div class="mt-2 text-sm text-red-600">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="w-full sm:w-40">
+            <div class="min-w-0">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Часов</label>
                 <input name="hours" value="{{ old('hours') }}" class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]" placeholder="{{ (int) config('test_keys.default_hours', 8) }}" />
                 @error('hours')
