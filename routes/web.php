@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
+use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
@@ -81,6 +82,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
+        Route::get('/test-keys', [TestKeysController::class, 'index'])->name('test_keys');
+        Route::post('/test-keys', [TestKeysController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('test_keys.store');
+        Route::post('/test-keys/cleanup', [TestKeysController::class, 'cleanup'])
+            ->middleware('throttle:10,1')
+            ->name('test_keys.cleanup');
+        Route::post('/test-keys/{testKey}/revoke', [TestKeysController::class, 'revoke'])
+            ->middleware('throttle:60,1')
+            ->name('test_keys.revoke');
         Route::get('/subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
         Route::get('/subscription/settings', [SubscriptionSettingsController::class, 'edit'])->name('subscription.settings');
         Route::post('/subscription/settings', [SubscriptionSettingsController::class, 'update'])->name('subscription.settings.update');
