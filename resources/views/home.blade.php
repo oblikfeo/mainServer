@@ -72,65 +72,7 @@
         <div id="tarify" class="lp-pricing">
             <h2 class="lp-section-title">Понятные цены</h2>
             <div class="lp-tariff-cards">
-                <article class="lp-tariff-card lp-tariff-card--solo" aria-labelledby="tariff-solo-title">
-                    <header class="lp-tariff-card__head">
-                        <h3 class="lp-tariff-card__title" id="tariff-solo-title">Для себя</h3>
-                        <p class="lp-tariff-card__meta">2 устройства</p>
-                    </header>
-                    <div class="lp-tariff-card__body">
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">1 месяц</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount">250&nbsp;₽</span>
-                            </div>
-                        </div>
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">3 месяца</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount">600&nbsp;₽</span>
-                                <span class="lp-price-sub">Выгода 150&nbsp;₽</span>
-                            </div>
-                        </div>
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">6 месяцев</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount">990&nbsp;₽</span>
-                                <span class="lp-price-sub">165&nbsp;₽/мес<br>как чашка кофе</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-                <article class="lp-tariff-card lp-tariff-card--family" aria-labelledby="tariff-family-title">
-                    <header class="lp-tariff-card__head">
-                        <h3 class="lp-tariff-card__title" id="tariff-family-title">Для семьи</h3>
-                        <p class="lp-tariff-card__meta">5 устройств</p>
-                    </header>
-                    <div class="lp-tariff-card__body">
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">1 месяц</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount">550&nbsp;₽</span>
-                            </div>
-                        </div>
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">3 месяца</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount">1350&nbsp;₽</span>
-                                <span class="lp-price-sub">Выгода 300&nbsp;₽</span>
-                            </div>
-                        </div>
-                        <div class="lp-tariff-card__row">
-                            <span class="lp-tariff-card__period">6 месяцев</span>
-                            <div class="lp-tariff-card__price-block">
-                                <span class="lp-tariff-card__amount-line lp-tariff-card__amount-line--stack">
-                                    <span class="lp-tariff-card__amount">2400&nbsp;₽</span>
-                                    <span class="lp-badge">Выбор семей</span>
-                                </span>
-                                <span class="lp-price-sub">Максимальная выгода</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
+                @include('partials.pricing-tariff-cards', ['showPayButtons' => false])
             </div>
             @guest
                 <a href="{{ route('login') }}" class="lp-cta-btn">
@@ -143,11 +85,7 @@
                     <span aria-hidden="true">→</span>
                 </a>
             @endguest
-            <div class="lp-payment-info">
-                <span>✓ Оплата через СБП или банковской картой РФ.</span>
-                <span>✓ <strong>Без автопродлений:</strong> мы не списываем деньги втихую. Вы сами продлеваете доступ.</span>
-                <span>✓ <strong>Гарантия:</strong> вернём оплату в течение 24 часов, если сервис не заработал.</span>
-            </div>
+            @include('partials.pricing-payment-notes')
         </div>
 
         <div class="lp-support">

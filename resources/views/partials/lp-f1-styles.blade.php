@@ -269,6 +269,64 @@
         border-bottom: 2px solid var(--lp-ink);
     }
     .lp-f1 .lp-tariff-card__row:last-child { border-bottom: none; }
+    .lp-f1 .lp-tariff-card__row.lp-tariff-card__row--with-pay {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+    @media (min-width: 520px) {
+        .lp-f1 .lp-tariff-card__row.lp-tariff-card__row--with-pay {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.85rem 1rem;
+        }
+    }
+    .lp-f1 .lp-tariff-card__row-left {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.5rem 1rem;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+    }
+    @media (min-width: 520px) {
+        .lp-f1 .lp-tariff-card__row--with-pay .lp-tariff-card__row-left {
+            flex: 1;
+        }
+    }
+    .lp-f1 .lp-cabinet-main .lp-cab-pay-btn {
+        display: inline-flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100%;
+        padding: 0.55rem 1rem !important;
+        background: var(--lp-orange) !important;
+        color: #fff !important;
+        border: 3px solid var(--lp-ink) !important;
+        border-radius: 0 !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.04em !important;
+        cursor: pointer !important;
+        font-family: inherit;
+        box-shadow: none !important;
+        white-space: nowrap;
+    }
+    @media (min-width: 520px) {
+        .lp-f1 .lp-cabinet-main .lp-cab-pay-btn {
+            width: auto;
+            min-width: 7.5rem;
+        }
+    }
+    .lp-f1 .lp-cabinet-main .lp-cab-pay-btn:hover {
+        background: #E03E00 !important;
+    }
+    .lp-f1 .lp-pricing--cabinet {
+        border-top: 4px solid var(--lp-ink);
+    }
     .lp-f1 .lp-tariff-card__period {
         font-size: 0.6875rem;
         font-weight: 900;

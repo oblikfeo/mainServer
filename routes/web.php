@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\CabinetController;
+use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
@@ -45,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
+    Route::get('/dashboard/payment', CabinetPaymentController::class)->name('cabinet.payment');
 
     Route::post('/dashboard/test-subscription', [TestSubscriptionController::class, 'store'])
         ->middleware('throttle:5,60')

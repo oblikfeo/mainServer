@@ -15,4 +15,61 @@ return [
         'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),
         'desktop_url' => env('MARKETING_DESKTOP_APP_URL', 'https://www.happ.su/main/ru'),
     ],
+
+    /**
+     * Тарифы: главная и ЛК «Оплата» (один источник правды).
+     *
+     * @var list<array{
+     *   id: string,
+     *   kind: 'solo'|'family',
+     *   title: string,
+     *   meta: string,
+     *   aria_id: string,
+     *   rows: list<array{
+     *     period: string,
+     *     amount: string,
+     *     sub: string|null,
+     *     stack?: bool,
+     *     badge?: string|null
+     *   }>
+     * }>
+     */
+    'tariffs' => [
+        [
+            'id' => 'solo',
+            'kind' => 'solo',
+            'title' => 'Для себя',
+            'meta' => '2 устройства',
+            'aria_id' => 'tariff-solo-title',
+            'rows' => [
+                ['period' => '1 месяц', 'amount' => '250', 'sub' => null],
+                ['period' => '3 месяца', 'amount' => '600', 'sub' => 'Выгода 150&nbsp;₽'],
+                ['period' => '6 месяцев', 'amount' => '990', 'sub' => '165&nbsp;₽/мес<br>как чашка кофе'],
+            ],
+        ],
+        [
+            'id' => 'family',
+            'kind' => 'family',
+            'title' => 'Для семьи',
+            'meta' => '5 устройств',
+            'aria_id' => 'tariff-family-title',
+            'rows' => [
+                ['period' => '1 месяц', 'amount' => '550', 'sub' => null],
+                ['period' => '3 месяца', 'amount' => '1350', 'sub' => 'Выгода 300&nbsp;₽'],
+                [
+                    'period' => '6 месяцев',
+                    'amount' => '2400',
+                    'sub' => 'Максимальная выгода',
+                    'stack' => true,
+                    'badge' => 'Выбор семей',
+                ],
+            ],
+        ],
+    ],
+
+    'payment_notes' => [
+        'Оплата через СБП или банковской картой РФ.',
+        'Без автопродлений: мы не списываем деньги втихую. Вы сами продлеваете доступ.',
+        'Гарантия: вернём оплату в течение 24 часов, если сервис не заработал.',
+    ],
 ];
