@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TestKey;
 use App\Services\Subscription\CreateDualBundleSubscription;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,6 +28,12 @@ class CabinetController extends Controller
 
         return view('cabinet.index', [
             'items' => $items,
+            'activeTestKey' => TestKey::query()
+                ->where('user_id', $user->id)
+                ->whereNull('revoked_at')
+                ->where('expires_at', '>', now())
+                ->orderByDesc('id')
+                ->first(),
         ]);
     }
 }

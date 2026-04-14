@@ -3,24 +3,31 @@
         @php
             /** @var \App\Models\User $me */
             $me = Auth::user();
+            /** @var \App\Models\TestKey|null $activeTestKey */
+            $activeTestKey = $activeTestKey ?? null;
         @endphp
 
         @unless ($me->shouldHideTestSubscriptionOffer())
             <article class="lp-card" style="margin-bottom: 1rem;">
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
+                        <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовый ключ</span>
                     </div>
                     <p class="lp-card__head-note">&nbsp;</p>
                 </div>
                 <div class="lp-card__body lp-stack">
-                    @if (session('status') === 'test-subscription-created')
+                    @if (session('status') === 'test-key-issued')
                         <div class="lp-warn-box" style="background:#dcfce7;">
-                            Тестовая подписка создана. Она появится ниже в списке.
+                            Тестовый ключ выдан. Скопируйте ссылку ниже и добавьте в Happ.
+                        </div>
+                    @endif
+                    @if (session('status') === 'test-key-exists')
+                        <div class="lp-warn-box" style="background:#dcfce7;">
+                            У вас уже есть активный тестовый ключ. Скопируйте его ниже.
                         </div>
                     @endif
 
-                    @error('test_subscription')
+                    @error('test_key')
                         <div class="lp-warn-box">
                             {{ $message }}
                         </div>
@@ -28,16 +35,32 @@
 
                     @if (! $me->hasVerifiedEmail())
                         <div class="lp-warn-box">
-                            Чтобы получить тестовую подписку, подтвердите почту в
+                            Чтобы получить тестовый ключ, подтвердите почту в
                             <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
                         </div>
                     @else
-                        <form method="POST" action="{{ route('cabinet.test_subscription') }}">
-                            @csrf
-                            <button type="submit" {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? '' : 'disabled' }}>
-                                {{ filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL) ? 'Получить тестовую подписку' : 'Тестовые ключи скоро' }}
-                            </button>
-                        </form>
+                        @if ($activeTestKey)
+                            <div class="lp-warn-box" style="background:#f8fafc;">
+                                <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Ссылка (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})</div>
+                                <div class="lp-mono text-xs break-all">{{ $activeTestKey->vless_url }}</div>
+                                <div class="mt-3">
+                                    <button
+                                        type="button"
+                                        class="lp-btn lp-btn--copy"
+                                        x-data="{ copied: false }"
+                                        x-on:click=\"(async () => { try { await navigator.clipboard.writeText(@js($activeTestKey->vless_url)); copied = true; setTimeout(() => copied = false, 1600); } catch (e) { copied = false; } })()\"
+                                    >
+                                        <span x-show="!copied">Скопировать</span>
+                                        <span x-show="copied" x-cloak>Скопировано</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('cabinet.test_keys.store') }}">
+                                @csrf
+                                <button type="submit">Получить тестовый ключ</button>
+                            </form>
+                        @endif
                     @endif
                 </div>
             </article>

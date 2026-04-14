@@ -41,6 +41,12 @@ class User extends Authenticatable
         return $this->hasMany(Purchase::class);
     }
 
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<TestKey, self> */
+    public function testKeys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TestKey::class);
+    }
+
     /**
      * Уже есть привязанная подписка — тестовый ключ не предлагаем (как в TestSubscriptionController).
      */

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
+use App\Http\Controllers\CabinetTestKeysController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
@@ -60,6 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/test-subscription', [TestSubscriptionController::class, 'store'])
         ->middleware('throttle:5,60')
         ->name('cabinet.test_subscription');
+
+    Route::post('/dashboard/test-keys', [CabinetTestKeysController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('cabinet.test_keys.store');
 
     Route::post('/dashboard/email/verify-code/send', [EmailCodeVerificationController::class, 'send'])
         ->name('cabinet.email_code.send');
