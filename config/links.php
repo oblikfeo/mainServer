@@ -23,6 +23,15 @@ return [
             'ssh_private_key' => env('LINK_FI_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_FI_CLIENT_TCP_PORT', 443),
         ],
+        [
+            'id' => 'trial',
+            'name' => 'Связка TRIAL',
+            'subtitle' => 'Тестовые ключи · Yandex → NLtest',
+            'ip' => env('LINK_TRIAL_IP', '158.160.219.3'),
+            'ssh_user' => env('LINK_TRIAL_SSH_USER', 'oblik'),
+            'ssh_private_key' => env('LINK_TRIAL_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_TRIAL_CLIENT_TCP_PORT', 443),
+        ],
     ],
 
     /*

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
+use App\Models\TestKey;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
 use Illuminate\Support\Facades\Cache;
@@ -39,9 +40,15 @@ class DashboardController extends Controller
             ->where('nl_sub_id', '!=', '')
             ->count();
 
+        $trialActiveKeys = TestKey::query()
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->count();
+
         $subsPerBundle = [
             'fi' => $subsCountFi,
             'nl' => $subsCountNl,
+            'trial' => $trialActiveKeys,
         ];
 
         $ttl = max(10, config('links.metrics_cache_ttl', 20));
