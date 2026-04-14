@@ -24,12 +24,6 @@ class TestSubscriptionController extends Controller
             ]);
         }
 
-        if ($user->shouldHideTestSubscriptionOffer()) {
-            return back()->withErrors([
-                'test_subscription' => 'Тестовая подписка недоступна: у вас есть активная оплаченная подписка.',
-            ]);
-        }
-
         if ($user->subscriptions()->exists()) {
             return back()->withErrors([
                 'test_subscription' => 'Тестовая подписка уже была создана для этого аккаунта.',
