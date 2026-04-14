@@ -57,8 +57,8 @@ class DashboardController extends Controller
         $th = config('links.thresholds', []);
 
         // Для trial-связки «уникальные IP» по SSH на :443 включает сканеры/шум.
-        // Поэтому считаем уникальные IP только по активным test_keys через API панели.
-        $trialUniqueIps = Cache::remember('trial_test_keys_unique_ips_v1', $ttl, function (): ?int {
+        // Поэтому для отображения «онлайн» считаем только активные test_keys через API панели.
+        $trialOnlineTestClients = Cache::remember('trial_test_keys_online_clients_v1', $ttl, function (): ?int {
             $base = (string) config('test_keys.panel_base');
             $user = (string) config('test_keys.panel_username');
             $pass = (string) config('test_keys.panel_password');
@@ -83,18 +83,19 @@ class DashboardController extends Controller
             $client = new XuiPanelClient($base);
             $client->login($user, $pass);
 
-            $ips = [];
+            $online = array_flip($client->getOnlineClientEmails());
+            $n = 0;
             foreach ($emails as $email) {
-                foreach ($client->getClientIpsNormalized((string) $email) as $ip) {
-                    $ips[$ip] = true;
+                if (isset($online[(string) $email])) {
+                    $n++;
                 }
             }
 
-            return count($ips);
+            return $n;
         });
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th, $trialUniqueIps) {
+            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th, $trialOnlineTestClients) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -114,10 +115,9 @@ class DashboardController extends Controller
 
                 if ($id === 'trial') {
                     $m = is_array($bundle['metrics']) ? $bundle['metrics'] : [];
-                    if ($trialUniqueIps !== null) {
-                        $m['unique_remote_ips'] = $trialUniqueIps;
+                    if ($trialOnlineTestClients !== null) {
+                        $m['trial_online_clients'] = $trialOnlineTestClients;
                     }
-                    $m['unique_remote_ips_note'] = 'test_keys';
                     $bundle['metrics'] = $m;
                 }
 
