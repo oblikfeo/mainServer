@@ -12,6 +12,7 @@ class Subscription extends Model
 
     protected $fillable = [
         'user_id',
+        'public_code',
         'token',
         'fi_sub_id',
         'nl_sub_id',
@@ -24,11 +25,33 @@ class Subscription extends Model
     protected function casts(): array
     {
         return [
+            'public_code' => 'integer',
             'quota_gb' => 'integer',
             'expiry_ms' => 'integer',
             'devices' => 'integer',
             'bound_hwid_hashes' => 'array',
         ];
+    }
+
+    public static function generateUniquePublicCode(): int
+    {
+        for ($i = 0; $i < 100; $i++) {
+            $code = random_int(10000, 99999);
+            if (! static::query()->where('public_code', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        throw new \RuntimeException('Не удалось сгенерировать уникальный public_code');
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Subscription $model) {
+            if ($model->public_code === null) {
+                $model->public_code = static::generateUniquePublicCode();
+            }
+        });
     }
 
     public function user(): BelongsTo

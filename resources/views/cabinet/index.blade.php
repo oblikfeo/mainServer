@@ -66,7 +66,7 @@
                         :aria-expanded="open"
                     >
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="lp-mono">#{{ $sub->id }}</span>
+                            <span class="lp-mono">#{{ $sub->public_code }}</span>
                             @if ($sub->isExpired())
                                 <span class="lp-badge-pill lp-badge-pill--bad">Истекла</span>
                             @else
