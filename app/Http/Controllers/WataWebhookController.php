@@ -18,7 +18,9 @@ class WataWebhookController extends Controller
         $raw = $request->getContent();
         $sig = (string) $request->header('X-Signature', '');
         if ($raw === '' || $sig === '') {
-            return response('', 200);
+            Log::warning('WATA webhook: empty body or missing X-Signature');
+
+            return response('', 400);
         }
 
         try {
@@ -27,12 +29,12 @@ class WataWebhookController extends Controller
             if (! $ok) {
                 Log::warning('WATA webhook: bad signature');
 
-                return response('', 200);
+                return response('', 403);
             }
         } catch (\Throwable $e) {
             Log::warning('WATA webhook: signature check failed: '.$e->getMessage());
 
-            return response('', 200);
+            return response('', 503);
         }
 
         $payload = json_decode($raw, true);

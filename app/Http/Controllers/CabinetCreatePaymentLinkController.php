@@ -13,6 +13,10 @@ class CabinetCreatePaymentLinkController extends Controller
 {
     public function __invoke(Request $request, WataH2hClient $wata): JsonResponse
     {
+        if (trim((string) config('wata.access_token')) === '') {
+            return response()->json(['error' => 'payments_not_configured'], 503);
+        }
+
         $user = $request->user();
 
         $data = $request->validate([
@@ -39,7 +43,7 @@ class CabinetCreatePaymentLinkController extends Controller
             throw new RuntimeException('Неверная конфигурация payments.products для '.$plan.' / '.$period);
         }
 
-        $orderId = 'ord_'.Str::ulid()->toBase32();
+        $orderId = 'ord_'.(string) Str::ulid();
         $desc = 'Подписка '.$plan.' · '.$period;
 
         $order = PaymentOrder::query()->create([

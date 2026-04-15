@@ -55,13 +55,32 @@ final class WataH2hClient
 
     /**
      * Публичный ключ для проверки подписи webhook (PKCS1/PEM).
+     * В доке WATA запрос к public-key без Authorization — делаем так же, при 401 пробуем с токеном.
      */
     public function getWebhookPublicKeyPem(): string
     {
         $ttl = 3600;
 
-        return (string) Cache::remember('wata_webhook_public_key_v1', $ttl, function () {
-            $r = $this->http()->get('public-key');
+        return (string) Cache::remember('wata_webhook_public_key_v2', $ttl, function () {
+            $base = rtrim((string) config('wata.base_url'), '/').'/';
+            $fetch = function (bool $withToken) use ($base) {
+                $req = Http::baseUrl($base)
+                    ->acceptJson()
+                    ->timeout(30);
+                if ($withToken) {
+                    $token = (string) config('wata.access_token');
+                    if ($token !== '') {
+                        $req = $req->withToken($token);
+                    }
+                }
+
+                return $req->get('public-key');
+            };
+
+            $r = $fetch(false);
+            if ($r->status() === 401) {
+                $r = $fetch(true);
+            }
             if (! $r->successful()) {
                 throw new RuntimeException('WATA public-key: HTTP '.$r->status());
             }

@@ -2,6 +2,8 @@
 .DS_Store
 .env
 .env.backup
+# секреты рядом с репо (не коммитить)
+../env.txt
 .env.production
 .phpactor.json
 .phpunit.result.cache
