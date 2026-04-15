@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
+use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
 use App\Http\Controllers\TestSubscriptionController;
+use App\Http\Controllers\WataWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,6 +43,8 @@ Route::get('/privacy-policy', function () {
 Route::view('/spasibo', 'spasibo')->name('payment.success');
 Route::view('/oshibka', 'oshibka')->name('payment.failure');
 
+Route::post('/payments/wata/webhook', WataWebhookController::class)->name('payments.wata.webhook');
+
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
 
@@ -51,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
     Route::get('/dashboard/payment', CabinetPaymentController::class)->name('cabinet.payment');
+    Route::post('/dashboard/payment/link', CabinetCreatePaymentLinkController::class)
+        ->middleware('throttle:20,1')
+        ->name('cabinet.payment.link');
     Route::get('/dashboard/settings', [CabinetSettingsController::class, 'index'])->name('cabinet.settings');
     Route::post('/dashboard/settings/subscriptions/{subscription}/devices/detach', [CabinetSettingsController::class, 'detachDevice'])
         ->middleware('throttle:30,1')

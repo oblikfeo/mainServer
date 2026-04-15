@@ -56,6 +56,64 @@
         </div>
     </div>
 
+    <div class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden mb-6 sm:mb-8">
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Заказы оплаты (WATA)</div>
+        </div>
+        @if (($orders ?? null) && $orders->isEmpty())
+            <p class="px-6 py-10 text-center text-slate-500 text-sm">Заказов нет.</p>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left border-collapse min-w-[72rem]">
+                    <thead>
+                        <tr class="bg-slate-900 text-white">
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Создан</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Order ID</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Статус</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Сумма</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Тариф</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[12rem]" scope="col">Пользователь</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Link ID</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Transaction ID</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @foreach ($orders as $o)
+                            @php
+                                $status = (string) ($o->status ?? '');
+                                $badge = match ($status) {
+                                    'paid' => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/80',
+                                    'declined' => 'bg-rose-100 text-rose-800 ring-1 ring-rose-200/80',
+                                    default => 'bg-slate-200/80 text-slate-700',
+                                };
+                            @endphp
+                            <tr class="{{ $loop->iteration % 2 === 0 ? 'bg-slate-50/50' : 'bg-white' }} hover:bg-slate-100/80 transition-colors">
+                                <td class="px-4 py-3 text-slate-800 tabular-nums whitespace-nowrap">{{ $o->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-800 whitespace-nowrap">{{ $o->order_id }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold {{ $badge }}">{{ $status }}</span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-900 font-bold tabular-nums whitespace-nowrap text-right">{{ number_format((int) $o->amount_rub, 0, ',', ' ') }} ₽</td>
+                                <td class="px-4 py-3 text-slate-800 text-xs whitespace-nowrap">{{ $o->tariff_plan }} · {{ $o->tariff_period }}</td>
+                                <td class="px-4 py-3 text-slate-800 text-xs break-all" title="{{ $o->user?->email ?? '' }}">{{ $o->user?->email ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $o->provider_link_id ?? '—' }}</td>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $o->provider_transaction_id ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if ($orders->hasPages())
+                <div class="border-t border-slate-200 bg-white px-2 sm:px-4 py-3 sm:py-4 overflow-x-auto">
+                    <div class="flex justify-center lg:justify-start min-w-max sm:min-w-0">
+                        {{ $orders->links() }}
+                    </div>
+                </div>
+            @endif
+        @endif
+    </div>
+
     <article class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden">
         @if ($purchases->isEmpty())
             <p class="px-6 py-16 text-center text-slate-500 text-base bg-slate-50/50">Платежей нет за выбранный период.</p>
