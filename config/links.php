@@ -49,6 +49,26 @@ return [
     'metrics_cache_ttl' => (int) env('LINK_METRICS_CACHE_TTL', 20),
 
     /*
+    | Ручная база трафика для карточек «Статус серверов».
+    | Формула: display_bytes + max(0, panel_bytes - panel_base_bytes).
+    | Это позволяет «начать отсчёт» от согласованных значений и дальше расти от панели.
+    */
+    'traffic_baseline' => [
+        'fi' => [
+            // 264.42 ГБ (данные Hostkey)
+            'display_bytes' => (int) env('LINK_TRAFFIC_BASE_FI_BYTES', 264_420_000_000),
+            // Текущее значение panel bytes в момент фиксации базы
+            'panel_base_bytes' => (int) env('LINK_TRAFFIC_BASE_FI_PANEL_BYTES', 118_689_275_167),
+        ],
+        'nl' => [
+            // 88.34 ГБ (данные Hostkey)
+            'display_bytes' => (int) env('LINK_TRAFFIC_BASE_NL_BYTES', 88_340_000_000),
+            // Текущее значение panel bytes в момент фиксации базы
+            'panel_base_bytes' => (int) env('LINK_TRAFFIC_BASE_NL_PANEL_BYTES', 9_798_275_650),
+        ],
+    ],
+
+    /*
     | Пороги для цвета строк в админке.
     | Подписки (активные): ориентир ~200 на типичный egress 2 vCPU / 4 ГБ RAM под Xray/Reality
     | (реальная цифра зависит от канала и поведения; меняй LINK_KEYS_CAPACITY).

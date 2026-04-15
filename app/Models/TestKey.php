@@ -13,12 +13,18 @@ class TestKey extends Model
         'client_uuid',
         'panel_email',
         'panel_sub_id',
+        'token',
         'issued_at',
         'expires_at',
         'revoked_at',
         'revoked_reason',
         'panel_deleted_at',
         'vless_url',
+        'subscription_url',
+        'quota_gb',
+        'limit_ip',
+        'bound_hwid_hashes',
+        'bound_hwid_meta',
     ];
 
     protected function casts(): array
@@ -28,6 +34,10 @@ class TestKey extends Model
             'expires_at' => 'datetime',
             'revoked_at' => 'datetime',
             'panel_deleted_at' => 'datetime',
+            'quota_gb' => 'integer',
+            'limit_ip' => 'integer',
+            'bound_hwid_hashes' => 'array',
+            'bound_hwid_meta' => 'array',
         ];
     }
 
@@ -46,6 +56,11 @@ class TestKey extends Model
         $exp = $this->expires_at instanceof Carbon ? $this->expires_at : Carbon::parse($this->expires_at);
 
         return $exp->isPast();
+    }
+
+    public function shareableUrl(): string
+    {
+        return (string) ($this->subscription_url ?: $this->vless_url);
     }
 }
 

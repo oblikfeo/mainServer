@@ -8,7 +8,7 @@
             <a href="{{ route('admin.dashboard') }}" class="text-slate-600 hover:text-slate-900 text-base font-medium">← В админку</a>
             <h1 class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Тестовые ключи</h1>
             <p class="mt-2 text-sm text-slate-600 max-w-3xl">
-                Выдача тестовых VLESS-ключей на отдельной связке. Здесь видны: кому выдали, когда истекает, и снято ли в панели.
+                Выдача тестовой подписки на отдельной связке. Здесь видны: кому выдали, когда истекает, лимиты и снято ли в панели.
             </p>
         </div>
         <form method="POST" action="{{ route('admin.test_keys.cleanup') }}">
@@ -26,7 +26,7 @@
     @endif
 
     <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm mb-6">
-        <h2 class="text-base sm:text-lg font-bold text-slate-900 mb-4">Выдать тестовый ключ</h2>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 mb-4">Выдать тестовую подписку</h2>
         <form method="POST" action="{{ route('admin.test_keys.store') }}" class="grid grid-cols-1 sm:grid-cols-[1fr_10rem_auto] gap-3 items-end">
             @csrf
             <div class="min-w-0">
@@ -107,7 +107,7 @@
                                     <button
                                         type="button"
                                         class="px-3 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold"
-                                        onclick="navigator.clipboard.writeText(@js($row->vless_url))"
+                                        onclick="navigator.clipboard.writeText(@js($row->shareableUrl()))"
                                     >Скопировать</button>
                                     @if ($row->revoked_at === null)
                                         <form method="POST" action="{{ route('admin.test_keys.revoke', $row) }}" onsubmit="return confirm('Снять этот ключ?');">

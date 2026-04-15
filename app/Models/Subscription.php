@@ -20,6 +20,7 @@ class Subscription extends Model
         'expiry_ms',
         'devices',
         'bound_hwid_hashes',
+        'bound_hwid_meta',
     ];
 
     protected function casts(): array
@@ -30,6 +31,7 @@ class Subscription extends Model
             'expiry_ms' => 'integer',
             'devices' => 'integer',
             'bound_hwid_hashes' => 'array',
+            'bound_hwid_meta' => 'array',
         ];
     }
 

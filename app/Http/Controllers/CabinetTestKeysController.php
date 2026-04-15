@@ -15,14 +15,14 @@ class CabinetTestKeysController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             return back()->withErrors([
-                'test_key' => 'Чтобы получить тестовый ключ, подтвердите почту в профиле.',
+                'test_key' => 'Чтобы получить тестовую подписку, подтвердите почту в профиле.',
             ]);
         }
 
-        // Если уже есть подписка — тестовый ключ не нужен
+        // Если уже есть подписка — тестовая подписка не нужна
         if ($user->subscriptions()->exists()) {
             return back()->withErrors([
-                'test_key' => 'Тестовый ключ недоступен: у вас уже есть подписка.',
+                'test_key' => 'Тестовая подписка недоступна: у вас уже есть подписка.',
             ]);
         }
 
@@ -40,7 +40,7 @@ class CabinetTestKeysController extends Controller
             $manager->issueForUser($user, null);
         } catch (\Throwable $e) {
             return back()->withErrors([
-                'test_key' => 'Не удалось выдать тестовый ключ. Связка может быть не настроена.',
+                'test_key' => 'Не удалось выдать тестовую подписку. Связка может быть не настроена.',
             ]);
         }
 

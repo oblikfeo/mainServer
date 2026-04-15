@@ -6,7 +6,6 @@ use App\Models\TestKey;
 use App\Models\User;
 use App\Services\Xui\XuiPanelClient;
 use App\Services\Xui\XuiPanelException;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 final class TestKeyManager
@@ -76,17 +75,24 @@ final class TestKeyManager
 
         $vlessUrl = $this->buildVlessUrl(
             clientUuid: $clientUuid,
-            label: 'nadezhda.space trial',
+            label: 'LTE + WIFI 🇷🇺',
         );
+
+        $token = $this->generateUniqueToken();
+        $subscriptionUrl = rtrim((string) config('app.url'), '/').'/sub/'.$token;
 
         return TestKey::query()->create([
             'user_id' => $user->id,
             'client_uuid' => $clientUuid,
             'panel_email' => $panelEmail,
             'panel_sub_id' => $subId,
+            'token' => $token,
             'issued_at' => $now,
             'expires_at' => $expiresAt,
             'vless_url' => $vlessUrl,
+            'subscription_url' => $subscriptionUrl,
+            'quota_gb' => $quotaGb,
+            'limit_ip' => $limitIp,
         ]);
     }
 
@@ -153,6 +159,15 @@ final class TestKeyManager
         ]);
 
         return "vless://{$clientUuid}@{$host}:{$port}?{$params}#".rawurlencode($label);
+    }
+
+    private function generateUniqueToken(): string
+    {
+        do {
+            $token = rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+        } while (TestKey::query()->where('token', $token)->exists());
+
+        return $token;
     }
 }
 

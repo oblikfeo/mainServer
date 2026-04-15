@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\PaymentsController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
@@ -57,6 +58,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/settings/subscriptions/{subscription}/devices/clear', [CabinetSettingsController::class, 'clearAllDevices'])
         ->middleware('throttle:10,1')
         ->name('cabinet.settings.devices.clear');
+    Route::post('/dashboard/settings/test-keys/{testKey}/devices/detach', [CabinetSettingsController::class, 'detachTestKeyDevice'])
+        ->middleware('throttle:30,1')
+        ->name('cabinet.settings.test_key.device.detach');
+    Route::post('/dashboard/settings/test-keys/{testKey}/devices/clear', [CabinetSettingsController::class, 'clearAllTestKeyDevices'])
+        ->middleware('throttle:10,1')
+        ->name('cabinet.settings.test_key.devices.clear');
 
     Route::post('/dashboard/test-subscription', [TestSubscriptionController::class, 'store'])
         ->middleware('throttle:5,60')
@@ -87,6 +94,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
+        Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');
         Route::get('/test-keys', [TestKeysController::class, 'index'])->name('test_keys');
         Route::post('/test-keys', [TestKeysController::class, 'store'])
             ->middleware('throttle:30,1')
