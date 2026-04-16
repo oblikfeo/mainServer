@@ -104,10 +104,11 @@ final class HappRoutingSubscriptionLine
         ];
 
         if ($needGeo) {
-            // Российские geo файлы (обновляются автоматически).
-            // @see https://github.com/runetfreedom/russia-v2ray-rules-dat
-            $profile['Geoipurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geoip.dat';
-            $profile['Geositeurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat';
+            // RoscomVPN: geoip.dat / geosite.dat (CDN, обновляются регулярно).
+            // @see https://github.com/hydraponique/roscomvpn-geoip
+            // @see https://github.com/hydraponique/roscomvpn-geosite
+            $profile['Geoipurl'] = 'https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geoip/release/geoip.dat';
+            $profile['Geositeurl'] = 'https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/geosite.dat';
         }
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
