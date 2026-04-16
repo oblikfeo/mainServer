@@ -163,7 +163,7 @@
                     $sub = $row['subscription'];
                     $exp = $sub->expiresAt();
                 @endphp
-                <article class="lp-card" x-data="{ open: false }">
+                <article class="lp-card" x-data="{ open: true }">
                     <button
                         type="button"
                         class="lp-card__head"
