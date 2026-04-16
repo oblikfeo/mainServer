@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\SubscriptionCreateAdminCommand::class,
         \App\Console\Commands\TestKeysCleanupCommand::class,
         \App\Console\Commands\MailTestCommand::class,
+        \App\Console\Commands\MassInviteTestMailCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
