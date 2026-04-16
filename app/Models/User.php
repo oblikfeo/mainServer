@@ -3,10 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\Referral\ReferralCodeGenerator;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -16,6 +19,15 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if ($user->referral_code === null || $user->referral_code === '') {
+                $user->referral_code = ReferralCodeGenerator::unique();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -30,21 +42,33 @@ class User extends Authenticatable
         ];
     }
 
-    public function subscriptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<Purchase, self> */
-    public function purchases(): \Illuminate\Database\Eloquent\Relations\HasMany
+    /** @return HasMany<Purchase, self> */
+    public function purchases(): HasMany
     {
         return $this->hasMany(Purchase::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<TestKey, self> */
-    public function testKeys(): \Illuminate\Database\Eloquent\Relations\HasMany
+    /** @return HasMany<TestKey, self> */
+    public function testKeys(): HasMany
     {
         return $this->hasMany(TestKey::class);
+    }
+
+    /** Пользователи, зарегистрировавшиеся по реферальной ссылке этого аккаунта. */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(self::class, 'referred_by');
+    }
+
+    /** Пригласивший пользователь (если есть). */
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'referred_by');
     }
 
     /**

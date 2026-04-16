@@ -127,6 +127,8 @@
             </div>
         @endif
 
+        @include('profile.partials.referral-block')
+
         <div class="lp-profile-block lp-profile-accordion" x-data="{ open: @js($accordionOpenProfile) }">
             <button
                 type="button"

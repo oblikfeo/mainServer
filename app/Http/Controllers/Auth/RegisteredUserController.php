@@ -37,11 +37,24 @@ class RegisteredUserController extends Controller
         $local = Str::before($email, '@');
         $name = $local !== '' ? $local : 'user';
 
-        $user = User::create([
+        $referredById = null;
+        $pendingRef = $request->session()->pull('pending_referral_code');
+        if (is_string($pendingRef) && $pendingRef !== '') {
+            $referrer = User::query()->where('referral_code', $pendingRef)->first();
+            if ($referrer !== null) {
+                $referredById = $referrer->id;
+            }
+        }
+
+        $user = new User([
             'name' => $name,
             'email' => $email,
             'password' => Hash::make($request->password),
         ]);
+        if ($referredById !== null) {
+            $user->referred_by = $referredById;
+        }
+        $user->save();
 
         Auth::login($user);
 

@@ -1122,6 +1122,25 @@
     @media (min-width: 520px) {
         .lp-f1 .lp-dl-grid { grid-template-columns: 1fr 1fr; }
     }
+    .lp-f1 .lp-dl-grid--referral-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    @media (max-width: 480px) {
+        .lp-f1 .lp-dl-grid--referral-stats { grid-template-columns: 1fr; }
+    }
+    .lp-f1 .lp-referral-url-field {
+        width: 100%;
+        border: 3px solid var(--lp-ink);
+        padding: 0.65rem 0.75rem;
+        font-family: ui-monospace, "Cascadia Code", monospace;
+        font-size: 0.6875rem;
+        line-height: 1.45;
+        background: #f9f9f9;
+        color: var(--lp-ink);
+        resize: vertical;
+        min-height: 3.25rem;
+    }
     .lp-f1 .lp-dl-grid--account {
         grid-template-columns: 1fr;
     }
