@@ -72,11 +72,12 @@ return [
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
         /**
          * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, geosite: …).
-         * По умолчанию 2ip.ru — для проверки «без VPN».
+         * 2ip.ru — проверка «без VPN». Ozon и др. маркетплейсы — в direct, иначе трафик уходит на NL/FI
+         * и сайт часто не пускает (не из‑за связки: с узлов curl до Ozon обычно OK).
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
-            'domain:2ip.ru,full:2ip.ru,full:www.2ip.ru,keyword:2ip.ru'
+            'domain:2ip.ru,full:2ip.ru,full:www.2ip.ru,keyword:2ip.ru,domain:ozon.ru,full:www.ozon.ru,full:api.ozon.ru'
         ))))),
     ],
 ];
