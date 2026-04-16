@@ -1,5 +1,11 @@
 @php
     $verifyModalOpen = $errors->has('code') || $errors->has('email_code') || session('status') === 'email-code-sent';
+    $accordionOpenProfile = $errors->has('name') || $errors->has('email')
+        || session('status') === 'profile-updated'
+        || session('status') === 'verification-link-sent';
+    $accordionOpenPassword = $errors->getBag('updatePassword')->isNotEmpty()
+        || session('status') === 'password-updated';
+    $accordionOpenDelete = $errors->getBag('userDeletion')->isNotEmpty();
 @endphp
 
 <x-cabinet-layout>
@@ -121,21 +127,54 @@
             </div>
         @endif
 
-        <div class="lp-profile-block">
-            <div class="max-w-xl">
-                @include('profile.partials.update-profile-information-form')
+        <div class="lp-profile-block lp-profile-accordion" x-data="{ open: @js($accordionOpenProfile) }">
+            <button
+                type="button"
+                class="lp-profile-accordion__trigger"
+                @click="open = !open"
+                :aria-expanded="open"
+            >
+                <span class="lp-profile-accordion__title">Редактирование профиля</span>
+                <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+            </button>
+            <div class="lp-profile-accordion__panel" x-show="open" x-cloak x-transition>
+                <div class="max-w-xl">
+                    @include('profile.partials.update-profile-information-form')
+                </div>
             </div>
         </div>
 
-        <div class="lp-profile-block">
-            <div class="max-w-xl">
-                @include('profile.partials.update-password-form')
+        <div class="lp-profile-block lp-profile-accordion" x-data="{ open: @js($accordionOpenPassword) }">
+            <button
+                type="button"
+                class="lp-profile-accordion__trigger"
+                @click="open = !open"
+                :aria-expanded="open"
+            >
+                <span class="lp-profile-accordion__title">Смена пароля</span>
+                <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+            </button>
+            <div class="lp-profile-accordion__panel" x-show="open" x-cloak x-transition>
+                <div class="max-w-xl">
+                    @include('profile.partials.update-password-form')
+                </div>
             </div>
         </div>
 
-        <div class="lp-profile-block">
-            <div class="max-w-xl">
-                @include('profile.partials.delete-user-form')
+        <div class="lp-profile-block lp-profile-accordion" x-data="{ open: @js($accordionOpenDelete) }">
+            <button
+                type="button"
+                class="lp-profile-accordion__trigger"
+                @click="open = !open"
+                :aria-expanded="open"
+            >
+                <span class="lp-profile-accordion__title">Удаление аккаунта</span>
+                <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+            </button>
+            <div class="lp-profile-accordion__panel" x-show="open" x-cloak x-transition>
+                <div class="max-w-xl">
+                    @include('profile.partials.delete-user-form')
+                </div>
             </div>
         </div>
     </div>

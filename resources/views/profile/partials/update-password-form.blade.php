@@ -1,13 +1,7 @@
 <section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            Смена пароля
-        </h2>
-
-        <p class="mt-1 text-sm text-gray-600">
-            Используйте длинный случайный пароль — так аккаунт надёжнее защищён.
-        </p>
-    </header>
+    <p class="mt-1 text-sm text-gray-600">
+        Используйте длинный случайный пароль — так аккаунт надёжнее защищён.
+    </p>
 
     <form method="post" action="{{ route('password.update') }}" class="mt-6 space-y-6">
         @csrf
