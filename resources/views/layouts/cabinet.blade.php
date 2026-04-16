@@ -28,10 +28,6 @@
                                 class="lp-cab-nav__link {{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}"
                             >Главная</a>
                             <a
-                                href="{{ route('cabinet.profile') }}"
-                                class="lp-cab-nav__link {{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Профиль</a>
-                            <a
                                 href="{{ route('cabinet.settings') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}"
                             >Настройки</a>
@@ -108,7 +104,6 @@
                         </div>
                         <nav class="flex-1 overflow-y-auto p-3 lp-drawer-nav" aria-label="Мобильное меню">
                             <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Главная</a>
-                            <a href="{{ route('cabinet.profile') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}">Профиль</a>
                             <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Настройки</a>
                             <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Тарифы и оплата</a>
                             <a href="{{ route('cabinet.purchases') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}">История покупок</a>

@@ -1122,24 +1122,86 @@
     @media (min-width: 520px) {
         .lp-f1 .lp-dl-grid { grid-template-columns: 1fr 1fr; }
     }
-    .lp-f1 .lp-dl-grid--referral-stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-    }
-    @media (max-width: 480px) {
-        .lp-f1 .lp-dl-grid--referral-stats { grid-template-columns: 1fr; }
-    }
-    .lp-f1 .lp-referral-url-field {
+    .lp-f1 .lp-referral-url-click {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem 0.75rem;
         width: 100%;
-        border: 3px solid var(--lp-ink);
-        padding: 0.65rem 0.75rem;
+        margin: 0;
+        padding: 0.85rem 1rem;
+        border: 4px solid var(--lp-ink);
+        background: linear-gradient(180deg, #fffef8 0%, #f8fafc 100%);
+        box-shadow: 6px 6px 0 var(--lp-ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .lp-f1 .lp-referral-url-click:hover {
+        background: linear-gradient(180deg, #fff 0%, #f1f5f9 100%);
+    }
+    .lp-f1 .lp-referral-url-click:active {
+        transform: translate(2px, 2px);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-referral-url-click__text {
+        flex: 1 1 12rem;
+        min-width: 0;
         font-family: ui-monospace, "Cascadia Code", monospace;
-        font-size: 0.6875rem;
-        line-height: 1.45;
-        background: #f9f9f9;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1.4;
+        word-break: break-all;
         color: var(--lp-ink);
-        resize: vertical;
-        min-height: 3.25rem;
+    }
+    .lp-f1 .lp-referral-url-click__badge {
+        flex-shrink: 0;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.625rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 2px solid var(--lp-ink);
+        background: var(--lp-orange);
+        color: #fff;
+    }
+    .lp-f1 .lp-referral-metrics {
+        margin-top: 1.25rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.85rem;
+    }
+    @media (max-width: 520px) {
+        .lp-f1 .lp-referral-metrics { grid-template-columns: 1fr; }
+    }
+    .lp-f1 .lp-referral-metric {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 0.85rem;
+        border: 4px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+    .lp-f1 .lp-referral-metric__label {
+        font-size: 0.5625rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        line-height: 1.25;
+    }
+    .lp-f1 .lp-referral-metric__value {
+        font-size: 1.75rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--lp-ink);
     }
     .lp-f1 .lp-dl-grid--account {
         grid-template-columns: 1fr;
