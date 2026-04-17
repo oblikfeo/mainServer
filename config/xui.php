@@ -77,7 +77,7 @@ return [
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
-            'domain:2ip.ru,full:2ip.ru,full:www.2ip.ru,keyword:2ip.ru,domain:ozon.ru,full:www.ozon.ru,full:api.ozon.ru'
+            'domain:2ip.ru,full:2ip.ru,full:www.2ip.ru,keyword:2ip.ru,domain:ozon.ru,full:www.ozon.ru,full:api.ozon.ru,domain:vk.com,full:vk.com,full:api.vk.com,full:login.vk.com,domain:vk.me,domain:vkuservideo.net,domain:vkuseraudio.net'
         ))))),
     ],
 ];
