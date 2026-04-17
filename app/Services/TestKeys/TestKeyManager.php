@@ -75,7 +75,7 @@ final class TestKeyManager
 
         $vlessUrl = $this->buildVlessUrl(
             clientUuid: $clientUuid,
-            label: 'LTE + WIFI 🇷🇺',
+            label: (string) config('test_keys.vless_display_name', 'Надежда — тестовый период'),
         );
 
         $token = $this->generateUniqueToken();

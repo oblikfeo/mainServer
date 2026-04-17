@@ -26,7 +26,7 @@ return [
     /** Параметры клиента */
     'flow' => (string) env('TEST_KEYS_FLOW', 'xtls-rprx-vision'),
     'fingerprint' => (string) env('TEST_KEYS_FP', 'chrome'),
-    'vless_display_name' => (string) env('TEST_KEYS_DISPLAY_NAME', 'LTE + WIFI 🇷🇺'),
+    'vless_display_name' => (string) env('TEST_KEYS_DISPLAY_NAME', 'Надежда — тестовый период'),
 
     /** Дефолты для выдачи */
     'default_hours' => (int) env('TEST_KEYS_DEFAULT_HOURS', 8),
