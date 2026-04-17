@@ -104,10 +104,11 @@ final class HappRoutingSubscriptionLine
         ];
 
         if ($needGeo) {
-            // RoscomVPN: geoip.dat / geosite.dat (CDN, обновляются регулярно).
-            // @see https://github.com/hydraponique/roscomvpn-geoip
-            // @see https://github.com/hydraponique/roscomvpn-geosite
-            $profile['Geoipurl'] = 'https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geoip/release/geoip.dat';
+            // GeoIP: берём v2fly geoip.dat, т.к. часть готовых правил в Xray/Happ
+            // опирается на встроенные секции (например geoip:yandex). В RoscomVPN geoip.dat
+            // таких секций может не быть, из‑за чего Xray ядро не стартует.
+            // @see https://github.com/v2fly/geoip
+            $profile['Geoipurl'] = 'https://github.com/v2fly/geoip/releases/latest/download/geoip.dat';
             $profile['Geositeurl'] = 'https://cdn.jsdelivr.net/gh/hydraponique/roscomvpn-geosite/release/geosite.dat';
         }
 
