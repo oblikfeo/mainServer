@@ -2,6 +2,7 @@
 
 @php
     $brand = config('marketing.brand_name', 'Надежда');
+    $supportTgUrl = config('marketing.telegram_support_url', 'https://t.me/nadezhda_tehsup');
 @endphp
 
 <!DOCTYPE html>
@@ -34,7 +35,7 @@
                             <a
                                 href="{{ route('cabinet.settings') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Настройки</a>
+                            >Устройства</a>
                             <a
                                 href="{{ route('cabinet.payment') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}"
@@ -43,6 +44,12 @@
                                 href="{{ route('cabinet.purchases') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}"
                             >История покупок</a>
+                            <a
+                                href="{{ $supportTgUrl }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="lp-cab-nav__link"
+                            >Поддержка</a>
                         </nav>
 
                         <div class="lp-cabinet-header__tools">
@@ -109,9 +116,10 @@
                         <nav class="flex-1 overflow-y-auto p-3 lp-drawer-nav" aria-label="Мобильное меню">
                             <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Главная</a>
                             <a href="{{ route('cabinet.profile') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}">Профиль</a>
-                            <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Настройки</a>
+                            <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Устройства</a>
                             <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Тарифы и оплата</a>
                             <a href="{{ route('cabinet.purchases') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}">История покупок</a>
+                            <a href="{{ $supportTgUrl }}" target="_blank" rel="noopener noreferrer" @click="mobileNav = false">Поддержка</a>
                         </nav>
                         <div class="p-4 border-t-4 border-black space-y-3">
                             <p class="text-xs font-bold uppercase text-slate-600 truncate">{{ Auth::user()->email }}</p>

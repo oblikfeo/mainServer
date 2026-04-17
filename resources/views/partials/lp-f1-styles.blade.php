@@ -786,6 +786,14 @@
     @media (min-width: 480px) {
         .lp-f1 .lp-page-title { font-size: 1.375rem; }
     }
+    .lp-f1 .lp-page-section-title {
+        font-size: 0.875rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #475569;
+        margin: 0 0 0.75rem 0;
+    }
     .lp-f1 .lp-card {
         background: #fff;
         border: 4px solid var(--lp-ink);

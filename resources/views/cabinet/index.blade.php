@@ -5,16 +5,25 @@
             $me = Auth::user();
             /** @var \App\Models\TestKey|null $activeTestKey */
             $activeTestKey = $activeTestKey ?? null;
+            $hasPaidSub = !empty($items);
             $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/search?term=hiddify');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
         @endphp
 
+        {{-- Заголовок раздела "Тестовая подписка" --}}
         @unless ($me->shouldHideTestSubscriptionOffer())
-            <article class="lp-card" style="margin-bottom: 1rem;">
+            <h2 class="lp-page-section-title">Тестовая подписка</h2>
+            <article class="lp-card" style="margin-bottom: 2rem;">
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="lp-badge-pill {{ $me->hasVerifiedEmail() ? 'lp-badge-pill--ok' : 'lp-badge-pill--bad' }}">Тестовая подписка</span>
+                        @if ($activeTestKey)
+                            <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
+                        @elseif ($me->hasVerifiedEmail())
+                            <span class="lp-badge-pill">Не активирована</span>
+                        @else
+                            <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение почты</span>
+                        @endif
                     </div>
                     <p class="lp-card__head-note">&nbsp;</p>
                 </div>
@@ -150,11 +159,14 @@
             </article>
         @endunless
 
+        {{-- Заголовок раздела "Платные подписки" --}}
+        <h2 class="lp-page-section-title">Платные подписки</h2>
+
         @if ($items === [])
             <div class="lp-empty">
-                <p>У вас пока нет привязанных подписок.</p>
+                <p>У вас пока нет платных подписок.</p>
                 <p>Если подписка уже есть — администратор привяжет её к аккаунту. Войдите с тем же email, что указали при оформлении.</p>
-                <a href="{{ url('/#tarify') }}" class="lp-btn">Тарифы на главной</a>
+                <a href="{{ url('/#tarify') }}" class="lp-btn">Посмотреть тарифы</a>
             </div>
         @else
             @foreach ($items as $row)
