@@ -6,7 +6,7 @@
             <div class="lp-empty">
                 <p>Покупок пока нет.</p>
                 <p>После оплаты записи появятся здесь автоматически.</p>
-                <a href="{{ url('/#tarify') }}" class="lp-btn">Тарифы на главной</a>
+                <a href="{{ route('cabinet.payment') }}" class="lp-btn">К тарифам и оплате</a>
             </div>
         @else
             <div class="lp-purchase-cards sm:hidden">

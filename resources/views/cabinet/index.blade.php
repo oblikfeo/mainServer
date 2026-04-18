@@ -166,7 +166,7 @@
             <div class="lp-empty">
                 <p>У вас пока нет платных подписок.</p>
                 <p>Если подписка уже есть — администратор привяжет её к аккаунту. Войдите с тем же email, что указали при оформлении.</p>
-                <a href="{{ url('/#tarify') }}" class="lp-btn">Посмотреть тарифы</a>
+                <a href="{{ route('cabinet.payment') }}" class="lp-btn">Посмотреть тарифы</a>
             </div>
         @else
             @foreach ($items as $row)

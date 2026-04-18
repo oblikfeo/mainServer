@@ -9,7 +9,7 @@
             <div class="lp-empty">
                 <p>У вас пока нет привязанных подписок.</p>
                 <p>Оформите тариф или дождитесь, пока администратор привяжет подписку к аккаунту. Войдите с тем же email, что указали при оформлении.</p>
-                <a href="{{ url('/#tarify') }}" class="lp-btn">Тарифы на главной</a>
+                <a href="{{ route('cabinet.payment') }}" class="lp-btn">К тарифам и оплате</a>
             </div>
         @else
             <div class="lp-settings-devices">
