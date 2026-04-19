@@ -46,37 +46,15 @@ class SubscriptionSettingsController extends Controller
             $mergedSites[] = $s;
         }
 
-        $displaySite = static function (string $s): string {
-            $s = trim($s);
-            foreach (['domain:', 'full:'] as $p) {
-                if (str_starts_with(strtolower($s), $p)) {
-                    return trim(substr($s, strlen($p)));
-                }
-            }
-
-            return $s;
-        };
-
-        $mergedSitesDisplay = array_values(array_filter(array_map($displaySite, $mergedSites), fn (string $s): bool => $s !== ''));
-        $directIpDisplay = array_values(array_filter(array_map('trim', $routingPreview['ips']), fn (string $s): bool => $s !== ''));
-
-        $rawLines = [];
-        foreach (preg_split('/\r\n|\r|\n/', (string) $routingRaw) ?: [] as $line) {
-            $line = trim((string) $line);
-            if ($line === '' || str_starts_with($line, '#')) {
-                continue;
-            }
-            $rawLines[] = $line;
-        }
+        $directIpFromAdmin = array_values(array_filter(array_map('trim', $routingPreview['ips']), fn (string $s): bool => $s !== ''));
 
         return view('admin.subscription.routing', [
             'routingRules' => (string) $routingRaw,
             'routingConfigSites' => $configSites,
             'routingMergedSites' => $mergedSites,
-            'routingRawLines' => $rawLines,
-            'routingMergedSitesDisplay' => $mergedSitesDisplay,
-            'routingDirectIpDisplay' => $directIpDisplay,
+            'routingDirectIpFromAdmin' => $directIpFromAdmin,
             'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
+            'maxRoutingEntries' => HappRoutingRulesParser::MAX_OUTPUT_ENTRIES,
         ]);
     }
 
@@ -104,61 +82,28 @@ class SubscriptionSettingsController extends Controller
             'routing_rules' => ['nullable', 'string', 'max:12000'],
         ]);
 
-        $input = trim((string) ($data['routing_rules'] ?? ''));
-        // Поле ввода пустое по умолчанию; по кнопке «Сохранить» добавляем новые строки в общий список.
-        if ($input !== '') {
-            $existingRaw = (string) (AppSetting::getValue('happ_routing_rules') ?? '');
+        $input = (string) ($data['routing_rules'] ?? '');
+        $inputTrimmed = trim($input);
 
-            $existingParsed = HappRoutingRulesParser::parse($existingRaw);
-            $inputParsed = HappRoutingRulesParser::parse($input);
-
-            $displaySite = static function (string $s): string {
-                $s = trim($s);
-                foreach (['domain:', 'full:'] as $p) {
-                    if (str_starts_with(strtolower($s), $p)) {
-                        return trim(substr($s, strlen($p)));
-                    }
-                }
-
-                return $s;
-            };
-
-            $sites = [];
-            $seen = [];
-            foreach ([...$existingParsed['sites'], ...$inputParsed['sites']] as $s) {
-                $s = $displaySite((string) $s);
-                $s = trim($s);
-                if ($s === '') {
-                    continue;
-                }
-                $k = strtolower($s);
-                if (isset($seen[$k])) {
-                    continue;
-                }
-                $seen[$k] = true;
-                $sites[] = $s;
+        if ($inputTrimmed === '') {
+            AppSetting::forgetKey('happ_routing_rules');
+        } else {
+            $parsed = HappRoutingRulesParser::parse($inputTrimmed);
+            $n = count($parsed['sites']) + count($parsed['ips']);
+            if ($n > HappRoutingRulesParser::MAX_OUTPUT_ENTRIES) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->withErrors([
+                        'routing_rules' => 'Слишком много распознанных правил ('.$n.'). Максимум '.HappRoutingRulesParser::MAX_OUTPUT_ENTRIES.'. Уберите лишние строки или разбейте список.',
+                    ]);
             }
 
-            $ips = [];
-            foreach ([...$existingParsed['ips'], ...$inputParsed['ips']] as $s) {
-                $s = trim((string) $s);
-                if ($s === '') {
-                    continue;
-                }
-                $k = strtolower($s);
-                if (isset($seen[$k])) {
-                    continue;
-                }
-                $seen[$k] = true;
-                $ips[] = $s;
-            }
-
-            $newStored = trim(implode("\n", [...$sites, ...$ips]));
-            AppSetting::setValue('happ_routing_rules', $newStored);
+            AppSetting::setValue('happ_routing_rules', $inputTrimmed);
         }
 
         return redirect()
             ->route('admin.subscription.routing')
-            ->with('status', 'Сохранено. В Happ обновите подписку.');
+            ->with('status', 'Сохранено. Клиентам нужно обновить подписку в Happ.');
     }
 }
