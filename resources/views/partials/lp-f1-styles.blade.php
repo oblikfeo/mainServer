@@ -676,62 +676,6 @@
         .lp-f1 .lp-cabinet-header__row { flex-wrap: nowrap; }
     }
     .lp-f1 .lp-cabinet-header__brand { text-decoration: none; color: inherit; }
-    .lp-f1 .lp-cab-ticker {
-        width: 100%;
-        border-bottom: 4px solid var(--lp-ink);
-        background: var(--lp-orange);
-    }
-    .lp-f1 .lp-cab-ticker__link {
-        display: block;
-        color: #fff !important;
-        text-decoration: none;
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        line-height: 1.2;
-    }
-    .lp-f1 .lp-cab-ticker__link:hover {
-        background: #E03E00;
-        color: #fff !important;
-    }
-    .lp-f1 .lp-cab-ticker__viewport {
-        overflow: hidden;
-        width: 100%;
-        padding: 0.6rem 1.25rem;
-    }
-    .lp-f1 .lp-cab-ticker__track {
-        display: inline-flex;
-        flex-wrap: nowrap;
-        width: max-content;
-        animation: lp-cab-marquee 18s linear infinite;
-    }
-    @keyframes lp-cab-marquee {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-        .lp-f1 .lp-cab-ticker__segment[aria-hidden="true"] { display: none; }
-        .lp-f1 .lp-cab-ticker__track {
-            animation: none;
-            justify-content: center;
-            width: 100%;
-            transform: none;
-        }
-    }
-    .lp-f1 .lp-cab-ticker__segment {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0 1.25rem;
-        white-space: nowrap;
-    }
-    .lp-f1 .lp-cab-ticker__tg {
-        width: 1.15em;
-        height: 1.15em;
-        flex-shrink: 0;
-        opacity: 0.95;
-    }
     .lp-f1 .lp-cabinet-header__tools {
         display: flex;
         align-items: center;
