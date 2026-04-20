@@ -21,8 +21,11 @@ final class XuiSubscriptionLimitIpSync
 
         $limitIp = max(0, (int) $sub->devices);
 
-        foreach (['fi', 'nl'] as $key) {
-            $subId = $key === 'fi' ? (string) $sub->fi_sub_id : (string) $sub->nl_sub_id;
+        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+
+        foreach ($bundleOrder as $key) {
+            $subIdField = $key.'_sub_id';
+            $subId = (string) ($sub->$subIdField ?? '');
             if ($subId === '') {
                 continue;
             }

@@ -11,16 +11,26 @@ return [
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
-    'bundle_order' => ['fi', 'nl'],
+    'bundle_order' => ['wifi', 'fi', 'nl'],
 
     'nodes' => [
+        'wifi' => [
+            'panel_base' => rtrim((string) env('XUI_WIFI_BASE', ''), '/'),
+            'sub_origin' => rtrim((string) env('XUI_WIFI_SUB_ORIGIN', ''), '/'),
+            'pub_host' => env('XUI_WIFI_PUB_HOST', ''),
+            'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 1),
+            'client_email_prefix' => env('XUI_WIFI_EMAIL_PREFIX', 'wifi'),
+            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: 'WiFi Скорость 🇷🇺🚀',
+            'vless_server_description' => env('XUI_WIFI_SERVER_DESC', 'прямое подключение'),
+        ],
         'fi' => [
             'panel_base' => rtrim((string) env('XUI_FI_BASE', ''), '/'),
             'sub_origin' => rtrim((string) env('XUI_FI_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_FI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'Франция 🇫🇷',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'LTE Город 1 🇷🇺🏙️',
+            'vless_server_description' => env('XUI_FI_SERVER_DESC', 'белый список'),
         ],
         'nl' => [
             'panel_base' => rtrim((string) env('XUI_NL_BASE', ''), '/'),
@@ -28,7 +38,8 @@ return [
             'pub_host' => env('XUI_NL_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'Нидерланды 🇳🇱',
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'LTE Город 2 🇷🇺🏙️',
+            'vless_server_description' => env('XUI_NL_SERVER_DESC', 'белый список'),
         ],
     ],
 

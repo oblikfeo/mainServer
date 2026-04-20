@@ -17,38 +17,34 @@ final class MergedSubscriptionFeedRenderer
     public function render(Subscription $sub): Response
     {
         $nodes = config('xui.nodes', []);
-        $fiNode = $nodes['fi'] ?? [];
-        $nlNode = $nodes['nl'] ?? [];
+        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
 
-        $fiUi = [];
-        $nlUi = [];
         $lines = [];
+        $userinfos = [];
 
         try {
-            [$fiResp, $nlResp] = $this->fetchPanelSubsParallel($fiNode, $nlNode, $sub);
+            $responses = $this->fetchPanelSubsParallel($nodes, $bundleOrder, $sub);
 
-            $fiOk = $this->appendVlessLineIfOk($lines, $fiResp, $fiNode, 'FI');
-            $nlOk = $this->appendVlessLineIfOk($lines, $nlResp, $nlNode, 'NL');
+            foreach ($bundleOrder as $key) {
+                $node = $nodes[$key] ?? [];
+                $resp = $responses[$key] ?? null;
+                if ($resp === null) {
+                    continue;
+                }
 
-            if ($fiOk) {
-                $fiUi = $this->parseUserinfoHeader($fiResp->header('subscription-userinfo'));
-            }
-            if ($nlOk) {
-                $nlUi = $this->parseUserinfoHeader($nlResp->header('subscription-userinfo'));
+                $ok = $this->appendVlessLineIfOk($lines, $resp, $node, strtoupper($key));
+                if ($ok) {
+                    $userinfos[$key] = $this->parseUserinfoHeader($resp->header('subscription-userinfo'));
+                }
             }
 
             if ($lines === []) {
-                $msg = 'Ни один узел не отдал рабочую подписку (FI: '
-                    .($fiOk ? 'ok' : 'ошибка HTTP '.($fiResp->successful() ? 'тело' : $fiResp->status()))
-                    .', NL: '
-                    .($nlOk ? 'ok' : 'ошибка HTTP '.($nlResp->successful() ? 'тело' : $nlResp->status()))
-                    .').';
-
-                throw new \RuntimeException($msg);
-            }
-
-            if (((int) sprintf('%u', crc32($sub->token)) & 1) === 1) {
-                $lines = array_reverse($lines);
+                $statuses = [];
+                foreach ($bundleOrder as $key) {
+                    $resp = $responses[$key] ?? null;
+                    $statuses[] = strtoupper($key).': '.($resp ? ($resp->successful() ? 'тело пусто' : 'HTTP '.$resp->status()) : 'нет ответа');
+                }
+                throw new \RuntimeException('Ни один узел не отдал рабочую подписку ('.implode(', ', $statuses).').');
             }
         } catch (Throwable $e) {
             Log::warning('subscription.feed.error', [
@@ -68,11 +64,11 @@ final class MergedSubscriptionFeedRenderer
         $totalCap = $quotaGb * self::BYTES_PER_GB;
         $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
         if ($expireSec === 0) {
-            $expireSec = max($fiUi['expire'] ?? 0, $nlUi['expire'] ?? 0);
+            $expireSec = max(array_column($userinfos, 'expire'));
         }
 
-        $up = ($fiUi['upload'] ?? 0) + ($nlUi['upload'] ?? 0);
-        $down = ($fiUi['download'] ?? 0) + ($nlUi['download'] ?? 0);
+        $up = array_sum(array_column($userinfos, 'upload'));
+        $down = array_sum(array_column($userinfos, 'download'));
         $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
@@ -106,42 +102,53 @@ final class MergedSubscriptionFeedRenderer
     }
 
     /**
-     * Параллельно FI+NL: два последовательных запроса часто упираются в proxy_read_timeout nginx → «502» без тела.
+     * Параллельно запрашиваем все ноды из bundle_order.
      *
-     * @param  array<string, mixed>  $fiNode
-     * @param  array<string, mixed>  $nlNode
-     * @return array{0: \Illuminate\Http\Client\Response, 1: \Illuminate\Http\Client\Response}
+     * @param  array<string, array<string, mixed>>  $nodes
+     * @param  list<string>  $bundleOrder
+     * @return array<string, \Illuminate\Http\Client\Response>
      */
-    private function fetchPanelSubsParallel(array $fiNode, array $nlNode, Subscription $sub): array
+    private function fetchPanelSubsParallel(array $nodes, array $bundleOrder, Subscription $sub): array
     {
-        $fiOrigin = rtrim((string) ($fiNode['sub_origin'] ?? ''), '/');
-        $nlOrigin = rtrim((string) ($nlNode['sub_origin'] ?? ''), '/');
-        if ($fiOrigin === '' || $nlOrigin === '') {
-            throw new \RuntimeException('Пустой XUI_FI_SUB_ORIGIN или XUI_NL_SUB_ORIGIN в .env');
+        $requests = [];
+
+        foreach ($bundleOrder as $key) {
+            $node = $nodes[$key] ?? [];
+            $origin = rtrim((string) ($node['sub_origin'] ?? ''), '/');
+            if ($origin === '') {
+                continue;
+            }
+
+            $subIdField = $key.'_sub_id';
+            $subId = (string) ($sub->$subIdField ?? '');
+            if ($subId === '') {
+                continue;
+            }
+
+            $requests[$key] = [
+                'url' => $origin.'/sub/'.rawurlencode($subId),
+                'headers' => $this->panelSubHeaders((string) ($node['pub_host'] ?? '')),
+            ];
         }
 
-        $fiUrl = $fiOrigin.'/sub/'.rawurlencode((string) $sub->fi_sub_id);
-        $nlUrl = $nlOrigin.'/sub/'.rawurlencode((string) $sub->nl_sub_id);
+        if ($requests === []) {
+            throw new \RuntimeException('Нет настроенных узлов с sub_origin в .env');
+        }
 
-        $fiHeaders = $this->panelSubHeaders((string) ($fiNode['pub_host'] ?? ''));
-        $nlHeaders = $this->panelSubHeaders((string) ($nlNode['pub_host'] ?? ''));
+        $responses = Http::pool(function (Pool $pool) use ($requests) {
+            $poolRequests = [];
+            foreach ($requests as $key => $cfg) {
+                $poolRequests[] = $pool->as($key)
+                    ->withoutVerifying()
+                    ->withHeaders($cfg['headers'])
+                    ->connectTimeout(12)
+                    ->timeout(28)
+                    ->get($cfg['url']);
+            }
+            return $poolRequests;
+        });
 
-        $responses = Http::pool(fn (Pool $pool) => [
-            $pool->as('fi')
-                ->withoutVerifying()
-                ->withHeaders($fiHeaders)
-                ->connectTimeout(12)
-                ->timeout(28)
-                ->get($fiUrl),
-            $pool->as('nl')
-                ->withoutVerifying()
-                ->withHeaders($nlHeaders)
-                ->connectTimeout(12)
-                ->timeout(28)
-                ->get($nlUrl),
-        ]);
-
-        return [$responses['fi'], $responses['nl']];
+        return $responses;
     }
 
     /**
@@ -161,10 +168,13 @@ final class MergedSubscriptionFeedRenderer
         if ($line === '' || ! str_starts_with($line, 'vless://')) {
             return false;
         }
+
+        $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
+
         $lines[] = VlessSubscriptionHelper::setVlessFragment(
             $line,
             (string) ($node['vless_display_name'] ?? $label),
-            (string) config('xui.vless_server_description', ''),
+            $serverDesc,
             (string) config('xui.vless_server_description_format', 'dual')
         );
 

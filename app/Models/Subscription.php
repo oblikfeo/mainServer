@@ -14,6 +14,7 @@ class Subscription extends Model
         'user_id',
         'public_code',
         'token',
+        'wifi_sub_id',
         'fi_sub_id',
         'nl_sub_id',
         'quota_gb',

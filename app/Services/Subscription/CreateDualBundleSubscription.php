@@ -88,6 +88,7 @@ final class CreateDualBundleSubscription
             $subIds[$bundleKey] = $subId;
         }
 
+        $wifiSubId = (string) ($subIds['wifi'] ?? '');
         $fiSubId = (string) ($subIds['fi'] ?? '');
         $nlSubId = (string) ($subIds['nl'] ?? '');
         if ($fiSubId === '' || $nlSubId === '') {
@@ -99,6 +100,7 @@ final class CreateDualBundleSubscription
         $subscription = Subscription::query()->create([
             'user_id' => $userId,
             'token' => $token,
+            'wifi_sub_id' => $wifiSubId !== '' ? $wifiSubId : null,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
             'quota_gb' => $quotaGb,
@@ -106,6 +108,9 @@ final class CreateDualBundleSubscription
             'devices' => $devices,
         ]);
 
+        if ($wifiSubId !== '') {
+            IssuedKey::query()->create(['bundle_id' => 'wifi', 'subscription_id' => $subscription->id]);
+        }
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
         IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
 

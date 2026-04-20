@@ -24,25 +24,27 @@ final class DestroySubscription
             throw new XuiPanelException('Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD');
         }
 
-        $pairs = [
-            ['key' => 'fi', 'subId' => $subscription->fi_sub_id],
-            ['key' => 'nl', 'subId' => $subscription->nl_sub_id],
-        ];
+        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
 
-        foreach ($pairs as $row) {
-            $bundleKey = $row['key'];
+        foreach ($bundleOrder as $bundleKey) {
+            $subIdField = $bundleKey.'_sub_id';
+            $subId = (string) ($subscription->$subIdField ?? '');
+            if ($subId === '') {
+                continue;
+            }
+
             $node = $nodes[$bundleKey] ?? null;
             if (! is_array($node)) {
-                throw new XuiPanelException("Нет конфигурации узла: {$bundleKey}");
+                continue;
             }
 
             $base = (string) ($node['panel_base'] ?? '');
             $inboundId = (int) ($node['inbound_id'] ?? 0);
             if ($base === '' || $inboundId < 1) {
-                throw new XuiPanelException("Неверные panel_base / inbound для {$bundleKey}");
+                continue;
             }
 
-            $email = $this->clientEmail($node, (string) $row['subId']);
+            $email = $this->clientEmail($node, $subId);
 
             try {
                 $client = new XuiPanelClient($base);
