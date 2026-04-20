@@ -710,22 +710,24 @@
     .lp-f1 .lp-cab-marquee__segment {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
         font-size: 0.8rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         white-space: nowrap;
-        padding-right: 0.5rem;
+    }
+    .lp-f1 .lp-cab-marquee__segment > span {
+        margin-right: 0.35rem;
     }
     .lp-f1 .lp-cab-marquee__dot {
-        margin: 0 0.25rem;
         opacity: 0.85;
+        margin-left: 0.35rem;
     }
     .lp-f1 .lp-cab-marquee__tg {
         width: 1.1em;
         height: 1.1em;
         flex-shrink: 0;
+        margin-left: 0.25rem;
         opacity: 0.9;
     }
     .lp-f1 .lp-cab-marquee__sr {
