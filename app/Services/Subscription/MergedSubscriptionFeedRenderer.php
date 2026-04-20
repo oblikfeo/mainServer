@@ -169,6 +169,12 @@ final class MergedSubscriptionFeedRenderer
             return false;
         }
 
+        // Заменяем localhost / 127.0.0.1 на публичный хост из конфига
+        $pubHost = trim((string) ($node['pub_host'] ?? ''));
+        if ($pubHost !== '' && (str_contains($line, '@127.0.0.1:') || str_contains($line, '@localhost:'))) {
+            $line = VlessSubscriptionHelper::replaceVlessHost($line, $pubHost);
+        }
+
         $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
 
         $lines[] = VlessSubscriptionHelper::setVlessFragment(

@@ -125,4 +125,31 @@ final class VlessSubscriptionHelper
 
         return '';
     }
+
+    /**
+     * Заменяет хост (и опционально порт) в vless:// URL.
+     *
+     * vless://uuid@old_host:port/... -> vless://uuid@new_host:port/...
+     */
+    public static function replaceVlessHost(string $url, string $newHost, ?int $newPort = null): string
+    {
+        if ($url === '' || ! str_starts_with($url, 'vless://')) {
+            return $url;
+        }
+
+        // vless://uuid@host:port?params#fragment
+        $pattern = '#^(vless://[^@]+@)[^:/?#]+(?::(\d+))?(.*)$#i';
+        if (! preg_match($pattern, $url, $m)) {
+            return $url;
+        }
+
+        $prefix = $m[1];           // vless://uuid@
+        $existingPort = $m[2] ?? '';
+        $rest = $m[3];              // ?params#fragment
+
+        $port = $newPort ?? ($existingPort !== '' ? (int) $existingPort : null);
+        $hostPart = $newHost.($port !== null ? ':'.$port : '');
+
+        return $prefix.$hostPart.$rest;
+    }
 }
