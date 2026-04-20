@@ -710,7 +710,6 @@
     .lp-f1 .lp-cab-marquee__segment {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
         font-size: 0.8rem;
         font-weight: 800;
         text-transform: uppercase;
@@ -719,6 +718,7 @@
     }
     .lp-f1 .lp-cab-marquee__dot {
         opacity: 0.8;
+        margin: 0 0.4rem;
     }
     .lp-f1 .lp-cab-marquee__tg {
         width: 1.35em;
