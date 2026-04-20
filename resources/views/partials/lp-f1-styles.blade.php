@@ -699,7 +699,7 @@
         flex-wrap: nowrap;
         width: max-content;
         will-change: transform;
-        animation: lp-cab-marquee-move 8s linear infinite;
+        animation: lp-cab-marquee-move 6s linear infinite;
     }
     .lp-f1 .lp-cab-marquee__text {
         display: inline-flex;
@@ -711,8 +711,8 @@
         white-space: nowrap;
     }
     @keyframes lp-cab-marquee-move {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
+        from { transform: translateX(-50%); }
+        to { transform: translateX(0); }
     }
     @media (prefers-reduced-motion: reduce) {
         .lp-f1 .lp-cab-marquee__track { animation: none; }
@@ -722,8 +722,12 @@
         display: inline-flex;
         align-items: center;
         gap: 0.65rem;
-        padding: 0 1.25rem;
+        padding: 0 0.75rem;
         white-space: nowrap;
+    }
+    .lp-f1 .lp-cab-marquee__sep {
+        opacity: 0.95;
+        font-weight: 900;
     }
     .lp-f1 .lp-cab-marquee__tg {
         width: 1.15em;
