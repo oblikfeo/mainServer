@@ -680,65 +680,57 @@
         width: 100%;
         border-bottom: 4px solid var(--lp-ink);
         background: var(--lp-orange);
-        overflow: hidden; /* чтобы текст не вылезал за оранжевую плашку */
+        overflow: hidden;
     }
     .lp-f1 .lp-cab-marquee__link {
         display: block;
         color: #fff !important;
         text-decoration: none;
     }
-    .lp-f1 .lp-cab-marquee__link:hover { background: #E03E00; color: #fff !important; }
+    .lp-f1 .lp-cab-marquee__link:hover { background: #E03E00; }
     .lp-f1 .lp-cab-marquee__viewport {
-        position: relative;
         display: block;
         width: 100%;
-        padding: 0.6rem 0; /* от края до края по ширине */
+        padding: 0.55rem 0;
+        overflow: hidden;
     }
     .lp-f1 .lp-cab-marquee__track {
         display: inline-flex;
-        flex-wrap: nowrap;
-        width: max-content;
-        will-change: transform;
-        animation: lp-cab-marquee-move 6s linear infinite;
-    }
-    .lp-f1 .lp-cab-marquee__text {
-        display: inline-flex;
-        align-items: center;
-        font-size: 0.75rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
         white-space: nowrap;
+        will-change: transform;
+        animation: lp-cab-marquee-scroll 20s linear infinite;
     }
-    @keyframes lp-cab-marquee-move {
-        from { transform: translateX(-50%); }
-        to { transform: translateX(0); }
+    @keyframes lp-cab-marquee-scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
     }
     @media (prefers-reduced-motion: reduce) {
         .lp-f1 .lp-cab-marquee__track { animation: none; }
-        .lp-f1 .lp-cab-marquee__segment[aria-hidden="true"] { display: none; }
     }
     .lp-f1 .lp-cab-marquee__segment {
         display: inline-flex;
         align-items: center;
-        gap: 0.65rem;
-        padding: 0 0.75rem;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
         white-space: nowrap;
+        padding-right: 0.5rem;
     }
-    .lp-f1 .lp-cab-marquee__sep {
-        opacity: 0.95;
-        font-weight: 900;
+    .lp-f1 .lp-cab-marquee__dot {
+        margin: 0 0.25rem;
+        opacity: 0.85;
     }
     .lp-f1 .lp-cab-marquee__tg {
-        width: 1.15em;
-        height: 1.15em;
+        width: 1.1em;
+        height: 1.1em;
         flex-shrink: 0;
-        opacity: 0.95;
+        opacity: 0.9;
     }
     .lp-f1 .lp-cab-marquee__sr {
         position: absolute;
         left: -9999px;
-        top: auto;
         width: 1px;
         height: 1px;
         overflow: hidden;
