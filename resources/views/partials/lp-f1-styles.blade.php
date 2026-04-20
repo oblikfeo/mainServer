@@ -676,6 +676,54 @@
         .lp-f1 .lp-cabinet-header__row { flex-wrap: nowrap; }
     }
     .lp-f1 .lp-cabinet-header__brand { text-decoration: none; color: inherit; }
+    .lp-f1 .lp-cab-marquee {
+        width: 100%;
+        border-bottom: 4px solid var(--lp-ink);
+        background: var(--lp-orange);
+        overflow: hidden; /* чтобы текст не вылезал за оранжевую плашку */
+    }
+    .lp-f1 .lp-cab-marquee__link {
+        display: block;
+        color: #fff !important;
+        text-decoration: none;
+    }
+    .lp-f1 .lp-cab-marquee__link:hover { background: #E03E00; color: #fff !important; }
+    .lp-f1 .lp-cab-marquee__viewport {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding: 0.6rem 0; /* от края до края по ширине */
+    }
+    .lp-f1 .lp-cab-marquee__track {
+        display: inline-block;
+        white-space: nowrap;
+        will-change: transform;
+        animation: lp-cab-marquee-move 12s linear infinite;
+    }
+    .lp-f1 .lp-cab-marquee__text {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding-left: 100%;
+    }
+    @keyframes lp-cab-marquee-move {
+        from { transform: translateX(0); }
+        to { transform: translateX(-100%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .lp-f1 .lp-cab-marquee__track { animation: none; }
+        .lp-f1 .lp-cab-marquee__text { padding-left: 0; }
+    }
+    .lp-f1 .lp-cab-marquee__sr {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+    }
     .lp-f1 .lp-cabinet-header__tools {
         display: flex;
         align-items: center;

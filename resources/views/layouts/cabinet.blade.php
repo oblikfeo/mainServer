@@ -3,6 +3,7 @@
 @php
     $brand = config('marketing.brand_name', 'Надежда');
     $supportTgUrl = config('marketing.telegram_support_url', 'https://t.me/nadezhda_tehsup');
+    $newsTgUrl = config('marketing.telegram_url', $supportTgUrl);
 @endphp
 
 <!DOCTYPE html>
@@ -87,6 +88,23 @@
                         </div>
                     </div>
                 </header>
+
+                <div class="lp-cab-marquee" role="region" aria-label="Новости">
+                    <a
+                        href="{{ $newsTgUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="lp-cab-marquee__link"
+                        aria-label="Новости в Telegram"
+                    >
+                        <span class="lp-cab-marquee__viewport">
+                            <span class="lp-cab-marquee__track" aria-hidden="true">
+                                <span class="lp-cab-marquee__text">Новости в группе Telegram · Новости в группе Telegram · Новости в группе Telegram · </span>
+                            </span>
+                            <span class="lp-cab-marquee__sr">Новости в группе Telegram</span>
+                        </span>
+                    </a>
+                </div>
 
                 <div
                     x-show="mobileNav"
