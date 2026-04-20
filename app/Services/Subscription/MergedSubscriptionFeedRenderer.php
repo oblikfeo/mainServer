@@ -175,6 +175,11 @@ final class MergedSubscriptionFeedRenderer
             $line = VlessSubscriptionHelper::replaceVlessHost($line, $pubHost);
         }
 
+        // Для TLS с самоподписанным сертификатом добавляем allowInsecure и sni
+        if ($pubHost !== '' && str_contains($line, 'security=tls')) {
+            $line = VlessSubscriptionHelper::ensureTlsInsecure($line, $pubHost);
+        }
+
         $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
 
         $lines[] = VlessSubscriptionHelper::setVlessFragment(

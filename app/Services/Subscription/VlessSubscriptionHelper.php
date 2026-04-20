@@ -152,4 +152,37 @@ final class VlessSubscriptionHelper
 
         return $prefix.$hostPart.$rest;
     }
+
+    /**
+     * Добавляет параметр allowInsecure=1 для TLS-соединений с самоподписанным сертификатом.
+     * Также устанавливает sni=host если sni пустой.
+     */
+    public static function ensureTlsInsecure(string $url, string $host): string
+    {
+        if ($url === '' || ! str_starts_with($url, 'vless://')) {
+            return $url;
+        }
+
+        // Только для security=tls
+        if (! str_contains($url, 'security=tls')) {
+            return $url;
+        }
+
+        // Разбиваем URL на части
+        $parts = explode('#', $url, 2);
+        $base = $parts[0];
+        $fragment = $parts[1] ?? '';
+
+        // Добавляем allowInsecure=1 если его нет
+        if (! str_contains($base, 'allowInsecure=')) {
+            $base .= '&allowInsecure=1';
+        }
+
+        // Если sni пустой (sni=&) — заменяем на sni=host
+        if (preg_match('/[?&]sni=(&|$)/', $base)) {
+            $base = preg_replace('/([?&])sni=(&|$)/', '$1sni='.rawurlencode($host).'$2', $base);
+        }
+
+        return $fragment !== '' ? $base.'#'.$fragment : $base;
+    }
 }
