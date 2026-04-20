@@ -685,7 +685,7 @@
         display: block;
         color: #fff !important;
         text-decoration: none;
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.06em;
@@ -698,13 +698,13 @@
     .lp-f1 .lp-cab-ticker__viewport {
         overflow: hidden;
         width: 100%;
-        padding: 0.55rem 0;
+        padding: 0.6rem 1.25rem;
     }
     .lp-f1 .lp-cab-ticker__track {
         display: inline-flex;
         flex-wrap: nowrap;
         width: max-content;
-        animation: lp-cab-marquee 28s linear infinite;
+        animation: lp-cab-marquee 18s linear infinite;
     }
     @keyframes lp-cab-marquee {
         from { transform: translateX(0); }
@@ -723,7 +723,7 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0 2rem;
+        padding: 0 1.25rem;
         white-space: nowrap;
     }
     .lp-f1 .lp-cab-ticker__tg {
