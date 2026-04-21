@@ -38,6 +38,7 @@ final class CreateDualBundleSubscription
         $bytesPerNode = max(1, intdiv($quotaBytes, $nodeCount));
 
         $subIds = [];
+        $createdClients = [];
 
         foreach ($order as $bundleKey) {
             $node = $nodes[$bundleKey] ?? null;
@@ -59,6 +60,12 @@ final class CreateDualBundleSubscription
             $subId = bin2hex(random_bytes(8));
             $email = $prefix.'-'.substr($subId, 0, 10);
             $uid = (string) Str::uuid();
+            $currentClient = [
+                'bundle' => $bundleKey,
+                'base' => $base,
+                'inboundId' => $inboundId,
+                'email' => $email,
+            ];
 
             $clientDef = [
                 'id' => $uid,
@@ -77,8 +84,17 @@ final class CreateDualBundleSubscription
                 $client->login($user, $pass);
                 $client->addInboundClient($inboundId, $clientDef);
                 $client->restartXray();
+                $createdClients[] = $currentClient;
             } catch (Throwable $e) {
                 $msg = $e->getMessage();
+                $rollbackMessage = $this->rollbackClients(
+                    array_merge($createdClients, [$currentClient]),
+                    $user,
+                    $pass
+                );
+                if ($rollbackMessage !== '') {
+                    $msg .= " | Откат: {$rollbackMessage}";
+                }
                 throw new XuiPanelException(
                     "Узел «{$bundleKey}»: {$msg}",
                     previous: $e
@@ -179,6 +195,42 @@ final class CreateDualBundleSubscription
                 'warning' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * @param  list<array{bundle: string, base: string, inboundId: int, email: string}>  $clients
+     */
+    private function rollbackClients(array $clients, string $user, string $pass): string
+    {
+        $errors = [];
+        $seen = [];
+
+        foreach ($clients as $item) {
+            $base = (string) ($item['base'] ?? '');
+            $inboundId = (int) ($item['inboundId'] ?? 0);
+            $email = (string) ($item['email'] ?? '');
+            $bundle = (string) ($item['bundle'] ?? '?');
+            if ($base === '' || $inboundId < 1 || $email === '') {
+                continue;
+            }
+
+            $uniq = $base.'|'.$inboundId.'|'.$email;
+            if (isset($seen[$uniq])) {
+                continue;
+            }
+            $seen[$uniq] = true;
+
+            try {
+                $client = new XuiPanelClient($base);
+                $client->login($user, $pass);
+                $client->deleteInboundClientByEmail($inboundId, $email);
+                $client->restartXray();
+            } catch (Throwable $e) {
+                $errors[] = $bundle.'('.$email.'): '.$e->getMessage();
+            }
+        }
+
+        return implode('; ', $errors);
     }
 
     private function fetchSubRaw(string $subOrigin, string $subId, string $pubHost): string

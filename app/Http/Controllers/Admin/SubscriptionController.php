@@ -10,6 +10,7 @@ use App\Services\Subscription\DestroySubscription;
 use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class SubscriptionController extends Controller
@@ -27,6 +28,13 @@ class SubscriptionController extends Controller
             'gb' => ['required', 'integer', 'min:1', 'max:50000'],
         ]);
 
+        $lockKey = 'admin:subscription:create:'.$request->session()->getId();
+        if (! Cache::add($lockKey, true, now()->addSeconds(20))) {
+            return back()
+                ->withInput()
+                ->withErrors(['xui' => 'Создание уже выполняется. Дождитесь завершения и обновите страницу.']);
+        }
+
         try {
             $result = $service->create(
                 (int) $data['devices'],
@@ -37,6 +45,8 @@ class SubscriptionController extends Controller
             return back()
                 ->withInput()
                 ->withErrors(['xui' => $e->getMessage()]);
+        } finally {
+            Cache::forget($lockKey);
         }
 
         return redirect()

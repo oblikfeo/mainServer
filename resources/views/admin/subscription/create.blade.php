@@ -23,6 +23,7 @@
             method="post"
             action="{{ route('admin.subscription.store') }}"
             class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm ring-1 ring-slate-900/5 space-y-5"
+            onsubmit="const btn=this.querySelector('[data-submit-btn]'); if(btn){ btn.disabled=true; btn.classList.add('opacity-60','cursor-not-allowed'); btn.textContent='Создаю...'; }"
         >
             @csrf
 
@@ -65,6 +66,7 @@
             <div class="pt-2">
                 <button
                     type="submit"
+                    data-submit-btn
                     class="inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-slate-800 transition-colors min-h-[48px]"
                 >
                     Создать

@@ -20,7 +20,7 @@ return [
             'pub_host' => env('XUI_WIFI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_WIFI_EMAIL_PREFIX', 'wifi'),
-            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: 'WiFi Скорость 🇷🇺🚀',
+            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: '🇭🇰 WiFi Скорость 🚀',
             'vless_server_description' => env('XUI_WIFI_SERVER_DESC', 'прямое подключение'),
         ],
         'fi' => [
@@ -29,7 +29,7 @@ return [
             'pub_host' => env('XUI_FI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'LTE Город 1 🇷🇺🏙️',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 LTE Город 1 🏙️',
             'vless_server_description' => env('XUI_FI_SERVER_DESC', 'белый список'),
         ],
         'nl' => [
@@ -38,7 +38,7 @@ return [
             'pub_host' => env('XUI_NL_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: 'LTE Город 2 🇷🇺🏙️',
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 LTE Город 2 🏙️',
             'vless_server_description' => env('XUI_NL_SERVER_DESC', 'белый список'),
         ],
     ],
