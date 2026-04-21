@@ -1275,6 +1275,12 @@
     .lp-f1 .lp-ref-section + .lp-ref-section {
         margin-top: 0;
     }
+    .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-share:first-child {
+        margin-top: 0;
+    }
+    .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-table-wrap:first-child {
+        margin-top: 0;
+    }
     .lp-f1 .lp-ref-page {
         width: 100%;
         min-width: 0;
@@ -1489,6 +1495,21 @@
     .lp-f1 .lp-ref-share--many .lp-ref-share__btn {
         padding: 0.75rem 0.5rem;
         min-height: 4.75rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-share.lp-ref-share--many .lp-ref-share__label {
+        font-size: 0.75rem;
+        line-height: 1.15;
+        letter-spacing: 0.02em;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        min-width: 0;
+        max-width: 100%;
+    }
+    .lp-f1 .lp-ref-share.lp-ref-share--many .lp-ref-share__sub {
+        font-size: 0.5625rem;
+        line-height: 1.25;
+        min-width: 0;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-ref-share--many .lp-ref-share__label {
@@ -1653,8 +1674,10 @@
         .lp-f1 .lp-ref-share--many .lp-ref-share__label {
             grid-column: 2;
             grid-row: 1;
-            font-size: 0.8125rem;
+            font-size: 0.6875rem;
             align-self: end;
+            min-width: 0;
+            overflow-wrap: anywhere;
         }
         .lp-f1 .lp-ref-share--many .lp-ref-share__sub {
             grid-column: 2;

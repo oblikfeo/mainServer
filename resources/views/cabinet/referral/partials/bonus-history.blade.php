@@ -1,5 +1,16 @@
-<section class="lp-profile-block lp-ref-section" aria-labelledby="ref-history-title">
-    <h2 id="ref-history-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">История начислений</h2>
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
+    <button
+        type="button"
+        class="lp-profile-accordion__trigger"
+        @click="open = !open"
+        :aria-expanded="open"
+        aria-controls="ref-history-panel"
+        id="ref-history-title"
+    >
+        <span class="lp-profile-accordion__title">История начислений</span>
+        <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+    </button>
+    <div class="lp-profile-accordion__panel" id="ref-history-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-history-title">
 
     <div class="lp-table-wrap lp-ref-table-wrap">
         <table class="lp-table lp-ref-table">
@@ -34,4 +45,5 @@
             </tbody>
         </table>
     </div>
-</section>
+    </div>
+</div>

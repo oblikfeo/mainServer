@@ -7,8 +7,19 @@
     $max = 'https://max.ru/:share?text='.rawurlencode($shareText);
 @endphp
 
-<section class="lp-profile-block lp-ref-section" aria-labelledby="ref-share-title">
-    <h2 id="ref-share-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Поделиться ссылкой</h2>
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
+    <button
+        type="button"
+        class="lp-profile-accordion__trigger"
+        @click="open = !open"
+        :aria-expanded="open"
+        aria-controls="ref-share-panel"
+        id="ref-share-title"
+    >
+        <span class="lp-profile-accordion__title">Поделиться ссылкой</span>
+        <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+    </button>
+    <div class="lp-profile-accordion__panel" id="ref-share-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-share-title">
 
     <div class="lp-ref-share lp-ref-share--many">
         <a class="lp-ref-share__btn lp-ref-share__btn--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer">
@@ -52,4 +63,5 @@
             <span x-show="copied" x-cloak>Скопировано</span>
         </button>
     </div>
-</section>
+    </div>
+</div>

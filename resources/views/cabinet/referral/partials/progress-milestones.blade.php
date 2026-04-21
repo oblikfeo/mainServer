@@ -1,5 +1,16 @@
-<section class="lp-profile-block lp-ref-section" aria-labelledby="ref-quests-title">
-    <h2 id="ref-quests-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Задания</h2>
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
+    <button
+        type="button"
+        class="lp-profile-accordion__trigger"
+        @click="open = !open"
+        :aria-expanded="open"
+        aria-controls="ref-quests-panel"
+        id="ref-quests-title"
+    >
+        <span class="lp-profile-accordion__title">Задания</span>
+        <span class="lp-profile-accordion__chev" :class="{ 'lp-profile-accordion__chev--open': open }" aria-hidden="true">▾</span>
+    </button>
+    <div class="lp-profile-accordion__panel" id="ref-quests-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-quests-title">
     <p class="lp-ref-quests-lead">Выполните условие — награда указана в блоках ниже.</p>
 
     <div class="lp-ref-quests">
@@ -115,4 +126,5 @@
             </div>
         </article>
     </div>
-</section>
+    </div>
+</div>
