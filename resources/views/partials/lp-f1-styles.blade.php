@@ -1275,29 +1275,92 @@
     .lp-f1 .lp-ref-section + .lp-ref-section {
         margin-top: 0;
     }
-    .lp-f1 .lp-ref-milestones {
-        margin-top: 1.15rem;
-        display: grid;
-        gap: 1.1rem;
+    .lp-f1 .lp-ref-quests-lead {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #555;
+        line-height: 1.4;
     }
-    .lp-f1 .lp-ref-milestone__head {
+    .lp-f1 .lp-ref-quests {
+        margin-top: 1rem;
+        display: grid;
+        gap: 1rem;
+    }
+    .lp-f1 .lp-ref-quest {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.85rem 0.75rem;
+        border: 4px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.1);
+    }
+    .lp-f1 .lp-ref-quest__badge {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        background: var(--lp-ink);
+        color: #fff;
+        font-size: 0.9375rem;
+        font-weight: 900;
+        line-height: 1;
+        border: 3px solid var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-quest__body {
+        flex: 1;
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-quest__top {
         display: flex;
         align-items: baseline;
         justify-content: space-between;
-        gap: 0.75rem;
+        gap: 0.5rem;
         flex-wrap: wrap;
     }
-    .lp-f1 .lp-ref-milestone__title {
-        font-size: 0.8125rem;
+    .lp-f1 .lp-ref-quest__name {
+        margin: 0;
+        font-size: 0.875rem;
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.03em;
         color: var(--lp-ink);
+        line-height: 1.25;
     }
-    .lp-f1 .lp-ref-milestone__ratio {
+    .lp-f1 .lp-ref-quest__ratio {
         font-size: 1.125rem;
         font-weight: 900;
         color: var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-quest__reward {
+        margin: 0.45rem 0 0 0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #334155;
+        line-height: 1.45;
+    }
+    .lp-f1 .lp-ref-quest__tag {
+        display: inline-block;
+        margin-left: 0.25rem;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        border: 2px solid var(--lp-ink);
+        background: #fff8e6;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .lp-f1 .lp-ref-quest__status {
+        margin: 0.45rem 0 0 0;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #64748b;
+        line-height: 1.35;
     }
     .lp-f1 .lp-ref-bar {
         margin-top: 0.55rem;
@@ -1311,22 +1374,8 @@
         height: 100%;
         background: var(--lp-orange);
         border-right: 2px solid var(--lp-ink);
-        min-width: 4px;
+        min-width: 0;
         transition: width 0.4s ease;
-    }
-    .lp-f1 .lp-ref-milestone__prize {
-        margin: 0.4rem 0 0 0;
-        font-size: 0.6875rem;
-        font-weight: 700;
-        color: #475569;
-        line-height: 1.35;
-    }
-    .lp-f1 .lp-ref-milestone__hint {
-        margin: 0.5rem 0 0 0;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #64748b;
-        line-height: 1.35;
     }
     .lp-f1 .lp-ref-share {
         margin-top: 1.15rem;

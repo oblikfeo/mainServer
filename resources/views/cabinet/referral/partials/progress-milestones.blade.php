@@ -1,53 +1,66 @@
-<section class="lp-profile-block lp-ref-section" aria-labelledby="ref-progress-title">
-    <h2 id="ref-progress-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Прогресс</h2>
+<section class="lp-profile-block lp-ref-section" aria-labelledby="ref-quests-title">
+    <h2 id="ref-quests-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Задания</h2>
+    <p class="lp-ref-quests-lead">Выполните условие — получите приз.</p>
 
-    <div class="lp-ref-milestones">
-        <article class="lp-ref-milestone">
-            <div class="lp-ref-milestone__head">
-                <span class="lp-ref-milestone__title">Регистрация друга</span>
-                <span class="lp-ref-milestone__ratio tabular-nums">2/5</span>
+    <div class="lp-ref-quests">
+        <article class="lp-ref-quest">
+            <span class="lp-ref-quest__badge" aria-hidden="true">1</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">Первая регистрация</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">0/1</span>
+                </div>
+                <p class="lp-ref-quest__reward">+1 день пригласившему · +8 ч к тестовому периоду приглашённому</p>
+                <div class="lp-ref-bar" role="img" aria-label="0 из 1">
+                    <span class="lp-ref-bar__fill" style="width:0%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">Ждём первую регистрацию по ссылке</p>
             </div>
-            <p class="lp-ref-milestone__prize">Награда: вам +1–3 дня · другу 8 ч теста</p>
-            <div class="lp-ref-bar" role="img" aria-label="2 из 5">
-                <span class="lp-ref-bar__fill" style="width:40%;"></span>
-            </div>
-            <p class="lp-ref-milestone__hint">Ещё 3 друга с подтверждённой почтой</p>
         </article>
 
-        <article class="lp-ref-milestone">
-            <div class="lp-ref-milestone__head">
-                <span class="lp-ref-milestone__title">Первая оплата приглашённого</span>
-                <span class="lp-ref-milestone__ratio tabular-nums">1/3</span>
+        <article class="lp-ref-quest">
+            <span class="lp-ref-quest__badge" aria-hidden="true">2</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">Первая оплата</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">1/3</span>
+                </div>
+                <p class="lp-ref-quest__reward">+7 дней подписки пригласившему · +7 дней приглашённому</p>
+                <div class="lp-ref-bar" role="img" aria-label="1 из 3">
+                    <span class="lp-ref-bar__fill" style="width:33%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">Ещё 2 первые оплаты до полного набора</p>
             </div>
-            <p class="lp-ref-milestone__prize">Награда: вам +7 дн. · другу +7 дн.</p>
-            <div class="lp-ref-bar" role="img" aria-label="1 из 3">
-                <span class="lp-ref-bar__fill" style="width:33%;"></span>
-            </div>
-            <p class="lp-ref-milestone__hint">Ещё 2 первые оплаты</p>
         </article>
 
-        <article class="lp-ref-milestone">
-            <div class="lp-ref-milestone__head">
-                <span class="lp-ref-milestone__title">4 активные оплаты</span>
-                <span class="lp-ref-milestone__ratio tabular-nums">2/4</span>
+        <article class="lp-ref-quest">
+            <span class="lp-ref-quest__badge" aria-hidden="true">3</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">4 активные оплаты</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">2/4</span>
+                </div>
+                <p class="lp-ref-quest__reward">+1 устройство навсегда <span class="lp-ref-quest__tag">эксклюзив</span></p>
+                <div class="lp-ref-bar" role="img" aria-label="2 из 4">
+                    <span class="lp-ref-bar__fill" style="width:50%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">Ещё 2 активные оплаты</p>
             </div>
-            <p class="lp-ref-milestone__prize">Награда: +1 устройство навсегда</p>
-            <div class="lp-ref-bar" role="img" aria-label="2 из 4">
-                <span class="lp-ref-bar__fill" style="width:50%;"></span>
-            </div>
-            <p class="lp-ref-milestone__hint">Ещё 2 оплаты</p>
         </article>
 
-        <article class="lp-ref-milestone">
-            <div class="lp-ref-milestone__head">
-                <span class="lp-ref-milestone__title">10 активных оплат</span>
-                <span class="lp-ref-milestone__ratio tabular-nums">6/10</span>
+        <article class="lp-ref-quest">
+            <span class="lp-ref-quest__badge" aria-hidden="true">4</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">10 активных оплат</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">6/10</span>
+                </div>
+                <p class="lp-ref-quest__reward">Безлимитный трафик навсегда <span class="lp-ref-quest__tag">эксклюзив</span></p>
+                <div class="lp-ref-bar" role="img" aria-label="6 из 10">
+                    <span class="lp-ref-bar__fill" style="width:60%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">Ещё 4 активные оплаты</p>
             </div>
-            <p class="lp-ref-milestone__prize">Награда: безлимитный трафик навсегда</p>
-            <div class="lp-ref-bar" role="img" aria-label="6 из 10">
-                <span class="lp-ref-bar__fill" style="width:60%;"></span>
-            </div>
-            <p class="lp-ref-milestone__hint">Ещё 4 оплаты</p>
         </article>
     </div>
 </section>
