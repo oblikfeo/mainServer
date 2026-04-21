@@ -1,8 +1,5 @@
 <section class="lp-profile-block lp-ref-section" aria-labelledby="ref-history-title">
     <h2 id="ref-history-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">История начислений</h2>
-    <p class="mt-2 text-sm font-semibold text-slate-800 leading-snug">
-        Пример таблицы: кто пришёл по вашей ссылке и на каком этапе бонус.
-    </p>
 
     <div class="lp-table-wrap lp-ref-table-wrap">
         <table class="lp-table lp-ref-table">

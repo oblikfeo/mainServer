@@ -1272,13 +1272,6 @@
     .lp-f1 .lp-referral-metrics--profile {
         margin-top: 1rem;
     }
-    .lp-f1 .lp-ref-lead {
-        margin: 0.65rem 0 1.25rem 0;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #444;
-        line-height: 1.45;
-    }
     .lp-f1 .lp-ref-section + .lp-ref-section {
         margin-top: 0;
     }
@@ -1316,13 +1309,13 @@
     .lp-f1 .lp-ref-bar__fill {
         display: block;
         height: 100%;
-        background: linear-gradient(180deg, var(--lp-orange) 0%, #c53000 100%);
+        background: linear-gradient(180deg, #ff8c3a 0%, var(--lp-orange) 42%, #b83200 100%);
         border-right: 2px solid var(--lp-ink);
         min-width: 4px;
         transition: width 0.4s ease;
     }
-    .lp-f1 .lp-ref-bar__fill--alt {
-        background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%);
+    .lp-f1 .lp-ref-bar__fill--tone {
+        background: linear-gradient(180deg, var(--lp-orange) 0%, #e03e00 55%, #8c2800 100%);
     }
     .lp-f1 .lp-ref-milestone__hint {
         margin: 0.5rem 0 0 0;
@@ -1340,6 +1333,11 @@
     @media (min-width: 480px) {
         .lp-f1 .lp-ref-share {
             grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (min-width: 900px) {
+        .lp-f1 .lp-ref-share.lp-ref-share--many {
+            grid-template-columns: repeat(3, 1fr);
         }
     }
     .lp-f1 .lp-ref-share__btn {
@@ -1369,6 +1367,14 @@
     .lp-f1 .lp-ref-share__btn--viber {
         background: linear-gradient(180deg, #f3e8ff 0%, #fff 55%);
     }
+    .lp-f1 .lp-ref-share__btn--tg {
+        background: linear-gradient(180deg, #e0f4ff 0%, #fff 55%);
+    }
+    .lp-f1 .lp-ref-share__btn--tg .lp-ref-share__icon { color: #229ed9; }
+    .lp-f1 .lp-ref-share__btn--max {
+        background: linear-gradient(180deg, #f5f0ff 0%, #fff 55%);
+    }
+    .lp-f1 .lp-ref-share__btn--max .lp-ref-share__icon { color: #6b4dc4; }
     .lp-f1 .lp-ref-share__icon {
         display: flex;
         align-items: center;
@@ -1391,6 +1397,34 @@
         font-weight: 700;
         color: #64748b;
         line-height: 1.3;
+    }
+    .lp-f1 .lp-ref-share-copy {
+        margin-top: 1rem;
+    }
+    .lp-f1 .lp-ref-share__copy-btn {
+        display: block;
+        width: 100%;
+        padding: 1rem 1.25rem;
+        margin: 0;
+        border: 4px solid var(--lp-ink);
+        background: var(--lp-orange);
+        color: #fff;
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        box-shadow: 8px 8px 0 var(--lp-ink);
+        transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .lp-f1 .lp-ref-share__copy-btn:hover {
+        background: #e03e00;
+        color: #fff;
+    }
+    .lp-f1 .lp-ref-share__copy-btn:active {
+        transform: translate(3px, 3px);
+        box-shadow: 4px 4px 0 var(--lp-ink);
     }
     .lp-f1 .lp-ref-table-wrap {
         margin-top: 1rem;

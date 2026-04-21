@@ -2,15 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-/**
- * Верстка раздела «Реферальная система». Данные для макета — заглушки во view.
- */
 final class CabinetReferralController extends Controller
 {
-    public function show(): View
+    public function show(Request $request): View
     {
-        return view('cabinet.referral.index');
+        /** @var User $user */
+        $user = $request->user();
+        $referralCode = (string) ($user->referral_code ?? '');
+        $referralLink = $referralCode !== ''
+            ? url('/register?ref='.urlencode($referralCode))
+            : url('/register');
+
+        return view('cabinet.referral.index', [
+            'referralLink' => $referralLink,
+        ]);
     }
 }
