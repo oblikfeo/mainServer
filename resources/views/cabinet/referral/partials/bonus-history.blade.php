@@ -12,38 +12,35 @@
     </button>
     <div class="lp-profile-accordion__panel" id="ref-history-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-history-title">
 
-    <div class="lp-table-wrap lp-ref-table-wrap lp-ref-table-wrap--wide">
-        <table class="lp-table lp-ref-table">
-            <thead>
-                <tr>
-                    <th>Имя</th>
-                    <th>Эл. почта</th>
-                    <th>Статус бонуса</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Александр</td>
-                    <td class="lp-mono text-slate-700">alex***@mail.ru</td>
-                    <td><span class="lp-badge-pill lp-badge-pill--ok">Оплатил</span></td>
-                </tr>
-                <tr>
-                    <td>Мария</td>
-                    <td class="lp-mono text-slate-700">m***@yandex.ru</td>
-                    <td><span class="lp-badge-pill lp-badge-pill--warn">Зарегистрирован</span></td>
-                </tr>
-                <tr>
-                    <td>Иван</td>
-                    <td class="lp-mono text-slate-700">ivan***@gmail.com</td>
-                    <td><span class="lp-badge-pill lp-badge-pill--muted">Ожидание оплаты</span></td>
-                </tr>
-                <tr>
-                    <td>Елена</td>
-                    <td class="lp-mono text-slate-700">el***@inbox.ru</td>
-                    <td><span class="lp-badge-pill lp-badge-pill--ok">Бонус начислен</span></td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="lp-ref-history" role="list">
+        <article class="lp-ref-history__card" role="listitem">
+            <div class="lp-ref-history__head">
+                <span class="lp-ref-history__name">Александр</span>
+                <span class="lp-badge-pill lp-badge-pill--ok">Оплатил</span>
+            </div>
+            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">alex***@mail.ru</span></p>
+        </article>
+        <article class="lp-ref-history__card" role="listitem">
+            <div class="lp-ref-history__head">
+                <span class="lp-ref-history__name">Мария</span>
+                <span class="lp-badge-pill lp-badge-pill--warn">Зарегистрирован</span>
+            </div>
+            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">m***@yandex.ru</span></p>
+        </article>
+        <article class="lp-ref-history__card" role="listitem">
+            <div class="lp-ref-history__head">
+                <span class="lp-ref-history__name">Иван</span>
+                <span class="lp-badge-pill lp-badge-pill--muted">Ожидание оплаты</span>
+            </div>
+            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">ivan***@gmail.com</span></p>
+        </article>
+        <article class="lp-ref-history__card" role="listitem">
+            <div class="lp-ref-history__head">
+                <span class="lp-ref-history__name">Елена</span>
+                <span class="lp-badge-pill lp-badge-pill--ok">Бонус начислен</span>
+            </div>
+            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">el***@inbox.ru</span></p>
+        </article>
     </div>
     </div>
 </div>

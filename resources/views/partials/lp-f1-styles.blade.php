@@ -1281,7 +1281,7 @@
     .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-share:first-child {
         margin-top: 0;
     }
-    .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-table-wrap:first-child {
+    .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-history:first-child {
         margin-top: 0;
     }
     .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-quests-lead:first-child {
@@ -1638,31 +1638,84 @@
         transform: translate(3px, 3px);
         box-shadow: 4px 4px 0 var(--lp-ink);
     }
-    .lp-f1 .lp-ref-table-wrap {
-        margin-top: 1rem;
+    .lp-f1 .lp-ref-history {
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-history__card {
+        margin: 0;
+        padding: 0.75rem 0.65rem;
+        border: 3px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.08);
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-history__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+    .lp-f1 .lp-ref-history__name {
+        font-size: 0.9375rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: var(--lp-ink);
+        line-height: 1.25;
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+    .lp-f1 .lp-ref-history__head .lp-badge-pill {
+        flex-shrink: 0;
+        align-self: center;
         max-width: 100%;
+        text-align: center;
     }
-    .lp-f1 .lp-ref-table-wrap.lp-ref-table-wrap--wide {
-        margin-left: -0.5rem;
-        margin-right: -0.5rem;
-        width: calc(100% + 1rem);
+    .lp-f1 .lp-ref-history__email {
+        margin: 0.5rem 0 0 0;
+        padding: 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.45;
+        word-break: break-word;
     }
-    @media (min-width: 480px) {
-        .lp-f1 .lp-ref-table-wrap.lp-ref-table-wrap--wide {
-            margin-left: -0.85rem;
-            margin-right: -0.85rem;
-            width: calc(100% + 1.7rem);
+    .lp-f1 .lp-ref-history__email-label {
+        display: block;
+        font-size: 0.5625rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.2rem;
+    }
+    .lp-f1 .lp-ref-history__email-val {
+        font-family: ui-monospace, "Cascadia Code", monospace;
+        font-weight: 700;
+        font-size: 0.8125rem;
+        color: var(--lp-ink);
+        word-break: break-all;
+    }
+    @media (min-width: 640px) {
+        .lp-f1 .lp-ref-history {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.75rem;
         }
-    }
-    .lp-f1 .lp-ref-table-wrap--wide .lp-table {
-        font-size: 0.875rem;
-    }
-    .lp-f1 .lp-ref-table-wrap--wide .lp-table th,
-    .lp-f1 .lp-ref-table-wrap--wide .lp-table td {
-        padding: 0.65rem 0.8rem;
-    }
-    .lp-f1 .lp-ref-table td {
-        vertical-align: middle;
+        .lp-f1 .lp-ref-history__email-label {
+            display: inline;
+            margin-right: 0.35rem;
+            margin-bottom: 0;
+        }
+        .lp-f1 .lp-ref-history__email {
+            margin-top: 0.45rem;
+        }
     }
     @media (max-width: 479px) {
         .lp-f1 .lp-ref-page .lp-profile-block {
@@ -1749,19 +1802,18 @@
             max-width: 3.25rem;
             max-height: 3.25rem;
         }
-        .lp-f1 .lp-ref-table-wrap .lp-table {
-            font-size: 0.75rem;
+        .lp-f1 .lp-ref-history__card {
+            padding: 0.65rem 0.55rem;
         }
-        .lp-f1 .lp-ref-table-wrap .lp-table th,
-        .lp-f1 .lp-ref-table-wrap .lp-table td {
-            padding: 0.5rem 0.45rem;
+        .lp-f1 .lp-ref-history__name {
+            font-size: 0.8125rem;
         }
-        .lp-f1 .lp-ref-table-wrap .lp-badge-pill {
+        .lp-f1 .lp-ref-history__head .lp-badge-pill {
             font-size: 0.5rem;
-            padding: 0.15rem 0.35rem;
+            padding: 0.2rem 0.4rem;
         }
-        .lp-f1 .lp-ref-table-wrap .lp-mono {
-            font-size: 0.6875rem;
+        .lp-f1 .lp-ref-history__email-val {
+            font-size: 0.75rem;
         }
     }
     .lp-f1 .lp-dl-grid--account {
