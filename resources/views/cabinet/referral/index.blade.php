@@ -1,5 +1,5 @@
 <x-cabinet-layout>
-    <div class="max-w-4xl mx-auto">
+    <div class="lp-ref-page max-w-4xl mx-auto w-full min-w-0">
         <h1 class="lp-page-title">Реферальная система</h1>
 
         @include('cabinet.referral.partials.progress-milestones')

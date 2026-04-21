@@ -1275,6 +1275,10 @@
     .lp-f1 .lp-ref-section + .lp-ref-section {
         margin-top: 0;
     }
+    .lp-f1 .lp-ref-page {
+        width: 100%;
+        min-width: 0;
+    }
     .lp-f1 .lp-ref-quests-lead {
         margin: 0.5rem 0 0 0;
         font-size: 0.8125rem;
@@ -1333,21 +1337,25 @@
     }
     .lp-f1 .lp-ref-quest__top {
         display: flex;
-        align-items: baseline;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 0.5rem;
         flex-wrap: wrap;
     }
     .lp-f1 .lp-ref-quest__name {
         margin: 0;
+        flex: 1 1 auto;
+        min-width: 0;
         font-size: 0.875rem;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.03em;
         color: var(--lp-ink);
         line-height: 1.25;
+        overflow-wrap: anywhere;
     }
     .lp-f1 .lp-ref-quest__ratio {
+        flex-shrink: 0;
         font-size: 1.125rem;
         font-weight: 900;
         color: var(--lp-ink);
@@ -1361,7 +1369,7 @@
         gap: 0.65rem;
         align-items: stretch;
     }
-    @media (max-width: 380px) {
+    @media (max-width: 420px) {
         .lp-f1 .lp-ref-quest__prize-split {
             grid-template-columns: 1fr;
         }
@@ -1394,9 +1402,10 @@
     }
     .lp-f1 .lp-ref-quest__prize-feature {
         display: flex;
+        flex-wrap: wrap;
         align-items: flex-start;
         justify-content: space-between;
-        gap: 0.65rem;
+        gap: 0.5rem 0.65rem;
         padding: 0.65rem 0.75rem;
         border: 3px solid var(--lp-ink);
         background: #fff;
@@ -1406,12 +1415,14 @@
         flex-direction: column;
         gap: 0.15rem;
         min-width: 0;
+        flex: 1 1 10rem;
     }
     .lp-f1 .lp-ref-quest__prize-feature-title {
         font-size: 0.9375rem;
         font-weight: 900;
         line-height: 1.2;
         color: var(--lp-ink);
+        overflow-wrap: anywhere;
     }
     .lp-f1 .lp-ref-quest__prize-feature-sub {
         font-size: 0.6875rem;
@@ -1575,9 +1586,96 @@
     }
     .lp-f1 .lp-ref-table-wrap {
         margin-top: 1rem;
+        max-width: 100%;
     }
     .lp-f1 .lp-ref-table td {
         vertical-align: middle;
+    }
+    @media (max-width: 479px) {
+        .lp-f1 .lp-ref-page .lp-profile-block {
+            padding: 1rem 0.75rem;
+        }
+        .lp-f1 .lp-ref-page .lp-page-title {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+        .lp-f1 .lp-ref-quest {
+            padding: 0.65rem 0.55rem;
+            gap: 0.55rem;
+        }
+        .lp-f1 .lp-ref-quest__badge {
+            width: 2rem;
+            height: 2rem;
+            font-size: 0.8125rem;
+        }
+        .lp-f1 .lp-ref-quest__name {
+            font-size: 0.75rem;
+            letter-spacing: 0.02em;
+        }
+        .lp-f1 .lp-ref-quest__ratio {
+            font-size: 1rem;
+        }
+        .lp-f1 .lp-ref-quest__prize-cell {
+            min-height: 0;
+            padding: 0.55rem 0.45rem;
+        }
+        .lp-f1 .lp-ref-quest__prize-val {
+            font-size: 0.8125rem;
+        }
+        .lp-f1 .lp-ref-quest__prize-feature {
+            padding: 0.55rem 0.6rem;
+        }
+        .lp-f1 .lp-ref-quest__prize-feature-title {
+            font-size: 0.8125rem;
+        }
+        .lp-f1 .lp-ref-quest__tag {
+            margin-left: auto;
+        }
+        .lp-f1 .lp-ref-share.lp-ref-share--many {
+            gap: 0.5rem;
+        }
+        .lp-f1 .lp-ref-share--many .lp-ref-share__btn {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto auto;
+            column-gap: 0.6rem;
+            row-gap: 0.1rem;
+            align-items: center;
+            min-height: 0;
+            padding: 0.65rem 0.55rem;
+        }
+        .lp-f1 .lp-ref-share--many .lp-ref-share__icon {
+            grid-row: 1 / span 2;
+            width: 2.125rem;
+            height: 2.125rem;
+        }
+        .lp-f1 .lp-ref-share--many .lp-ref-share__label {
+            grid-column: 2;
+            grid-row: 1;
+            font-size: 0.8125rem;
+            align-self: end;
+        }
+        .lp-f1 .lp-ref-share--many .lp-ref-share__sub {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: 0.5625rem;
+            align-self: start;
+        }
+        .lp-f1 .lp-ref-table-wrap .lp-table {
+            font-size: 0.75rem;
+        }
+        .lp-f1 .lp-ref-table-wrap .lp-table th,
+        .lp-f1 .lp-ref-table-wrap .lp-table td {
+            padding: 0.5rem 0.45rem;
+        }
+        .lp-f1 .lp-ref-table-wrap .lp-badge-pill {
+            font-size: 0.5rem;
+            padding: 0.15rem 0.35rem;
+        }
+        .lp-f1 .lp-ref-table-wrap .lp-mono {
+            font-size: 0.6875rem;
+        }
     }
     .lp-f1 .lp-dl-grid--account {
         grid-template-columns: 1fr;
