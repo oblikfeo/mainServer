@@ -1301,18 +1301,6 @@
         background: linear-gradient(180deg, #ecfdf5 0%, #f8fafc 55%, #fff 100%);
         box-shadow: 6px 6px 0 rgba(22, 101, 52, 0.14);
     }
-    .lp-f1 .lp-ref-quest--done .lp-ref-quest__badge {
-        background: #166534;
-        border-color: #166534;
-        color: #fff;
-        font-size: 1rem;
-    }
-    .lp-f1 .lp-ref-quest--done .lp-ref-quest__name {
-        color: #14532d;
-    }
-    .lp-f1 .lp-ref-quest--done .lp-ref-quest__ratio {
-        color: #15803d;
-    }
     .lp-f1 .lp-ref-quest--done .lp-ref-bar {
         border-color: #166534;
         background: #dcfce7;
