@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
+use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
@@ -51,6 +52,7 @@ Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
+    Route::get('/dashboard/referral', [CabinetReferralController::class, 'show'])->name('cabinet.referral');
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
@@ -99,6 +101,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::view('referral', 'admin.referral')->name('referral');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
         Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');

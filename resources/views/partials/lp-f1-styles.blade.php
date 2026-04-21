@@ -1063,6 +1063,8 @@
     }
     .lp-f1 .lp-badge-pill--ok { background: #d4edda; }
     .lp-f1 .lp-badge-pill--bad { background: #f8d7da; }
+    .lp-f1 .lp-badge-pill--warn { background: #fff3cd; color: #664d03; }
+    .lp-f1 .lp-badge-pill--muted { background: #e2e8f0; color: #334155; }
     .lp-f1 .lp-stack > * + * { margin-top: 1rem; }
     .lp-f1 .lp-warn-box {
         padding: 0.75rem 1rem;
@@ -1266,6 +1268,135 @@
         line-height: 1;
         letter-spacing: -0.03em;
         color: var(--lp-ink);
+    }
+    .lp-f1 .lp-referral-metrics--profile {
+        margin-top: 1rem;
+    }
+    .lp-f1 .lp-ref-lead {
+        margin: 0.65rem 0 1.25rem 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #444;
+        line-height: 1.45;
+    }
+    .lp-f1 .lp-ref-section + .lp-ref-section {
+        margin-top: 0;
+    }
+    .lp-f1 .lp-ref-milestones {
+        margin-top: 1.15rem;
+        display: grid;
+        gap: 1.1rem;
+    }
+    .lp-f1 .lp-ref-milestone__head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .lp-f1 .lp-ref-milestone__title {
+        font-size: 0.8125rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-milestone__ratio {
+        font-size: 1.125rem;
+        font-weight: 900;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-bar {
+        margin-top: 0.55rem;
+        height: 1rem;
+        border: 3px solid var(--lp-ink);
+        background: #e8eaee;
+        box-shadow: inset 2px 2px 0 rgba(0,0,0,0.06);
+    }
+    .lp-f1 .lp-ref-bar__fill {
+        display: block;
+        height: 100%;
+        background: linear-gradient(180deg, var(--lp-orange) 0%, #c53000 100%);
+        border-right: 2px solid var(--lp-ink);
+        min-width: 4px;
+        transition: width 0.4s ease;
+    }
+    .lp-f1 .lp-ref-bar__fill--alt {
+        background: linear-gradient(180deg, #38bdf8 0%, #0369a1 100%);
+    }
+    .lp-f1 .lp-ref-milestone__hint {
+        margin: 0.5rem 0 0 0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #64748b;
+        line-height: 1.35;
+    }
+    .lp-f1 .lp-ref-share {
+        margin-top: 1.15rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-ref-share {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    .lp-f1 .lp-ref-share__btn {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        padding: 1.1rem 1rem;
+        border: 4px solid var(--lp-ink);
+        text-decoration: none;
+        color: var(--lp-ink);
+        background: #fff;
+        box-shadow: 8px 8px 0 var(--lp-ink);
+        min-height: 5.5rem;
+        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+    }
+    .lp-f1 .lp-ref-share__btn:hover {
+        background: #fafafa;
+    }
+    .lp-f1 .lp-ref-share__btn:active {
+        transform: translate(3px, 3px);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-share__btn--wa {
+        background: linear-gradient(180deg, #e7fce8 0%, #fff 55%);
+    }
+    .lp-f1 .lp-ref-share__btn--viber {
+        background: linear-gradient(180deg, #f3e8ff 0%, #fff 55%);
+    }
+    .lp-f1 .lp-ref-share__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 3px solid var(--lp-ink);
+        background: #fff;
+    }
+    .lp-f1 .lp-ref-share__btn--wa .lp-ref-share__icon { color: #25d366; }
+    .lp-f1 .lp-ref-share__btn--viber .lp-ref-share__icon { color: #7360f2; }
+    .lp-f1 .lp-ref-share__label {
+        font-size: 1.125rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .lp-f1 .lp-ref-share__sub {
+        font-size: 0.6875rem;
+        font-weight: 700;
+        color: #64748b;
+        line-height: 1.3;
+    }
+    .lp-f1 .lp-ref-table-wrap {
+        margin-top: 1rem;
+    }
+    .lp-f1 .lp-ref-table td {
+        vertical-align: middle;
     }
     .lp-f1 .lp-dl-grid--account {
         grid-template-columns: 1fr;

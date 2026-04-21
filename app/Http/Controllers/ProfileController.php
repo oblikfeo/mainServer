@@ -19,17 +19,11 @@ class ProfileController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $referralCode = (string) ($user->referral_code ?? '');
-        $referralLink = $referralCode !== ''
-            ? url('/register?ref='.urlencode($referralCode))
-            : url('/register');
-
         $referralsRegistered = $user->referrals()->count();
         $referralsPaid = $user->referrals()->whereHas('purchases')->count();
 
         return view('profile.edit', [
             'user' => $user,
-            'referralLink' => $referralLink,
             'referralsRegistered' => $referralsRegistered,
             'referralsPaid' => $referralsPaid,
         ]);

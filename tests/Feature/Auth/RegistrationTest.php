@@ -65,8 +65,9 @@ class RegistrationTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Реферальная программа', false);
-        $response->assertSee('Зарегистрировалось', false);
-        $response->assertSee('Оплатили подписку', false);
-        $response->assertSee('ref='.urlencode((string) $referrer->referral_code), false);
+        $response->assertSee('Зарегалось', false);
+        $response->assertSee('Оплатили', false);
+        $response->assertDontSee('Поделитесь ссылкой', false);
+        $response->assertDontSee('register?ref', false);
     }
 }
