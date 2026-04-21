@@ -176,7 +176,7 @@
                         <form
                             method="post"
                             action="{{ route('admin.subscription.destroy', $subscription) }}"
-                            onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+                            onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты во всех узлах и запись в БД будут удалены.');"
                         >
                             @csrf
                             <button type="submit" class="w-full rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-900 hover:bg-rose-100 min-h-[48px]">
@@ -276,7 +276,7 @@
                                         method="post"
                                         action="{{ route('admin.subscription.destroy', $subscription) }}"
                                         class="inline"
-                                        onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+                                        onsubmit="return confirm('Удалить подписку #{{ $subscription->id }}? Клиенты во всех узлах и запись в БД будут удалены.');"
                                     >
                                         @csrf
                                         <button type="submit" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-900 hover:bg-rose-100">

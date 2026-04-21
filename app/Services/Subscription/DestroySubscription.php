@@ -10,7 +10,7 @@ use Throwable;
 final class DestroySubscription
 {
     /**
-     * Удаляет клиентов в 3x-ui (FI/NL) по email, перезапускает Xray, затем запись подписки (issued_keys — cascade).
+     * Удаляет клиентов в 3x-ui по всем узлам bundle_order, перезапускает Xray, затем запись подписки (issued_keys — cascade).
      *
      * @throws XuiPanelException
      */

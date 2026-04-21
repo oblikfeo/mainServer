@@ -198,13 +198,7 @@ final class TestKeySubscriptionFeedRenderer
 
     private function profileTitleForHapp(): string
     {
-        $fromDb = null;
-        try {
-            $fromDb = AppSetting::getValue('happ_profile_title');
-        } catch (Throwable) {
-        }
-
-        $raw = trim((string) ($fromDb !== null && $fromDb !== '' ? $fromDb : config('xui.sub_profile_title', 'nadezhda VPN')));
+        $raw = trim((string) config('xui.sub_profile_title', 'nadezhda VPN'));
         if ($raw === '') {
             return 'nadezhda VPN';
         }

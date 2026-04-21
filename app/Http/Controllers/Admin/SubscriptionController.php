@@ -28,8 +28,22 @@ class SubscriptionController extends Controller
             'gb' => ['required', 'integer', 'min:1', 'max:50000'],
         ]);
 
-        $lockKey = 'admin:subscription:create:'.$request->session()->getId();
-        if (! Cache::add($lockKey, true, now()->addSeconds(20))) {
+        $sessionId = (string) $request->session()->getId();
+        $fingerprint = sha1($sessionId.'|'.(int) $data['devices'].'|'.(int) $data['days'].'|'.(int) $data['gb']);
+        $lockKey = 'admin:subscription:create:lock:'.$fingerprint;
+        $resultKey = 'admin:subscription:create:result:'.$fingerprint;
+
+        $existingId = (int) Cache::get($resultKey, 0);
+        if ($existingId > 0) {
+            $existing = Subscription::query()->find($existingId);
+            if ($existing !== null) {
+                return redirect()
+                    ->route('admin.subscription.show', ['subscription' => $existing->getKey()])
+                    ->with('status', 'Подписка уже создана ранее для этого запроса.');
+            }
+        }
+
+        if (! Cache::add($lockKey, true, now()->addSeconds(120))) {
             return back()
                 ->withInput()
                 ->withErrors(['xui' => 'Создание уже выполняется. Дождитесь завершения и обновите страницу.']);
@@ -41,6 +55,7 @@ class SubscriptionController extends Controller
                 (int) $data['days'],
                 (int) $data['gb'],
             );
+            Cache::put($resultKey, (int) $result->subscription->getKey(), now()->addMinutes(10));
         } catch (XuiPanelException $e) {
             return back()
                 ->withInput()
@@ -50,10 +65,11 @@ class SubscriptionController extends Controller
         }
 
         return redirect()
-            ->route('admin.subscription.show', $result->subscription)
+            ->route('admin.subscription.show', ['subscription' => $result->subscription->getKey()])
             ->with('subscription_result', [
                 'subscription_url' => $result->subscriptionUrl,
                 'wifi_vless' => $result->wifiVlessLine,
+                'wifi2_vless' => $result->wifi2VlessLine,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
                 'decode_warning' => $result->decodeWarning,
@@ -69,6 +85,7 @@ class SubscriptionController extends Controller
         if (is_array($payload)) {
             $subscriptionUrl = $payload['subscription_url'] ?? url('/sub/'.$subscription->token);
             $wifiVless = $payload['wifi_vless'] ?? '';
+            $wifi2Vless = $payload['wifi2_vless'] ?? '';
             $fiVless = $payload['fi_vless'] ?? '';
             $nlVless = $payload['nl_vless'] ?? '';
             $decodeWarning = $payload['decode_warning'] ?? null;
@@ -76,6 +93,7 @@ class SubscriptionController extends Controller
             $subscriptionUrl = url('/sub/'.$subscription->token);
             $decoded = $service->decodeLinesForSubscription($subscription);
             $wifiVless = $decoded['wifi'];
+            $wifi2Vless = $decoded['wifi2'];
             $fiVless = $decoded['fi'];
             $nlVless = $decoded['nl'];
             $decodeWarning = $decoded['warning'];
@@ -85,6 +103,7 @@ class SubscriptionController extends Controller
             'subscription' => $subscription,
             'subscriptionUrl' => $subscriptionUrl,
             'wifiVless' => $wifiVless,
+            'wifi2Vless' => $wifi2Vless,
             'fiVless' => $fiVless,
             'nlVless' => $nlVless,
             'decodeWarning' => $decodeWarning,
@@ -116,6 +135,6 @@ class SubscriptionController extends Controller
 
         return redirect()
             ->route('admin.report')
-            ->with('status', 'Подписка удалена (панели FI/NL и запись в БД).');
+            ->with('status', 'Подписка удалена (все узлы и запись в БД).');
     }
 }

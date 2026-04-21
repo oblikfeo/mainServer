@@ -11,19 +11,6 @@ use Illuminate\View\View;
 
 class SubscriptionSettingsController extends Controller
 {
-    public function edit(): View
-    {
-        $stored = AppSetting::getValue('happ_profile_title');
-        $profileTitle = ($stored !== null && $stored !== '')
-            ? $stored
-            : (string) config('xui.sub_profile_title', 'nadezhda VPN');
-
-        return view('admin.subscription.profile', [
-            'profileTitle' => $profileTitle,
-            'fromEnvDefault' => (string) config('xui.sub_profile_title', 'nadezhda VPN'),
-        ]);
-    }
-
     public function editRouting(): View
     {
         $routingRaw = AppSetting::getValue('happ_routing_rules') ?? '';
@@ -56,24 +43,6 @@ class SubscriptionSettingsController extends Controller
             'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
             'maxRoutingEntries' => HappRoutingRulesParser::MAX_OUTPUT_ENTRIES,
         ]);
-    }
-
-    public function update(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'profile_title' => ['nullable', 'string', 'max:25'],
-        ]);
-
-        $v = trim((string) ($data['profile_title'] ?? ''));
-        if ($v === '') {
-            AppSetting::forgetKey('happ_profile_title');
-        } else {
-            AppSetting::setValue('happ_profile_title', $v);
-        }
-
-        return redirect()
-            ->route('admin.subscription.settings')
-            ->with('status', 'Сохранено. В Happ обновите подписку.');
     }
 
     public function updateRouting(Request $request): RedirectResponse

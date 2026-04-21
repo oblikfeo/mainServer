@@ -185,4 +185,33 @@ final class VlessSubscriptionHelper
 
         return $fragment !== '' ? $base.'#'.$fragment : $base;
     }
+
+    /**
+     * Для Reality-ссылок принудительно проставляет sid, если панель вернула sid пустым.
+     */
+    public static function ensureRealitySid(string $url, string $sid): string
+    {
+        if ($url === '' || ! str_starts_with($url, 'vless://')) {
+            return $url;
+        }
+        $sid = trim($sid);
+        if ($sid === '') {
+            return $url;
+        }
+        if (! str_contains($url, 'security=reality')) {
+            return $url;
+        }
+
+        $parts = explode('#', $url, 2);
+        $base = $parts[0];
+        $fragment = $parts[1] ?? '';
+
+        if (preg_match('/([?&])sid=(&|$)/', $base)) {
+            $base = preg_replace('/([?&])sid=(&|$)/', '$1sid='.rawurlencode($sid).'$2', $base);
+        } elseif (! str_contains($base, 'sid=')) {
+            $base .= (str_contains($base, '?') ? '&' : '?').'sid='.rawurlencode($sid);
+        }
+
+        return $fragment !== '' ? $base.'#'.$fragment : $base;
+    }
 }

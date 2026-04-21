@@ -17,19 +17,11 @@ final class XuiSubscriptionTrafficMaps
      */
     public function fetch(): array
     {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
 
         $maps = [];
         $errors = [];
-
-        if ($user === '' || $pass === '') {
-            $errors[] = 'Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD';
-
-            return ['maps' => $maps, 'errors' => $errors];
-        }
 
         foreach ($order as $bundleKey) {
             $maps[$bundleKey] = [];
@@ -56,13 +48,19 @@ final class XuiSubscriptionTrafficMaps
 
                 continue;
             }
+            $user = (string) ($node['panel_username'] ?? config('xui.panel_username', ''));
+            $pass = (string) ($node['panel_password'] ?? config('xui.panel_password', ''));
+            if ($user === '' || $pass === '') {
+                $errors[] = "Узел «{$bundleKey}»: не заданы логин/пароль панели";
+
+                continue;
+            }
 
             try {
                 $client = new XuiPanelClient($base);
                 $client->login($user, $pass);
-                $list = $client->getInboundsList();
-                $inbound = $this->findInbound($list, $inboundId);
-                if ($inbound === null) {
+                $inbound = $client->getInboundById($inboundId);
+                if ($inbound === []) {
                     $errors[] = "Узел «{$bundleKey}»: inbound #{$inboundId} не найден";
 
                     continue;
@@ -74,23 +72,6 @@ final class XuiSubscriptionTrafficMaps
         }
 
         return ['maps' => $maps, 'errors' => $errors];
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $list
-     */
-    private function findInbound(array $list, int $inboundId): ?array
-    {
-        foreach ($list as $row) {
-            if (! is_array($row)) {
-                continue;
-            }
-            if ((int) ($row['id'] ?? 0) === $inboundId) {
-                return $row;
-            }
-        }
-
-        return null;
     }
 
     /**

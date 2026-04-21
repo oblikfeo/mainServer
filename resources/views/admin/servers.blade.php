@@ -80,19 +80,23 @@
                     </div>
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['cpu_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">CPU</span>
-                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? $m['cpu_util_pct'].'%' : '—' }}</span>
+                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (($m['cpu_util_pct'] ?? '—').(($m['cpu_util_pct'] ?? null) !== null ? '%' : '')) : '—' }}</span>
                     </div>
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['ram_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">RAM</span>
                         <span class="text-lg sm:text-2xl font-bold tabular-nums text-slate-900 mt-2 leading-snug">
                             @if ($m)
-                                {{ $m['mem_used_gb'] }} / {{ $m['mem_total_gb'] }} <span class="text-base font-semibold text-slate-600">ГБ</span>
+                                @if (isset($m['mem_used_gb'], $m['mem_total_gb']))
+                                    {{ $m['mem_used_gb'] }} / {{ $m['mem_total_gb'] }} <span class="text-base font-semibold text-slate-600">ГБ</span>
+                                @else
+                                    —
+                                @endif
                             @else
                                 —
                             @endif
                         </span>
                     </div>
-                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">NAT</span>
                         <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">
                             @if ($m && $ctMax > 0)
@@ -102,7 +106,7 @@
                             @endif
                         </span>
                     </div>
-                    <div class="col-span-2 rounded-2xl border bg-gradient-to-br p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
+                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 shrink-0">Трафик</span>
                         <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
                             @if ($m)

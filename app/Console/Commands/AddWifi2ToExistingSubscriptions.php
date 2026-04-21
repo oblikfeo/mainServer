@@ -8,54 +8,56 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Throwable;
 
-class AddWifiToExistingSubscriptions extends Command
+class AddWifi2ToExistingSubscriptions extends Command
 {
-    protected $signature = 'subscriptions:add-wifi {--dry-run : Только показать что будет сделано}';
+    protected $signature = 'subscriptions:add-wifi2 {--dry-run : Только показать что будет сделано}';
 
-    protected $description = 'Добавить WiFi клиентов для всех существующих подписок без wifi_sub_id';
+    protected $description = 'Добавить WiFi2 клиентов для всех существующих подписок без wifi2_sub_id';
 
     private const BYTES_PER_GB = 1_073_741_824;
 
     public function handle(): int
     {
-        $dryRun = $this->option('dry-run');
+        $dryRun = (bool) $this->option('dry-run');
 
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
-        $wifiNode = config('xui.nodes.wifi', []);
-
-        if ($user === '' || $pass === '') {
-            $this->error('Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD');
-            return 1;
-        }
-
-        $base = (string) ($wifiNode['panel_base'] ?? '');
-        $inboundId = (int) ($wifiNode['inbound_id'] ?? 0);
-        $prefix = (string) ($wifiNode['client_email_prefix'] ?? 'wifi');
-        $flow = (string) ($wifiNode['client_flow'] ?? 'xtls-rprx-vision');
+        $node = config('xui.nodes.wifi2', []);
+        $base = (string) ($node['panel_base'] ?? '');
+        $user = (string) ($node['panel_username'] ?? config('xui.panel_username', ''));
+        $pass = (string) ($node['panel_password'] ?? config('xui.panel_password', ''));
+        $inboundId = (int) ($node['inbound_id'] ?? 0);
+        $prefix = (string) ($node['client_email_prefix'] ?? 'wifi2');
+        $flow = (string) ($node['client_flow'] ?? '');
 
         if ($base === '' || $inboundId < 1) {
-            $this->error('WiFi нода не настроена (XUI_WIFI_BASE, XUI_WIFI_INBOUND_ID)');
+            $this->error('WiFi2 нода не настроена (XUI_WIFI2_BASE, XUI_WIFI2_INBOUND_ID)');
+
+            return 1;
+        }
+        if ($user === '' || $pass === '') {
+            $this->error('Не заданы креды 3x-ui для WiFi2 (XUI_WIFI2_USER/PASSWORD или XUI_PANEL_USER/PASSWORD)');
+
             return 1;
         }
 
         $subscriptions = Subscription::query()
-            ->whereNull('wifi_sub_id')
-            ->orWhere('wifi_sub_id', '')
+            ->whereNull('wifi2_sub_id')
+            ->orWhere('wifi2_sub_id', '')
             ->get();
 
-        $this->info("Найдено подписок без WiFi: {$subscriptions->count()}");
+        $this->info("Найдено подписок без WiFi2: {$subscriptions->count()}");
 
         if ($subscriptions->isEmpty()) {
             $this->info('Нечего обновлять.');
+
             return 0;
         }
 
         if ($dryRun) {
             $this->warn('--dry-run: изменения не применяются');
             foreach ($subscriptions as $sub) {
-                $this->line("  ID {$sub->id}, token: ...".substr($sub->token, -8));
+                $this->line("  ID {$sub->id}, token: ...".substr((string) $sub->token, -8));
             }
+
             return 0;
         }
 
@@ -71,7 +73,7 @@ class AddWifiToExistingSubscriptions extends Command
                 $email = $prefix.'-'.substr($subId, 0, 10);
                 $uid = (string) Str::uuid();
 
-                $nodeCount = count(config('xui.bundle_order', ['wifi', 'fi', 'nl']));
+                $nodeCount = count(config('xui.bundle_order', ['wifi', 'wifi2', 'fi', 'nl']));
                 $quotaBytes = (int) $sub->quota_gb * self::BYTES_PER_GB;
                 $bytesPerNode = max(1, intdiv($quotaBytes, $nodeCount));
 
@@ -88,10 +90,9 @@ class AddWifiToExistingSubscriptions extends Command
                 ];
 
                 $panel->addInboundClient($inboundId, $clientDef);
+                $sub->update(['wifi2_sub_id' => $subId]);
 
-                $sub->update(['wifi_sub_id' => $subId]);
-
-                $this->info("✓ ID {$sub->id}: wifi_sub_id = {$subId}");
+                $this->info("✓ ID {$sub->id}: wifi2_sub_id = {$subId}");
                 $success++;
             } catch (Throwable $e) {
                 $this->error("✗ ID {$sub->id}: ".$e->getMessage());

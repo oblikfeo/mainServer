@@ -42,6 +42,17 @@
             </div>
         @endif
 
+        @if (! empty($wifi2Vless))
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.wifi2.vless_display_name', 'WiFi 2') }} · WiFi2</div>
+                <textarea
+                    readonly
+                    rows="4"
+                    class="w-full max-w-full rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs sm:text-sm text-slate-900 p-3 break-all"
+                >{{ $wifi2Vless }}</textarea>
+            </div>
+        @endif
+
         <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
             <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.fi.vless_display_name', 'FI') }} · FI</div>
             <textarea
@@ -71,7 +82,7 @@
             method="post"
             action="{{ route('admin.subscription.destroy', $subscription) }}"
             class="pt-4 border-t border-slate-200"
-            onsubmit="return confirm('Удалить эту подписку? Клиенты в панелях FI/NL и запись в БД будут удалены.');"
+            onsubmit="return confirm('Удалить эту подписку? Клиенты во всех узлах и запись в БД будут удалены.');"
         >
             @csrf
             <button type="submit" class="w-full rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-bold text-rose-900 hover:bg-rose-100 min-h-[48px]">

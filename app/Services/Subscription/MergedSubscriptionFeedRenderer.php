@@ -179,6 +179,10 @@ final class MergedSubscriptionFeedRenderer
         if ($pubHost !== '' && str_contains($line, 'security=tls')) {
             $line = VlessSubscriptionHelper::ensureTlsInsecure($line, $pubHost);
         }
+        $line = VlessSubscriptionHelper::ensureRealitySid(
+            $line,
+            (string) ($node['reality_sid'] ?? '')
+        );
 
         $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
 
@@ -299,13 +303,7 @@ final class MergedSubscriptionFeedRenderer
 
     private function profileTitleForHapp(): string
     {
-        $fromDb = null;
-        try {
-            $fromDb = AppSetting::getValue('happ_profile_title');
-        } catch (Throwable) {
-        }
-
-        $raw = trim((string) ($fromDb !== null && $fromDb !== '' ? $fromDb : config('xui.sub_profile_title', 'nadezhda VPN')));
+        $raw = trim((string) config('xui.sub_profile_title', 'nadezhda VPN'));
         if ($raw === '') {
             return 'nadezhda VPN';
         }

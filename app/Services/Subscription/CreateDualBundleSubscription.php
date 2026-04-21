@@ -59,6 +59,7 @@ final class CreateDualBundleSubscription
             }
 
             $prefix = (string) ($node['client_email_prefix'] ?? $bundleKey);
+            $flow = (string) ($node['client_flow'] ?? 'xtls-rprx-vision');
             $subId = bin2hex(random_bytes(8));
             $email = $prefix.'-'.substr($subId, 0, 10);
             $uid = (string) Str::uuid();
@@ -74,7 +75,7 @@ final class CreateDualBundleSubscription
             $clientDef = [
                 'id' => $uid,
                 'email' => $email,
-                'flow' => 'xtls-rprx-vision',
+                'flow' => $flow,
                 'limitIp' => max(0, $devices),
                 'totalGB' => $bytesPerNode,
                 'expiryTime' => $expiryMs,
@@ -107,6 +108,7 @@ final class CreateDualBundleSubscription
         }
 
         $wifiSubId = (string) ($subIds['wifi'] ?? '');
+        $wifi2SubId = (string) ($subIds['wifi2'] ?? '');
         $fiSubId = (string) ($subIds['fi'] ?? '');
         $nlSubId = (string) ($subIds['nl'] ?? '');
         if ($fiSubId === '' || $nlSubId === '') {
@@ -119,6 +121,7 @@ final class CreateDualBundleSubscription
             'user_id' => $userId,
             'token' => $token,
             'wifi_sub_id' => $wifiSubId !== '' ? $wifiSubId : null,
+            'wifi2_sub_id' => $wifi2SubId !== '' ? $wifi2SubId : null,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
             'quota_gb' => $quotaGb,
@@ -128,6 +131,9 @@ final class CreateDualBundleSubscription
 
         if ($wifiSubId !== '') {
             IssuedKey::query()->create(['bundle_id' => 'wifi', 'subscription_id' => $subscription->id]);
+        }
+        if ($wifi2SubId !== '') {
+            IssuedKey::query()->create(['bundle_id' => 'wifi2', 'subscription_id' => $subscription->id]);
         }
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
         IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
@@ -141,6 +147,7 @@ final class CreateDualBundleSubscription
             $subscription,
             $subscriptionUrl,
             $decoded['wifi'],
+            $decoded['wifi2'],
             $decoded['fi'],
             $decoded['nl'],
             $decoded['warning'],
@@ -148,7 +155,7 @@ final class CreateDualBundleSubscription
     }
 
     /**
-     * @return array{wifi: string, fi: string, nl: string, warning: ?string}
+     * @return array{wifi: string, wifi2: string, fi: string, nl: string, warning: ?string}
      */
     public function decodeLinesForSubscription(Subscription $subscription): array
     {
@@ -157,7 +164,7 @@ final class CreateDualBundleSubscription
         $subDesc = (string) config('xui.vless_server_description', '');
         $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
-        $out = ['wifi' => '', 'fi' => '', 'nl' => '', 'warning' => null];
+        $out = ['wifi' => '', 'wifi2' => '', 'fi' => '', 'nl' => '', 'warning' => null];
         $missing = [];
 
         foreach ($order as $key) {
@@ -182,6 +189,10 @@ final class CreateDualBundleSubscription
                     $missing[] = strtoupper($key);
                     continue;
                 }
+                $line = VlessSubscriptionHelper::ensureRealitySid(
+                    $line,
+                    (string) ($node['reality_sid'] ?? '')
+                );
                 $out[$key] = VlessSubscriptionHelper::setVlessFragment(
                     $line,
                     (string) ($node['vless_display_name'] ?? strtoupper($key)),

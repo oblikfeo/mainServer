@@ -13,16 +13,13 @@ final class XuiSubscriptionQuotaSync
 {
     public function syncForSubscription(Subscription $sub): void
     {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
-        if ($user === '' || $pass === '') {
-            return;
-        }
-
         $perNodeBytes = $sub->perNodeTotalBytes();
 
-        foreach (['fi', 'nl'] as $key) {
-            $subId = $key === 'fi' ? (string) $sub->fi_sub_id : (string) $sub->nl_sub_id;
+        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+
+        foreach ($bundleOrder as $key) {
+            $subIdField = $key.'_sub_id';
+            $subId = (string) ($sub->$subIdField ?? '');
             if ($subId === '') {
                 continue;
             }
@@ -30,9 +27,11 @@ final class XuiSubscriptionQuotaSync
             if (! is_array($node)) {
                 continue;
             }
+            $user = (string) ($node['panel_username'] ?? config('xui.panel_username', ''));
+            $pass = (string) ($node['panel_password'] ?? config('xui.panel_password', ''));
             $base = (string) ($node['panel_base'] ?? '');
             $inboundId = (int) ($node['inbound_id'] ?? 0);
-            if ($base === '' || $inboundId < 1) {
+            if ($base === '' || $inboundId < 1 || $user === '' || $pass === '') {
                 continue;
             }
 
