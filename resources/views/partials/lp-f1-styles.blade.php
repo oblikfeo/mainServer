@@ -1321,6 +1321,65 @@
         color: #64748b;
         line-height: 1.35;
     }
+    .lp-f1 .lp-ref-progress-lead {
+        margin: 0.65rem 0 0 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #444;
+        line-height: 1.45;
+    }
+    .lp-f1 .lp-ref-rewards-intro {
+        margin: 0.75rem 0 0 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #333;
+        line-height: 1.5;
+    }
+    .lp-f1 .lp-ref-rewards-note {
+        margin: 0.65rem 0 0 0;
+        padding: 0.65rem 0.75rem;
+        border: 3px solid var(--lp-ink);
+        background: #fffef8;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #444;
+        line-height: 1.45;
+    }
+    .lp-f1 .lp-ref-rewards-table-wrap {
+        margin-top: 1rem;
+    }
+    .lp-f1 .lp-ref-rewards-table td {
+        font-size: 0.75rem;
+        line-height: 1.35;
+    }
+    .lp-f1 .lp-ref-rewards-table strong {
+        font-weight: 900;
+    }
+    .lp-f1 .lp-ref-rewards-tag {
+        display: inline-block;
+        margin-left: 0.25rem;
+        padding: 0.12rem 0.4rem;
+        font-size: 0.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border: 2px solid var(--lp-ink);
+        background: #fffef0;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    .lp-f1 .lp-ref-rewards-dash {
+        text-align: center;
+        color: #94a3b8;
+        font-weight: 700;
+    }
+    .lp-f1 .lp-ref-rewards-fraud {
+        margin: 0.85rem 0 0 0;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: #64748b;
+        line-height: 1.45;
+    }
     .lp-f1 .lp-ref-share {
         margin-top: 1.15rem;
         display: grid;
