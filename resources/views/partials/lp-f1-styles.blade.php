@@ -1296,6 +1296,35 @@
         background: #fff;
         box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.1);
     }
+    .lp-f1 .lp-ref-quest--done {
+        border-color: #166534;
+        background: linear-gradient(180deg, #ecfdf5 0%, #f8fafc 55%, #fff 100%);
+        box-shadow: 6px 6px 0 rgba(22, 101, 52, 0.14);
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-quest__badge {
+        background: #166534;
+        border-color: #166534;
+        color: #fff;
+        font-size: 1rem;
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-quest__name {
+        color: #14532d;
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-quest__ratio {
+        color: #15803d;
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-bar {
+        border-color: #166534;
+        background: #dcfce7;
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-bar__fill {
+        background: #22c55e;
+        border-right-color: #166534;
+    }
+    .lp-f1 .lp-ref-quest--done .lp-ref-quest__status {
+        color: #15803d;
+        font-weight: 700;
+    }
     .lp-f1 .lp-ref-quest__badge {
         flex-shrink: 0;
         display: flex;
@@ -1383,7 +1412,6 @@
         padding: 0.65rem 0.75rem;
         border: 3px solid var(--lp-ink);
         background: #fff;
-        box-shadow: inset 5px 0 0 var(--lp-orange);
     }
     .lp-f1 .lp-ref-quest__prize-feature-main {
         display: flex;

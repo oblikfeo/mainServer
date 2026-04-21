@@ -3,8 +3,22 @@
     <p class="lp-ref-quests-lead">Выполните условие — награда указана в блоках ниже.</p>
 
     <div class="lp-ref-quests">
+        <article class="lp-ref-quest lp-ref-quest--done">
+            <span class="lp-ref-quest__badge" aria-hidden="true">✓</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">Подтверждение почты</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">1/1</span>
+                </div>
+                <div class="lp-ref-bar" role="img" aria-label="1 из 1">
+                    <span class="lp-ref-bar__fill" style="width:100%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">Почта подтверждена</p>
+            </div>
+        </article>
+
         <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">1</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">2</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">Первая регистрация</h3>
@@ -30,7 +44,7 @@
         </article>
 
         <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">2</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">3</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">Первая оплата</h3>
@@ -44,7 +58,7 @@
                         </div>
                         <div class="lp-ref-quest__prize-cell">
                             <span class="lp-ref-quest__prize-who">Другу</span>
-                            <span class="lp-ref-quest__prize-val">+7 дней к периоду</span>
+                            <span class="lp-ref-quest__prize-val">+7 дней к подписке</span>
                         </div>
                     </div>
                 </div>
@@ -56,7 +70,7 @@
         </article>
 
         <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">3</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">4</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">4 активные оплаты</h3>
@@ -79,7 +93,7 @@
         </article>
 
         <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">4</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">5</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">10 активных оплат</h3>
