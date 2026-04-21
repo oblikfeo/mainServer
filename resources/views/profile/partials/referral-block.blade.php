@@ -3,11 +3,11 @@
 
     <div class="lp-referral-metrics lp-referral-metrics--profile">
         <div class="lp-referral-metric">
-            <span class="lp-referral-metric__label">Зарегалось</span>
+            <span class="lp-referral-metric__label">Зарегистрировалось</span>
             <span class="lp-referral-metric__value tabular-nums">{{ $referralsRegistered }}</span>
         </div>
         <div class="lp-referral-metric">
-            <span class="lp-referral-metric__label">Оплатили</span>
+            <span class="lp-referral-metric__label">Оплатили подписку</span>
             <span class="lp-referral-metric__value tabular-nums">{{ $referralsPaid }}</span>
         </div>
     </div>
