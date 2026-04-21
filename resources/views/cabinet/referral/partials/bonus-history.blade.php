@@ -1,4 +1,4 @@
-<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: false }">
     <button
         type="button"
         class="lp-profile-accordion__trigger"
@@ -12,7 +12,7 @@
     </button>
     <div class="lp-profile-accordion__panel" id="ref-history-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-history-title">
 
-    <div class="lp-table-wrap lp-ref-table-wrap">
+    <div class="lp-table-wrap lp-ref-table-wrap lp-ref-table-wrap--wide">
         <table class="lp-table lp-ref-table">
             <thead>
                 <tr>

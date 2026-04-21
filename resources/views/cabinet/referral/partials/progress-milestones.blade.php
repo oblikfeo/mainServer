@@ -1,4 +1,4 @@
-<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: false }">
     <button
         type="button"
         class="lp-profile-accordion__trigger"
