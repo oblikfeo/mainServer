@@ -53,7 +53,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
     Route::get('/dashboard/referral', [CabinetReferralController::class, 'show'])->name('cabinet.referral');
-    Route::get('/dashboard/referral2', [CabinetReferralController::class, 'showV2'])->name('cabinet.referral2');
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
