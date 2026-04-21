@@ -11,7 +11,7 @@ return [
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
-    'bundle_order' => ['wifi', 'fi', 'nl'],
+    'bundle_order' => ['fi', 'nl'],
 
     'nodes' => [
         'wifi' => [
