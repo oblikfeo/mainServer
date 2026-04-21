@@ -19,14 +19,8 @@ final class CreateDualBundleSubscription
      */
     public function create(int $devices, int $days, int $quotaGb, ?int $userId = null): CreatedSubscriptionResult
     {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
-
-        if ($user === '' || $pass === '') {
-            throw new XuiPanelException('Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD');
-        }
 
         $expiryMs = (int) ((time() + $days * 86400) * 1000);
 
@@ -51,6 +45,14 @@ final class CreateDualBundleSubscription
                 throw new XuiPanelException("Пустой panel_base для {$bundleKey} (XUI_*_BASE)");
             }
 
+            $user = (string) ($node['panel_username'] ?? '');
+            $pass = (string) ($node['panel_password'] ?? '');
+            if ($user === '' || $pass === '') {
+                throw new XuiPanelException(
+                    "Не заданы креды для узла «{$bundleKey}» (XUI_".strtoupper($bundleKey)."_USER/PASSWORD либо XUI_PANEL_USER/PASSWORD)"
+                );
+            }
+
             $inboundId = (int) ($node['inbound_id'] ?? 0);
             if ($inboundId < 1) {
                 throw new XuiPanelException("Неверный inbound для {$bundleKey}");
@@ -63,6 +65,8 @@ final class CreateDualBundleSubscription
             $currentClient = [
                 'bundle' => $bundleKey,
                 'base' => $base,
+                'user' => $user,
+                'pass' => $pass,
                 'inboundId' => $inboundId,
                 'email' => $email,
             ];
@@ -88,9 +92,7 @@ final class CreateDualBundleSubscription
             } catch (Throwable $e) {
                 $msg = $e->getMessage();
                 $rollbackMessage = $this->rollbackClients(
-                    array_merge($createdClients, [$currentClient]),
-                    $user,
-                    $pass
+                    array_merge($createdClients, [$currentClient])
                 );
                 if ($rollbackMessage !== '') {
                     $msg .= " | Откат: {$rollbackMessage}";
@@ -138,6 +140,7 @@ final class CreateDualBundleSubscription
         return new CreatedSubscriptionResult(
             $subscription,
             $subscriptionUrl,
+            $decoded['wifi'],
             $decoded['fi'],
             $decoded['nl'],
             $decoded['warning'],
@@ -145,72 +148,74 @@ final class CreateDualBundleSubscription
     }
 
     /**
-     * @return array{fi: string, nl: string, warning: ?string}
+     * @return array{wifi: string, fi: string, nl: string, warning: ?string}
      */
     public function decodeLinesForSubscription(Subscription $subscription): array
     {
         $nodes = config('xui.nodes', []);
-        $fiNode = $nodes['fi'] ?? [];
-        $nlNode = $nodes['nl'] ?? [];
+        $order = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $subDesc = (string) config('xui.vless_server_description', '');
+        $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
-        try {
-            $fiRaw = $this->fetchSubRaw(
-                (string) ($fiNode['sub_origin'] ?? ''),
-                $subscription->fi_sub_id,
-                (string) ($fiNode['pub_host'] ?? '')
-            );
-            $nlRaw = $this->fetchSubRaw(
-                (string) ($nlNode['sub_origin'] ?? ''),
-                $subscription->nl_sub_id,
-                (string) ($nlNode['pub_host'] ?? '')
-            );
+        $out = ['wifi' => '', 'fi' => '', 'nl' => '', 'warning' => null];
+        $missing = [];
 
-            $fiLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($fiRaw);
-            $nlLine = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($nlRaw);
+        foreach ($order as $key) {
+            if (! array_key_exists($key, $out) || $key === 'warning') {
+                continue;
+            }
+            $node = $nodes[$key] ?? [];
+            $subIdField = $key.'_sub_id';
+            $subId = (string) ($subscription->$subIdField ?? '');
+            if ($subId === '') {
+                continue;
+            }
 
-            $subDesc = (string) config('xui.vless_server_description', '');
-            $subFmt = (string) config('xui.vless_server_description_format', 'dual');
-
-            return [
-                'fi' => VlessSubscriptionHelper::setVlessFragment(
-                    $fiLine,
-                    (string) ($fiNode['vless_display_name'] ?? 'FI'),
+            try {
+                $raw = $this->fetchSubRaw(
+                    (string) ($node['sub_origin'] ?? ''),
+                    $subId,
+                    (string) ($node['pub_host'] ?? '')
+                );
+                $line = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($raw);
+                if ($line === '') {
+                    $missing[] = strtoupper($key);
+                    continue;
+                }
+                $out[$key] = VlessSubscriptionHelper::setVlessFragment(
+                    $line,
+                    (string) ($node['vless_display_name'] ?? strtoupper($key)),
                     $subDesc,
                     $subFmt
-                ),
-                'nl' => VlessSubscriptionHelper::setVlessFragment(
-                    $nlLine,
-                    (string) ($nlNode['vless_display_name'] ?? 'NL'),
-                    $subDesc,
-                    $subFmt
-                ),
-                'warning' => ($fiLine === '' || $nlLine === '')
-                    ? 'В ответе одной из панелей не найдена строка vless://'
-                    : null,
-            ];
-        } catch (Throwable $e) {
-            return [
-                'fi' => '',
-                'nl' => '',
-                'warning' => $e->getMessage(),
-            ];
+                );
+            } catch (Throwable $e) {
+                $missing[] = strtoupper($key).' ('.$e->getMessage().')';
+            }
         }
+
+        if ($missing !== []) {
+            $out['warning'] = 'Не удалось получить строку vless:// с узлов: '.implode(', ', $missing);
+        }
+
+        return $out;
     }
 
     /**
-     * @param  list<array{bundle: string, base: string, inboundId: int, email: string}>  $clients
+     * @param  list<array{bundle: string, base: string, user: string, pass: string, inboundId: int, email: string}>  $clients
      */
-    private function rollbackClients(array $clients, string $user, string $pass): string
+    private function rollbackClients(array $clients): string
     {
         $errors = [];
         $seen = [];
 
         foreach ($clients as $item) {
             $base = (string) ($item['base'] ?? '');
+            $user = (string) ($item['user'] ?? '');
+            $pass = (string) ($item['pass'] ?? '');
             $inboundId = (int) ($item['inboundId'] ?? 0);
             $email = (string) ($item['email'] ?? '');
             $bundle = (string) ($item['bundle'] ?? '?');
-            if ($base === '' || $inboundId < 1 || $email === '') {
+            if ($base === '' || $inboundId < 1 || $email === '' || $user === '' || $pass === '') {
                 continue;
             }
 

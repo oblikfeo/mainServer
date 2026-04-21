@@ -8,6 +8,11 @@
  * В 3x-ui на каждом inbound свой totalGB = intdiv(quota_в_байтах, count(bundle_order)).
  */
 return [
+    /**
+     * Глобальные креды 3x-ui — fallback, если для ноды не задан свой пользователь/пароль.
+     * Исторически FI и NL делались под одной учёткой, WiFi (Hostkey) — с собственной.
+     * Для новых/разнородных панелей ставьте XUI_<KEY>_USER / XUI_<KEY>_PASSWORD.
+     */
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
@@ -16,6 +21,8 @@ return [
     'nodes' => [
         'wifi' => [
             'panel_base' => rtrim((string) env('XUI_WIFI_BASE', ''), '/'),
+            'panel_username' => env('XUI_WIFI_USER') ?: env('XUI_PANEL_USER', ''),
+            'panel_password' => env('XUI_WIFI_PASSWORD') ?: env('XUI_PANEL_PASSWORD', ''),
             'sub_origin' => rtrim((string) env('XUI_WIFI_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_WIFI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 1),
@@ -25,6 +32,8 @@ return [
         ],
         'fi' => [
             'panel_base' => rtrim((string) env('XUI_FI_BASE', ''), '/'),
+            'panel_username' => env('XUI_FI_USER') ?: env('XUI_PANEL_USER', ''),
+            'panel_password' => env('XUI_FI_PASSWORD') ?: env('XUI_PANEL_PASSWORD', ''),
             'sub_origin' => rtrim((string) env('XUI_FI_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_FI_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
@@ -34,6 +43,8 @@ return [
         ],
         'nl' => [
             'panel_base' => rtrim((string) env('XUI_NL_BASE', ''), '/'),
+            'panel_username' => env('XUI_NL_USER') ?: env('XUI_PANEL_USER', ''),
+            'panel_password' => env('XUI_NL_PASSWORD') ?: env('XUI_PANEL_PASSWORD', ''),
             'sub_origin' => rtrim((string) env('XUI_NL_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_NL_PUB_HOST', ''),
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),

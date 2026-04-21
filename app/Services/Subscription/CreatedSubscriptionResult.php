@@ -9,6 +9,7 @@ final class CreatedSubscriptionResult
     public function __construct(
         public Subscription $subscription,
         public string $subscriptionUrl,
+        public string $wifiVlessLine,
         public string $fiVlessLine,
         public string $nlVlessLine,
         public ?string $decodeWarning,
