@@ -1309,13 +1309,10 @@
     .lp-f1 .lp-ref-bar__fill {
         display: block;
         height: 100%;
-        background: linear-gradient(180deg, #ff8c3a 0%, var(--lp-orange) 42%, #b83200 100%);
+        background: var(--lp-orange);
         border-right: 2px solid var(--lp-ink);
         min-width: 4px;
         transition: width 0.4s ease;
-    }
-    .lp-f1 .lp-ref-bar__fill--tone {
-        background: linear-gradient(180deg, var(--lp-orange) 0%, #e03e00 55%, #8c2800 100%);
     }
     .lp-f1 .lp-ref-milestone__hint {
         margin: 0.5rem 0 0 0;
@@ -1331,13 +1328,30 @@
         gap: 0.85rem;
     }
     @media (min-width: 480px) {
-        .lp-f1 .lp-ref-share {
+        .lp-f1 .lp-ref-share:not(.lp-ref-share--many) {
             grid-template-columns: 1fr 1fr;
         }
     }
-    @media (min-width: 900px) {
+    /* Четыре карточки шеринга — один ряд (от ~768px); на узких экранах 2×2 */
+    .lp-f1 .lp-ref-share.lp-ref-share--many {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+    }
+    @media (min-width: 768px) {
         .lp-f1 .lp-ref-share.lp-ref-share--many {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    .lp-f1 .lp-ref-share--many .lp-ref-share__btn {
+        padding: 0.75rem 0.5rem;
+        min-height: 4.75rem;
+    }
+    @media (min-width: 768px) {
+        .lp-f1 .lp-ref-share--many .lp-ref-share__label {
+            font-size: 0.8125rem;
+        }
+        .lp-f1 .lp-ref-share--many .lp-ref-share__sub {
+            font-size: 0.625rem;
         }
     }
     .lp-f1 .lp-ref-share__btn {
@@ -1407,8 +1421,8 @@
         padding: 1rem 1.25rem;
         margin: 0;
         border: 4px solid var(--lp-ink);
-        background: var(--lp-orange);
-        color: #fff;
+        background: #fff;
+        color: var(--lp-ink);
         font: inherit;
         font-size: 0.875rem;
         font-weight: 900;
@@ -1419,8 +1433,8 @@
         transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
     }
     .lp-f1 .lp-ref-share__copy-btn:hover {
-        background: #e03e00;
-        color: #fff;
+        background: #f5f5f5;
+        color: var(--lp-ink);
     }
     .lp-f1 .lp-ref-share__copy-btn:active {
         transform: translate(3px, 3px);

@@ -19,7 +19,7 @@
                 <span class="lp-ref-milestone__ratio tabular-nums">3/5</span>
             </div>
             <div class="lp-ref-bar" role="img" aria-label="Приглашено 3 из 5 человек для бонуса">
-                <span class="lp-ref-bar__fill lp-ref-bar__fill--tone" style="width:60%;"></span>
+                <span class="lp-ref-bar__fill" style="width:60%;"></span>
             </div>
             <p class="lp-ref-milestone__hint">До следующего уровня награды осталось 2 приглашения.</p>
         </article>
