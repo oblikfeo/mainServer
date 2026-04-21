@@ -1321,64 +1321,88 @@
         color: #64748b;
         line-height: 1.35;
     }
-    .lp-f1 .lp-ref-progress-lead {
-        margin: 0.65rem 0 0 0;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #444;
-        line-height: 1.45;
-    }
-    .lp-f1 .lp-ref-rewards-intro {
-        margin: 0.75rem 0 0 0;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #333;
-        line-height: 1.5;
-    }
-    .lp-f1 .lp-ref-rewards-note {
-        margin: 0.65rem 0 0 0;
-        padding: 0.65rem 0.75rem;
-        border: 3px solid var(--lp-ink);
-        background: #fffef8;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: #444;
-        line-height: 1.45;
-    }
-    .lp-f1 .lp-ref-rewards-table-wrap {
+    .lp-f1 .lp-ref-prize-grid {
         margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
     }
-    .lp-f1 .lp-ref-rewards-table td {
-        font-size: 0.75rem;
-        line-height: 1.35;
+    @media (min-width: 520px) {
+        .lp-f1 .lp-ref-prize-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
     }
-    .lp-f1 .lp-ref-rewards-table strong {
-        font-weight: 900;
+    @media (min-width: 900px) {
+        .lp-f1 .lp-ref-prize-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
     }
-    .lp-f1 .lp-ref-rewards-tag {
-        display: inline-block;
-        margin-left: 0.25rem;
-        padding: 0.12rem 0.4rem;
-        font-size: 0.5rem;
+    .lp-f1 .lp-ref-prize-cell {
+        border: 4px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.1);
+        padding: 0.85rem 0.7rem;
+        min-height: 6.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+    .lp-f1 .lp-ref-prize-cell--accent {
+        background: linear-gradient(180deg, #fffef8 0%, #fff 100%);
+        box-shadow: 6px 6px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-prize-cell__name {
+        margin: 0;
+        font-size: 0.5625rem;
         font-weight: 900;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        border: 2px solid var(--lp-ink);
-        background: #fffef0;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-    .lp-f1 .lp-ref-rewards-dash {
-        text-align: center;
-        color: #94a3b8;
-        font-weight: 700;
-    }
-    .lp-f1 .lp-ref-rewards-fraud {
-        margin: 0.85rem 0 0 0;
-        font-size: 0.6875rem;
-        font-weight: 600;
+        letter-spacing: 0.06em;
         color: #64748b;
-        line-height: 1.45;
+        line-height: 1.25;
+    }
+    .lp-f1 .lp-ref-prize-cell__pairs {
+        margin: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+    .lp-f1 .lp-ref-prize-cell__pairs > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.35rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 2px solid #e8eaee;
+    }
+    .lp-f1 .lp-ref-prize-cell__pairs > div:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .lp-f1 .lp-ref-prize-cell__pairs dt {
+        margin: 0;
+        font-size: 0.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+    }
+    .lp-f1 .lp-ref-prize-cell__pairs dd {
+        margin: 0;
+        font-size: 0.75rem;
+        font-weight: 900;
+        color: var(--lp-ink);
+        text-align: right;
+    }
+    .lp-f1 .lp-ref-prize-cell__solo {
+        margin: 0;
+        font-size: 0.8125rem;
+        font-weight: 900;
+        line-height: 1.35;
+        color: var(--lp-ink);
+        flex: 1;
+        display: flex;
+        align-items: center;
     }
     .lp-f1 .lp-ref-share {
         margin-top: 1.15rem;
