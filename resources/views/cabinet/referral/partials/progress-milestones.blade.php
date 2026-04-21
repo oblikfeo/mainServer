@@ -1,6 +1,6 @@
 <section class="lp-profile-block lp-ref-section" aria-labelledby="ref-quests-title">
     <h2 id="ref-quests-title" class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Задания</h2>
-    <p class="lp-ref-quests-lead">Выполните условие — получите приз.</p>
+    <p class="lp-ref-quests-lead">Выполните условие — награда указана в блоках ниже.</p>
 
     <div class="lp-ref-quests">
         <article class="lp-ref-quest">
@@ -11,14 +11,13 @@
                     <span class="lp-ref-quest__ratio tabular-nums">0/1</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
-                    <span class="lp-ref-quest__prize-kicker">Приз</span>
                     <div class="lp-ref-quest__prize-split">
                         <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Пригласившему</span>
+                            <span class="lp-ref-quest__prize-who">Вам</span>
                             <span class="lp-ref-quest__prize-val">+1 день</span>
                         </div>
                         <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Приглашённому</span>
+                            <span class="lp-ref-quest__prize-who">Другу</span>
                             <span class="lp-ref-quest__prize-val">+8 ч к тесту</span>
                         </div>
                     </div>
@@ -38,14 +37,13 @@
                     <span class="lp-ref-quest__ratio tabular-nums">1/3</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
-                    <span class="lp-ref-quest__prize-kicker">Приз</span>
                     <div class="lp-ref-quest__prize-split">
                         <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Пригласившему</span>
+                            <span class="lp-ref-quest__prize-who">Вам</span>
                             <span class="lp-ref-quest__prize-val">+7 дней к подписке</span>
                         </div>
                         <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Приглашённому</span>
+                            <span class="lp-ref-quest__prize-who">Другу</span>
                             <span class="lp-ref-quest__prize-val">+7 дней к периоду</span>
                         </div>
                     </div>
@@ -65,7 +63,6 @@
                     <span class="lp-ref-quest__ratio tabular-nums">2/4</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
-                    <span class="lp-ref-quest__prize-kicker">Приз</span>
                     <div class="lp-ref-quest__prize-feature">
                         <div class="lp-ref-quest__prize-feature-main">
                             <span class="lp-ref-quest__prize-feature-title">+1 устройство</span>
@@ -89,7 +86,6 @@
                     <span class="lp-ref-quest__ratio tabular-nums">6/10</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
-                    <span class="lp-ref-quest__prize-kicker">Приз</span>
                     <div class="lp-ref-quest__prize-feature">
                         <div class="lp-ref-quest__prize-feature-main">
                             <span class="lp-ref-quest__prize-feature-title">Безлимитный трафик</span>
