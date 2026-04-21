@@ -1335,24 +1335,90 @@
         font-weight: 900;
         color: var(--lp-ink);
     }
-    .lp-f1 .lp-ref-quest__reward {
-        margin: 0.45rem 0 0 0;
-        font-size: 0.75rem;
+    .lp-f1 .lp-ref-quest__prize-wrap {
+        margin-top: 0.55rem;
+    }
+    .lp-f1 .lp-ref-quest__prize-kicker {
+        display: block;
+        margin-bottom: 0.4rem;
+        font-size: 0.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #64748b;
+    }
+    .lp-f1 .lp-ref-quest__prize-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    @media (max-width: 380px) {
+        .lp-f1 .lp-ref-quest__prize-split {
+            grid-template-columns: 1fr;
+        }
+    }
+    .lp-f1 .lp-ref-quest__prize-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        padding: 0.55rem 0.6rem;
+        border: 3px solid var(--lp-ink);
+        background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-quest__prize-who {
+        font-size: 0.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        line-height: 1.2;
+    }
+    .lp-f1 .lp-ref-quest__prize-val {
+        font-size: 0.8125rem;
+        font-weight: 900;
+        color: var(--lp-ink);
+        line-height: 1.25;
+    }
+    .lp-f1 .lp-ref-quest__prize-feature {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.65rem;
+        padding: 0.65rem 0.75rem;
+        border: 3px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: inset 5px 0 0 var(--lp-orange);
+    }
+    .lp-f1 .lp-ref-quest__prize-feature-main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-quest__prize-feature-title {
+        font-size: 0.9375rem;
+        font-weight: 900;
+        line-height: 1.2;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-quest__prize-feature-sub {
+        font-size: 0.6875rem;
         font-weight: 700;
-        color: #334155;
-        line-height: 1.45;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
     }
     .lp-f1 .lp-ref-quest__tag {
-        display: inline-block;
-        margin-left: 0.25rem;
-        padding: 0.1rem 0.35rem;
+        flex-shrink: 0;
+        align-self: flex-start;
+        padding: 0.2rem 0.45rem;
         font-size: 0.5rem;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         border: 2px solid var(--lp-ink);
         background: #fff8e6;
-        vertical-align: middle;
         white-space: nowrap;
     }
     .lp-f1 .lp-ref-quest__status {

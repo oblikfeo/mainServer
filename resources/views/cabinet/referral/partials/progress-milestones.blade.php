@@ -10,7 +10,19 @@
                     <h3 class="lp-ref-quest__name">Первая регистрация</h3>
                     <span class="lp-ref-quest__ratio tabular-nums">0/1</span>
                 </div>
-                <p class="lp-ref-quest__reward">+1 день пригласившему · +8 ч к тестовому периоду приглашённому</p>
+                <div class="lp-ref-quest__prize-wrap">
+                    <span class="lp-ref-quest__prize-kicker">Приз</span>
+                    <div class="lp-ref-quest__prize-split">
+                        <div class="lp-ref-quest__prize-cell">
+                            <span class="lp-ref-quest__prize-who">Пригласившему</span>
+                            <span class="lp-ref-quest__prize-val">+1 день</span>
+                        </div>
+                        <div class="lp-ref-quest__prize-cell">
+                            <span class="lp-ref-quest__prize-who">Приглашённому</span>
+                            <span class="lp-ref-quest__prize-val">+8 ч к тесту</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="lp-ref-bar" role="img" aria-label="0 из 1">
                     <span class="lp-ref-bar__fill" style="width:0%;"></span>
                 </div>
@@ -25,7 +37,19 @@
                     <h3 class="lp-ref-quest__name">Первая оплата</h3>
                     <span class="lp-ref-quest__ratio tabular-nums">1/3</span>
                 </div>
-                <p class="lp-ref-quest__reward">+7 дней подписки пригласившему · +7 дней приглашённому</p>
+                <div class="lp-ref-quest__prize-wrap">
+                    <span class="lp-ref-quest__prize-kicker">Приз</span>
+                    <div class="lp-ref-quest__prize-split">
+                        <div class="lp-ref-quest__prize-cell">
+                            <span class="lp-ref-quest__prize-who">Пригласившему</span>
+                            <span class="lp-ref-quest__prize-val">+7 дней к подписке</span>
+                        </div>
+                        <div class="lp-ref-quest__prize-cell">
+                            <span class="lp-ref-quest__prize-who">Приглашённому</span>
+                            <span class="lp-ref-quest__prize-val">+7 дней к периоду</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="lp-ref-bar" role="img" aria-label="1 из 3">
                     <span class="lp-ref-bar__fill" style="width:33%;"></span>
                 </div>
@@ -40,7 +64,16 @@
                     <h3 class="lp-ref-quest__name">4 активные оплаты</h3>
                     <span class="lp-ref-quest__ratio tabular-nums">2/4</span>
                 </div>
-                <p class="lp-ref-quest__reward">+1 устройство навсегда <span class="lp-ref-quest__tag">эксклюзив</span></p>
+                <div class="lp-ref-quest__prize-wrap">
+                    <span class="lp-ref-quest__prize-kicker">Приз</span>
+                    <div class="lp-ref-quest__prize-feature">
+                        <div class="lp-ref-quest__prize-feature-main">
+                            <span class="lp-ref-quest__prize-feature-title">+1 устройство</span>
+                            <span class="lp-ref-quest__prize-feature-sub">навсегда</span>
+                        </div>
+                        <span class="lp-ref-quest__tag">эксклюзив</span>
+                    </div>
+                </div>
                 <div class="lp-ref-bar" role="img" aria-label="2 из 4">
                     <span class="lp-ref-bar__fill" style="width:50%;"></span>
                 </div>
@@ -55,7 +88,16 @@
                     <h3 class="lp-ref-quest__name">10 активных оплат</h3>
                     <span class="lp-ref-quest__ratio tabular-nums">6/10</span>
                 </div>
-                <p class="lp-ref-quest__reward">Безлимитный трафик навсегда <span class="lp-ref-quest__tag">эксклюзив</span></p>
+                <div class="lp-ref-quest__prize-wrap">
+                    <span class="lp-ref-quest__prize-kicker">Приз</span>
+                    <div class="lp-ref-quest__prize-feature">
+                        <div class="lp-ref-quest__prize-feature-main">
+                            <span class="lp-ref-quest__prize-feature-title">Безлимитный трафик</span>
+                            <span class="lp-ref-quest__prize-feature-sub">навсегда</span>
+                        </div>
+                        <span class="lp-ref-quest__tag">эксклюзив</span>
+                    </div>
+                </div>
                 <div class="lp-ref-bar" role="img" aria-label="6 из 10">
                     <span class="lp-ref-bar__fill" style="width:60%;"></span>
                 </div>
