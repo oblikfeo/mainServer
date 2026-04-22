@@ -6,7 +6,7 @@
             /** @var \App\Models\TestKey|null $activeTestKey */
             $activeTestKey = $activeTestKey ?? null;
             $hasPaidSub = !empty($items);
-            $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/search?term=hiddify');
+            $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
         @endphp
