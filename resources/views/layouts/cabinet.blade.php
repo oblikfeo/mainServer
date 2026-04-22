@@ -33,8 +33,10 @@
                                 href="{{ route('cabinet.profile') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}"
                             >Профиль</a>
-                            {{-- Маршрут cabinet.referral сохранён; пункт скрыт от пользователей --}}
-                            {{-- <a href="{{ route('cabinet.referral') }}" class="lp-cab-nav__link {{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}">Реферальная система</a> --}}
+                            <a
+                                href="{{ route('cabinet.referral') }}"
+                                class="lp-cab-nav__link {{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}"
+                            >Реферальная программа</a>
                             <a
                                 href="{{ route('cabinet.settings') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}"
@@ -137,7 +139,7 @@
                         <nav class="flex-1 overflow-y-auto p-3 lp-drawer-nav" aria-label="Мобильное меню">
                             <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Мои подписки</a>
                             <a href="{{ route('cabinet.profile') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}">Профиль</a>
-                            {{-- <a href="{{ route('cabinet.referral') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}">Реферальная система</a> --}}
+                            <a href="{{ route('cabinet.referral') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}">Реферальная программа</a>
                             <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Устройства</a>
                             <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Тарифы и оплата</a>
                             <a href="{{ route('cabinet.purchases') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}">История покупок</a>
