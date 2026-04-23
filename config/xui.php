@@ -16,7 +16,7 @@ return [
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
-    'bundle_order' => ['wifi', 'wifi2', 'fi', 'nl'],
+    'bundle_order' => ['wifi', 'fi', 'nl'],
 
     'nodes' => [
         'wifi' => [
@@ -25,25 +25,12 @@ return [
             'panel_password' => env('XUI_WIFI_PASSWORD') ?: env('XUI_PANEL_PASSWORD', ''),
             'sub_origin' => rtrim((string) env('XUI_WIFI_SUB_ORIGIN', ''), '/'),
             'pub_host' => env('XUI_WIFI_PUB_HOST', ''),
-            'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 1),
-            'client_email_prefix' => env('XUI_WIFI_EMAIL_PREFIX', 'wifi'),
-            'client_flow' => env('XUI_WIFI_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: '🇭🇰 WiFi Скорость 🚀',
+            'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 3),
+            'client_email_prefix' => env('XUI_WIFI_EMAIL_PREFIX', 'wifi2'),
+            'client_flow' => env('XUI_WIFI_FLOW', ''),
+            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: 'Высокая скорость Wi-Fi',
             'vless_server_description' => env('XUI_WIFI_SERVER_DESC', 'прямое подключение'),
             'reality_sid' => env('XUI_WIFI_REALITY_SID', '0123456789abcdef'),
-        ],
-        'wifi2' => [
-            'panel_base' => rtrim((string) env('XUI_WIFI2_BASE', env('XUI_WIFI_BASE', '')), '/'),
-            'panel_username' => env('XUI_WIFI2_USER') ?: env('XUI_WIFI_USER') ?: env('XUI_PANEL_USER', ''),
-            'panel_password' => env('XUI_WIFI2_PASSWORD') ?: env('XUI_WIFI_PASSWORD') ?: env('XUI_PANEL_PASSWORD', ''),
-            'sub_origin' => rtrim((string) env('XUI_WIFI2_SUB_ORIGIN', env('XUI_WIFI_SUB_ORIGIN', '')), '/'),
-            'pub_host' => env('XUI_WIFI2_PUB_HOST', env('XUI_WIFI_PUB_HOST', '')),
-            'inbound_id' => (int) env('XUI_WIFI2_INBOUND_ID', 4),
-            'client_email_prefix' => env('XUI_WIFI2_EMAIL_PREFIX', 'wifi2'),
-            'client_flow' => env('XUI_WIFI2_FLOW', ''),
-            'vless_display_name' => env('XUI_WIFI2_VLESS_NAME') ?: '🇭🇰 WiFi Альтернатива 🎯',
-            'vless_server_description' => env('XUI_WIFI2_SERVER_DESC', 'прямое подключение 2'),
-            'reality_sid' => env('XUI_WIFI2_REALITY_SID', env('XUI_WIFI_REALITY_SID', '0123456789abcdef')),
         ],
         'fi' => [
             'panel_base' => rtrim((string) env('XUI_FI_BASE', ''), '/'),

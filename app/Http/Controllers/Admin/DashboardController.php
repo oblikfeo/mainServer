@@ -34,12 +34,8 @@ class DashboardController extends Controller
         });
 
         $subsCountWifi = (clone $activeSubQ)
-            ->where(function ($q) {
-                $q->whereNotNull('wifi_sub_id')->where('wifi_sub_id', '!=', '')
-                    ->orWhere(function ($q2) {
-                        $q2->whereNotNull('wifi2_sub_id')->where('wifi2_sub_id', '!=', '');
-                    });
-            })
+            ->whereNotNull('wifi_sub_id')
+            ->where('wifi_sub_id', '!=', '')
             ->count();
         $subsCountFi = (clone $activeSubQ)
             ->whereNotNull('fi_sub_id')

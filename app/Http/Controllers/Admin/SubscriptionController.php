@@ -69,7 +69,6 @@ class SubscriptionController extends Controller
             ->with('subscription_result', [
                 'subscription_url' => $result->subscriptionUrl,
                 'wifi_vless' => $result->wifiVlessLine,
-                'wifi2_vless' => $result->wifi2VlessLine,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
                 'decode_warning' => $result->decodeWarning,
@@ -85,7 +84,6 @@ class SubscriptionController extends Controller
         if (is_array($payload)) {
             $subscriptionUrl = $payload['subscription_url'] ?? url('/sub/'.$subscription->token);
             $wifiVless = $payload['wifi_vless'] ?? '';
-            $wifi2Vless = $payload['wifi2_vless'] ?? '';
             $fiVless = $payload['fi_vless'] ?? '';
             $nlVless = $payload['nl_vless'] ?? '';
             $decodeWarning = $payload['decode_warning'] ?? null;
@@ -93,7 +91,6 @@ class SubscriptionController extends Controller
             $subscriptionUrl = url('/sub/'.$subscription->token);
             $decoded = $service->decodeLinesForSubscription($subscription);
             $wifiVless = $decoded['wifi'];
-            $wifi2Vless = $decoded['wifi2'];
             $fiVless = $decoded['fi'];
             $nlVless = $decoded['nl'];
             $decodeWarning = $decoded['warning'];
@@ -103,7 +100,6 @@ class SubscriptionController extends Controller
             'subscription' => $subscription,
             'subscriptionUrl' => $subscriptionUrl,
             'wifiVless' => $wifiVless,
-            'wifi2Vless' => $wifi2Vless,
             'fiVless' => $fiVless,
             'nlVless' => $nlVless,
             'decodeWarning' => $decodeWarning,

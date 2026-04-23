@@ -18,7 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\SubscriptionClearBoundHwidCommand::class,
         \App\Console\Commands\SubscriptionUpdateQuotaCommand::class,
         \App\Console\Commands\AddWifiToExistingSubscriptions::class,
-        \App\Console\Commands\AddWifi2ToExistingSubscriptions::class,
         \App\Console\Commands\SubscriptionCreateAdminCommand::class,
         \App\Console\Commands\TestKeysCleanupCommand::class,
         \App\Console\Commands\MailTestCommand::class,

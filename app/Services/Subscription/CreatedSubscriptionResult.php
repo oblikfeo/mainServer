@@ -10,7 +10,6 @@ final class CreatedSubscriptionResult
         public Subscription $subscription,
         public string $subscriptionUrl,
         public string $wifiVlessLine,
-        public string $wifi2VlessLine,
         public string $fiVlessLine,
         public string $nlVlessLine,
         public ?string $decodeWarning,
