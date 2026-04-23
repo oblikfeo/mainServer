@@ -15,9 +15,20 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.register');
+        $invitedBy = null;
+        $pendingRef = $request->session()->get('pending_referral_code');
+        if (is_string($pendingRef) && $pendingRef !== '') {
+            $invitedBy = User::query()
+                ->select(['id', 'name', 'email'])
+                ->where('referral_code', $pendingRef)
+                ->first();
+        }
+
+        return view('auth.register', [
+            'invitedBy' => $invitedBy,
+        ]);
     }
 
     /**
