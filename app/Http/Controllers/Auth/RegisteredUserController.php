@@ -17,6 +17,16 @@ class RegisteredUserController extends Controller
 {
     public function create(Request $request): View
     {
+        $rawRef = $request->query('ref');
+        $hasRefInUrl = is_string($rawRef) && trim($rawRef) !== '';
+        if (! $hasRefInUrl) {
+            $request->session()->forget('pending_referral_code');
+
+            return view('auth.register', [
+                'invitedBy' => null,
+            ]);
+        }
+
         $invitedBy = null;
         $pendingRef = $request->session()->get('pending_referral_code');
         if (is_string($pendingRef) && $pendingRef !== '') {
