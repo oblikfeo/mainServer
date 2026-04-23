@@ -37,7 +37,7 @@ class SubscriptionUpdateQuotaCommand extends Command
 
         $sync->syncForSubscription($sub);
 
-        $this->info("Готово: subscription #{$sub->id}, quota_gb = {$quotaGb} (на узел: ".$sub->perNodeTotalBytes()." байт)");
+        $this->info("Готово: subscription #{$sub->id}, quota_gb = {$quotaGb} (totalGB на каждой связке: ".$sub->perNodeTotalBytes()." байт)");
 
         return self::SUCCESS;
     }

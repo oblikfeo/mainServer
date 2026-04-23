@@ -5,7 +5,7 @@
  *
  * Заголовок и строка #subscription-userinfo в теле — суммарный трафик по подписке (0/100 в Happ).
  * Вторая строка в Happ: после title в фрагменте через «?» (см. happ.su app-management). Режим задаётся vless_server_description_format.
- * В 3x-ui на каждом inbound свой totalGB = intdiv(quota_в_байтах, count(bundle_order)).
+ * В 3x-ui на каждом inbound свой totalGB = полный лимит подписки в байтах (без деления по связкам).
  */
 return [
     /**

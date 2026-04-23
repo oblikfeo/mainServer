@@ -125,11 +125,11 @@
                         </div>
                         <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
                             <dt class="text-slate-500 font-medium shrink-0">Окончание</dt>
-                            <dd class="text-slate-900 font-semibold tabular-nums text-right break-words">{{ $exp ? $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') : '—' }}</dd>
+                            <dd class="text-slate-900 font-semibold tabular-nums text-right break-words">{{ $exp ? $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') : 'без срока' }}</dd>
                         </div>
                         <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
                             <dt class="text-slate-500 font-medium shrink-0">Квота</dt>
-                            <dd class="text-slate-900 font-semibold tabular-nums">{{ $subscription->quota_gb }} ГБ</dd>
+                            <dd class="text-slate-900 font-semibold tabular-nums">{{ (int) $subscription->quota_gb > 0 ? $subscription->quota_gb.' ГБ' : 'безлимит' }}</dd>
                         </div>
                         <div class="flex justify-between gap-3 py-2 border-b border-slate-100">
                             <dt class="text-slate-500 font-medium shrink-0">Трафик</dt>
@@ -252,7 +252,7 @@
                                 </td>
                                 <td class="px-4 py-3 font-mono text-xs text-slate-800 tabular-nums align-middle font-semibold">{{ $subscription->id }}</td>
                                 <td class="px-4 py-3 text-slate-800 tabular-nums align-middle whitespace-nowrap">{{ $subscription->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—' }}</td>
-                                <td class="px-4 py-3 text-slate-800 tabular-nums align-middle whitespace-nowrap">{{ $exp ? $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') : '—' }}</td>
+                                <td class="px-4 py-3 text-slate-800 tabular-nums align-middle whitespace-nowrap">{{ $exp ? $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') : 'без срока' }}</td>
                                 <td class="px-4 py-3 align-middle">
                                     @if ($exp === null)
                                         <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-slate-200/80 text-slate-700">—</span>
@@ -262,7 +262,7 @@
                                         <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/80">Активна</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $subscription->quota_gb }} ГБ</td>
+                                <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ (int) $subscription->quota_gb > 0 ? $subscription->quota_gb.' ГБ' : 'безлимит' }}</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap">{{ $totalUsed !== null ? $byteFmt($totalUsed) : '—' }}</td>
                                 <td class="px-4 py-3 text-slate-900 font-semibold tabular-nums align-middle whitespace-nowrap text-xs">
                                     Happ {{ $bhCount }}/{{ $subscription->devices }}

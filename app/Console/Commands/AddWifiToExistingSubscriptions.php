@@ -71,16 +71,14 @@ class AddWifiToExistingSubscriptions extends Command
                 $email = $prefix.'-'.substr($subId, 0, 10);
                 $uid = (string) Str::uuid();
 
-                $nodeCount = count(config('xui.bundle_order', ['wifi', 'fi', 'nl']));
                 $quotaBytes = (int) $sub->quota_gb * self::BYTES_PER_GB;
-                $bytesPerNode = max(1, intdiv($quotaBytes, $nodeCount));
 
                 $clientDef = [
                     'id' => $uid,
                     'email' => $email,
                     'flow' => $flow,
                     'limitIp' => max(0, (int) $sub->devices),
-                    'totalGB' => $bytesPerNode,
+                    'totalGB' => $quotaBytes,
                     'expiryTime' => (int) $sub->expiry_ms,
                     'enable' => true,
                     'tgId' => 0,

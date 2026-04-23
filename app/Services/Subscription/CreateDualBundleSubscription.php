@@ -17,19 +17,28 @@ final class CreateDualBundleSubscription
     /**
      * @throws XuiPanelException
      */
-    public function create(int $devices, int $days, int $quotaGb, ?int $userId = null): CreatedSubscriptionResult
+    public function create(
+        int $devices,
+        int $days,
+        int $quotaGb,
+        ?int $userId = null,
+        bool $unlimitedTraffic = false,
+        bool $unlimitedTime = false
+    ): CreatedSubscriptionResult
     {
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
 
-        $expiryMs = (int) ((time() + $days * 86400) * 1000);
+        $expiryMs = $unlimitedTime
+            ? 0
+            : (int) ((time() + $days * 86400) * 1000);
 
-        $nodeCount = count($order);
-        if ($nodeCount < 1) {
+        if (count($order) < 1) {
             throw new XuiPanelException('Пустой список узлов в config/xui.php (bundle_order)');
         }
-        $quotaBytes = $quotaGb * self::BYTES_PER_GB;
-        $bytesPerNode = max(1, intdiv($quotaBytes, $nodeCount));
+        $quotaBytes = $unlimitedTraffic
+            ? 0
+            : max(1, $quotaGb * self::BYTES_PER_GB);
 
         $subIds = [];
         $createdClients = [];
@@ -77,7 +86,7 @@ final class CreateDualBundleSubscription
                 'email' => $email,
                 'flow' => $flow,
                 'limitIp' => max(0, $devices),
-                'totalGB' => $bytesPerNode,
+                'totalGB' => $quotaBytes,
                 'expiryTime' => $expiryMs,
                 'enable' => true,
                 'tgId' => 0,
@@ -122,7 +131,7 @@ final class CreateDualBundleSubscription
             'wifi_sub_id' => $wifiSubId !== '' ? $wifiSubId : null,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
-            'quota_gb' => $quotaGb,
+            'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
         ]);

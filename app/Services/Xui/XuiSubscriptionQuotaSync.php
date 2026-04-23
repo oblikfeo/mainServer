@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Проброс квоты подписки в 3x-ui как totalGB (байты) на каждом клиенте FI/NL.
+ * Проброс полного лимита подписки в 3x-ui как totalGB (байты) на каждом клиенте.
  */
 final class XuiSubscriptionQuotaSync
 {

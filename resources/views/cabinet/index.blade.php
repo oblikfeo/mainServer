@@ -196,9 +196,16 @@
                             </span>
                         </div>
                         <p class="lp-card__head-note">
-                            {{ $sub->devices }} устр. · квота {{ $sub->quota_gb }} ГБ
+                            {{ $sub->devices }} устр. · квота
+                            @if ((int) $sub->quota_gb <= 0)
+                                безлимит
+                            @else
+                                {{ $sub->quota_gb }} ГБ
+                            @endif
                             @if ($exp)
                                 · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
+                            @else
+                                · без срока
                             @endif
                         </p>
                     </button>

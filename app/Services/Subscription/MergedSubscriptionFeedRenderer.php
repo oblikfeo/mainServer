@@ -60,12 +60,9 @@ final class MergedSubscriptionFeedRenderer
 
         $body = implode("\n", array_filter($lines))."\n";
 
-        $quotaGb = max(1, (int) $sub->quota_gb);
-        $totalCap = $quotaGb * self::BYTES_PER_GB;
+        $quotaGb = (int) $sub->quota_gb;
+        $totalCap = $quotaGb > 0 ? $quotaGb * self::BYTES_PER_GB : 0;
         $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
-        if ($expireSec === 0) {
-            $expireSec = max(array_column($userinfos, 'expire'));
-        }
 
         $up = array_sum(array_column($userinfos, 'upload'));
         $down = array_sum(array_column($userinfos, 'download'));

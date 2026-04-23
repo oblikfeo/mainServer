@@ -62,19 +62,15 @@ class Subscription extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function bundleNodeCount(): int
-    {
-        $order = config('xui.bundle_order', ['fi', 'nl']);
-
-        return max(1, count($order));
-    }
-
-    /** Лимит в байтах на один узел (как в 3x-ui totalGB). */
+    /** Лимит в байтах для каждого узла (как в 3x-ui totalGB). */
     public function perNodeTotalBytes(): int
     {
-        $n = self::bundleNodeCount();
+        $quotaGb = (int) $this->quota_gb;
+        if ($quotaGb <= 0) {
+            return 0;
+        }
 
-        return max(1, intdiv((int) $this->quota_gb * self::BYTES_PER_GB, $n));
+        return $quotaGb * self::BYTES_PER_GB;
     }
 
     public function expiresAt(): ?Carbon

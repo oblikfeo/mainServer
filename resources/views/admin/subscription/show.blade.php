@@ -61,8 +61,18 @@
         </div>
 
         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-            Квота {{ $subscription->quota_gb }} ГБ · срок до
-            {{ \Illuminate\Support\Carbon::createFromTimestamp((int) floor($subscription->expiry_ms / 1000))->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
+            Квота
+            @if ((int) $subscription->quota_gb <= 0)
+                безлимит
+            @else
+                {{ $subscription->quota_gb }} ГБ
+            @endif
+            ·
+            @if ((int) $subscription->expiry_ms <= 0)
+                без срока
+            @else
+                срок до {{ \Illuminate\Support\Carbon::createFromTimestamp((int) floor($subscription->expiry_ms / 1000))->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
+            @endif
         </p>
 
         @include('admin.subscription._assign_owner', ['subscription' => $subscription])

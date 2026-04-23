@@ -75,6 +75,66 @@ class SubscriptionController extends Controller
             ]);
     }
 
+    public function storeCool(Request $request, CreateDualBundleSubscription $service): RedirectResponse
+    {
+        $data = $request->validate([
+            'devices' => ['required', 'integer', 'min:1', 'max:5'],
+            'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'exists:users,email'],
+        ]);
+
+        $owner = User::query()->where('email', $data['owner_email'])->firstOrFail();
+
+        $sessionId = (string) $request->session()->getId();
+        $fingerprint = sha1($sessionId.'|cool|'.(int) $data['devices'].'|'.$owner->email);
+        $lockKey = 'admin:subscription:create:lock:'.$fingerprint;
+        $resultKey = 'admin:subscription:create:result:'.$fingerprint;
+
+        $existingId = (int) Cache::get($resultKey, 0);
+        if ($existingId > 0) {
+            $existing = Subscription::query()->find($existingId);
+            if ($existing !== null) {
+                return redirect()
+                    ->route('admin.subscription.show', ['subscription' => $existing->getKey()])
+                    ->with('status', 'Подписка уже создана ранее для этого запроса.');
+            }
+        }
+
+        if (! Cache::add($lockKey, true, now()->addSeconds(120))) {
+            return back()
+                ->withInput()
+                ->withErrors(['xui' => 'Создание уже выполняется. Дождитесь завершения и обновите страницу.']);
+        }
+
+        try {
+            $result = $service->create(
+                (int) $data['devices'],
+                1,
+                1,
+                (int) $owner->id,
+                true,
+                true,
+            );
+            Cache::put($resultKey, (int) $result->subscription->getKey(), now()->addMinutes(10));
+        } catch (XuiPanelException $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['xui' => $e->getMessage()]);
+        } finally {
+            Cache::forget($lockKey);
+        }
+
+        return redirect()
+            ->route('admin.subscription.show', ['subscription' => $result->subscription->getKey()])
+            ->with('subscription_result', [
+                'subscription_url' => $result->subscriptionUrl,
+                'wifi_vless' => $result->wifiVlessLine,
+                'fi_vless' => $result->fiVlessLine,
+                'nl_vless' => $result->nlVlessLine,
+                'decode_warning' => $result->decodeWarning,
+            ])
+            ->with('status', 'Создана крутая подписка: безлимитный трафик, без срока, владелец '.$owner->email.'.');
+    }
+
     public function show(Subscription $subscription, CreateDualBundleSubscription $service): View
     {
         $subscription->loadMissing('user');
