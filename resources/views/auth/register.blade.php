@@ -1,9 +1,9 @@
 <x-guest-layout>
     <h1 class="lp-auth-title">Регистрация</h1>
     @if (! empty($invitedBy))
-        <p class="lp-muted" style="margin-top:-.4rem; margin-bottom:1rem;">
-            Вас пригласил: {{ $invitedBy->name }} ({{ $invitedBy->email }})
-        </p>
+        <div class="lp-warn-box" style="margin-top:-.2rem; margin-bottom:1rem; background:#fff3cd;">
+            <span class="font-semibold">Вас пригласил:</span> {{ $invitedBy->name }} ({{ $invitedBy->email }})
+        </div>
     @endif
 
     <form method="POST" action="{{ route('register') }}">
