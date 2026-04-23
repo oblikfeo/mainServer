@@ -124,6 +124,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/subscription/cool', [SubscriptionController::class, 'storeCool'])
             ->middleware('throttle:8,1')
             ->name('subscription.store_cool');
+        Route::get('/subscription/cool', function () {
+            return redirect()->route('admin.subscription.create');
+        })->name('subscription.cool');
         Route::post('/subscription/{subscription}/owner', [SubscriptionController::class, 'attachOwner'])
             ->middleware('throttle:60,1')
             ->name('subscription.owner');
