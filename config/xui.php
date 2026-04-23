@@ -28,7 +28,7 @@ return [
             'inbound_id' => (int) env('XUI_WIFI_INBOUND_ID', 3),
             'client_email_prefix' => env('XUI_WIFI_EMAIL_PREFIX', 'wifi2'),
             'client_flow' => env('XUI_WIFI_FLOW', ''),
-            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: 'Высокая скорость Wi-Fi',
+            'vless_display_name' => env('XUI_WIFI_VLESS_NAME') ?: '🇭🇰 Высокая скорость Wi-Fi',
             'vless_server_description' => env('XUI_WIFI_SERVER_DESC', 'прямое подключение'),
             'reality_sid' => env('XUI_WIFI_REALITY_SID', '0123456789abcdef'),
         ],
