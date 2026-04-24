@@ -19,7 +19,7 @@ return [
     'pin_sha256' => env('HY2_PIN_SHA256', ''),
     'insecure' => filter_var(env('HY2_INSECURE', true), FILTER_VALIDATE_BOOL),
 
-    'display_name' => env('HY2_DISPLAY_NAME', '🚀 Высокая скорость'),
+    'display_name' => env('HY2_DISPLAY_NAME', '🇭🇰 Высокая скорость'),
     'server_description' => env('HY2_SERVER_DESC', 'global'),
 
     'ssh_host' => env('HY2_SSH_HOST', '222.167.208.75'),
