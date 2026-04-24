@@ -26,6 +26,14 @@ final class MergedSubscriptionFeedRenderer
         try {
             $responses = $this->fetchPanelSubsParallel($nodes, $bundleOrder, $sub);
 
+            if (config('hy2.enabled')) {
+                $hy2User = (string) ($sub->hy2_username ?? '');
+                $hy2Pass = (string) ($sub->hy2_password ?? '');
+                if ($hy2User !== '' && $hy2Pass !== '') {
+                    $lines[] = BlitzClient::buildUri($hy2User, $hy2Pass);
+                }
+            }
+
             foreach ($bundleOrder as $key) {
                 $node = $nodes[$key] ?? [];
                 $resp = $responses[$key] ?? null;
@@ -36,14 +44,6 @@ final class MergedSubscriptionFeedRenderer
                 $ok = $this->appendVlessLineIfOk($lines, $resp, $node, strtoupper($key));
                 if ($ok) {
                     $userinfos[$key] = $this->parseUserinfoHeader($resp->header('subscription-userinfo'));
-                }
-            }
-
-            if (config('hy2.enabled')) {
-                $hy2User = (string) ($sub->hy2_username ?? '');
-                $hy2Pass = (string) ($sub->hy2_password ?? '');
-                if ($hy2User !== '' && $hy2Pass !== '') {
-                    $lines[] = BlitzClient::buildUri($hy2User, $hy2Pass);
                 }
             }
 
