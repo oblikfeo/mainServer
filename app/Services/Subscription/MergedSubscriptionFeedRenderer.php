@@ -4,6 +4,7 @@ namespace App\Services\Subscription;
 
 use App\Models\AppSetting;
 use App\Models\Subscription;
+use App\Services\Hy2\BlitzClient;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,14 @@ final class MergedSubscriptionFeedRenderer
                 $ok = $this->appendVlessLineIfOk($lines, $resp, $node, strtoupper($key));
                 if ($ok) {
                     $userinfos[$key] = $this->parseUserinfoHeader($resp->header('subscription-userinfo'));
+                }
+            }
+
+            if (config('hy2.enabled')) {
+                $hy2User = (string) ($sub->hy2_username ?? '');
+                $hy2Pass = (string) ($sub->hy2_password ?? '');
+                if ($hy2User !== '' && $hy2Pass !== '') {
+                    $lines[] = BlitzClient::buildUri($hy2User, $hy2Pass);
                 }
             }
 

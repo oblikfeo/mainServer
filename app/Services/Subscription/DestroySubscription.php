@@ -3,8 +3,10 @@
 namespace App\Services\Subscription;
 
 use App\Models\Subscription;
+use App\Services\Hy2\BlitzClient;
 use App\Services\Xui\XuiPanelClient;
 use App\Services\Xui\XuiPanelException;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 final class DestroySubscription
@@ -57,6 +59,19 @@ final class DestroySubscription
                     "Узел «{$bundleKey}» ({$email}): {$msg}",
                     previous: $e
                 );
+            }
+        }
+
+        $hy2Username = (string) ($subscription->hy2_username ?? '');
+        if ($hy2Username !== '' && config('hy2.enabled')) {
+            try {
+                (new BlitzClient())->removeUser($hy2Username);
+            } catch (Throwable $e) {
+                Log::warning('hy2.destroy_user_failed', [
+                    'subscription_id' => $subscription->id,
+                    'username' => $hy2Username,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

@@ -4,9 +4,12 @@ namespace App\Services\Subscription;
 
 use App\Models\IssuedKey;
 use App\Models\Subscription;
+use App\Services\Hy2\BlitzClient;
+use App\Services\Hy2\BlitzException;
 use App\Services\Xui\XuiPanelClient;
 use App\Services\Xui\XuiPanelException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -122,6 +125,28 @@ final class CreateDualBundleSubscription
             throw new XuiPanelException('Внутренняя ошибка: не все subId созданы');
         }
 
+        $hy2Username = null;
+        $hy2Password = null;
+
+        if (config('hy2.enabled')) {
+            $hy2Username = 'hy2-'.bin2hex(random_bytes(5));
+            $hy2Password = bin2hex(random_bytes(16));
+            $hy2TrafficGb = $unlimitedTraffic ? 0 : $quotaGb;
+
+            try {
+                $blitz = new BlitzClient();
+                $blitz->addUser($hy2Username, $hy2Password, $hy2TrafficGb, $days);
+            } catch (BlitzException $e) {
+                Log::warning('hy2.create_user_failed', ['error' => $e->getMessage()]);
+                $rollbackMsg = $this->rollbackClients($createdClients);
+                $msg = "Hysteria2: {$e->getMessage()}";
+                if ($rollbackMsg !== '') {
+                    $msg .= " | Откат XUI: {$rollbackMsg}";
+                }
+                throw new XuiPanelException($msg, previous: $e);
+            }
+        }
+
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
         $subscription = Subscription::query()->create([
@@ -129,6 +154,8 @@ final class CreateDualBundleSubscription
             'token' => $token,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
+            'hy2_username' => $hy2Username,
+            'hy2_password' => $hy2Password,
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
@@ -136,6 +163,9 @@ final class CreateDualBundleSubscription
 
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
         IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
+        if ($hy2Username !== null) {
+            IssuedKey::query()->create(['bundle_id' => 'hy2', 'subscription_id' => $subscription->id]);
+        }
 
         $publicBase = rtrim((string) config('app.url'), '/');
         $subscriptionUrl = $publicBase.'/sub/'.$token;
@@ -147,12 +177,13 @@ final class CreateDualBundleSubscription
             $subscriptionUrl,
             $decoded['fi'],
             $decoded['nl'],
+            $decoded['hy2'],
             $decoded['warning'],
         );
     }
 
     /**
-     * @return array{fi: string, nl: string, warning: ?string}
+     * @return array{fi: string, nl: string, hy2: string, warning: ?string}
      */
     public function decodeLinesForSubscription(Subscription $subscription): array
     {
@@ -161,11 +192,11 @@ final class CreateDualBundleSubscription
         $subDesc = (string) config('xui.vless_server_description', '');
         $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
-        $out = ['fi' => '', 'nl' => '', 'warning' => null];
+        $out = ['fi' => '', 'nl' => '', 'hy2' => '', 'warning' => null];
         $missing = [];
 
         foreach ($order as $key) {
-            if (! array_key_exists($key, $out) || $key === 'warning') {
+            if (! array_key_exists($key, $out) || $key === 'warning' || $key === 'hy2') {
                 continue;
             }
             $node = $nodes[$key] ?? [];
@@ -198,6 +229,14 @@ final class CreateDualBundleSubscription
                 );
             } catch (Throwable $e) {
                 $missing[] = strtoupper($key).' ('.$e->getMessage().')';
+            }
+        }
+
+        if (config('hy2.enabled')) {
+            $hy2User = (string) ($subscription->hy2_username ?? '');
+            $hy2Pass = (string) ($subscription->hy2_password ?? '');
+            if ($hy2User !== '' && $hy2Pass !== '') {
+                $out['hy2'] = BlitzClient::buildUri($hy2User, $hy2Pass);
             }
         }
 

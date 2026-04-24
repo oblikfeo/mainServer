@@ -16,6 +16,8 @@ class Subscription extends Model
         'token',
         'fi_sub_id',
         'nl_sub_id',
+        'hy2_username',
+        'hy2_password',
         'quota_gb',
         'expiry_ms',
         'devices',

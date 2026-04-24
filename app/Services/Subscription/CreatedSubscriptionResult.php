@@ -11,6 +11,7 @@ final class CreatedSubscriptionResult
         public string $subscriptionUrl,
         public string $fiVlessLine,
         public string $nlVlessLine,
+        public string $hy2Line,
         public ?string $decodeWarning,
     ) {}
 }
