@@ -126,11 +126,12 @@ final class BlitzClient
         }
 
         $escapedArgs = implode(' ', array_map('escapeshellarg', $args));
-        $remoteCmd = "source {$venvActivate} && cd /etc/hysteria && python3 {$cliPath} {$command} {$escapedArgs}";
+        $script = "source {$venvActivate} && cd /etc/hysteria && python3 {$cliPath} {$command} {$escapedArgs}";
 
         try {
             $result = Process::path(base_path())
                 ->timeout(30)
+                ->input($script)
                 ->run([
                     'ssh',
                     '-i', $keyPath,
@@ -139,7 +140,7 @@ final class BlitzClient
                     '-o', 'UserKnownHostsFile=/dev/null',
                     '-o', 'ConnectTimeout=10',
                     "{$user}@{$host}",
-                    'bash', '-c', $remoteCmd,
+                    'bash', '-s',
                 ]);
         } catch (\Throwable $e) {
             Log::warning('hy2.blitz.ssh_error', ['context' => $context, 'error' => $e->getMessage()]);
