@@ -68,7 +68,6 @@ class SubscriptionController extends Controller
             ->route('admin.subscription.show', ['subscription' => $result->subscription->getKey()])
             ->with('subscription_result', [
                 'subscription_url' => $result->subscriptionUrl,
-                'wifi_vless' => $result->wifiVlessLine,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
                 'decode_warning' => $result->decodeWarning,
@@ -127,7 +126,6 @@ class SubscriptionController extends Controller
             ->route('admin.subscription.show', ['subscription' => $result->subscription->getKey()])
             ->with('subscription_result', [
                 'subscription_url' => $result->subscriptionUrl,
-                'wifi_vless' => $result->wifiVlessLine,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
                 'decode_warning' => $result->decodeWarning,
@@ -143,14 +141,12 @@ class SubscriptionController extends Controller
 
         if (is_array($payload)) {
             $subscriptionUrl = $payload['subscription_url'] ?? url('/sub/'.$subscription->token);
-            $wifiVless = $payload['wifi_vless'] ?? '';
             $fiVless = $payload['fi_vless'] ?? '';
             $nlVless = $payload['nl_vless'] ?? '';
             $decodeWarning = $payload['decode_warning'] ?? null;
         } else {
             $subscriptionUrl = url('/sub/'.$subscription->token);
             $decoded = $service->decodeLinesForSubscription($subscription);
-            $wifiVless = $decoded['wifi'];
             $fiVless = $decoded['fi'];
             $nlVless = $decoded['nl'];
             $decodeWarning = $decoded['warning'];
@@ -159,7 +155,6 @@ class SubscriptionController extends Controller
         return view('admin.subscription.show', [
             'subscription' => $subscription,
             'subscriptionUrl' => $subscriptionUrl,
-            'wifiVless' => $wifiVless,
             'fiVless' => $fiVless,
             'nlVless' => $nlVless,
             'decodeWarning' => $decodeWarning,

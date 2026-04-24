@@ -116,7 +116,6 @@ final class CreateDualBundleSubscription
             $subIds[$bundleKey] = $subId;
         }
 
-        $wifiSubId = (string) ($subIds['wifi'] ?? '');
         $fiSubId = (string) ($subIds['fi'] ?? '');
         $nlSubId = (string) ($subIds['nl'] ?? '');
         if ($fiSubId === '' || $nlSubId === '') {
@@ -128,7 +127,6 @@ final class CreateDualBundleSubscription
         $subscription = Subscription::query()->create([
             'user_id' => $userId,
             'token' => $token,
-            'wifi_sub_id' => $wifiSubId !== '' ? $wifiSubId : null,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
@@ -136,9 +134,6 @@ final class CreateDualBundleSubscription
             'devices' => $devices,
         ]);
 
-        if ($wifiSubId !== '') {
-            IssuedKey::query()->create(['bundle_id' => 'wifi', 'subscription_id' => $subscription->id]);
-        }
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
         IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
 
@@ -150,7 +145,6 @@ final class CreateDualBundleSubscription
         return new CreatedSubscriptionResult(
             $subscription,
             $subscriptionUrl,
-            $decoded['wifi'],
             $decoded['fi'],
             $decoded['nl'],
             $decoded['warning'],
@@ -158,16 +152,16 @@ final class CreateDualBundleSubscription
     }
 
     /**
-     * @return array{wifi: string, fi: string, nl: string, warning: ?string}
+     * @return array{fi: string, nl: string, warning: ?string}
      */
     public function decodeLinesForSubscription(Subscription $subscription): array
     {
         $nodes = config('xui.nodes', []);
-        $order = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $order = config('xui.bundle_order', ['fi', 'nl']);
         $subDesc = (string) config('xui.vless_server_description', '');
         $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
-        $out = ['wifi' => '', 'fi' => '', 'nl' => '', 'warning' => null];
+        $out = ['fi' => '', 'nl' => '', 'warning' => null];
         $missing = [];
 
         foreach ($order as $key) {

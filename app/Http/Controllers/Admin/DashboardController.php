@@ -33,10 +33,6 @@ class DashboardController extends Controller
                 ->orWhere('expiry_ms', '>', $nowMs);
         });
 
-        $subsCountWifi = (clone $activeSubQ)
-            ->whereNotNull('wifi_sub_id')
-            ->where('wifi_sub_id', '!=', '')
-            ->count();
         $subsCountFi = (clone $activeSubQ)
             ->whereNotNull('fi_sub_id')
             ->where('fi_sub_id', '!=', '')
@@ -52,7 +48,6 @@ class DashboardController extends Controller
             ->count();
 
         $subsPerBundle = [
-            'wifi' => $subsCountWifi,
             'fi' => $subsCountFi,
             'nl' => $subsCountNl,
             'trial' => $trialActiveKeys,
@@ -65,7 +60,6 @@ class DashboardController extends Controller
         // Онлайн и трафик для карточек берем из 3x-ui по активным подпискам/ключам,
         // чтобы не считать сканеры/шум через SSH на 443.
         $panelSnapshots = [
-            'wifi' => Cache::remember('bundle_panel_snapshot_v4_wifi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('wifi')),
             'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
             'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
             'trial' => Cache::remember('bundle_panel_snapshot_v4_trial', $ttl, fn (): ?array => $this->buildPanelSnapshotForTrialBundle()),

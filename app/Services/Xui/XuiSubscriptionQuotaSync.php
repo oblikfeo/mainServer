@@ -15,7 +15,7 @@ final class XuiSubscriptionQuotaSync
     {
         $perNodeBytes = $sub->perNodeTotalBytes();
 
-        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
         foreach ($bundleOrder as $key) {
             $subIdField = $key.'_sub_id';

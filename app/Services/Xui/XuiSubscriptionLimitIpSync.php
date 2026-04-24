@@ -21,7 +21,7 @@ final class XuiSubscriptionLimitIpSync
 
         $limitIp = max(0, (int) $sub->devices);
 
-        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
         foreach ($bundleOrder as $key) {
             $subIdField = $key.'_sub_id';

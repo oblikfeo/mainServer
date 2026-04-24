@@ -24,7 +24,7 @@ final class DestroySubscription
             throw new XuiPanelException('Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD');
         }
 
-        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
         foreach ($bundleOrder as $bundleKey) {
             $subIdField = $bundleKey.'_sub_id';

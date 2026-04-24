@@ -31,17 +31,6 @@
             >{{ $subscriptionUrl }}</textarea>
         </div>
 
-        @if (! empty($wifiVless))
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
-                <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.wifi.vless_display_name', 'WiFi') }}</div>
-                <textarea
-                    readonly
-                    rows="4"
-                    class="w-full max-w-full rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs sm:text-sm text-slate-900 p-3 break-all"
-                >{{ $wifiVless }}</textarea>
-            </div>
-        @endif
-
         <div class="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
             <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{{ config('xui.nodes.fi.vless_display_name', 'FI') }} · FI</div>
             <textarea

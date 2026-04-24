@@ -17,7 +17,7 @@ final class MergedSubscriptionFeedRenderer
     public function render(Subscription $sub): Response
     {
         $nodes = config('xui.nodes', []);
-        $bundleOrder = config('xui.bundle_order', ['wifi', 'fi', 'nl']);
+        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
         $lines = [];
         $userinfos = [];

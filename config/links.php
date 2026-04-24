@@ -6,15 +6,6 @@ $trafficCritTb = (float) env('LINK_TRAFFIC_CRIT_TB', 3);
 return [
     'bundles' => [
         [
-            'id' => 'wifi',
-            'name' => 'Связка WiFi',
-            'subtitle' => 'Hostkey · доступы4',
-            'ip' => '222.167.208.75',
-            'ssh_user' => env('LINK_WIFI_SSH_USER', 'root'),
-            'ssh_private_key' => env('LINK_WIFI_SSH_KEY', ''),
-            'client_tcp_port' => (int) env('LINK_WIFI_CLIENT_TCP_PORT', 443),
-        ],
-        [
             'id' => 'nl',
             'name' => 'Связка NL',
             'subtitle' => 'Нидерланды · egress',
