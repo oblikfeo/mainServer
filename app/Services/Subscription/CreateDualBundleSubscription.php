@@ -129,7 +129,7 @@ final class CreateDualBundleSubscription
         $hy2Password = null;
 
         if (config('hy2.enabled')) {
-            $hy2Username = 'hy2-'.bin2hex(random_bytes(5));
+            $hy2Username = 'hy2_'.bin2hex(random_bytes(5));
             $hy2Password = bin2hex(random_bytes(16));
             $hy2TrafficGb = $unlimitedTraffic ? 0 : $quotaGb;
 

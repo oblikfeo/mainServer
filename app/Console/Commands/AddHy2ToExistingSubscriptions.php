@@ -42,7 +42,7 @@ class AddHy2ToExistingSubscriptions extends Command
         $fail = 0;
 
         foreach ($subs as $sub) {
-            $username = 'hy2-'.bin2hex(random_bytes(5));
+            $username = 'hy2_'.bin2hex(random_bytes(5));
             $password = bin2hex(random_bytes(16));
             $quotaGb = (int) $sub->quota_gb;
             $days = $this->remainingDays($sub);

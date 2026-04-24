@@ -149,8 +149,11 @@ final class BlitzClient
         $stdout = trim($result->output());
         $stderr = trim($result->errorOutput());
 
-        if (! $result->successful()) {
-            $msg = $stderr !== '' ? $stderr : $stdout;
+        $hasStderrError = $stderr !== '' && ! str_starts_with($stderr, 'Warning: Permanently added');
+        $hasOutputError = str_contains(strtolower($stdout), 'error') || str_contains(strtolower($stderr), 'error');
+
+        if (! $result->successful() || $hasStderrError || $hasOutputError) {
+            $msg = $stderr !== '' ? $stderr : ($stdout !== '' ? $stdout : 'пустой ответ');
             Log::warning('hy2.blitz.cli_error', [
                 'context' => $context,
                 'exit' => $result->exitCode(),
@@ -160,8 +163,8 @@ final class BlitzClient
             throw new BlitzException("Blitz CLI ({$context}): {$msg}");
         }
 
-        if (str_contains(strtolower($stdout), 'error')) {
-            Log::warning('hy2.blitz.cli_output_error', ['context' => $context, 'stdout' => $stdout]);
+        if (! str_contains(strtolower($stdout), 'success')) {
+            Log::info('hy2.blitz.cli_no_success', ['context' => $context, 'stdout' => $stdout]);
         }
     }
 }
