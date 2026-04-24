@@ -125,8 +125,9 @@ final class BlitzClient
             throw new BlitzException('HY2_SSH_HOST не задан');
         }
 
+        $venvPython = dirname($venvActivate).'/python3';
         $escapedArgs = implode(' ', array_map('escapeshellarg', $args));
-        $remoteCmd = "source {$venvActivate} && cd /etc/hysteria && python3 {$cliPath} {$command} {$escapedArgs}";
+        $remoteCmd = "cd /etc/hysteria && {$venvPython} {$cliPath} {$command} {$escapedArgs}";
 
         try {
             $result = Process::path(base_path())
