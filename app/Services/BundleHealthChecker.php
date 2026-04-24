@@ -12,6 +12,8 @@ class BundleHealthChecker
      * Составная проверка связки:
      * — с хаба: TCP до клиентского порта (обычно 443);
      * — по SSH (если ключ настроен): маршрут наружу, LISTEN :443, процесс Xray, исходящий HTTPS.
+     * Для Hysteria2 (health_profile=hysteria): порт Xray-чеков заменён на UDP/TCP listen + процесс Hysteria;
+     * require_tcp=false — UDP/QUIC без обязательного TCP-handshake с хаба.
      *
      * @return array{
      *     online: bool,
@@ -27,6 +29,7 @@ class BundleHealthChecker
     {
         $host = (string) ($bundle['ip'] ?? '');
         $clientPort = (int) ($bundle['client_tcp_port'] ?? config('links.health.client_tcp_port', 443));
+        $requireTcp = (bool) ($bundle['require_tcp'] ?? true);
 
         $base = [
             'online' => false,
@@ -55,7 +58,10 @@ class BundleHealthChecker
             return $base;
         }
 
-        $remote = $this->fetchRemoteHealthFlags($bundle);
+        $profile = (string) ($bundle['health_profile'] ?? 'vless');
+        $remote = $profile === 'hysteria'
+            ? $this->fetchHysteriaHealthFlags($bundle, $clientPort)
+            : $this->fetchVlessHealthFlags($bundle, $clientPort);
         if ($remote === null) {
             $base['ssh_ok'] = false;
             $base['online'] = false;
@@ -74,7 +80,8 @@ class BundleHealthChecker
             && $remote['xray']
             && $remote['egress_https'];
 
-        $base['online'] = $tcpOk && $remoteOk;
+        $tcpConsider = $requireTcp ? $tcpOk : true;
+        $base['online'] = $tcpConsider && $remoteOk;
 
         return $base;
     }
@@ -104,18 +111,19 @@ class BundleHealthChecker
     /**
      * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
      */
-    private function fetchRemoteHealthFlags(array $bundle): ?array
+    private function fetchVlessHealthFlags(array $bundle, int $clientPort): ?array
     {
         $keyPath = (string) ($bundle['ssh_private_key'] ?? '');
         $host = (string) ($bundle['ip'] ?? '');
         $user = (string) ($bundle['ssh_user'] ?? '');
 
         $script = <<<'BASH'
+p="${1:-443}"
 default_route=0
 if ip route get 1.1.1.1 >/dev/null 2>&1; then default_route=1; fi
 listen_443=0
 if command -v ss >/dev/null 2>&1; then
-  if ss -tln 2>/dev/null | grep -qE ':443[[:space:]]'; then listen_443=1; fi
+  if ss -tln 2>/dev/null | grep -qE ":$p[[:space:]]"; then listen_443=1; fi
 fi
 xray=0
 if systemctl is-active --quiet xray 2>/dev/null; then xray=1; fi
@@ -131,6 +139,50 @@ fi
 printf 'default_route:%s\nlisten_443:%s\nxray:%s\negress_https:%s\n' "$default_route" "$listen_443" "$xray" "$egress_https"
 BASH;
 
+        return $this->runHealthSshScript($bundle, $script, (string) $clientPort);
+    }
+
+    /**
+     * Hysteria2: слушатель UDP/TCP на выбранном порту, процесс hysteria.
+     * Поле «xray» в ответе = «прокси-сервис жив» (аналог Xray/3x-ui).
+     *
+     * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
+     */
+    private function fetchHysteriaHealthFlags(array $bundle, int $clientPort): ?array
+    {
+        $script = <<<'BASH'
+p="${1:-443}"
+default_route=0
+if ip route get 1.1.1.1 >/dev/null 2>&1; then default_route=1; fi
+listen_443=0
+if command -v ss >/dev/null 2>&1; then
+  if ss -uln 2>/dev/null | grep -qE ":$p[[:space:]]"; then listen_443=1; fi
+  if [ "$listen_443" = 0 ] && ss -tln 2>/dev/null | grep -qE ":$p[[:space:]]"; then listen_443=1; fi
+fi
+xray=0
+if systemctl is-active --quiet hysteria 2>/dev/null; then xray=1; fi
+if [ "$xray" = 0 ] && systemctl is-active --quiet hysteria-server 2>/dev/null; then xray=1; fi
+if [ "$xray" = 0 ] && systemctl is-active --quiet blitz 2>/dev/null; then xray=1; fi
+if [ "$xray" = 0 ] && pgrep -f '[h]ysteria' >/dev/null 2>&1; then xray=1; fi
+egress_https=0
+if command -v curl >/dev/null 2>&1; then
+  if curl -fsS --connect-timeout 4 --max-time 12 "https://www.cloudflare.com/cdn-cgi/trace" -o /dev/null 2>/dev/null; then egress_https=1; fi
+fi
+printf 'default_route:%s\nlisten_443:%s\nxray:%s\negress_https:%s\n' "$default_route" "$listen_443" "$xray" "$egress_https"
+BASH;
+
+        return $this->runHealthSshScript($bundle, $script, (string) $clientPort);
+    }
+
+    /**
+     * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
+     */
+    private function runHealthSshScript(array $bundle, string $script, string $portArg = '443'): ?array
+    {
+        $keyPath = (string) ($bundle['ssh_private_key'] ?? '');
+        $host = (string) ($bundle['ip'] ?? '');
+        $user = (string) ($bundle['ssh_user'] ?? '');
+
         try {
             $timeout = (int) config('links.health.ssh_timeout_seconds', 22);
             $result = Process::path(base_path())
@@ -145,6 +197,8 @@ BASH;
                     '-o', 'ConnectTimeout=10',
                     "{$user}@{$host}",
                     'bash', '-s',
+                    '--',
+                    $portArg,
                 ]);
         } catch (Throwable $e) {
             Log::debug('bundle health ssh', ['bundle' => $bundle['id'] ?? '', 'error' => $e->getMessage()]);

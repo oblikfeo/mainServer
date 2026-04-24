@@ -62,16 +62,16 @@
                     </span>
                 </header>
 
-                <div class="p-5 grid grid-cols-2 gap-3 flex-1 bg-slate-50/80">
-                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile($bundle['subs_level'] ?? null) }}">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Подписок</span>
-                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $bundle['subs_count'] }}</span>
-                    </div>
+                <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-slate-50/80">
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
                         @if (($bundle['id'] ?? '') === 'trial')
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (test keys)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['trial_online_clients'] ?? 0) : '—' }}</span>
                             <span class="text-[10px] text-slate-500 mt-1 leading-tight">Онлайн-клиенты по активным test_keys (3x-ui)</span>
+                        @elseif (($bundle['id'] ?? '') === 'hy2')
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (SSH)</span>
+                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные IP на порту клиента (ss)</span>
                         @else
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (panel)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
@@ -101,22 +101,6 @@
                         <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">
                             @if ($m && $ctMax > 0)
                                 {{ number_format((int) $m['conntrack_used'], 0, '.', ' ') }}<span class="text-slate-500 font-semibold"> / </span>{{ number_format($ctMax, 0, '.', ' ') }}
-                            @else
-                                —
-                            @endif
-                        </span>
-                    </div>
-                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-h-[5.5rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($bundle['traffic_level'] ?? null) : $tile(null) }}">
-                        <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 shrink-0">Трафик</span>
-                        <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
-                            @if ($m)
-                                @php
-                                    $b = (int) $m['traffic_total_bytes'];
-                                    $tb = $b / 1_000_000_000_000;
-                                    $gb = $b / 1_000_000_000;
-                                @endphp
-                                {{ number_format($tb, 3, '.', ' ') }} <span class="text-lg font-semibold text-slate-600">ТБ</span>
-                                <span class="block sm:inline sm:ml-2 text-sm font-semibold text-slate-500">({{ number_format($gb, 1, '.', ' ') }} ГБ)</span>
                             @else
                                 —
                             @endif

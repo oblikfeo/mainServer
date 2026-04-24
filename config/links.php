@@ -23,6 +23,21 @@ return [
             'ssh_private_key' => env('LINK_FI_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_FI_CLIENT_TCP_PORT', 443),
         ],
+        /**
+         * Hysteria2 (Blitz) — узел из доступы4, отдельно от 3x-ui (см. config/hy2.php).
+         * health_profile=hysteria: не ищем Xray; TCP до порта не обязателен (часто только UDP/QUIC).
+         */
+        [
+            'id' => 'hy2',
+            'name' => 'Hysteria2',
+            'subtitle' => 'высокая скорость · Blitz',
+            'ip' => (string) env('LINK_HY2_IP', env('HY2_SSH_HOST', '222.167.208.75')),
+            'ssh_user' => (string) env('LINK_HY2_SSH_USER', env('HY2_SSH_USER', 'root')),
+            'ssh_private_key' => (string) (env('LINK_HY2_SSH_KEY', '') ?: env('HY2_SSH_KEY', '')),
+            'client_tcp_port' => (int) env('LINK_HY2_CLIENT_TCP_PORT', env('HY2_PORT', 443)),
+            'health_profile' => 'hysteria',
+            'require_tcp' => false,
+        ],
         [
             'id' => 'trial',
             'name' => 'Связка TRIAL',

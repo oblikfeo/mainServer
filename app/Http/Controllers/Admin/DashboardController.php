@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
-use App\Models\TestKey;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
 use App\Services\Xui\XuiPanelClient;
@@ -28,34 +27,8 @@ class DashboardController extends Controller
     {
         $nowMs = (int) (now()->getTimestamp() * 1000);
 
-        $activeSubQ = Subscription::query()->where(function ($q) use ($nowMs) {
-            $q->where('expiry_ms', '<=', 0)
-                ->orWhere('expiry_ms', '>', $nowMs);
-        });
-
-        $subsCountFi = (clone $activeSubQ)
-            ->whereNotNull('fi_sub_id')
-            ->where('fi_sub_id', '!=', '')
-            ->count();
-        $subsCountNl = (clone $activeSubQ)
-            ->whereNotNull('nl_sub_id')
-            ->where('nl_sub_id', '!=', '')
-            ->count();
-
-        $trialActiveKeys = TestKey::query()
-            ->whereNull('revoked_at')
-            ->where('expires_at', '>', now())
-            ->count();
-
-        $subsPerBundle = [
-            'fi' => $subsCountFi,
-            'nl' => $subsCountNl,
-            'trial' => $trialActiveKeys,
-        ];
-
         $ttl = max(10, config('links.metrics_cache_ttl', 20));
         $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
-        $th = config('links.thresholds', []);
 
         // Онлайн и трафик для карточек берем из 3x-ui по активным подпискам/ключам,
         // чтобы не считать сканеры/шум через SSH на 443.
@@ -66,7 +39,7 @@ class DashboardController extends Controller
         ];
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($subsPerBundle, $ttl, $healthTtl, $th, $panelSnapshots) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -75,7 +48,6 @@ class DashboardController extends Controller
                     $healthTtl,
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
-                $bundle['subs_count'] = (int) ($subsPerBundle[$id] ?? 0);
 
                 $bundleForSsh = $bundle;
                 $bundle['metrics'] = Cache::remember(
@@ -100,21 +72,7 @@ class DashboardController extends Controller
                     $bundle['metrics'] = $m;
                 }
 
-                $capacity = max(1, (int) ($th['keys_capacity'] ?? 200));
-                $warnR = (float) ($th['keys_warn_ratio'] ?? 0.65);
-                $critR = (float) ($th['keys_crit_ratio'] ?? 0.90);
-                $bundle['subs_level'] = $this->keysStressLevel($bundle['subs_count'], $capacity, $warnR, $critR);
-
-                $m = $bundle['metrics'];
-                $bundle['traffic_level'] = is_array($m)
-                    ? $this->trafficStressLevel(
-                        (int) ($m['traffic_total_bytes'] ?? 0),
-                        (int) ($th['traffic_warn_bytes'] ?? 2_000_000_000_000),
-                        (int) ($th['traffic_crit_bytes'] ?? 3_000_000_000_000)
-                    )
-                    : null;
-
-                unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['client_tcp_port'], $bundle['ip']);
+                unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['client_tcp_port'], $bundle['ip'], $bundle['health_profile'], $bundle['require_tcp']);
 
                 return $bundle;
             })
@@ -151,30 +109,6 @@ class DashboardController extends Controller
             'totalActiveSubs' => $totalActiveSubs,
             'totalConnections' => $totalConnections,
         ]);
-    }
-
-    private function keysStressLevel(int $count, int $capacity, float $warnRatio, float $critRatio): string
-    {
-        if ($count < $capacity * $warnRatio) {
-            return 'ok';
-        }
-        if ($count < $capacity * $critRatio) {
-            return 'warn';
-        }
-
-        return 'crit';
-    }
-
-    private function trafficStressLevel(int $bytes, int $warnBytes, int $critBytes): string
-    {
-        if ($bytes < $warnBytes) {
-            return 'ok';
-        }
-        if ($bytes < $critBytes) {
-            return 'warn';
-        }
-
-        return 'crit';
     }
 
     /**
