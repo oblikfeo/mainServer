@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
+use App\Services\Hy2\BlitzListUsers;
 use App\Services\Xui\XuiPanelClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -15,7 +16,8 @@ class DashboardController extends Controller
 {
     public function __construct(
         protected BundleHealthChecker $bundleHealth,
-        protected BundleSshMetrics $bundleSshMetrics
+        protected BundleSshMetrics $bundleSshMetrics,
+        protected BlitzListUsers $blitzListUsers
     ) {}
 
     public function index(): View
@@ -30,7 +32,8 @@ class DashboardController extends Controller
         $ttl = max(10, config('links.metrics_cache_ttl', 20));
         $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
 
-        // Онлайн для fi/nl/trial: из 3x-ui; HY2 (без xui-ноды в конфиге) — только метрики по SSH.
+        // Онлайн: fi/nl/trial — 3x-ui; HY2 — Blitz `list-users` (сумма online_count: UDP, не отображается в ss :443 tcp).
+        $blitzListUsers = $this->blitzListUsers;
         $panelSnapshots = [
             'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
             'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
@@ -38,7 +41,7 @@ class DashboardController extends Controller
         ];
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $blitzListUsers) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -68,6 +71,17 @@ class DashboardController extends Controller
                     } else {
                         $m['unique_remote_ips'] = (int) ($snapshot['online_clients'] ?? 0);
                     }
+                    $bundle['metrics'] = $m;
+                }
+
+                if ($id === 'hy2') {
+                    $blitzOnline = Cache::remember(
+                        'hy2_blitz_online_v1',
+                        $ttl,
+                        fn (): int => $blitzListUsers->totalOnlineCount()
+                    );
+                    $m = is_array($bundle['metrics'] ?? null) ? $bundle['metrics'] : [];
+                    $m['unique_remote_ips'] = $blitzOnline;
                     $bundle['metrics'] = $m;
                 }
 
