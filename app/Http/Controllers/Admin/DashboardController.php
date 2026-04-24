@@ -35,70 +35,61 @@ class DashboardController extends Controller
         // Онлайн: fi/nl/trial — 3x-ui; HY2 — Blitz `list-users` (сумма online_count: UDP, не отображается в ss :443 tcp).
         $blitzListUsers = $this->blitzListUsers;
         $panelSnapshots = [
-            'fi' => $this->safeRemember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
-            'nl' => $this->safeRemember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
-            'trial' => $this->safeRemember('bundle_panel_snapshot_v4_trial', $ttl, fn (): ?array => $this->buildPanelSnapshotForTrialBundle()),
+            'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
+            'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
+            'trial' => Cache::remember('bundle_panel_snapshot_v4_trial', $ttl, fn (): ?array => $this->buildPanelSnapshotForTrialBundle()),
         ];
 
-        $bundles = [];
-        foreach (config('links.bundles', []) as $rawBundle) {
-            if (! is_array($rawBundle)) {
-                continue;
-            }
+        $bundles = collect(config('links.bundles', []))
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $blitzListUsers) {
+                $id = $bundle['id'];
 
-            $bundle = $rawBundle;
-            $id = (string) ($bundle['id'] ?? '');
-            if ($id === '') {
-                continue;
-            }
-
-            $bundleForHealth = $bundle;
-            $health = $this->safeRemember(
-                'bundle_health_v1_'.$id,
-                $healthTtl,
-                fn (): array => $this->bundleHealth->evaluateBundle($bundleForHealth),
-                ['online' => false]
-            );
-            $bundle['online'] = (bool) (is_array($health) ? ($health['online'] ?? false) : false);
-
-            $bundleForSsh = $bundle;
-            $bundle['metrics'] = $this->safeRemember(
-                'bundle_ssh_metrics_v8_'.$id,
-                $ttl,
-                fn (): ?array => $this->bundleSshMetrics->fetch($bundleForSsh)
-            );
-
-            if (isset($panelSnapshots[$id]) && is_array($panelSnapshots[$id])) {
-                $snapshot = $panelSnapshots[$id];
-                $m = is_array($bundle['metrics']) ? $bundle['metrics'] : [];
-                $m['panel_online_clients'] = (int) ($snapshot['online_clients'] ?? 0);
-                $m['traffic_total_bytes'] = $this->applyTrafficBaseline(
-                    $id,
-                    (int) ($snapshot['traffic_total_bytes'] ?? 0)
+                $bundleForHealth = $bundle;
+                $bundle['online'] = Cache::remember(
+                    'bundle_health_v1_'.$id,
+                    $healthTtl,
+                    fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
-                if ($id === 'trial') {
-                    $m['trial_online_clients'] = (int) ($snapshot['online_clients'] ?? 0);
-                } else {
-                    $m['unique_remote_ips'] = (int) ($snapshot['online_clients'] ?? 0);
-                }
-                $bundle['metrics'] = $m;
-            }
 
-            if ($id === 'hy2') {
-                $blitzOnline = (int) $this->safeRemember(
-                    'hy2_blitz_online_v1',
+                $bundleForSsh = $bundle;
+                $bundle['metrics'] = Cache::remember(
+                    'bundle_ssh_metrics_v8_'.$id,
                     $ttl,
-                    fn (): int => $blitzListUsers->totalOnlineCount(),
-                    0
+                    fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
                 );
-                $m = is_array($bundle['metrics'] ?? null) ? $bundle['metrics'] : [];
-                $m['unique_remote_ips'] = $blitzOnline;
-                $bundle['metrics'] = $m;
-            }
 
-            unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['client_tcp_port'], $bundle['ip'], $bundle['health_profile'], $bundle['require_tcp']);
-            $bundles[] = $bundle;
-        }
+                if (isset($panelSnapshots[$id]) && is_array($panelSnapshots[$id])) {
+                    $snapshot = $panelSnapshots[$id];
+                    $m = is_array($bundle['metrics']) ? $bundle['metrics'] : [];
+                    $m['panel_online_clients'] = (int) ($snapshot['online_clients'] ?? 0);
+                    $m['traffic_total_bytes'] = $this->applyTrafficBaseline(
+                        $id,
+                        (int) ($snapshot['traffic_total_bytes'] ?? 0)
+                    );
+                    if ($id === 'trial') {
+                        $m['trial_online_clients'] = (int) ($snapshot['online_clients'] ?? 0);
+                    } else {
+                        $m['unique_remote_ips'] = (int) ($snapshot['online_clients'] ?? 0);
+                    }
+                    $bundle['metrics'] = $m;
+                }
+
+                if ($id === 'hy2') {
+                    $blitzOnline = Cache::remember(
+                        'hy2_blitz_online_v1',
+                        $ttl,
+                        fn (): int => $blitzListUsers->totalOnlineCount()
+                    );
+                    $m = is_array($bundle['metrics'] ?? null) ? $bundle['metrics'] : [];
+                    $m['unique_remote_ips'] = $blitzOnline;
+                    $bundle['metrics'] = $m;
+                }
+
+                unset($bundle['ssh_private_key'], $bundle['ssh_user'], $bundle['client_tcp_port'], $bundle['ip'], $bundle['health_profile'], $bundle['require_tcp']);
+
+                return $bundle;
+            })
+            ->all();
 
         $onlineCount = collect($bundles)->where('online', true)->count();
         $totalBundles = count($bundles);
@@ -299,15 +290,6 @@ class DashboardController extends Controller
         $delta = max(0, $panelBytes - $panelBase);
 
         return $displayBase + $delta;
-    }
-
-    private function safeRemember(string $key, int $ttl, callable $resolver, mixed $fallback = null): mixed
-    {
-        try {
-            return Cache::remember($key, $ttl, $resolver);
-        } catch (Throwable) {
-            return $fallback;
-        }
     }
 
 }
