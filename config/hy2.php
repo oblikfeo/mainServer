@@ -21,7 +21,6 @@ return [
 
     'display_name' => env('HY2_DISPLAY_NAME', '🇭🇰 Высокая скорость'),
     'server_description' => env('HY2_SERVER_DESC', 'global'),
-    'description_format' => strtolower(trim((string) env('HY2_DESC_FORMAT', 'b64'))),
 
     'ssh_host' => env('HY2_SSH_HOST', '222.167.208.75'),
     'ssh_user' => env('HY2_SSH_USER', 'root'),

@@ -90,7 +90,7 @@ final class BlitzClient
 
         $name = $displayName ?? (string) config('hy2.display_name', 'Hysteria2');
         $serverDesc = trim((string) config('hy2.server_description', ''));
-        $sdFormat = strtolower(trim((string) config('hy2.description_format', 'b64')));
+        $sdFormat = strtolower(trim((string) config('xui.vless_server_description_format', 'b64')));
 
         if ($serverDesc !== '' && $sdFormat === 'b64') {
             $name .= '?serverDescription='.rtrim(base64_encode($serverDesc), '=');
