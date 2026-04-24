@@ -30,7 +30,8 @@ class DashboardController extends Controller
         $ttl = max(10, config('links.metrics_cache_ttl', 20));
         $healthTtl = max(10, (int) config('links.health.cache_ttl', 30));
 
-        // Онлайн для fi/nl/trial: из 3x-ui; HY2 (без xui-ноды в конфиге) — только метрики по SSH.
+        // Онлайн и трафик для карточек берем из 3x-ui по активным подпискам/ключам,
+        // чтобы не считать сканеры/шум через SSH на 443.
         $panelSnapshots = [
             'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
             'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
