@@ -1499,8 +1499,8 @@
         }
     }
     .lp-f1 .lp-ref-share--many .lp-ref-share__btn {
-        padding: 0.75rem 0.5rem;
-        min-height: 4.75rem;
+        padding: 0.45rem 0.4rem;
+        min-height: 3.65rem;
         min-width: 0;
     }
     .lp-f1 .lp-ref-share.lp-ref-share--many:not(.lp-ref-share--icons-only) .lp-ref-share__label {
@@ -1531,44 +1531,44 @@
         align-items: center;
         justify-content: center;
         min-height: 0;
-        padding: 0.5rem;
+        padding: 0.3rem;
         aspect-ratio: 1;
         border-radius: 14px;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
         width: 100%;
         height: 100%;
-        min-height: 2.25rem;
+        min-height: 1.7rem;
         flex: 1 1 auto;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-        width: 72%;
-        height: 72%;
-        max-width: 2rem;
-        max-height: 2rem;
+        width: 66%;
+        height: 66%;
+        max-width: 1.45rem;
+        max-height: 1.45rem;
         object-fit: contain;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-            max-width: 2.15rem;
-            max-height: 2.15rem;
+            max-width: 1.6rem;
+            max-height: 1.6rem;
         }
     }
     .lp-f1 .lp-ref-share__btn {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.35rem;
-        padding: 0.85rem 0.75rem;
+        gap: 0.2rem;
+        padding: 0.5rem 0.45rem;
         border: 1px solid #d7deea;
         border-radius: 14px;
         text-decoration: none;
         color: var(--lp-ink);
         background: #fff;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-        min-height: 4.25rem;
+        min-height: 3.55rem;
         transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .lp-f1 .lp-ref-share__btn:hover {
@@ -1599,10 +1599,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 2.15rem;
-        height: 2.15rem;
+        width: 1.7rem;
+        height: 1.7rem;
         border: 1px solid #d7deea;
-        border-radius: 10px;
+        border-radius: 8px;
         background: #ffffffcc;
     }
     .lp-f1 .lp-ref-share__btn--wa .lp-ref-share__icon { color: #25d366; }
