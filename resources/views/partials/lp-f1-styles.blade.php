@@ -1531,8 +1531,9 @@
         align-items: center;
         justify-content: center;
         min-height: 0;
-        padding: 0.25rem;
+        padding: 0.5rem;
         aspect-ratio: 1;
+        border-radius: 14px;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
         width: 100%;
@@ -1560,21 +1561,25 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 0.35rem;
-        padding: 1.1rem 1rem;
-        border: 4px solid var(--lp-ink);
+        padding: 0.85rem 0.75rem;
+        border: 1px solid #d7deea;
+        border-radius: 14px;
         text-decoration: none;
         color: var(--lp-ink);
         background: #fff;
-        box-shadow: 8px 8px 0 var(--lp-ink);
-        min-height: 5.5rem;
-        transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        min-height: 4.25rem;
+        transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .lp-f1 .lp-ref-share__btn:hover {
-        background: #fafafa;
+        background: #fff;
+        border-color: #bcc7da;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+        transform: translateY(-1px);
     }
     .lp-f1 .lp-ref-share__btn:active {
-        transform: translate(3px, 3px);
-        box-shadow: 4px 4px 0 var(--lp-ink);
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
     }
     .lp-f1 .lp-ref-share__btn--wa {
         background: linear-gradient(180deg, #e7fce8 0%, #fff 55%);
@@ -1594,10 +1599,11 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        border: 3px solid var(--lp-ink);
-        background: #fff;
+        width: 2.15rem;
+        height: 2.15rem;
+        border: 1px solid #d7deea;
+        border-radius: 10px;
+        background: #ffffffcc;
     }
     .lp-f1 .lp-ref-share__btn--wa .lp-ref-share__icon { color: #25d366; }
     .lp-f1 .lp-ref-share__btn--viber .lp-ref-share__icon { color: #7360f2; }
@@ -1621,7 +1627,8 @@
         width: 100%;
         padding: 1rem 1.25rem;
         margin: 0;
-        border: 4px solid var(--lp-ink);
+        border: 1px solid #c9d4e5;
+        border-radius: 14px;
         background: #fff;
         color: var(--lp-ink);
         font: inherit;
@@ -1630,12 +1637,15 @@
         text-transform: uppercase;
         letter-spacing: 0.04em;
         cursor: pointer;
-        box-shadow: 8px 8px 0 var(--lp-ink);
-        transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+        transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
     .lp-f1 .lp-ref-share__copy-btn:hover {
-        background: #f5f5f5;
+        background: #fff;
+        border-color: #aab9d2;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
         color: var(--lp-ink);
+        transform: translateY(-1px);
     }
     .lp-f1 .lp-ref-share__copy-btn:active {
         transform: translate(3px, 3px);
