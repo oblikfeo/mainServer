@@ -1488,19 +1488,14 @@
             grid-template-columns: 1fr 1fr;
         }
     }
-    /* Четыре карточки шеринга — один ряд (от ~768px); на узких экранах 2×2 */
+    /* Кнопки шеринга: компактные ячейки в одну строку */
     .lp-f1 .lp-ref-share.lp-ref-share--many {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.65rem;
-    }
-    @media (min-width: 768px) {
-        .lp-f1 .lp-ref-share.lp-ref-share--many {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
     }
     .lp-f1 .lp-ref-share--many .lp-ref-share__btn {
-        padding: 0.45rem 0.4rem;
-        min-height: 3.65rem;
+        padding: 0.24rem;
+        min-height: 2.9rem;
         min-width: 0;
     }
     .lp-f1 .lp-ref-share.lp-ref-share--many:not(.lp-ref-share--icons-only) .lp-ref-share__label {
@@ -1531,44 +1526,44 @@
         align-items: center;
         justify-content: center;
         min-height: 0;
-        padding: 0.3rem;
+        padding: 0.18rem;
         aspect-ratio: 1;
-        border-radius: 14px;
+        border-radius: 12px;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
         width: 100%;
         height: 100%;
-        min-height: 1.7rem;
+        min-height: 2rem;
         flex: 1 1 auto;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-        width: 66%;
-        height: 66%;
-        max-width: 1.45rem;
-        max-height: 1.45rem;
+        width: 82%;
+        height: 82%;
+        max-width: 1.95rem;
+        max-height: 1.95rem;
         object-fit: contain;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-            max-width: 1.6rem;
-            max-height: 1.6rem;
+            max-width: 2.05rem;
+            max-height: 2.05rem;
         }
     }
     .lp-f1 .lp-ref-share__btn {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.2rem;
-        padding: 0.5rem 0.45rem;
+        gap: 0;
+        padding: 0.24rem;
         border: 1px solid #d7deea;
-        border-radius: 14px;
+        border-radius: 12px;
         text-decoration: none;
         color: var(--lp-ink);
         background: #fff;
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-        min-height: 3.55rem;
+        min-height: 2.9rem;
         transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
     .lp-f1 .lp-ref-share__btn:hover {
@@ -1599,10 +1594,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 1.7rem;
-        height: 1.7rem;
+        width: 2rem;
+        height: 2rem;
         border: 1px solid #d7deea;
-        border-radius: 8px;
+        border-radius: 10px;
         background: #ffffffcc;
     }
     .lp-f1 .lp-ref-share__btn--wa .lp-ref-share__icon { color: #25d366; }
