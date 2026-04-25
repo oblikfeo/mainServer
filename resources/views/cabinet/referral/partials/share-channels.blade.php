@@ -7,7 +7,7 @@
     $max = 'https://max.ru/:share?text='.rawurlencode($shareText);
 @endphp
 
-<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: false }">
+<div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: true }">
     <button
         type="button"
         class="lp-profile-accordion__trigger"
@@ -29,7 +29,7 @@
         </a>
         <a class="lp-ref-share__btn lp-ref-share__btn--viber" href="{{ $viber }}" rel="noopener noreferrer" aria-label="Viber">
             <span class="lp-ref-share__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="1" height="1"><path d="M11.4 0C5.1 0 .2 4.7.2 10.4c0 2.8 1.2 5.4 3.2 7.3.4.4.6.8.5 1.3l-.6 2.4c-.1.5.3 1 .9 1.1h.3l2.9-1.1c.4-.1.8-.1 1.2.1 1.1.4 2.3.7 3.6.7 6.3 0 11.3-4.7 11.3-10.4C24.2 4.7 18.9 0 11.4 0zm6.1 14.4c-.3.8-1.5 1.5-2.6 1.7-.7.1-1.6.2-4.7-1-3.7-1.7-6.1-5.2-6.3-5.4-.2-.3-1.5-2-1.5-3.8 0-1.8.9-2.7 1.3-3.1.3-.3.8-.5 1.1-.5h.9c.3 0 .7 0 1 .7.4.8 1.2 2.6 1.3 2.8.1.2.2.4 0 .7-.1.2-.2.4-.4.6l-.6.6c-.2.2-.2.4-.1.6.1.2.6 1 1.3 1.9.9 1 1.6 1.3 2 1.5.2.1.4 0 .6-.2l.7-.8c.2-.2.5-.3.8-.2.3.1 1.9.9 2.2 1.1.3.2.5.3.6.5.1.2.1 1.1-.2 2z"/></svg>
+                <img src="{{ asset('viber-logo.svg') }}" alt="" loading="lazy" decoding="async">
             </span>
         </a>
         <a class="lp-ref-share__btn lp-ref-share__btn--tg" href="{{ $telegram }}" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
@@ -39,7 +39,7 @@
         </a>
         <a class="lp-ref-share__btn lp-ref-share__btn--max" href="{{ $max }}" target="_blank" rel="noopener noreferrer" aria-label="MAX">
             <span class="lp-ref-share__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="1" height="1"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6.17L4 18.17V4h16v12z"/></svg>
+                <img src="{{ asset('max-logo.svg') }}" alt="" loading="lazy" decoding="async">
             </span>
         </a>
     </div>
