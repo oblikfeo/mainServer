@@ -9,36 +9,32 @@ use Illuminate\Support\Facades\Mail;
 class MassInviteTestMailCommand extends Command
 {
     protected $signature = 'mass-invite:test-mail
-                            {--example= : Логин в теле письма (по умолчанию — первый адрес в mass_invite.recipients)}';
+                            {--example= : Подставить в поле «логин» этот email (по умолчанию = адрес mass_invite.test_recipient — как при реальной рассылке своему ящику)}';
 
-    protected $description = 'Одна отправка шаблона «вход в кабинет» на mass_invite.test_recipient (перед рассылкой по списку).';
+    protected $description = 'Одна отправка на mass_invite.test_recipient: в письме логин = получатель, если не задан --example.';
 
     public function handle(): int
     {
-        $recipients = config('mass_invite.recipients', []);
-        if ($recipients === []) {
-            $this->error('Список mass_invite.recipients пуст.');
-
-            return self::FAILURE;
-        }
-
-        $example = trim((string) $this->option('example'));
-        if ($example === '') {
-            $example = (string) ($recipients[0] ?? '');
-        }
-
-        if ($example === '' || ! filter_var($example, FILTER_VALIDATE_EMAIL)) {
-            $this->error('Укажите корректный --example=email или заполните список в config/mass_invite.php.');
-
-            return self::FAILURE;
-        }
-
         $to = (string) config('mass_invite.test_recipient', 'kfc.kurochka@gmail.com');
         if ($to === '' || ! filter_var($to, FILTER_VALIDATE_EMAIL)) {
             $this->error('Некорректный mass_invite.test_recipient.');
 
             return self::FAILURE;
         }
+
+        /** В реальной рассылке у каждого в теле письма будет его email. Для теста на свой ящик — тот же адрес, что и test_recipient. */
+        $loginInBody = trim((string) $this->option('example'));
+        if ($loginInBody === '') {
+            $loginInBody = $to;
+        }
+
+        if (! filter_var($loginInBody, FILTER_VALIDATE_EMAIL)) {
+            $this->error('Некорректный --example= email.');
+
+            return self::FAILURE;
+        }
+
+        $recipients = config('mass_invite.recipients', []);
 
         $brand = (string) config('marketing.brand_name', config('app.name', 'Надежда'));
         $fromAddress = (string) (config('marketing.support_email') ?: config('mail.from.address', 'support@nadezhda.space'));
@@ -47,7 +43,7 @@ class MassInviteTestMailCommand extends Command
         $forgotPasswordUrl = url(route('password.request', [], false));
 
         Mail::to($to)->send(new MassInviteMail(
-            loginEmail: $example,
+            loginEmail: $loginInBody,
             brand: $brand,
             supportFromAddress: $fromAddress,
             supportFromName: $fromName,
@@ -56,7 +52,7 @@ class MassInviteTestMailCommand extends Command
             supportEmail: $fromAddress,
         ));
 
-        $this->info("Отправлено: {$to} · логин в письме: {$example} · в recipients: ".count($recipients).'.');
+        $this->info("Отправлено: {$to} · логин в письме: {$loginInBody} · в recipients: ".count($recipients).'.');
 
         return self::SUCCESS;
     }
