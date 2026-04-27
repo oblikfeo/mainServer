@@ -36,8 +36,20 @@ class CabinetTestKeysController extends Controller
             return back()->with('status', 'test-key-exists');
         }
 
+        $defaultHours = (int) config('test_keys.default_hours', 8);
+
         try {
-            $manager->issueForUser($user, null);
+            if ((int) $user->referral_invitee_test_issues_remaining > 0) {
+                $manager->issueForUser($user, $defaultHours, false);
+                $user->forceFill([
+                    'referral_invitee_test_issues_remaining' => max(
+                        0,
+                        (int) $user->referral_invitee_test_issues_remaining - 1
+                    ),
+                ])->save();
+            } else {
+                $manager->issueForUser($user, null);
+            }
         } catch (\Throwable $e) {
             return back()->withErrors([
                 'test_key' => 'Не удалось выдать тестовую подписку. Связка может быть не настроена.',

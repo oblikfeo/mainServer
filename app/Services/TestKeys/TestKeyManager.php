@@ -28,15 +28,19 @@ final class TestKeyManager
         }
     }
 
-    public function issueForUser(User $user, ?int $hours = null): TestKey
+    public function issueForUser(User $user, ?int $hours = null, bool $applyReferralTestCreditHours = true): TestKey
     {
         $this->assertConfigured();
 
-        $credit = (int) ($user->referral_test_credit_hours ?? 0);
         $base = $hours ?? (int) config('test_keys.default_hours', 8);
-        $hours = max(1, min(48, (int) $base + $credit));
-        if ($credit !== 0) {
-            $user->forceFill(['referral_test_credit_hours' => 0])->save();
+        if ($applyReferralTestCreditHours) {
+            $credit = (int) ($user->referral_test_credit_hours ?? 0);
+            $hours = max(1, min(48, (int) $base + $credit));
+            if ($credit !== 0) {
+                $user->forceFill(['referral_test_credit_hours' => 0])->save();
+            }
+        } else {
+            $hours = max(1, min(48, (int) $base));
         }
 
         $now = now();

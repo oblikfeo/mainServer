@@ -9,7 +9,11 @@ class ReferralGrant extends Model
 {
     public const KIND_FIRST_REG_REFERRER_DAYS = 'first_reg_referrer_days';
 
+    /** Устаревший вид начисления: +часы в meta. */
     public const KIND_FIRST_REG_REFEREE_TEST_CREDIT = 'first_reg_referee_test_credit';
+
+    /** Отдельные тестовые ключи (слоты), см. meta.test_key_issues. */
+    public const KIND_FIRST_REG_REFEREE_TEST_KEYS = 'first_reg_referee_test_keys';
 
     public const KIND_FIRST_PAYMENT_PAIR = 'first_payment_pair';
 

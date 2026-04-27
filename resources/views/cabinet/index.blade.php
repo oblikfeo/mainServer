@@ -49,8 +49,16 @@
                         <div class="lp-warn-box">
                             Чтобы получить тестовую подписку, подтвердите почту в
                             <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
+                            @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0)
+                                <p class="mt-2 text-slate-700">По приглашению вам начислено {{ (int) $me->referral_invitee_test_issues_remaining }} отдельных тест-периода по {{ (int) config('test_keys.default_hours', 8) }} ч — каждый после подтверждения почты и когда предыдущий ключ истёк.</p>
+                            @endif
                         </div>
                     @else
+                        @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0 && ! $activeTestKey)
+                            <div class="lp-warn-box" style="background:#eff6ff;">
+                                По приглашению доступно ещё {{ (int) $me->referral_invitee_test_issues_remaining }} тест-ключа по {{ (int) config('test_keys.default_hours', 8) }} ч (по одному активному).
+                            </div>
+                        @endif
                         @if ($activeTestKey)
                             <div class="lp-warn-box" style="background:#f8fafc;">
                                 <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Подписка (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})</div>

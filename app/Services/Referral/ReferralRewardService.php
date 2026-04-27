@@ -62,11 +62,6 @@ final class ReferralRewardService
 
         try {
             DB::transaction(function () use ($referee, $referrerId): void {
-                $count = (int) User::query()->where('referred_by', $referrerId)->lockForUpdate()->count();
-                if ($count !== 1) {
-                    return;
-                }
-
                 $this->grantFirstRegistration((int) $referee->id, $referrerId);
             });
         } catch (\Throwable $e) {
@@ -106,17 +101,27 @@ final class ReferralRewardService
                 return;
             }
 
-            $hours = (int) config('referral.first_registration_referee_test_hours', 8);
-            $referee->referral_test_credit_hours = (int) $referee->referral_test_credit_hours + $hours;
+            $issues = (int) config('referral.first_registration_referee_test_key_issues', 2);
+            if ($issues < 1) {
+                $issues = 1;
+            }
+            if ($issues > 255) {
+                $issues = 255;
+            }
+
+            $referee->referral_invitee_test_issues_remaining = min(
+                255,
+                (int) $referee->referral_invitee_test_issues_remaining + $issues
+            );
             $referee->save();
 
             ReferralGrant::query()->create([
                 'grant_key' => $kRee,
-                'kind' => ReferralGrant::KIND_FIRST_REG_REFEREE_TEST_CREDIT,
+                'kind' => ReferralGrant::KIND_FIRST_REG_REFEREE_TEST_KEYS,
                 'beneficiary_user_id' => $refereeId,
                 'referee_user_id' => $refereeId,
                 'purchase_id' => null,
-                'meta' => ['hours' => $hours],
+                'meta' => ['test_key_issues' => $issues],
             ]);
         }
     }

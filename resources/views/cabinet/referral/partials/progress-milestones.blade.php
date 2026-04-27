@@ -50,7 +50,7 @@
                         </div>
                         <div class="lp-ref-quest__prize-cell">
                             <span class="lp-ref-quest__prize-who">Другу</span>
-                            <span class="lp-ref-quest__prize-val">+8 ч к тесту</span>
+                            <span class="lp-ref-quest__prize-val">2 тест-ключа по 8 ч</span>
                         </div>
                     </div>
                 </div>
