@@ -16,11 +16,8 @@
                 <div style="margin-top:6px;font-weight:900;font-size:22px;line-height:1.15;letter-spacing:-0.02em;color:#000000;">
                     Вход в личный кабинет
                 </div>
-                <div style="margin-top:10px;font-size:13px;line-height:1.55;color:#334155;">
-                    Коротко: мы сделали личный кабинет, чтобы вам было удобно управлять подпиской и реферальной программой.
-                </div>
-                <div style="margin-top:8px;font-size:13px;line-height:1.55;color:#334155;">
-                    Ниже — ваш логин. Пароль задайте через «Восстановить пароль»; в письмах пароли не присылаем.
+                <div style="margin-top:10px;font-size:13px;line-height:1.5;color:#334155;">
+                    Личный кабинет — подписка и реферальная программа. Логин ниже. Пароль задаётся через восстановление доступа; пароли в письмах не направляем.
                 </div>
             </div>
 
@@ -38,19 +35,18 @@
                     </a>
                 </div>
 
-                <div style="margin-top:14px;background:#f1f5f9;border:2px solid #000000;border-radius:12px;padding:12px 12px;">
-                    <div style="font-size:12px;line-height:1.5;color:#0f172a;">
-                        На странице восстановления введите этот же email — придёт ссылка для установки нового пароля.
+                <div style="margin-top:12px;background:#f1f5f9;border:2px solid #000000;border-radius:12px;padding:10px 12px;">
+                    <div style="font-size:12px;line-height:1.45;color:#0f172a;">
+                        На странице восстановления укажите этот email — придёт ссылка для нового пароля.
                     </div>
                 </div>
 
-                <div style="margin-top:14px;font-size:12px;line-height:1.5;color:#475569;word-break:break-all;">
-                    Если кнопка не открывается, скопируйте ссылку:<br>
-                    <a href="{{ $forgotPasswordUrl }}" style="color:#000000;font-weight:800;text-decoration:underline;">{{ $forgotPasswordUrl }}</a>
+                <div style="margin-top:10px;font-size:12px;line-height:1.45;color:#475569;word-break:break-all;">
+                    Ссылка без кнопки: <a href="{{ $forgotPasswordUrl }}" style="color:#000000;font-weight:800;text-decoration:underline;">{{ $forgotPasswordUrl }}</a>
                 </div>
 
-                <div style="margin-top:14px;font-size:12px;line-height:1.5;color:#475569;">
-                    Сайт: <a href="{{ $appUrl }}" style="color:#000000;font-weight:800;text-decoration:underline;">{{ $appUrl }}</a>
+                <div style="margin-top:6px;font-size:12px;line-height:1.45;color:#475569;">
+                    <a href="{{ $appUrl }}" style="color:#000000;font-weight:800;text-decoration:underline;">{{ $appUrl }}</a>
                 </div>
             </div>
 

@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Mail;
 class MassInviteTestMailCommand extends Command
 {
     protected $signature = 'mass-invite:test-mail
-                            {--example= : Email для примера «ваш логин» (по умолчанию первый из config/mass_invite.php)}';
+                            {--example= : Логин в теле письма (по умолчанию — первый адрес в mass_invite.recipients)}';
 
-    protected $description = 'Отправить одно письмо «вход в кабинет» на mass_invite.test_recipient (пример логина: --example или первый из списка recipients).';
+    protected $description = 'Одна отправка шаблона «вход в кабинет» на mass_invite.test_recipient (перед рассылкой по списку).';
 
     public function handle(): int
     {
@@ -56,8 +56,7 @@ class MassInviteTestMailCommand extends Command
             supportEmail: $fromAddress,
         ));
 
-        $this->info("Письмо отправлено на: {$to} (в письме логин: {$example}).");
-        $this->line('Всего в списке recipients: '.count($recipients).' адресов (массовая рассылка по ним не выполнялась).');
+        $this->info("Отправлено: {$to} · логин в письме: {$example} · в recipients: ".count($recipients).'.');
 
         return self::SUCCESS;
     }
