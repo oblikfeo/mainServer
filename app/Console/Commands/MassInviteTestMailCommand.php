@@ -9,20 +9,24 @@ use Illuminate\Support\Facades\Mail;
 class MassInviteTestMailCommand extends Command
 {
     protected $signature = 'mass-invite:test-mail
-                            {--example= : Подставить в поле «логин» этот email (по умолчанию = адрес mass_invite.test_recipient — как при реальной рассылке своему ящику)}';
+                            {--to= : Кому отправить (если пусто — mass_invite.test_recipient)}
+                            {--example= : Подставить в поле «логин» этот email (по умолчанию = адрес получателя)}';
 
-    protected $description = 'Одна отправка на mass_invite.test_recipient: в письме логин = получатель, если не задан --example.';
+    protected $description = 'Одна отправка пригласительного письма: по умолчанию на test_recipient, или --to=email для конкретного адреса.';
 
     public function handle(): int
     {
-        $to = (string) config('mass_invite.test_recipient', 'kfc.kurochka@gmail.com');
+        $to = trim((string) $this->option('to'));
+        if ($to === '') {
+            $to = (string) config('mass_invite.test_recipient', 'kfc.kurochka@gmail.com');
+        }
         if ($to === '' || ! filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $this->error('Некорректный mass_invite.test_recipient.');
+            $this->error('Некорректный получатель: задайте --to=email или mass_invite.test_recipient в конфиге.');
 
             return self::FAILURE;
         }
 
-        /** В реальной рассылке у каждого в теле письма будет его email. Для теста на свой ящик — тот же адрес, что и test_recipient. */
+        /** В рассылке в теле письма — email для входа. */
         $loginInBody = trim((string) $this->option('example'));
         if ($loginInBody === '') {
             $loginInBody = $to;
