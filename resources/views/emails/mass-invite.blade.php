@@ -16,8 +16,11 @@
                 <div style="margin-top:6px;font-weight:900;font-size:22px;line-height:1.15;letter-spacing:-0.02em;color:#000000;">
                     Вход в личный кабинет
                 </div>
-                <div style="margin-top:8px;font-size:13px;line-height:1.5;color:#334155;">
-                    Сервис «{{ $brand }}» приветствует вас. Для входа на сайт используйте указанный ниже логин. Пароль задайте через восстановление — мы не присылаем пароли в письмах.
+                <div style="margin-top:10px;font-size:13px;line-height:1.55;color:#334155;">
+                    Коротко: мы сделали личный кабинет, чтобы вам было удобно управлять подпиской и реферальной программой.
+                </div>
+                <div style="margin-top:8px;font-size:13px;line-height:1.55;color:#334155;">
+                    Ниже — ваш логин. Пароль задайте через «Восстановить пароль»; в письмах пароли не присылаем.
                 </div>
             </div>
 
@@ -30,7 +33,7 @@
                 </p>
 
                 <div style="text-align:center;margin:8px 0 18px 0;">
-                    <a href="{{ $forgotPasswordUrl }}" style="display:inline-block;background:#ffffff;color:#000000;font-weight:900;text-decoration:none;padding:14px 26px;border-radius:12px;border:4px solid #000000;font-size:15px;line-height:1.2;">
+                    <a href="{{ $forgotPasswordUrl }}" style="display:inline-block;background:#FF4500;color:#ffffff;font-weight:900;text-decoration:none;padding:14px 26px;border-radius:12px;border:2px solid #cc3700;font-size:15px;line-height:1.2;">
                         Восстановить пароль
                     </a>
                 </div>
