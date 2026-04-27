@@ -21,6 +21,7 @@
     </button>
     <div class="lp-profile-accordion__panel" id="ref-share-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-share-title">
 
+    <div class="lp-ref-share-toolbar">
     <div class="lp-ref-share lp-ref-share--many lp-ref-share--icons-only">
         <a class="lp-ref-share__btn lp-ref-share__btn--wa" href="{{ $wa }}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
             <span class="lp-ref-share__icon" aria-hidden="true">
@@ -54,6 +55,7 @@
             <span x-show="!copied">Скопировать ссылку</span>
             <span x-show="copied" x-cloak>Скопировано</span>
         </button>
+    </div>
     </div>
     </div>
 </div>

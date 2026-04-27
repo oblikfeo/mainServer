@@ -1278,6 +1278,7 @@
     .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel {
         padding-top: 0.75rem;
     }
+    .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-share-toolbar:first-child,
     .lp-f1 .lp-ref-section.lp-profile-accordion .lp-profile-accordion__panel > .lp-ref-share:first-child {
         margin-top: 0;
     }
@@ -1477,8 +1478,18 @@
         min-width: 0;
         transition: width 0.4s ease;
     }
-    .lp-f1 .lp-ref-share {
+    .lp-f1 .lp-ref-share-toolbar {
         margin-top: 1.15rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-ref-share-toolbar .lp-ref-share {
+        margin-top: 0;
+    }
+    .lp-f1 .lp-ref-share {
         display: grid;
         grid-template-columns: 1fr;
         gap: 0.85rem;
@@ -1488,7 +1499,7 @@
             grid-template-columns: 1fr 1fr;
         }
     }
-    /* Кнопки шеринга: компактные ячейки в одну строку */
+    /* Четыре значка: на ПК компактные фиксированные кнопки + «Скопировать» в одной строке (см. .lp-ref-share-toolbar) */
     .lp-f1 .lp-ref-share.lp-ref-share--many {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0.4rem;
@@ -1526,29 +1537,70 @@
         align-items: center;
         justify-content: center;
         min-height: 0;
-        padding: 0.18rem;
-        aspect-ratio: 1;
+        padding: 0.2rem;
         border-radius: 12px;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
         width: 100%;
         height: 100%;
-        min-height: 2rem;
-        flex: 1 1 auto;
+        min-height: 0;
+        flex: 0 0 auto;
     }
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
     .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-        width: 82%;
-        height: 82%;
-        max-width: 1.95rem;
-        max-height: 1.95rem;
+        width: 78%;
+        height: 78%;
+        max-width: 1.5rem;
+        max-height: 1.5rem;
         object-fit: contain;
     }
-    @media (min-width: 768px) {
+    @media (min-width: 480px) {
+        .lp-f1 .lp-ref-share-toolbar {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 0.5rem 0.65rem;
+        }
+        .lp-f1 .lp-ref-share-toolbar .lp-ref-share-copy {
+            flex: 1 1 auto;
+            margin-top: 0;
+            min-width: 0;
+        }
+        .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn {
+            width: 100%;
+            min-height: 2.5rem;
+            padding: 0.45rem 0.9rem;
+            font-size: 0.75rem;
+        }
+        .lp-f1 .lp-ref-share.lp-ref-share--many.lp-ref-share--icons-only {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.4rem;
+            flex: 0 0 auto;
+            width: auto;
+            max-width: none;
+        }
+        .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__btn {
+            flex: 0 0 2.4rem;
+            width: 2.4rem;
+            height: 2.4rem;
+            min-height: 0;
+            max-width: 2.4rem;
+            box-sizing: border-box;
+        }
+        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
+            width: 1.6rem;
+            height: 1.6rem;
+        }
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-            max-width: 2.05rem;
-            max-height: 2.05rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            max-width: 1.25rem;
+            max-height: 1.25rem;
         }
     }
     .lp-f1 .lp-ref-share__btn {
@@ -1798,17 +1850,36 @@
             font-size: 0.5625rem;
             align-self: start;
         }
+        .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.35rem;
+        }
         .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__btn {
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 0;
             aspect-ratio: 1;
-            min-height: 3.75rem;
-            padding: 0.3rem;
+            max-width: 3.1rem;
+            max-height: 3.1rem;
+            width: 100%;
+            height: auto;
+            padding: 0.2rem;
         }
         .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
             min-height: 0;
+            width: 1.6rem;
+            height: 1.6rem;
         }
-        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg {
-            max-width: 3.25rem;
-            max-height: 3.25rem;
+        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
+        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
+            max-width: 1.3rem;
+            max-height: 1.3rem;
+            width: 1.2rem;
+            height: 1.2rem;
         }
         .lp-f1 .lp-ref-history__card {
             padding: 0.65rem 0.55rem;
