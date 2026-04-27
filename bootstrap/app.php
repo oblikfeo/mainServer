@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\TestKeysCleanupCommand::class,
         \App\Console\Commands\MailTestCommand::class,
         \App\Console\Commands\MassInviteTestMailCommand::class,
+        \App\Console\Commands\MassInviteSendAllCommand::class,
         \App\Console\Commands\AddHy2ToExistingSubscriptions::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {

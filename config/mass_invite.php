@@ -2,7 +2,8 @@
 
 /**
  * Рассылка «вход в кабинет»: логин = email, пароль — через восстановление.
- * mass-invite:test-mail — одна отправка на test_recipient; в теле письма логин по умолчанию = test_recipient (как при рассылке: у каждого свой email). --example= — подставить другой логин для проверки.
+ * mass-invite:test-mail — одна отправка на test_recipient; логин в письме = test_recipient (если нет --example).
+ * mass-invite:send-all --force — по всем recipients, пауза 1–3 с между письмами (опции --min-delay / --max-delay). Сначала --dry-run.
  *
  * Получатели рассылки (фиксированный список, порядок сохраняем):
  */
