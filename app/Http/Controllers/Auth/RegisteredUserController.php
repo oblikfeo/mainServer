@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Referral\ReferralRewardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,7 +45,7 @@ class RegisteredUserController extends Controller
     /**
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ReferralRewardService $referralRewards): RedirectResponse
     {
         $request->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
@@ -76,6 +77,8 @@ class RegisteredUserController extends Controller
             $user->referred_by = $referredById;
         }
         $user->save();
+
+        $referralRewards->onReferredUserRegistered($user);
 
         Auth::login($user);
 

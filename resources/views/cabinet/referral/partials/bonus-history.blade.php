@@ -13,34 +13,23 @@
     <div class="lp-profile-accordion__panel" id="ref-history-panel" x-show="open" x-cloak x-transition role="region" aria-labelledby="ref-history-title">
 
     <div class="lp-ref-history" role="list">
+        @forelse ($referralHistory as $row)
         <article class="lp-ref-history__card" role="listitem">
             <div class="lp-ref-history__head">
-                <span class="lp-ref-history__name">Александр</span>
-                <span class="lp-badge-pill lp-badge-pill--ok">Оплатил</span>
+                <span class="lp-ref-history__name">{{ $row['name'] }}</span>
+                @if ($row['status_kind'] === 'bonus')
+                    <span class="lp-badge-pill lp-badge-pill--ok">Бонус начислен</span>
+                @elseif ($row['status_kind'] === 'ok')
+                    <span class="lp-badge-pill lp-badge-pill--ok">Оплатил</span>
+                @else
+                    <span class="lp-badge-pill lp-badge-pill--muted">Ожидание оплаты</span>
+                @endif
             </div>
-            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">alex***@mail.ru</span></p>
+            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">{{ $row['email_masked'] }}</span></p>
         </article>
-        <article class="lp-ref-history__card" role="listitem">
-            <div class="lp-ref-history__head">
-                <span class="lp-ref-history__name">Мария</span>
-                <span class="lp-badge-pill lp-badge-pill--warn">Зарегистрирован</span>
-            </div>
-            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">m***@yandex.ru</span></p>
-        </article>
-        <article class="lp-ref-history__card" role="listitem">
-            <div class="lp-ref-history__head">
-                <span class="lp-ref-history__name">Иван</span>
-                <span class="lp-badge-pill lp-badge-pill--muted">Ожидание оплаты</span>
-            </div>
-            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">ivan***@gmail.com</span></p>
-        </article>
-        <article class="lp-ref-history__card" role="listitem">
-            <div class="lp-ref-history__head">
-                <span class="lp-ref-history__name">Елена</span>
-                <span class="lp-badge-pill lp-badge-pill--ok">Бонус начислен</span>
-            </div>
-            <p class="lp-ref-history__email"><span class="lp-ref-history__email-label">Почта</span> <span class="lp-ref-history__email-val">el***@inbox.ru</span></p>
-        </article>
+        @empty
+        <p class="lp-ref-quests-lead">Пока никого не приглашали — поделитесь ссылкой выше.</p>
+        @endforelse
     </div>
     </div>
 </div>

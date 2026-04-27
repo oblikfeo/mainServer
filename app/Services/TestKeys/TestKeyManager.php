@@ -32,8 +32,12 @@ final class TestKeyManager
     {
         $this->assertConfigured();
 
-        $hours = $hours ?? (int) config('test_keys.default_hours', 8);
-        $hours = max(1, min(48, (int) $hours));
+        $credit = (int) ($user->referral_test_credit_hours ?? 0);
+        $base = $hours ?? (int) config('test_keys.default_hours', 8);
+        $hours = max(1, min(48, (int) $base + $credit));
+        if ($credit !== 0) {
+            $user->forceFill(['referral_test_credit_hours' => 0])->save();
+        }
 
         $now = now();
         $expiresAt = $now->clone()->addHours($hours);

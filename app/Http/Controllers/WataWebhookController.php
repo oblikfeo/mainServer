@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
 use App\Models\Purchase;
+use App\Models\User;
+use App\Services\Referral\ReferralRewardService;
 use App\Services\Subscription\CreateDualBundleSubscription;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\Request;
@@ -13,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class WataWebhookController extends Controller
 {
-    public function __invoke(Request $request, WataH2hClient $wata, CreateDualBundleSubscription $subs): Response
+    public function __invoke(Request $request, WataH2hClient $wata, CreateDualBundleSubscription $subs, ReferralRewardService $referralRewards): Response
     {
         $raw = $request->getContent();
         $sig = (string) $request->header('X-Signature', '');
@@ -62,7 +64,7 @@ class WataWebhookController extends Controller
         $isDeclined = $kind === 'Payment' && $status === 'Declined';
 
         try {
-            return DB::transaction(function () use ($order, $payload, $transactionId, $isPaid, $isDeclined, $subs): Response {
+            return DB::transaction(function () use ($order, $payload, $transactionId, $isPaid, $isDeclined, $subs, $referralRewards): Response {
                 /** @var PaymentOrder|null $locked */
                 $locked = PaymentOrder::query()->whereKey($order->id)->lockForUpdate()->first();
                 if (! $locked) {
@@ -110,13 +112,22 @@ class WataWebhookController extends Controller
                 $locked->subscription_id = $result->subscription->id;
                 $locked->save();
 
-                Purchase::query()->create([
+                $buyer = User::query()->whereKey((int) $locked->user_id)->first();
+                if ($buyer !== null) {
+                    $referralRewards->consumeUserCreditsOnNewSubscription($buyer, $result->subscription);
+                }
+
+                $purchase = Purchase::query()->create([
                     'user_id' => (int) $locked->user_id,
                     'amount_rub' => (int) $locked->amount_rub,
                     'currency' => (string) $locked->currency,
                     'paid_at' => $locked->paid_at ?? now(),
                     'description' => (string) ($locked->description ?? 'Оплата'),
                 ]);
+
+                if ($buyer !== null) {
+                    $referralRewards->onPurchaseRecorded($purchase);
+                }
 
                 return response('', 200);
             });

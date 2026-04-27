@@ -1,3 +1,10 @@
+@php
+    $e = $quests->emailQuest;
+    $f1 = $quests->firstRegQuest;
+    $fp = $quests->firstPayQuest;
+    $a4 = $quests->active4Quest;
+    $a10 = $quests->active10Quest;
+@endphp
 <div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: false }">
     <button
         type="button"
@@ -14,26 +21,26 @@
     <p class="lp-ref-quests-lead">Выполните условие — награда указана в блоках ниже.</p>
 
     <div class="lp-ref-quests">
-        <article class="lp-ref-quest lp-ref-quest--done">
-            <span class="lp-ref-quest__badge" aria-hidden="true">✓</span>
+        <article class="lp-ref-quest @if($e['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($e['done'])✓@else 1 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">Подтверждение почты</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">1/1</span>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $e['ratio'] }}</span>
                 </div>
-                <div class="lp-ref-bar" role="img" aria-label="1 из 1">
-                    <span class="lp-ref-bar__fill" style="width:100%;"></span>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $e['current'] }} из {{ $e['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $e['bar']) }}%;"></span>
                 </div>
-                <p class="lp-ref-quest__status">Почта подтверждена</p>
+                <p class="lp-ref-quest__status">{{ $e['status'] }}</p>
             </div>
         </article>
 
-        <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">2</span>
+        <article class="lp-ref-quest @if($f1['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($f1['done'])✓@else 2 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">Первая регистрация</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">0/1</span>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $f1['ratio'] }}</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
                     <div class="lp-ref-quest__prize-split">
@@ -47,19 +54,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="lp-ref-bar" role="img" aria-label="0 из 1">
-                    <span class="lp-ref-bar__fill" style="width:0%;"></span>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $f1['current'] }} из {{ $f1['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $f1['bar']) }}%;"></span>
                 </div>
-                <p class="lp-ref-quest__status">Ждём первую регистрацию по ссылке</p>
+                <p class="lp-ref-quest__status">{{ $f1['status'] }}</p>
             </div>
         </article>
 
-        <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">3</span>
+        <article class="lp-ref-quest @if($fp['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($fp['done'])✓@else 3 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">Первая оплата</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">1/3</span>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $fp['ratio'] }}</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
                     <div class="lp-ref-quest__prize-split">
@@ -73,19 +80,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="lp-ref-bar" role="img" aria-label="1 из 3">
-                    <span class="lp-ref-bar__fill" style="width:33%;"></span>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $fp['current'] }} из {{ $fp['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $fp['bar']) }}%;"></span>
                 </div>
-                <p class="lp-ref-quest__status">Ещё 2 первые оплаты до полного набора</p>
+                <p class="lp-ref-quest__status">{{ $fp['status'] }}</p>
             </div>
         </article>
 
-        <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">4</span>
+        <article class="lp-ref-quest @if($a4['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a4['done'])✓@else 4 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">4 активные оплаты</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">2/4</span>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $a4['ratio'] }}</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
                     <div class="lp-ref-quest__prize-feature">
@@ -96,19 +103,19 @@
                         <span class="lp-ref-quest__tag">эксклюзив</span>
                     </div>
                 </div>
-                <div class="lp-ref-bar" role="img" aria-label="2 из 4">
-                    <span class="lp-ref-bar__fill" style="width:50%;"></span>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $a4['current'] }} из {{ $a4['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $a4['bar']) }}%;"></span>
                 </div>
-                <p class="lp-ref-quest__status">Ещё 2 активные оплаты</p>
+                <p class="lp-ref-quest__status">{{ $a4['status'] }}</p>
             </div>
         </article>
 
-        <article class="lp-ref-quest">
-            <span class="lp-ref-quest__badge" aria-hidden="true">5</span>
+        <article class="lp-ref-quest @if($a10['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a10['done'])✓@else 5 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">10 активных оплат</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">6/10</span>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $a10['ratio'] }}</span>
                 </div>
                 <div class="lp-ref-quest__prize-wrap">
                     <div class="lp-ref-quest__prize-feature">
@@ -119,10 +126,10 @@
                         <span class="lp-ref-quest__tag">эксклюзив</span>
                     </div>
                 </div>
-                <div class="lp-ref-bar" role="img" aria-label="6 из 10">
-                    <span class="lp-ref-bar__fill" style="width:60%;"></span>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $a10['current'] }} из {{ $a10['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $a10['bar']) }}%;"></span>
                 </div>
-                <p class="lp-ref-quest__status">Ещё 4 активные оплаты</p>
+                <p class="lp-ref-quest__status">{{ $a10['status'] }}</p>
             </div>
         </article>
     </div>

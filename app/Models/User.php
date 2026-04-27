@@ -39,6 +39,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'referral_pending_unlimited_traffic' => 'boolean',
+            'referral_subscription_credit_days' => 'decimal:2',
         ];
     }
 
