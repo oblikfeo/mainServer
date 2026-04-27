@@ -1573,28 +1573,7 @@
             width: 100%;
             min-height: 7.4rem;
             height: 100%;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.8rem;
-            line-height: 1.2;
             box-sizing: border-box;
-            background: var(--lp-orange);
-            color: #fff;
-            border: 2px solid #cc3700;
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
-        }
-        .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn:hover {
-            background: #ff601a;
-            color: #fff;
-            border-color: #a82e00;
-            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.35);
-            transform: translateY(-1px);
-        }
-        .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn:active {
-            color: #fff;
-            background: #e23e00;
-            border-color: #8a2600;
-            transform: translate(2px, 2px);
-            box-shadow: 3px 3px 0 var(--lp-ink);
         }
         .lp-f1 .lp-ref-share.lp-ref-share--many.lp-ref-share--icons-only {
             display: flex;
@@ -1614,7 +1593,7 @@
             min-height: 0;
             max-width: 7.4rem;
             box-sizing: border-box;
-            padding: 0;
+            padding: 25px;
             overflow: hidden;
             align-items: center;
             justify-content: center;
