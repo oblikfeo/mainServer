@@ -1558,25 +1558,49 @@
         .lp-f1 .lp-ref-share-toolbar {
             flex-direction: row;
             flex-wrap: nowrap;
-            align-items: center;
+            align-items: stretch;
             gap: 0.5rem 0.65rem;
         }
         .lp-f1 .lp-ref-share-toolbar .lp-ref-share-copy {
             flex: 1 1 auto;
             margin-top: 0;
             min-width: 0;
+            display: flex;
+            align-items: stretch;
         }
         .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn {
+            align-self: stretch;
             width: 100%;
-            min-height: 2.5rem;
-            padding: 0.45rem 0.9rem;
-            font-size: 0.75rem;
+            min-height: 7.4rem;
+            height: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            box-sizing: border-box;
+            background: var(--lp-orange);
+            color: #fff;
+            border: 2px solid #cc3700;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+        }
+        .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn:hover {
+            background: #ff601a;
+            color: #fff;
+            border-color: #a82e00;
+            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.35);
+            transform: translateY(-1px);
+        }
+        .lp-f1 .lp-ref-share-toolbar .lp-ref-share__copy-btn:active {
+            color: #fff;
+            background: #e23e00;
+            border-color: #8a2600;
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 var(--lp-ink);
         }
         .lp-f1 .lp-ref-share.lp-ref-share--many.lp-ref-share--icons-only {
             display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
-            align-items: center;
+            align-items: stretch;
             justify-content: flex-start;
             gap: 0.4rem;
             flex: 0 0 auto;
@@ -1584,23 +1608,33 @@
             max-width: none;
         }
         .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__btn {
-            flex: 0 0 2.4rem;
-            width: 2.4rem;
-            height: 2.4rem;
+            flex: 0 0 7.4rem;
+            width: 7.4rem;
+            height: 7.4rem;
             min-height: 0;
-            max-width: 2.4rem;
+            max-width: 7.4rem;
             box-sizing: border-box;
+            padding: 0;
+            overflow: hidden;
+            align-items: center;
+            justify-content: center;
         }
-        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon {
-            width: 1.6rem;
-            height: 1.6rem;
+        .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__icon {
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
         }
-        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon svg,
-        .lp-f1 .lp-ref-share--icons-only .lp-ref-share__icon img {
-            width: 1.25rem;
-            height: 1.25rem;
-            max-width: 1.25rem;
-            max-height: 1.25rem;
+        .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__icon svg,
+        .lp-f1 .lp-ref-share--icons-only.lp-ref-share--many .lp-ref-share__icon img {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            object-fit: contain;
         }
     }
     .lp-f1 .lp-ref-share__btn {
