@@ -20,17 +20,12 @@ class MassInviteMail extends Mailable
         public readonly string $forgotPasswordUrl,
         public readonly string $appUrl,
         public readonly string $supportEmail,
-        public readonly bool $isPreview = false,
     ) {}
 
     public function envelope(): Envelope
     {
-        $subject = $this->isPreview
-            ? $this->brand.' — тест: вход в кабинет'
-            : $this->brand.' — вход в личный кабинет';
-
         return new Envelope(
-            subject: $subject,
+            subject: $this->brand.' — вход в личный кабинет',
             from: new \Illuminate\Mail\Mailables\Address($this->supportFromAddress, $this->supportFromName),
         );
     }
@@ -45,7 +40,6 @@ class MassInviteMail extends Mailable
                 'forgotPasswordUrl' => $this->forgotPasswordUrl,
                 'appUrl' => $this->appUrl,
                 'supportEmail' => $this->supportEmail,
-                'isPreview' => $this->isPreview,
             ],
         );
     }

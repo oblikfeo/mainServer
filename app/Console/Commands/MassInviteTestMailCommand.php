@@ -11,7 +11,7 @@ class MassInviteTestMailCommand extends Command
     protected $signature = 'mass-invite:test-mail
                             {--example= : Email для примера «ваш логин» (по умолчанию первый из config/mass_invite.php)}';
 
-    protected $description = 'Отправить ОДНО тестовое письмо «вход в кабинет» на адрес из mass_invite.test_recipient (не по списку рассылки).';
+    protected $description = 'Отправить одно письмо «вход в кабинет» на mass_invite.test_recipient (пример логина: --example или первый из списка recipients).';
 
     public function handle(): int
     {
@@ -54,11 +54,10 @@ class MassInviteTestMailCommand extends Command
             forgotPasswordUrl: $forgotPasswordUrl,
             appUrl: $appUrl,
             supportEmail: $fromAddress,
-            isPreview: true,
         ));
 
-        $this->info("Тест отправлен на: {$to} (в тексте пример логина: {$example}).");
-        $this->line('Список будущих получателей: '.count($recipients).' адресов в config/mass_invite.php — массовая отправка не выполнялась.');
+        $this->info("Письмо отправлено на: {$to} (в письме логин: {$example}).");
+        $this->line('Всего в списке recipients: '.count($recipients).' адресов (массовая рассылка по ним не выполнялась).');
 
         return self::SUCCESS;
     }

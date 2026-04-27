@@ -9,11 +9,6 @@
 <body style="margin:0;padding:0;background:#f8fafc;color:#0f172a;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;">
     <div style="max-width:640px;margin:0 auto;padding:24px 14px;">
         <div style="background:#ffffff;border:4px solid #000000;border-radius:14px;overflow:hidden;">
-            @if(!empty($isPreview))
-                <div style="padding:12px 18px;background:#fef3c7;border-bottom:2px solid #000000;font-size:12px;line-height:1.5;color:#78350f;">
-                    <strong>Тестовое письмо.</strong> В бою каждому адресату уйдёт свой логин; сейчас показан пример для одного адреса.
-                </div>
-            @endif
             <div style="padding:18px 18px 14px 18px;border-bottom:4px solid #000000;">
                 <div style="font-weight:900;letter-spacing:-0.02em;text-transform:uppercase;font-size:14px;line-height:1.2;">
                     {{ $brand }}
