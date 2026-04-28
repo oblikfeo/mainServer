@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        @include('partials.yandex-metrika')
         <title>@yield('title', config('marketing.brand_name', 'Надежда'))</title>
         <meta name="description" content="@yield('meta_description', '')">
         <meta property="og:title" content="@yield('title', config('marketing.brand_name', 'Надежда'))">
