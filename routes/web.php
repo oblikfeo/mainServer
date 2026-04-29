@@ -17,6 +17,7 @@ use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
+use App\Http\Controllers\TelegramLinkController;
 use App\Http\Controllers\TestSubscriptionController;
 use App\Http\Controllers\WataWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -91,6 +92,16 @@ Route::middleware('auth')->group(function () {
         ->name('cabinet.email_code.send');
     Route::post('/dashboard/email/verify-code/check', [EmailCodeVerificationController::class, 'verify'])
         ->name('cabinet.email_code.verify');
+
+    Route::post('/dashboard/profile/telegram/start', [TelegramLinkController::class, 'start'])
+        ->middleware('throttle:10,1')
+        ->name('cabinet.telegram.start');
+    Route::post('/dashboard/profile/telegram/verify', [TelegramLinkController::class, 'verify'])
+        ->middleware('throttle:30,1')
+        ->name('cabinet.telegram.verify');
+    Route::post('/dashboard/profile/telegram/unlink', [TelegramLinkController::class, 'unlink'])
+        ->middleware('throttle:10,1')
+        ->name('cabinet.telegram.unlink');
 
     Route::redirect('/profile', '/dashboard/profile')->name('profile.edit');
 });

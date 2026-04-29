@@ -129,6 +129,8 @@
 
         @include('profile.partials.referral-block')
 
+        @include('profile.partials.telegram-account')
+
         <div class="lp-profile-block lp-profile-accordion" x-data="{ open: @js($accordionOpenProfile) }">
             <button
                 type="button"

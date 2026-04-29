@@ -1,0 +1,14 @@
+{
+  "name": "nadezhda-telegram-link-bot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Long polling for привязки Telegram к аккаунту на nadezhda.space (NLtest).",
+  "type": "module",
+  "main": "poll.mjs",
+  "scripts": {
+    "start": "node poll.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
