@@ -25,12 +25,14 @@ return [
      *   title: string,
      *   meta: string,
      *   aria_id: string,
+     *   pricing_hint?: string|null,
      *   rows: list<array{
      *     period: string,
      *     amount: string,
      *     sub: string|null,
      *     stack?: bool,
-     *     badge?: string|null
+     *     badge?: string|null,
+     *     note?: string|null,
      *   }>
      * }>
      */
@@ -40,11 +42,12 @@ return [
             'kind' => 'solo',
             'title' => 'Для себя',
             'meta' => '2 устройства',
+            'pricing_hint' => '1 устройство',
             'aria_id' => 'tariff-solo-title',
             'rows' => [
                 ['period' => '1 месяц', 'amount' => '290', 'sub' => null],
                 ['period' => '3 месяца', 'amount' => '700', 'sub' => 'Выгода 170&nbsp;₽'],
-                ['period' => '6 месяцев', 'amount' => '1190', 'sub' => 'Всего 198&nbsp;₽/мес'],
+                ['period' => '6 месяцев', 'amount' => '1190', 'sub' => 'Всего 198&nbsp;₽/мес', 'note' => 'как чашка кофе'],
             ],
         ],
         [
@@ -52,6 +55,7 @@ return [
             'kind' => 'family',
             'title' => 'Для семьи',
             'meta' => 'до 5 устройств',
+            'pricing_hint' => 'До 5 устройств',
             'aria_id' => 'tariff-family-title',
             'rows' => [
                 ['period' => '1 месяц', 'amount' => '650', 'sub' => null],
@@ -62,6 +66,7 @@ return [
                     'sub' => '≈&nbsp;467&nbsp;₽/мес',
                     'stack' => true,
                     'badge' => 'Выбор семей',
+                    'note' => 'Максимальная выгода',
                 ],
             ],
         ],

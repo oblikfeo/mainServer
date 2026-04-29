@@ -76,7 +76,7 @@
         font-size: 24px;
         font-weight: 800;
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin: 0 0 6px;
         text-align: center;
     }
 
@@ -84,6 +84,17 @@
         .lp-f1 .lp-pricing.lp-pricing-mock .pricing-column-title {
             font-size: 28px;
         }
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-column-hint {
+        margin: 0 0 20px;
+        padding: 0;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.35;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.95);
     }
 
     .lp-f1 .lp-pricing.lp-pricing-mock .pricing-cards {

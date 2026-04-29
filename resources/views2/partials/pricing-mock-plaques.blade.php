@@ -6,6 +6,9 @@
     @endphp
     <div class="pricing-column">
         <h3 class="pricing-column-title">{{ $plan['title'] }}</h3>
+        @if (filled($plan['pricing_hint'] ?? null))
+            <p class="pricing-column-hint">{{ $plan['pricing_hint'] }}</p>
+        @endif
         <div class="pricing-cards">
             @foreach ($rows as $i => $row)
                 @php
@@ -22,7 +25,7 @@
                     $showPerMonth = filled($sub) && ! $showSavings && (
                         str_contains($plainSub, '/мес') || str_contains($plainSub, '₽/мес')
                     );
-                    $showNote = filled($sub) && ! $showSavings && ! $showPerMonth;
+                    $showRemainderSub = filled($sub) && ! $showSavings && ! $showPerMonth;
                 @endphp
                 <div class="{{ implode(' ', $classes) }}">
                     @if (filled($row['badge'] ?? null))
@@ -34,8 +37,11 @@
                         <div class="pricing-savings">{!! $sub !!}</div>
                     @elseif ($showPerMonth)
                         <div class="pricing-per-month">{!! $sub !!}</div>
-                    @elseif ($showNote)
+                    @elseif ($showRemainderSub)
                         <div class="pricing-note">{!! $sub !!}</div>
+                    @endif
+                    @if (filled($row['note'] ?? null))
+                        <div class="pricing-note">{!! $row['note'] !!}</div>
                     @endif
                 </div>
             @endforeach
