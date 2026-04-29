@@ -117,8 +117,8 @@
             <div class="lp-pricing-head-mock">
                 <h2 class="lp-section-title">Понятные цены</h2>
             </div>
-            <div class="lp-tariff-cards">
-                @include('views2::partials.pricing-tariff-cards', ['showPayButtons' => false])
+            <div class="pricing-container">
+                @include('views2::partials.pricing-mock-plaques')
             </div>
             <div class="lp-pricing-cta-wrap">
                 <a href="{{ route('cabinet.payment') }}" class="btn-cta">Подключиться</a>
@@ -150,7 +150,6 @@
                 <p class="footer-description">
                     Пользователь самостоятельно определяет цели использования сервиса и несёт ответственность за соблюдение применимого законодательства.
                 </p>
-                @include('views2::partials.lp-footer-support')
             </div>
             <div class="footer-links">
                 <h4>Навигация</h4>

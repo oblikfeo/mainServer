@@ -56,27 +56,123 @@
         }
     }
 
-    .lp-f1 .lp-pricing.lp-pricing-mock .lp-tariff-cards {
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 40px;
         margin-bottom: 40px;
-        border-bottom: none;
-        background: transparent;
-        padding-left: 0;
-        padding-right: 0;
     }
 
-    .lp-f1 .lp-pricing.lp-pricing-mock .lp-tariff-card {
+    @media (min-width: 768px) {
+        .lp-f1 .lp-pricing.lp-pricing-mock .pricing-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 50px;
+        }
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-column-title {
+        color: #fff;
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .lp-pricing.lp-pricing-mock .pricing-column-title {
+            font-size: 28px;
+        }
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-card {
+        background: #fff;
+        border: var(--mock-border);
+        padding: 25px;
+        text-align: center;
+        position: relative;
         transition: transform 0.3s, box-shadow 0.3s;
     }
 
-    .lp-f1 .lp-pricing.lp-pricing-mock .lp-tariff-card:hover {
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-card:hover {
         box-shadow: var(--mock-shadow);
         transform: translate(-3px, -3px);
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .lp-f1 .lp-pricing.lp-pricing-mock .lp-tariff-card:hover {
+        .lp-f1 .lp-pricing.lp-pricing-mock .pricing-card:hover {
             transform: none;
         }
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-card-popular,
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-card-best {
+        border-color: var(--mock-accent);
+        border-width: 4px;
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-tag {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--mock-accent);
+        color: var(--mock-dark);
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-duration {
+        font-size: 14px;
+        font-weight: 700;
+        color: #666;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-price {
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        color: var(--mock-dark);
+        margin-bottom: 5px;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .lp-pricing.lp-pricing-mock .pricing-price {
+            font-size: 42px;
+        }
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-per-month {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--mock-primary);
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-savings {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--mock-dark);
+        background: var(--mock-accent);
+        padding: 4px 10px;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .lp-f1 .lp-pricing.lp-pricing-mock .pricing-note {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
     }
 
     .lp-f1 .lp-pricing.lp-pricing-mock .lp-pricing-cta-wrap {
@@ -245,7 +341,7 @@
 
     .lp-f1 .lp-footer-mock .footer-links h4 {
         text-transform: uppercase;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         font-size: 18px;
         font-weight: 800;
         color: var(--mock-secondary);
@@ -269,19 +365,6 @@
 
     .lp-f1 .lp-footer-mock .footer-links a:hover {
         color: var(--mock-primary);
-    }
-
-    .lp-f1 .lp-footer-mock .lp-footer-support {
-        margin-top: 1rem;
-        margin-bottom: 0;
-        font-size: 14px;
-        font-weight: 500;
-        text-transform: none;
-        letter-spacing: normal;
-    }
-
-    .lp-f1 .lp-footer-mock .lp-footer-support > div {
-        margin: 0.35rem 0;
     }
 
     .lp-f1 .lp-footer-mock .footer-bottom {
@@ -315,13 +398,4 @@
         }
     }
 
-    .lp-f1 .lp-footer-mock .footer-docs a {
-        color: inherit;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-    }
-
-    .lp-f1 .lp-footer-mock .footer-docs a:hover {
-        color: var(--mock-primary);
-    }
 </style>
