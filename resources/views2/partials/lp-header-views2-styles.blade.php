@@ -1,12 +1,7 @@
 <style>
     /* Макет: верстка/public/nadezhda.html — общая ширина блока */
     .lp-f1 .lp-container {
-        max-width: 750px;
-    }
-    @media (min-width: 768px) {
-        .lp-f1 .lp-container {
-            max-width: 750px;
-        }
+        max-width: 825px;
     }
 
     /* VPN-бейдж: оранжевый фон, белые буквы, чуть крупнее */
@@ -42,11 +37,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
         font-size: 0.8125rem;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: 0.03em;
         color: #fff;
         background-color: var(--lp-orange);
         border: 3px solid var(--lp-ink);
