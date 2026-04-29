@@ -20,21 +20,33 @@
 @section('content')
 <div class="lp-f1 lp-f1-body">
     <div class="lp-container">
-        <header class="lp-header lp-header-v2">
-            <div class="lp-brand-line">
-                <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
-                <span class="lp-logo-vpn">VPN</span>
+        <header class="lp-header lp-header-v2 lp-header--drawer">
+            <div class="lp-header__bar">
+                <div class="lp-brand-line">
+                    <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
+                    <span class="lp-logo-vpn">VPN</span>
+                </div>
+                <nav class="lp-header__nav" id="lp-main-nav" aria-label="Разделы страницы">
+                    <a href="#features">О сервисе</a>
+                    <a href="#tarify">Тарифы</a>
+                    <a href="#support">Поддержка</a>
+                </nav>
+                <button
+                    type="button"
+                    class="lp-nav-toggle"
+                    id="lp-nav-toggle"
+                    aria-expanded="false"
+                    aria-controls="lp-main-nav"
+                    aria-label="Открыть меню разделов"
+                >
+                    <span class="lp-nav-toggle__bars" aria-hidden="true"></span>
+                </button>
+                @auth
+                    <a href="{{ route('dashboard') }}" class="lp-header-cta">Кабинет</a>
+                @else
+                    <a href="{{ route('register') }}" class="lp-header-cta">Попробовать</a>
+                @endauth
             </div>
-            <nav class="lp-header__nav" aria-label="Разделы страницы">
-                <a href="#features">О сервисе</a>
-                <a href="#tarify">Тарифы</a>
-                <a href="#support">Поддержка</a>
-            </nav>
-            @auth
-                <a href="{{ route('dashboard') }}" class="lp-header-cta">Кабинет</a>
-            @else
-                <a href="{{ route('register') }}" class="lp-header-cta">Попробовать</a>
-            @endauth
         </header>
 
         <section class="hero">
@@ -146,27 +158,29 @@
         </section>
 
         <footer class="lp-footer-mock">
-            <div>
+            <div class="footer-intro">
                 <div class="footer-logo">{{ mb_strtoupper($brand, 'UTF-8') }}</div>
                 <p class="footer-description">
                     Пользователь самостоятельно определяет цели использования сервиса и несёт ответственность за соблюдение применимого законодательства.
                 </p>
             </div>
-            <div class="footer-links">
-                <h4>Навигация</h4>
-                <ul>
-                    <li><a href="#features">О сервисе</a></li>
-                    <li><a href="#tarify">Тарифы</a></li>
-                    <li><a href="#support">Поддержка</a></li>
-                </ul>
-            </div>
-            <div class="footer-links footer-docs">
-                <h4>Документы</h4>
-                <ul>
-                    <li><a href="{{ route('agreement') }}">Публичная оферта</a></li>
-                    <li><a href="{{ route('privacy') }}">Политика конфиденциальности</a></li>
-                    <li><a href="{{ route('terms') }}">Пользовательское соглашение</a></li>
-                </ul>
+            <div class="footer-links-cluster">
+                <div class="footer-links">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="#features">О сервисе</a></li>
+                        <li><a href="#tarify">Тарифы</a></li>
+                        <li><a href="#support">Поддержка</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links footer-docs">
+                    <h4>Документы</h4>
+                    <ul>
+                        <li><a href="{{ route('agreement') }}">Публичная оферта</a></li>
+                        <li><a href="{{ route('privacy') }}">Политика конфиденциальности</a></li>
+                        <li><a href="{{ route('terms') }}">Пользовательское соглашение</a></li>
+                    </ul>
+                </div>
             </div>
             <div class="footer-bottom">
                 <span>&copy; {{ date('Y') }} {{ mb_strtoupper($brand, 'UTF-8') }}</span>
@@ -176,3 +190,27 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var toggle = document.getElementById('lp-nav-toggle');
+    var nav = document.getElementById('lp-main-nav');
+    if (!toggle || !nav) return;
+    function setOpen(open) {
+        nav.classList.toggle('lp-header__nav--open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Закрыть меню разделов' : 'Открыть меню разделов');
+    }
+    toggle.addEventListener('click', function () {
+        setOpen(!nav.classList.contains('lp-header__nav--open'));
+    });
+    nav.querySelectorAll('a').forEach(function (a) {
+        a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setOpen(false);
+    });
+})();
+</script>
+@endpush

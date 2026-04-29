@@ -15,13 +15,46 @@
     .lp-f1 { --lp-mock-accent: #bff000; }
     /* как в nadezhda.html: белая полоса, прилипает к верху viewport */
     .lp-f1 .lp-header.lp-header-v2 {
-        flex-wrap: wrap;
-        gap: 0.75rem 1rem;
-        align-items: center;
+        flex-wrap: nowrap;
+        gap: 0;
+        align-items: stretch;
         position: sticky;
         top: 0;
         z-index: 1000;
         background: #fff;
+    }
+
+    .lp-f1 .lp-header--drawer .lp-header__bar {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.65rem 1rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .lp-f1 .lp-nav-toggle {
+        display: none;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        margin: 0;
+        border: 3px solid var(--lp-ink);
+        background: #fff;
+        cursor: pointer;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .lp-f1 .lp-nav-toggle__bars {
+        display: block;
+        width: 22px;
+        height: 3px;
+        background: var(--lp-ink);
+        box-shadow: 0 -8px 0 var(--lp-ink), 0 8px 0 var(--lp-ink);
     }
     .lp-f1 .lp-brand-line {
         display: flex;
@@ -74,7 +107,7 @@
         justify-content: center;
         gap: 0.35rem 0.85rem;
         flex: 1 1 auto;
-        min-width: min(100%, 12rem);
+        min-width: 0;
     }
     .lp-f1 .lp-header__nav a {
         font-size: 0.625rem;

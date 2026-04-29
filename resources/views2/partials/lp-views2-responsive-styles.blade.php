@@ -30,37 +30,70 @@
             scroll-margin-top: min(130px, 28vh);
         }
 
-        /* Шапка: колонка, без выталкивания за край */
+        /* Шапка: три полоски + выпадающее меню (навигация не влазит в строку) */
         .lp-f1 .lp-header.lp-header-v2 {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0.65rem;
             padding-left: 0.75rem;
             padding-right: 0.75rem;
         }
 
+        .lp-f1 .lp-header--drawer .lp-header__bar {
+            flex-wrap: wrap;
+            align-items: center;
+            row-gap: 0.35rem;
+        }
+
         .lp-f1 .lp-brand-line {
-            justify-content: center;
+            flex: 1 1 auto;
             min-width: 0;
+            justify-content: flex-start;
         }
 
         .lp-f1 .lp-logo-heavy {
             font-size: clamp(1.125rem, 5.5vw, 1.5rem);
         }
 
-        .lp-f1 .lp-header__nav {
-            flex: none;
-            width: 100%;
-            min-width: 0;
-            justify-content: center;
-            row-gap: 0.5rem;
+        .lp-f1 .lp-nav-toggle {
+            display: inline-flex;
+            order: 2;
         }
 
-        .lp-f1 .lp-header-cta {
-            margin-left: 0;
-            align-self: center;
+        .lp-f1 .lp-header--drawer .lp-header-cta {
+            order: 3;
+            margin-left: auto;
+            width: auto;
+            max-width: none;
+            flex-shrink: 0;
+        }
+
+        .lp-f1 .lp-header__nav {
+            display: none;
+            order: 10;
+            flex-basis: 100%;
             width: 100%;
-            max-width: 22rem;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 0;
+            flex: none;
+            padding: 0.35rem 0 0;
+            margin: 0;
+            border-top: var(--mock-border);
+            background: #fff;
+        }
+
+        .lp-f1 .lp-header__nav.lp-header__nav--open {
+            display: flex;
+        }
+
+        .lp-f1 .lp-header__nav a {
+            padding: 0.7rem 0.35rem;
+            font-size: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(26, 26, 26, 0.12);
+        }
+
+        .lp-f1 .lp-header__nav a:last-child {
+            border-bottom: none;
         }
 
         /* Hero: без лишней высоты, текст не вылезает */
@@ -84,14 +117,7 @@
         }
 
         .lp-f1 .hero-img {
-            min-height: 11rem;
-            overflow: hidden;
-        }
-
-        .lp-f1 .sticker {
-            right: max(0.5rem, env(safe-area-inset-right));
-            bottom: 0.75rem;
-            transform: rotate(12deg);
+            display: none !important;
         }
 
         /* Бегущая строка: меньше трекинг на узком экране */

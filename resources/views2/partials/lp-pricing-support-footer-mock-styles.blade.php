@@ -297,12 +297,12 @@
         box-shadow: 6px 6px 0 var(--mock-dark);
     }
 
-    /* Подвал — сетка как макет */
+    /* Подвал: колонка на телефоне; от 1024 — три колонки (cluster через display:contents) */
     .lp-f1 .lp-footer-mock {
         padding: 40px 20px;
         background: #fff;
-        display: grid;
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 40px;
         border-bottom: var(--mock-border);
         text-align: left;
@@ -313,18 +313,35 @@
         line-height: 1.6;
     }
 
+    .lp-f1 .lp-footer-mock .footer-links-cluster {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 1.25rem;
+        align-items: start;
+        width: 100%;
+    }
+
+    .lp-f1 .lp-footer-mock .footer-links-cluster .footer-links {
+        min-width: 0;
+    }
+
     @media (min-width: 768px) {
         .lp-f1 .lp-footer-mock {
             padding: 60px 40px;
-            grid-template-columns: 1fr 1fr;
         }
     }
 
     @media (min-width: 1024px) {
         .lp-f1 .lp-footer-mock {
             padding: 80px 50px;
+            display: grid;
             grid-template-columns: 2fr 1fr 1fr;
             gap: 50px;
+            align-items: start;
+        }
+
+        .lp-f1 .lp-footer-mock .footer-links-cluster {
+            display: contents;
         }
     }
 
@@ -379,7 +396,6 @@
     }
 
     .lp-f1 .lp-footer-mock .footer-bottom {
-        grid-column: 1;
         border-top: var(--mock-border);
         padding-top: 30px;
         display: flex;
@@ -393,7 +409,6 @@
 
     @media (min-width: 768px) {
         .lp-f1 .lp-footer-mock .footer-bottom {
-            grid-column: 1 / span 2;
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
@@ -405,7 +420,7 @@
 
     @media (min-width: 1024px) {
         .lp-f1 .lp-footer-mock .footer-bottom {
-            grid-column: 1 / span 3;
+            grid-column: 1 / -1;
         }
     }
 
