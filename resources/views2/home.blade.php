@@ -12,6 +12,7 @@
     @include('views2::partials.lp-f1-styles')
     @include('views2::partials.lp-header-views2-styles')
     @include('views2::partials.lp-hero-marquee-mock-styles')
+    @include('views2::partials.lp-features-mock-styles')
 @endpush
 
 @section('content')
@@ -23,7 +24,7 @@
                 <span class="lp-logo-vpn">VPN</span>
             </div>
             <nav class="lp-header__nav" aria-label="Разделы страницы">
-                <a href="#about">О сервисе</a>
+                <a href="#features">О сервисе</a>
                 <a href="#tarify">Тарифы</a>
                 <a href="#support">Поддержка</a>
             </nav>
@@ -75,30 +76,41 @@
             </div>
         </div>
 
-        <div id="about" class="lp-manifesto">
-            <h2>Коротко о главном</h2>
-            <p>Мы создали этот сервис, когда заметили, что интернет стал нестабильным: сообщения не доходят, страницы долго загружаются, связь прерывается.</p>
-            <p><strong>Наша задача — вернуть стабильность и удобство повседневного использования сети.</strong></p>
-        </div>
+        <section class="section-padding lp-features-section" id="features">
+            <div class="section-header">
+                <h2 class="section-title">КОРОТКО О ГЛАВНОМ</h2>
+            </div>
 
-        <div class="lp-features">
-            <div class="lp-feature-cell">
-                <h3 class="lp-feature-title">Комфорт каждый день</h3>
-                <p class="lp-feature-desc">Сервис работает в фоне и не требует постоянного переключения. Всё функционирует так, как вы привыкли.</p>
+            <p class="about-text">
+                Мы создали этот сервис, когда заметили, что интернет стал нестабильным: сообщения не доходят, страницы долго загружаются, связь прерывается. Наша задача — вернуть стабильность и удобство повседневного использования сети.
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🛋️</div>
+                    <h3>Комфорт каждый день</h3>
+                    <p>Сервис работает в фоне и не требует постоянного переключения. Всё функционирует так, как вы привыкли.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">⚡</div>
+                    <h3>Быстрая работа</h3>
+                    <p>Видео, сайты и приложения загружаются без задержек и подвисаний.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🤖</div>
+                    <h3>Современные сервисы</h3>
+                    <p>Поддержка стабильной работы популярных онлайн-платформ и инструментов, включая нейросети.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">🔒</div>
+                    <h3>Надёжное соединение</h3>
+                    <p>Стабильная работа даже при нестабильном качестве сети или помехах.</p>
+                </div>
             </div>
-            <div class="lp-feature-cell">
-                <h3 class="lp-feature-title">Быстрая работа</h3>
-                <p class="lp-feature-desc">Видео, сайты и приложения загружаются без задержек и подвисаний.</p>
-            </div>
-            <div class="lp-feature-cell">
-                <h3 class="lp-feature-title">Современные сервисы</h3>
-                <p class="lp-feature-desc">Поддержка стабильной работы популярных онлайн-платформ и инструментов, включая нейросети.</p>
-            </div>
-            <div class="lp-feature-cell">
-                <h3 class="lp-feature-title">Надёжное соединение</h3>
-                <p class="lp-feature-desc">Стабильная работа даже при нестабильном качестве сети или помехах.</p>
-            </div>
-        </div>
+        </section>
 
         <div id="tarify" class="lp-pricing">
             <h2 class="lp-section-title">Понятные цены</h2>

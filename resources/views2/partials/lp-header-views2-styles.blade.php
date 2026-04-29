@@ -8,6 +8,7 @@
         --mock-accent: #bff000;
         --mock-secondary: #2d31fa;
         --mock-border: 3px solid #1a1a1a;
+        --mock-shadow: 8px 8px 0 var(--mock-dark);
     }
 
     /* VPN-бейдж: оранжевый фон, белые буквы, чуть крупнее */
