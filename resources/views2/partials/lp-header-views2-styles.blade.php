@@ -1,6 +1,16 @@
 <style>
-    /* VPN-бейдж: вторичный цвет как в макете */
-    .lp-f1 { --lp-indigo: #2d31fa; --lp-mock-accent: #bff000; }
+    /* Макет: верстка/public/nadezhda.html — общая ширина блока */
+    .lp-f1 .lp-container {
+        max-width: 750px;
+    }
+    @media (min-width: 768px) {
+        .lp-f1 .lp-container {
+            max-width: 750px;
+        }
+    }
+
+    /* VPN-бейдж: оранжевый фон, белые буквы, чуть крупнее */
+    .lp-f1 { --lp-mock-accent: #bff000; }
     .lp-f1 .lp-header.lp-header-v2 {
         flex-wrap: wrap;
         gap: 0.75rem 1rem;
@@ -12,30 +22,42 @@
         gap: 0.5rem;
         flex-shrink: 0;
     }
+    /* Логотип как .logo в макете: Syne 800, tight tracking */
     .lp-f1 .lp-logo-heavy {
-        font-size: 1rem;
-        font-weight: 900;
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-weight: 800;
+        font-size: 24px;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
+        letter-spacing: -1px;
         color: var(--lp-ink);
         line-height: 1;
     }
-    @media (min-width: 480px) {
-        .lp-f1 .lp-logo-heavy { font-size: 1.125rem; }
+    @media (min-width: 768px) {
+        .lp-f1 .lp-logo-heavy {
+            font-size: 32px;
+            letter-spacing: -2px;
+        }
     }
     .lp-f1 .lp-logo-vpn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.6875rem;
-        font-weight: 900;
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.8125rem;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--lp-ink);
-        background-color: var(--lp-indigo);
-        border: 2px solid var(--lp-ink);
-        padding: 0.3rem 0.45rem;
+        letter-spacing: 0.06em;
+        color: #fff;
+        background-color: var(--lp-orange);
+        border: 3px solid var(--lp-ink);
+        padding: 0.35rem 0.55rem;
         line-height: 1;
+    }
+    @media (min-width: 768px) {
+        .lp-f1 .lp-logo-vpn {
+            font-size: 0.9375rem;
+            padding: 0.4rem 0.65rem;
+        }
     }
     .lp-f1 .lp-header__nav {
         display: flex;
@@ -58,14 +80,12 @@
     @media (min-width: 480px) {
         .lp-f1 .lp-header__nav a { font-size: 0.6875rem; }
     }
-    /* как в макете nadezhda.html: hover nav → primary + underline */
     .lp-f1 .lp-header__nav a:hover {
         color: var(--lp-orange);
         text-decoration: underline;
         text-underline-offset: 3px;
     }
 
-    /* как .btn-cta в макете: lime bg, 3px border, offset shadow, hover lift */
     .lp-f1 .lp-header-cta {
         margin-left: auto;
         display: inline-flex;
