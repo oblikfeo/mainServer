@@ -13,13 +13,15 @@
 
     /* VPN-бейдж: оранжевый фон, белые буквы, чуть крупнее */
     .lp-f1 { --lp-mock-accent: #bff000; }
+    /* как в nadezhda.html: белая полоса, прилипает к верху viewport */
     .lp-f1 .lp-header.lp-header-v2 {
         flex-wrap: wrap;
         gap: 0.75rem 1rem;
         align-items: center;
-        position: relative;
-        top: auto;
-        z-index: auto;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: #fff;
     }
     .lp-f1 .lp-brand-line {
         display: flex;
@@ -128,9 +130,18 @@
         }
     }
 
+    /* якорь не уезжает под sticky-шапку (~80px / 100px как в макете) */
     .lp-f1 #features,
     .lp-f1 #support,
     .lp-f1 #tarify {
-        scroll-margin-top: 0.75rem;
+        scroll-margin-top: 88px;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 #features,
+        .lp-f1 #support,
+        .lp-f1 #tarify {
+            scroll-margin-top: 108px;
+        }
     }
 </style>
