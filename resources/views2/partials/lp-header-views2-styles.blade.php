@@ -45,16 +45,14 @@
         color: #fff;
         background-color: var(--lp-orange);
         border: 3px solid var(--lp-ink);
-        padding: 0.42rem 0.72rem;
+        padding: 0.1rem 0.45rem;
         line-height: 1;
-        min-height: 2rem;
         box-sizing: border-box;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-logo-vpn {
             font-size: 1.125rem;
-            padding: 0.5rem 0.85rem;
-            min-height: 2.35rem;
+            padding: 0.12rem 0.5rem;
         }
     }
     .lp-f1 .lp-header__nav {
