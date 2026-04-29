@@ -1,21 +1,11 @@
 <style>
-    /* Макет: верстка/public/nadezhda.html — фон страницы --bg: #fdf9f0 */
-    .lp-f1.lp-f1-body {
-        background-color: #fdf9f0;
-        background-image: none;
-    }
-
+    /* Переменные макета задаются на .lp-container в lp-header-views2-styles */
     .lp-f1 section.hero {
-        --mock-primary: #ff4d00;
-        --mock-dark: #1a1a1a;
-        --mock-accent: #bff000;
-        --mock-border: 3px solid #1a1a1a;
-
         display: flex;
         flex-direction: column;
         min-height: 500px;
         border-bottom: var(--mock-border);
-        background: #fff;
+        background: transparent;
     }
 
     .lp-f1 .hero-content {
@@ -162,11 +152,11 @@
     }
 
     .lp-f1 .marquee {
-        background: var(--mock-dark);
+        background: #1a1a1a;
         color: #fff;
         padding: 15px 0;
         overflow: hidden;
-        border-bottom: var(--mock-border);
+        border-bottom: 3px solid #1a1a1a;
     }
 
     @media (min-width: 768px) {
@@ -191,6 +181,7 @@
         letter-spacing: 3px;
         font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
         padding-right: 2rem;
+        color: #fff;
     }
 
     @media (min-width: 768px) {

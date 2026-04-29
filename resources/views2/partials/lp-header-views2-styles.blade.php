@@ -1,7 +1,12 @@
 <style>
-    /* Макет: верстка/public/nadezhda.html — общая ширина блока */
+    /* Макет: кремовый фон только внутри карточки; страница снаружи — как у lp-f1-body (сетка) */
     .lp-f1 .lp-container {
         max-width: 825px;
+        background-color: #fdf9f0;
+        --mock-primary: #ff4d00;
+        --mock-dark: #1a1a1a;
+        --mock-accent: #bff000;
+        --mock-border: 3px solid #1a1a1a;
     }
 
     /* VPN-бейдж: оранжевый фон, белые буквы, чуть крупнее */
