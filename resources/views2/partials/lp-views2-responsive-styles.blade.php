@@ -240,6 +240,63 @@
         }
     }
 
+    /* Шапка: ещё меньше шрифты / отступы на очень узких экранах (перебивает правила выше) */
+    @media (max-width: 449.98px) {
+        .lp-f1 .lp-header.lp-header-v2 {
+            padding-left: 0.45rem;
+            padding-right: 0.45rem;
+        }
+
+        .lp-f1 .lp-header--drawer .lp-header__bar {
+            gap: 0.3rem 0.4rem;
+        }
+
+        .lp-f1 .lp-brand-line {
+            gap: 0.28rem;
+        }
+
+        .lp-f1 .lp-logo-heavy {
+            font-size: clamp(0.75rem, 3.85vw, 0.9375rem);
+            letter-spacing: -0.05em;
+        }
+
+        .lp-f1 .lp-logo-vpn {
+            font-size: 0.5625rem;
+            padding: 0.05rem 0.22rem;
+            border-width: 2px;
+        }
+
+        .lp-f1 .lp-nav-toggle {
+            width: 36px;
+            height: 36px;
+            border-width: 2px;
+        }
+
+        .lp-f1 .lp-nav-toggle__bars {
+            width: 16px;
+            height: 2px;
+            box-shadow: 0 -5px 0 var(--lp-ink), 0 5px 0 var(--lp-ink);
+        }
+
+        .lp-f1 .lp-header--drawer .lp-header-cta {
+            padding: 5px 8px;
+            font-size: 0.5rem;
+            border-width: 2px;
+            box-shadow: 2px 2px 0 var(--lp-ink);
+            letter-spacing: 0.02em;
+            line-height: 1.15;
+        }
+
+        .lp-f1 .lp-header--drawer .lp-header-cta:hover {
+            box-shadow: 3px 3px 0 var(--lp-ink);
+        }
+
+        .lp-f1 .lp-header__nav a {
+            font-size: 0.6875rem;
+            padding: 0.55rem 0.3rem;
+        }
+    }
+
     /* Hover-тени только там, где есть настоящий hover (меньше артефактов на таче) */
     @media (max-width: 767.98px) {
         .lp-f1 .lp-features-section .feature-card:hover,
