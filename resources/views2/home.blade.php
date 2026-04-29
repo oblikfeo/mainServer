@@ -39,7 +39,7 @@
                 <div class="trust-badge">Сделали как для своих</div>
                 <h1 class="hero-title">
                     Интернет,<br>
-                    который работает
+                    который <span class="hero-title-em">работает</span>
                 </h1>
                 <p class="hero-description">
                     Стабильное соединение, быстрая загрузка и комфортная работа с привычными онлайн-сервисами. Без лишних настроек.
@@ -63,9 +63,10 @@
             </div>
         </section>
 
-        <div class="marquee">
-            <div class="marquee-content">
-                &nbsp;&nbsp;★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7 ★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7
+        <div class="marquee" aria-hidden="true">
+            <div class="marquee-track">
+                <span class="marquee-segment">&nbsp;&nbsp;★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7 ★</span>
+                <span class="marquee-segment">&nbsp;&nbsp;★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7 ★</span>
             </div>
         </div>
 

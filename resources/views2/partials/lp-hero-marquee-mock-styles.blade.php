@@ -1,5 +1,10 @@
 <style>
-    /* Скопировано из верстка/public/nadezhda.html (+ scope .lp-f1; hero без второй колонки; «РАБОТАЕТ» без span/курсива по ТЗ) */
+    /* Макет: верстка/public/nadezhda.html — фон страницы --bg: #fdf9f0 */
+    .lp-f1.lp-f1-body {
+        background-color: #fdf9f0;
+        background-image: none;
+    }
+
     .lp-f1 section.hero {
         --mock-primary: #ff4d00;
         --mock-dark: #1a1a1a;
@@ -51,11 +56,20 @@
     .lp-f1 .hero-title {
         font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
         font-size: 48px;
-        line-height: 0.9;
+        line-height: 1;
         font-weight: 800;
         margin-bottom: 20px;
         text-transform: uppercase;
         color: var(--mock-dark);
+    }
+
+    /* как .hero-title span в макете */
+    .lp-f1 .hero-title-em {
+        font-family: "Playfair Display", Georgia, serif;
+        font-style: italic;
+        font-weight: 700;
+        color: var(--mock-primary);
+        text-transform: uppercase;
     }
 
     @media (min-width: 768px) {
@@ -152,7 +166,6 @@
         color: #fff;
         padding: 15px 0;
         overflow: hidden;
-        white-space: nowrap;
         border-bottom: var(--mock-border);
     }
 
@@ -162,18 +175,26 @@
         }
     }
 
-    .lp-f1 .marquee-content {
-        display: inline-block;
+    /* два одинаковых сегмента в ряд — translate -50% совпадает с макетом */
+    .lp-f1 .marquee-track {
+        display: flex;
+        width: max-content;
         animation: lp-mock-marquee-scroll 20s linear infinite;
+        white-space: nowrap;
+    }
+
+    .lp-f1 .marquee-segment {
+        flex-shrink: 0;
         font-size: 16px;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 3px;
         font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        padding-right: 2rem;
     }
 
     @media (min-width: 768px) {
-        .lp-f1 .marquee-content {
+        .lp-f1 .marquee-segment {
             font-size: 24px;
             letter-spacing: 5px;
         }
@@ -185,7 +206,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .lp-f1 .marquee-content {
+        .lp-f1 .marquee-track {
             animation: none;
         }
     }
