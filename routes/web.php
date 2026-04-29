@@ -25,6 +25,11 @@ Route::get('/', function () {
     return view('home');
 });
 
+/** Копия главной для экспериментов с вёрсткой (шаблоны в resources/views2). */
+Route::get('/test', function () {
+    return view('views2::home');
+})->name('home.test');
+
 Route::get('/agreement', function () {
     return view('agreement');
 })->name('agreement');
