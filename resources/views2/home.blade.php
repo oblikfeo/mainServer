@@ -10,19 +10,28 @@
 
 @push('styles')
     @include('views2::partials.lp-f1-styles')
+    @include('views2::partials.lp-header-views2-styles')
 @endpush
 
 @section('content')
 <div class="lp-f1 lp-f1-body">
     <div class="lp-container">
-        <div class="lp-header">
-            <div class="lp-logo">{{ $brand }}</div>
+        <header class="lp-header lp-header-v2">
+            <div class="lp-brand-line">
+                <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
+                <span class="lp-logo-vpn">VPN</span>
+            </div>
+            <nav class="lp-header__nav" aria-label="Разделы страницы">
+                <a href="#about">О сервисе</a>
+                <a href="#tarify">Тарифы</a>
+                <a href="#support">Поддержка</a>
+            </nav>
             @auth
                 <a href="{{ route('dashboard') }}" class="lp-login-btn">Кабинет</a>
             @else
                 <a href="{{ route('login') }}" class="lp-login-btn">Кабинет</a>
             @endauth
-        </div>
+        </header>
 
         <div class="lp-hero">
             <span class="lp-trust-tag">✓ Сделали как для своих</span>
@@ -31,20 +40,20 @@
         </div>
 
         @guest
-            <a href="{{ route('register') }}" class="lp-cta-btn">
-                <span>Попробовать бесплатно (8ч)</span>
+            <a href="{{ route('register') }}" class="lp-cta-blue">
+                <span>Начать бесплатно</span>
                 <span aria-hidden="true">→</span>
             </a>
-            <span class="lp-micro-copy">Без привязки карты. Никаких скрытых платежей.</span>
+            <span class="lp-micro-copy">8 часов в подарок. Без привязки карты. Никаких скрытых платежей.</span>
         @else
-            <a href="{{ route('dashboard') }}" class="lp-cta-btn">
+            <a href="{{ route('dashboard') }}" class="lp-cta-blue">
                 <span>Личный кабинет</span>
                 <span aria-hidden="true">→</span>
             </a>
             <span class="lp-micro-copy">Ваши подписки и ссылки для подключения.</span>
         @endguest
 
-        <div class="lp-manifesto">
+        <div id="about" class="lp-manifesto">
             <h2>Коротко о главном</h2>
             <p>Мы создали этот сервис, когда заметили, что интернет стал нестабильным: сообщения не доходят, страницы долго загружаются, связь прерывается.</p>
             <p><strong>Наша задача — вернуть стабильность и удобство повседневного использования сети.</strong></p>
@@ -88,7 +97,7 @@
             @include('views2::partials.pricing-payment-notes')
         </div>
 
-        <div class="lp-support">
+        <div id="support" class="lp-support">
             <h2 class="lp-support-title">Поддержка</h2>
             <p class="lp-support-text">У нас нет роботов. Вам ответит живой человек, который поможет с настройкой и ответит на любые вопросы.</p>
             <div class="lp-support-time">Среднее время ответа — 7 минут</div>
