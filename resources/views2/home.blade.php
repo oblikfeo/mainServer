@@ -61,6 +61,11 @@
                     <p class="hero-note">Ваши подписки и ссылки для подключения.</p>
                 @endguest
             </div>
+            <div class="hero-img">
+                <div class="sticker">
+                    СТАБИЛЬНО<br>24/7
+                </div>
+            </div>
         </section>
 
         <div class="marquee" aria-hidden="true">

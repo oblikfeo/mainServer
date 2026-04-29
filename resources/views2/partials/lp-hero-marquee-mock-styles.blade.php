@@ -6,6 +6,58 @@
         min-height: 500px;
         border-bottom: var(--mock-border);
         background: transparent;
+        overflow: visible;
+        position: relative;
+    }
+
+    /* nadezhda.html: колонка без градиента (фон прозрачный), только стикер */
+    .lp-f1 .hero-img {
+        position: relative;
+        background: transparent;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .hero-img {
+            min-height: auto;
+        }
+    }
+
+    .lp-f1 .sticker {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: var(--mock-secondary);
+        color: #fff;
+        padding: 15px;
+        border-radius: 50%;
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: 800;
+        transform: rotate(15deg);
+        border: var(--mock-border);
+        font-size: 12px;
+        line-height: 1.1;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        text-transform: uppercase;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .sticker {
+            bottom: 40px;
+            right: -30px;
+            width: 150px;
+            height: 150px;
+            padding: 20px;
+            font-size: 18px;
+        }
     }
 
     .lp-f1 .hero-content {

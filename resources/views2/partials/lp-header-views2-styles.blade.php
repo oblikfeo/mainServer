@@ -6,6 +6,7 @@
         --mock-primary: #ff4d00;
         --mock-dark: #1a1a1a;
         --mock-accent: #bff000;
+        --mock-secondary: #2d31fa;
         --mock-border: 3px solid #1a1a1a;
     }
 
