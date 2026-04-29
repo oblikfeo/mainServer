@@ -38,20 +38,23 @@
         align-items: center;
         justify-content: center;
         font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-        font-size: 0.8125rem;
+        font-size: 1rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.03em;
         color: #fff;
         background-color: var(--lp-orange);
         border: 3px solid var(--lp-ink);
-        padding: 0.35rem 0.55rem;
+        padding: 0.42rem 0.72rem;
         line-height: 1;
+        min-height: 2rem;
+        box-sizing: border-box;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-logo-vpn {
-            font-size: 0.9375rem;
-            padding: 0.4rem 0.65rem;
+            font-size: 1.125rem;
+            padding: 0.5rem 0.85rem;
+            min-height: 2.35rem;
         }
     }
     .lp-f1 .lp-header__nav {
