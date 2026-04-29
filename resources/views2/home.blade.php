@@ -11,6 +11,7 @@
 @push('styles')
     @include('views2::partials.lp-f1-styles')
     @include('views2::partials.lp-header-views2-styles')
+    @include('views2::partials.lp-hero-marquee-mock-styles')
 @endpush
 
 @section('content')
@@ -33,25 +34,40 @@
             @endauth
         </header>
 
-        <div class="lp-hero">
-            <span class="lp-trust-tag">✓ Сделали как для своих</span>
-            <h1>Интернет, который просто работает</h1>
-            <p>Стабильное соединение, быстрая загрузка и комфортная работа с привычными онлайн-сервисами. Без лишних настроек.</p>
-        </div>
+        <section class="hero">
+            <div class="hero-content">
+                <div class="trust-badge">Сделали как для своих</div>
+                <h1 class="hero-title">
+                    Интернет,<br>
+                    который работает
+                </h1>
+                <p class="hero-description">
+                    Стабильное соединение, быстрая загрузка и комфортная работа с привычными онлайн-сервисами. Без лишних настроек.
+                </p>
+                <div class="hero-buttons">
+                    @guest
+                        <a href="{{ route('register') }}" class="btn-cta btn-cta--primary">
+                            Попробовать бесплатно (8ч)
+                        </a>
+                    @else
+                        <a href="{{ route('dashboard') }}" class="btn-cta btn-cta--primary">
+                            Личный кабинет
+                        </a>
+                    @endguest
+                </div>
+                @guest
+                    <p class="hero-note">Без привязки карты. Никаких скрытых платежей.</p>
+                @else
+                    <p class="hero-note">Ваши подписки и ссылки для подключения.</p>
+                @endguest
+            </div>
+        </section>
 
-        @guest
-            <a href="{{ route('register') }}" class="lp-cta-btn">
-                <span>Попробовать бесплатно (8ч)</span>
-                <span aria-hidden="true">→</span>
-            </a>
-            <span class="lp-micro-copy">Без привязки карты. Никаких скрытых платежей.</span>
-        @else
-            <a href="{{ route('dashboard') }}" class="lp-cta-btn">
-                <span>Личный кабинет</span>
-                <span aria-hidden="true">→</span>
-            </a>
-            <span class="lp-micro-copy">Ваши подписки и ссылки для подключения.</span>
-        @endguest
+        <div class="marquee">
+            <div class="marquee-content">
+                &nbsp;&nbsp;★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7 ★ СТАБИЛЬНЫЙ ИНТЕРНЕТ ★ БЕЗ ЗАВИСАНИЙ ★ БЫСТРАЯ ЗАГРУЗКА ★ ПОДДЕРЖКА 24/7
+            </div>
+        </div>
 
         <div id="about" class="lp-manifesto">
             <h2>Коротко о главном</h2>
