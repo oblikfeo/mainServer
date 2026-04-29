@@ -52,54 +52,28 @@
         letter-spacing: 0.05em;
         color: var(--lp-ink);
         text-decoration: none;
-        border-bottom: 2px solid transparent;
-        padding-bottom: 0.1rem;
-        transition: border-color 0.15s, color 0.15s;
+        transition: opacity 0.15s;
     }
     @media (min-width: 480px) {
         .lp-f1 .lp-header__nav a { font-size: 0.6875rem; }
     }
     .lp-f1 .lp-header__nav a:hover {
-        border-bottom-color: var(--lp-indigo);
-        color: var(--lp-indigo);
+        opacity: 0.65;
     }
-    .lp-f1 .lp-header-v2 .lp-login-btn {
+    .lp-f1 .lp-header-v2 .lp-login-btn--header {
         margin-left: auto;
-    }
-
-    /* Синяя CTA как на бейдже VPN (#2d31fa), ховер темнее — по тону оранжевой lp-cta-btn */
-    .lp-f1 .lp-cta-blue {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
         background: var(--lp-indigo);
-        color: #fff;
-        padding: 1.15rem 1.25rem;
-        text-transform: uppercase;
-        font-weight: 900;
-        font-size: 0.9375rem;
-        border: none;
-        border-top: 4px solid var(--lp-ink);
-        border-bottom: 4px solid var(--lp-ink);
-        width: 100%;
-        cursor: pointer;
-        text-decoration: none;
+        color: var(--lp-ink);
+        border: 2px solid var(--lp-ink);
         transition: background 0.2s ease;
     }
-    @media (min-width: 480px) {
-        .lp-f1 .lp-cta-blue { padding: 1.5rem 1.75rem; font-size: 1.125rem; }
-    }
-    .lp-f1 .lp-cta-blue:hover {
+    .lp-f1 .lp-header-v2 .lp-login-btn--header:hover {
         background: var(--lp-indigo-hover);
-        color: #fff;
+        color: var(--lp-ink);
     }
-    .lp-f1 button.lp-cta-blue { font-family: inherit; }
 
-    html { scroll-behavior: smooth; }
     .lp-f1 #about,
-    .lp-f1 #support {
-        scroll-margin-top: 0.75rem;
-    }
+    .lp-f1 #support,
     .lp-f1 #tarify {
         scroll-margin-top: 0.75rem;
     }

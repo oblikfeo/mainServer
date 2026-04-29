@@ -27,9 +27,9 @@
                 <a href="#support">Поддержка</a>
             </nav>
             @auth
-                <a href="{{ route('dashboard') }}" class="lp-login-btn">Кабинет</a>
+                <a href="{{ route('dashboard') }}" class="lp-login-btn lp-login-btn--header">Кабинет</a>
             @else
-                <a href="{{ route('login') }}" class="lp-login-btn">Кабинет</a>
+                <a href="{{ route('login') }}" class="lp-login-btn lp-login-btn--header">Войти</a>
             @endauth
         </header>
 
@@ -40,13 +40,13 @@
         </div>
 
         @guest
-            <a href="{{ route('register') }}" class="lp-cta-blue">
-                <span>Начать бесплатно</span>
+            <a href="{{ route('register') }}" class="lp-cta-btn">
+                <span>Попробовать бесплатно (8ч)</span>
                 <span aria-hidden="true">→</span>
             </a>
-            <span class="lp-micro-copy">8 часов в подарок. Без привязки карты. Никаких скрытых платежей.</span>
+            <span class="lp-micro-copy">Без привязки карты. Никаких скрытых платежей.</span>
         @else
-            <a href="{{ route('dashboard') }}" class="lp-cta-blue">
+            <a href="{{ route('dashboard') }}" class="lp-cta-btn">
                 <span>Личный кабинет</span>
                 <span aria-hidden="true">→</span>
             </a>
