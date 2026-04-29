@@ -14,6 +14,7 @@
     @include('views2::partials.lp-hero-marquee-mock-styles')
     @include('views2::partials.lp-features-mock-styles')
     @include('views2::partials.lp-pricing-support-footer-mock-styles')
+    @include('views2::partials.lp-views2-responsive-styles')
 @endpush
 
 @section('content')
