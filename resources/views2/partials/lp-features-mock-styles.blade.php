@@ -22,7 +22,7 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
-        margin-bottom: 40px;
+        margin-bottom: 0;
     }
 
     @media (min-width: 768px) {
@@ -31,30 +31,17 @@
             justify-content: space-between;
             align-items: flex-end;
             gap: 0;
-            margin-bottom: 60px;
         }
     }
 
     .lp-f1 .lp-features-section .section-title {
         font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
-        font-size: 36px;
+        font-size: 50px;
         text-transform: uppercase;
         line-height: 1;
-        font-weight: 800;
+        font-weight: 600;
         color: var(--mock-dark);
-        margin: 0;
-    }
-
-    @media (min-width: 768px) {
-        .lp-f1 .lp-features-section .section-title {
-            font-size: 48px;
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .lp-f1 .lp-features-section .section-title {
-            font-size: 64px;
-        }
+        margin: 0 0 30px;
     }
 
     .lp-f1 .lp-features-section .about-text {
@@ -88,7 +75,7 @@
     .lp-f1 .lp-features-section .feature-card {
         background: #fff;
         border: var(--mock-border);
-        padding: 30px;
+        padding: 25px;
         transition: transform 0.3s, box-shadow 0.3s;
         text-align: center;
     }
@@ -121,10 +108,6 @@
     }
 
     @media (min-width: 768px) {
-        .lp-f1 .lp-features-section .feature-card {
-            padding: 40px;
-        }
-
         .lp-f1 .lp-features-section .feature-card h3 {
             font-size: 24px;
         }
