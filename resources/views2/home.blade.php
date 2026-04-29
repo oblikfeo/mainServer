@@ -13,6 +13,7 @@
     @include('views2::partials.lp-header-views2-styles')
     @include('views2::partials.lp-hero-marquee-mock-styles')
     @include('views2::partials.lp-features-mock-styles')
+    @include('views2::partials.lp-pricing-support-footer-mock-styles')
 @endpush
 
 @section('content')
@@ -112,40 +113,66 @@
             </div>
         </section>
 
-        <div id="tarify" class="lp-pricing">
-            <h2 class="lp-section-title">Понятные цены</h2>
+        <section id="tarify" class="lp-pricing lp-pricing-mock">
+            <div class="lp-pricing-head-mock">
+                <h2 class="lp-section-title">Понятные цены</h2>
+            </div>
             <div class="lp-tariff-cards">
                 @include('views2::partials.pricing-tariff-cards', ['showPayButtons' => false])
             </div>
-            @guest
-                <a href="{{ route('login') }}" class="lp-cta-btn">
-                    <span>Подключиться</span>
-                    <span aria-hidden="true">→</span>
-                </a>
-            @else
-                <a href="{{ route('dashboard') }}" class="lp-cta-btn">
-                    <span>Подключиться</span>
-                    <span aria-hidden="true">→</span>
-                </a>
-            @endguest
-            @include('views2::partials.pricing-payment-notes')
-        </div>
+            <div class="lp-pricing-cta-wrap">
+                <a href="{{ route('cabinet.payment') }}" class="btn-cta">Подключиться</a>
+            </div>
+            <div class="lp-pricing-guarantees">
+                @include('views2::partials.pricing-payment-notes')
+            </div>
+        </section>
 
-        <div id="support" class="lp-support">
-            <h2 class="lp-support-title">Поддержка</h2>
-            <p class="lp-support-text">У нас нет роботов. Вам ответит живой человек, который поможет с настройкой и ответит на любые вопросы.</p>
-            <div class="lp-support-time">Среднее время ответа — 7 минут</div>
-            <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer">Написать в Telegram</a>
-        </div>
+        <section id="support" class="lp-support-section-mock section-padding">
+            <div class="support-content">
+                <h2 class="section-title">ПОДДЕРЖКА</h2>
+                <p class="support-text">
+                    У нас нет роботов. Вам ответит живой человек, который поможет с настройкой и ответит на любые вопросы.
+                </p>
+                <div class="support-badge">
+                    <span class="support-time">~7 минут</span>
+                    <span class="support-label">среднее время ответа</span>
+                </div>
+                <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="btn-cta lp-support-tg-btn">
+                    Написать в Telegram
+                </a>
+            </div>
+        </section>
 
-        <div class="lp-footer">
-            {{ $brand }} — сервис стабильной передачи данных.<br><br>
-            Пользователь самостоятельно определяет цели использования сервиса и несёт ответственность за соблюдение применимого законодательства.<br><br>
-            @include('views2::partials.lp-footer-support')
-            <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">Публичная оферта</a>
-            · <a href="{{ route('privacy') }}" class="text-inherit underline underline-offset-2">Политика конфиденциальности</a>
-            · <a href="{{ route('terms') }}" class="text-inherit underline underline-offset-2">Пользовательское соглашение</a>
-        </div>
+        <footer class="lp-footer-mock">
+            <div>
+                <div class="footer-logo">{{ mb_strtoupper($brand, 'UTF-8') }}</div>
+                <p class="footer-description">
+                    Пользователь самостоятельно определяет цели использования сервиса и несёт ответственность за соблюдение применимого законодательства.
+                </p>
+                @include('views2::partials.lp-footer-support')
+            </div>
+            <div class="footer-links">
+                <h4>Навигация</h4>
+                <ul>
+                    <li><a href="#features">О сервисе</a></li>
+                    <li><a href="#tarify">Тарифы</a></li>
+                    <li><a href="#support">Поддержка</a></li>
+                </ul>
+            </div>
+            <div class="footer-links footer-docs">
+                <h4>Документы</h4>
+                <ul>
+                    <li><a href="{{ route('agreement') }}">Публичная оферта</a></li>
+                    <li><a href="{{ route('privacy') }}">Политика конфиденциальности</a></li>
+                    <li><a href="{{ route('terms') }}">Пользовательское соглашение</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; {{ date('Y') }} {{ mb_strtoupper($brand, 'UTF-8') }}</span>
+                <span>Стабильный интернет без зависаний</span>
+            </div>
+        </footer>
     </div>
 </div>
 @endsection

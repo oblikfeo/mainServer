@@ -17,6 +17,9 @@
         flex-wrap: wrap;
         gap: 0.75rem 1rem;
         align-items: center;
+        position: relative;
+        top: auto;
+        z-index: auto;
     }
     .lp-f1 .lp-brand-line {
         display: flex;
@@ -125,7 +128,7 @@
         }
     }
 
-    .lp-f1 #about,
+    .lp-f1 #features,
     .lp-f1 #support,
     .lp-f1 #tarify {
         scroll-margin-top: 0.75rem;
