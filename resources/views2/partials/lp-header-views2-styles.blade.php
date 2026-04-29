@@ -1,5 +1,6 @@
 <style>
-    .lp-f1 { --lp-indigo: #2d31fa; --lp-indigo-hover: #2529c7; }
+    /* VPN-бейдж: вторичный цвет как в макете */
+    .lp-f1 { --lp-indigo: #2d31fa; --lp-mock-accent: #bff000; }
     .lp-f1 .lp-header.lp-header-v2 {
         flex-wrap: wrap;
         gap: 0.75rem 1rem;
@@ -52,24 +53,53 @@
         letter-spacing: 0.05em;
         color: var(--lp-ink);
         text-decoration: none;
-        transition: opacity 0.15s;
+        transition: color 0.2s;
     }
     @media (min-width: 480px) {
         .lp-f1 .lp-header__nav a { font-size: 0.6875rem; }
     }
+    /* как в макете nadezhda.html: hover nav → primary + underline */
     .lp-f1 .lp-header__nav a:hover {
-        opacity: 0.65;
+        color: var(--lp-orange);
+        text-decoration: underline;
+        text-underline-offset: 3px;
     }
-    .lp-f1 .lp-header-v2 .lp-login-btn--header {
+
+    /* как .btn-cta в макете: lime bg, 3px border, offset shadow, hover lift */
+    .lp-f1 .lp-header-cta {
         margin-left: auto;
-        background: var(--lp-indigo);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        background: var(--lp-mock-accent);
         color: var(--lp-ink);
-        border: 2px solid var(--lp-ink);
-        transition: background 0.2s ease;
+        padding: 10px 16px;
+        border: 3px solid var(--lp-ink);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 12px;
+        line-height: 1.2;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .lp-f1 .lp-header-v2 .lp-login-btn--header:hover {
-        background: var(--lp-indigo-hover);
+    @media (min-width: 768px) {
+        .lp-f1 .lp-header-cta {
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+    }
+    .lp-f1 .lp-header-cta:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0 var(--lp-ink);
         color: var(--lp-ink);
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .lp-f1 .lp-header-cta:hover {
+            transform: none;
+        }
     }
 
     .lp-f1 #about,

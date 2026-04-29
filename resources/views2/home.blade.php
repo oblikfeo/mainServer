@@ -27,9 +27,9 @@
                 <a href="#support">Поддержка</a>
             </nav>
             @auth
-                <a href="{{ route('dashboard') }}" class="lp-login-btn lp-login-btn--header">Кабинет</a>
+                <a href="{{ route('dashboard') }}" class="lp-header-cta">Кабинет</a>
             @else
-                <a href="{{ route('login') }}" class="lp-login-btn lp-login-btn--header">Войти</a>
+                <a href="{{ route('register') }}" class="lp-header-cta">Попробовать</a>
             @endauth
         </header>
 
