@@ -76,7 +76,8 @@ class User extends Authenticatable
     }
 
     /**
-     * Уже есть привязанная подписка — тестовый ключ не предлагаем (как в TestSubscriptionController).
+     * Скрывать блок «Тестовая подписка» для самостоятельной выдачи (кнопка в ЛК), если уже есть платная подписка.
+     * Активный тест-ключ из админки всё равно показывается в этом блоке (@see CabinetController index).
      */
     public function shouldHideTestSubscriptionOffer(): bool
     {

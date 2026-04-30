@@ -71,7 +71,7 @@ final class TestKeySubscriptionFeedRenderer
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($key);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
-        $routingLine = $this->happRoutingLineForBody();
+        $routingLine = config('test_keys.apply_happ_routing', false) ? $this->happRoutingLineForBody() : null;
 
         $body = $meta.$line."\n";
         if (config('xui.sub_output_b64', false)) {

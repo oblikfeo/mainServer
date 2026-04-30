@@ -20,8 +20,24 @@
     </div>
 
     @if (session('status'))
-        <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold text-slate-800">
-            {{ session('status') }}
+        @php($st = (string) session('status'))
+        <div class="mb-6 rounded-2xl border border-slate-200 bg-emerald-50 border-emerald-200 p-4 text-sm text-emerald-950">
+            @if (\Illuminate\Support\Str::startsWith($st, 'issued:'))
+                @php($issueId = substr($st, strlen('issued:')))
+                <p class="font-bold">Тестовая подписка создана (запись №{{ $issueId }}).</p>
+                <p class="mt-2 text-emerald-900/90 leading-relaxed">
+                    Пользователь увидит ссылку в личном кабинете в блоке «Тестовая подписка» (даже при активной платной подписке).
+                    Вы можете скопировать URL из таблицы ниже кнопкой «Скопировать».
+                </p>
+            @elseif (\Illuminate\Support\Str::startsWith($st, 'revoked:'))
+                @php($rid = substr($st, strlen('revoked:')))
+                <p class="font-bold">Ключ снят (запись №{{ $rid }}).</p>
+            @elseif (\Illuminate\Support\Str::startsWith($st, 'cleanup:'))
+                @php($cleaned = substr($st, strlen('cleanup:')))
+                <p>Очистка просроченных: обработано записей: <span class="font-mono font-bold">{{ $cleaned }}</span>.</p>
+            @else
+                {{ $st }}
+            @endif
         </div>
     @endif
 

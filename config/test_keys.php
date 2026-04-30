@@ -32,5 +32,14 @@ return [
     'default_hours' => (int) env('TEST_KEYS_DEFAULT_HOURS', 8),
     'default_limit_ip' => (int) env('TEST_KEYS_DEFAULT_LIMIT_IP', 1),
     'default_quota_gb' => (int) env('TEST_KEYS_DEFAULT_QUOTA_GB', 5),
+
+    /**
+     * Прикладывать к ответу /sub по тест-ключу тот же happ-routing, что у платной подписки (direct/geosite).
+     * false — только vless, проще диагностика «есть ли трафик» на тестовой панели.
+     */
+    'apply_happ_routing' => filter_var(
+        env('TEST_KEYS_APPLY_HAPP_ROUTING', false),
+        FILTER_VALIDATE_BOOLEAN
+    ),
 ];
 

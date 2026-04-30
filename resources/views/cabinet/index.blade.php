@@ -12,7 +12,7 @@
         @endphp
 
         {{-- Заголовок раздела "Тестовая подписка" --}}
-        @unless ($me->shouldHideTestSubscriptionOffer())
+        @if ($activeTestKey || ! $me->shouldHideTestSubscriptionOffer())
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             <article class="lp-card" style="margin-bottom: 2rem;">
                 <div class="lp-card__head">
@@ -165,7 +165,7 @@
                     @endif
                 </div>
             </article>
-        @endunless
+        @endif
 
         {{-- Заголовок раздела "Платные подписки" --}}
         <h2 class="lp-page-section-title">Платные подписки</h2>
