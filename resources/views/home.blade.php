@@ -20,7 +20,7 @@
             @auth
                 <a href="{{ route('dashboard') }}" class="lp-login-btn">Кабинет</a>
             @else
-                <a href="{{ route('login') }}" class="lp-login-btn">Кабинет</a>
+                <a href="{{ route('login') }}" class="lp-login-btn">Войти</a>
             @endauth
         </div>
 

@@ -42,7 +42,7 @@ return [
             'kind' => 'solo',
             'title' => 'Для себя',
             'meta' => '2 устройства',
-            'pricing_hint' => '1 устройство',
+            'pricing_hint' => '2 устройства',
             'aria_id' => 'tariff-solo-title',
             'rows' => [
                 ['period' => '1 месяц', 'amount' => '290', 'sub' => null],

@@ -3,7 +3,7 @@
     .lp-f1 .lp-pricing.lp-pricing-mock {
         margin: 0;
         padding: 40px 20px;
-        background: var(--mock-primary);
+        background: #2d31fa;
         border-top: var(--mock-border);
         border-bottom: var(--mock-border);
         border-left: none;

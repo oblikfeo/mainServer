@@ -96,13 +96,14 @@
             border-bottom: none;
         }
 
-        /* Hero: без лишней высоты, текст не вылезает */
+        /* Hero: без лишней высоты; синий стикер — абсолютно в правом верхнем углу блока */
         .lp-f1 section.hero {
             min-height: 0;
+            position: relative;
         }
 
         .lp-f1 .hero-content {
-            padding: 1.25rem 0.875rem;
+            padding: 1.25rem clamp(5.75rem, 28vw, 7.5rem) 1.25rem 0.875rem;
             min-width: 0;
         }
 
@@ -117,7 +118,25 @@
         }
 
         .lp-f1 .hero-img {
-            display: none !important;
+            display: flex !important;
+            position: absolute;
+            top: 0.5rem;
+            right: max(0.625rem, env(safe-area-inset-right));
+            width: auto;
+            min-height: 0;
+            align-items: flex-start;
+            justify-content: flex-end;
+            background: transparent;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .lp-f1 .hero-img .sticker {
+            position: relative;
+            top: 0;
+            right: auto;
+            bottom: auto;
+            transform: rotate(15deg);
         }
 
         /* Бегущая строка: меньше трекинг на узком экране */

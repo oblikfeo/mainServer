@@ -44,7 +44,7 @@
                 @auth
                     <a href="{{ route('dashboard') }}" class="lp-header-cta">Кабинет</a>
                 @else
-                    <a href="{{ route('register') }}" class="lp-header-cta">Попробовать</a>
+                    <a href="{{ route('login') }}" class="lp-header-cta">Войти</a>
                 @endauth
             </div>
         </header>
