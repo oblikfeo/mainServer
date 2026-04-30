@@ -14,12 +14,6 @@ final class TelegramLinkController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->hasVerifiedEmail()) {
-            return Redirect::route('cabinet.profile')->withErrors([
-                'telegram_code' => 'Сначала подтвердите электронную почту.',
-            ]);
-        }
-
         if ($user->telegram_id !== null) {
             return Redirect::route('cabinet.profile')->withErrors([
                 'telegram_code' => 'Telegram уже привязан.',
@@ -43,12 +37,6 @@ final class TelegramLinkController extends Controller
     public function verify(Request $request): RedirectResponse
     {
         $user = $request->user();
-
-        if (! $user->hasVerifiedEmail()) {
-            return Redirect::route('cabinet.profile')->withErrors([
-                'telegram_code' => 'Сначала подтвердите электронную почту.',
-            ]);
-        }
 
         if ($user->telegram_id !== null) {
             return Redirect::route('cabinet.profile')->withErrors([
