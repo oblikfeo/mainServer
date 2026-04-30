@@ -23,13 +23,11 @@ use App\Http\Controllers\WataWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('home');
-});
-
-/** Копия главной для экспериментов с вёрсткой (шаблоны в resources/views2). */
-Route::get('/test', function () {
     return view('views2::home');
-})->name('home.test');
+})->name('home');
+
+/** Бывшая тестовая вёрстка: редирект на главную */
+Route::redirect('/test', '/', 301)->name('home.test');
 
 Route::get('/agreement', function () {
     return view('agreement');
