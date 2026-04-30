@@ -1,3 +1,7 @@
+@php
+    $telegramStartUrl = session('telegram_start_url');
+@endphp
+
 <div class="lp-profile-block" id="profile-telegram">
     <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Telegram</h2>
 
@@ -9,11 +13,6 @@
     @if (session('status') === 'telegram-unlinked')
         <p class="mt-3 text-sm font-semibold text-slate-900 border-2 border-black bg-slate-50 px-3 py-2">
             Привязка Telegram отключена.
-        </p>
-    @endif
-    @if (session('status') === 'telegram-link-started')
-        <p class="mt-3 text-sm font-semibold text-amber-950 border-2 border-black bg-amber-50 px-3 py-2">
-            Откройте ссылку в Telegram и введите код из чата в поле ниже.
         </p>
     @endif
 
@@ -48,44 +47,42 @@
             </div>
         </dl>
     @else
-        <p class="mt-3 text-sm text-slate-700 leading-relaxed">
-            Запросите ссылку на бота, перейдите в чат и введите присланный <strong>шестизначный</strong> код в поле ниже.
-        </p>
-
-        @if (session('telegram_start_url'))
-            <p class="mt-3 text-sm font-bold text-slate-900">Ссылка на бота</p>
-            <p class="mt-1 break-all font-mono text-sm border-2 border-black bg-white px-2 py-2">
-                <a href="{{ session('telegram_start_url') }}" target="_blank" rel="noopener noreferrer" class="underline">{{ session('telegram_start_url') }}</a>
+        @unless ($telegramStartUrl)
+            <p class="mt-3 text-sm text-slate-700 leading-relaxed">
+                Нажмите кнопку — на этой странице ниже появится ссылка для открытия бота в Telegram.
             </p>
-        @endif
-
-        <div class="mt-4 flex flex-wrap gap-3 items-center">
-            <form method="POST" action="{{ route('cabinet.telegram.start') }}">
-                @csrf
-                <button type="submit" class="lp-account-verify-btn">
-                    Получить ссылку на бота
-                </button>
-            </form>
-        </div>
-
-        <form method="POST" action="{{ route('cabinet.telegram.verify') }}" class="mt-6 space-y-3 max-w-md">
-            @csrf
-            <div>
-                <label class="block text-sm font-bold uppercase tracking-wide text-slate-600">Код из Telegram</label>
-                <input
-                    name="telegram_code"
-                    inputmode="numeric"
-                    autocomplete="one-time-code"
-                    maxlength="6"
-                    class="mt-1 block w-full font-mono tracking-widest"
-                    placeholder="000000"
-                    value="{{ old('telegram_code') }}"
-                />
-                @error('telegram_code')
-                    <div class="mt-2 text-sm font-semibold text-red-700 border-2 border-black bg-red-50 px-2 py-1">{{ $message }}</div>
-                @enderror
+            <div class="mt-4 flex flex-wrap gap-3 items-center">
+                <form method="POST" action="{{ route('cabinet.telegram.start') }}">
+                    @csrf
+                    <button type="submit" class="lp-account-verify-btn">
+                        Получить ссылку на бота
+                    </button>
+                </form>
             </div>
-            <button type="submit">Подтвердить привязку</button>
-        </form>
+        @else
+            <p class="mt-3 break-all font-mono text-sm border-2 border-black bg-white px-2 py-2">
+                <a href="{{ $telegramStartUrl }}" target="_blank" rel="noopener noreferrer" class="underline font-semibold text-slate-900">{{ $telegramStartUrl }}</a>
+            </p>
+
+            <form method="POST" action="{{ route('cabinet.telegram.verify') }}" class="mt-6 space-y-3 max-w-md">
+                @csrf
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wide text-slate-600">Код из Telegram</label>
+                    <input
+                        name="telegram_code"
+                        inputmode="numeric"
+                        autocomplete="one-time-code"
+                        maxlength="6"
+                        class="mt-1 block w-full font-mono tracking-widest"
+                        placeholder="000000"
+                        value="{{ old('telegram_code') }}"
+                    />
+                    @error('telegram_code')
+                        <div class="mt-2 text-sm font-semibold text-red-700 border-2 border-black bg-red-50 px-2 py-1">{{ $message }}</div>
+                    @enderror
+                </div>
+                <button type="submit">Подтвердить привязку</button>
+            </form>
+        @endunless
     @endif
 </div>

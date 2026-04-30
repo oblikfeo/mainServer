@@ -33,11 +33,12 @@ final class TelegramLinkController extends Controller
         }
 
         [, $plain] = TelegramAccountLinkService::createSession($user);
+        $request->session()->put(
+            'telegram_start_url',
+            TelegramAccountLinkService::buildBotDeepLink($plain)
+        );
 
-        return Redirect::to(self::redirectToTelegramBlock())->with([
-            'telegram_start_url' => TelegramAccountLinkService::buildBotDeepLink($plain),
-            'status' => 'telegram-link-started',
-        ]);
+        return Redirect::to(self::redirectToTelegramBlock());
     }
 
     public function verify(Request $request): RedirectResponse
@@ -69,6 +70,8 @@ final class TelegramLinkController extends Controller
             ->first();
 
         if ($session === null) {
+            $request->session()->forget('telegram_start_url');
+
             return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Сессия не найдена или истекла. Запросите ссылку заново.',
             ]);
@@ -86,6 +89,7 @@ final class TelegramLinkController extends Controller
         $tgId = (int) $session->telegram_user_id;
         if (TelegramAccountLinkService::telegramIdTakenByAnotherUser($tgId, $user->id)) {
             $session->delete();
+            $request->session()->forget('telegram_start_url');
 
             return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Этот Telegram уже привязан к другому аккаунту.',
@@ -99,6 +103,7 @@ final class TelegramLinkController extends Controller
         ])->save();
 
         TelegramLinkSession::query()->where('user_id', $user->id)->delete();
+        $request->session()->forget('telegram_start_url');
 
         return Redirect::to(self::redirectToTelegramBlock())->with('status', 'telegram-linked');
     }
@@ -120,6 +125,7 @@ final class TelegramLinkController extends Controller
         ])->save();
 
         TelegramLinkSession::query()->where('user_id', $user->id)->delete();
+        $request->session()->forget('telegram_start_url');
 
         return Redirect::to(self::redirectToTelegramBlock())->with('status', 'telegram-unlinked');
     }
