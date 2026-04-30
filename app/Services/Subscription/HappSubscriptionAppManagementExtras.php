@@ -126,9 +126,9 @@ final class HappSubscriptionAppManagementExtras
      */
     private static function joinAnnounceHalves(string $line1, string $line2): string
     {
-        $sep = trim((string) config('marketing.subscription_announce_join', ' · '));
+        $sep = trim((string) config('marketing.subscription_announce_join'));
         if ($sep === '') {
-            $sep = ' · ';
+            $sep = '          ..................................................          ';
         }
 
         return trim($line1).$sep.trim($line2);

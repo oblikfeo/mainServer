@@ -28,8 +28,11 @@ return [
         FILTER_VALIDATE_BOOLEAN
     ),
 
-    /** Склейка двух частей announce (Happ не показывает \n). Пустое значение в join — см. код, будет « · » */
-    'subscription_announce_join' => trim((string) env('MARKETING_SUBSCRIPTION_ANNOUNCE_JOIN', ' · ')),
+    /** Склейка двух частей announce (одна строка в Happ). По умолчанию — пробелы и точки; лимит анонса ~200 символов. */
+    'subscription_announce_join' => trim((string) env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_JOIN',
+        '          ..................................................          '
+    )),
     /** Первая строка анонса Happ. Плейсхолдеры: {used}, {max} */
     'subscription_announce_line_devices' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES',
