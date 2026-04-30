@@ -30,19 +30,11 @@
             <p>Стабильное соединение, быстрая загрузка и комфортная работа с привычными онлайн-сервисами. Без лишних настроек.</p>
         </div>
 
-        @guest
-            <a href="{{ route('register') }}" class="lp-cta-btn">
-                <span>Попробовать бесплатно (8ч)</span>
-                <span aria-hidden="true">→</span>
-            </a>
-            <span class="lp-micro-copy">Без привязки карты. Никаких скрытых платежей.</span>
-        @else
-            <a href="{{ route('dashboard') }}" class="lp-cta-btn">
-                <span>Личный кабинет</span>
-                <span aria-hidden="true">→</span>
-            </a>
-            <span class="lp-micro-copy">Ваши подписки и ссылки для подключения.</span>
-        @endguest
+        <a href="{{ auth()->check() ? route('dashboard') : route('register') }}" class="lp-cta-btn">
+            <span>Попробовать бесплатно (8ч)</span>
+            <span aria-hidden="true">→</span>
+        </a>
+        <span class="lp-micro-copy">Без привязки карты. Никаких скрытых платежей.</span>
 
         <div class="lp-manifesto">
             <h2>Коротко о главном</h2>

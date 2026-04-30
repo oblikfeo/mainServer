@@ -60,21 +60,11 @@
                     Стабильное соединение, быстрая загрузка и комфортная работа с привычными онлайн-сервисами. Без лишних настроек.
                 </p>
                 <div class="hero-buttons">
-                    @guest
-                        <a href="{{ route('register') }}" class="btn-cta btn-cta--primary">
-                            Попробовать бесплатно (8ч)
-                        </a>
-                    @else
-                        <a href="{{ route('dashboard') }}" class="btn-cta btn-cta--primary">
-                            Личный кабинет
-                        </a>
-                    @endguest
+                    <a href="{{ auth()->check() ? route('dashboard') : route('register') }}" class="btn-cta btn-cta--primary">
+                        Попробовать бесплатно (8ч)
+                    </a>
                 </div>
-                @guest
-                    <p class="hero-note">Без привязки карты. Никаких скрытых платежей.</p>
-                @else
-                    <p class="hero-note">Ваши подписки и ссылки для подключения.</p>
-                @endguest
+                <p class="hero-note">Без привязки карты. Никаких скрытых платежей.</p>
             </div>
             <div class="hero-img">
                 <div class="sticker">
