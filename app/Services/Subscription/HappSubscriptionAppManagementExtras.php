@@ -131,7 +131,7 @@ final class HappSubscriptionAppManagementExtras
         $expSec = (int) floor($expMs / 1000);
         $now = time();
         if ($expSec <= $now) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
+            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
         }
 
         return self::russianDaysLeftPhrase($expSec - $now);
@@ -147,7 +147,7 @@ final class HappSubscriptionAppManagementExtras
         $expSec = $exp->getTimestamp();
         $now = time();
         if ($expSec <= $now) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
+            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
         }
 
         return self::russianDaysLeftPhrase($expSec - $now);
@@ -156,7 +156,7 @@ final class HappSubscriptionAppManagementExtras
     private static function russianDaysLeftPhrase(int $secondsRemaining): string
     {
         if ($secondsRemaining <= 0) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
+            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
         }
         if ($secondsRemaining < 86400) {
             return 'менее суток';

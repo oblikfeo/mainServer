@@ -34,17 +34,17 @@ return [
         'Привязанные устройства: {used}/{max}'
     ),
 
-    /** Вторая строка. Плейсхолдер: {value} — например «12 дней», «истекло», «—» */
+    /** Вторая строка. Плейсхолдер: {value} — «12 дней», «менее суток», «срок истёк», «—» */
     'subscription_announce_line_days' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DAYS',
-        'Дней до окончания: {value}'
+        'До окончания подписки: {value}'
     ),
 
     /** Если в БД нет даты окончания (expiry_ms = 0) */
     'subscription_announce_value_no_expiry' => env('MARKETING_SUBSCRIPTION_ANNOUNCE_VALUE_NO_EXPIRY', '—'),
 
     /** Срок по БД уже прошёл */
-    'subscription_announce_value_expired' => env('MARKETING_SUBSCRIPTION_ANNOUNCE_VALUE_EXPIRED', 'истекло'),
+    'subscription_announce_value_expired' => env('MARKETING_SUBSCRIPTION_ANNOUNCE_VALUE_EXPIRED', 'срок истёк'),
 
     /**
      * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
