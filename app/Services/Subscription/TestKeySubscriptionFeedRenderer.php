@@ -69,7 +69,8 @@ final class TestKeySubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $total, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n";
+        $extras = HappSubscriptionAppManagementExtras::forResponses();
+        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
         $routingLine = $this->happRoutingLineForBody();
 
         $body = $meta.$line."\n";
@@ -81,11 +82,11 @@ final class TestKeySubscriptionFeedRenderer
         }
 
         $hours = (string) config('test_keys.default_hours', '8');
-        $headers = [
+        $headers = array_merge([
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ];
+        ], $extras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }

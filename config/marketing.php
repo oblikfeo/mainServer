@@ -6,6 +6,20 @@ return [
     'telegram_url' => env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
     /** Если задано — используется в блоке «Поддержка» вместо telegram_url */
     'telegram_support_url' => env('MARKETING_TELEGRAM_SUPPORT_URL') ?: env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
+    /**
+     * Публичный URL сайта для кнопки в строке профиля Happ (#profile-web-page-url).
+     * Пусто — берётся из APP_URL.
+     */
+    'subscription_site_url' => env('MARKETING_SUBSCRIPTION_SITE_URL', ''),
+    /**
+     * Объявление в Happ (#announce), до ~200 символов; только тело подписки (кириллица в заголовках не дублируем).
+     * В .env задайте `MARKETING_SUBSCRIPTION_ANNOUNCE=` (пусто), чтобы скрыть.
+     */
+    'subscription_announce' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE',
+        'Улучшили "Высокоскоростное соединение"! Теперь youtube еще быстрее!'
+    ),
+
     /** Опционально: общая почта поддержки (футер). Персональные данные не подставляйте в репозиторий. */
     'support_email' => env('MARKETING_SUPPORT_EMAIL', ''),
     /** Дата публикации оферты (строка, напр. 07.04.2026). Пусто — текущая дата на сервере. */

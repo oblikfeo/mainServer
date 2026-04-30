@@ -78,7 +78,8 @@ final class MergedSubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n";
+        $extras = HappSubscriptionAppManagementExtras::forResponses();
+        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $routingLine = $this->happRoutingLineForBody();
 
@@ -91,11 +92,11 @@ final class MergedSubscriptionFeedRenderer
 
         $hours = (string) config('xui.sub_profile_update_hours', '12');
 
-        $headers = [
+        $headers = array_merge([
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ];
+        ], $extras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }
