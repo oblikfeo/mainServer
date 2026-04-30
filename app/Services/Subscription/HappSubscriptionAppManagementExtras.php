@@ -7,7 +7,7 @@ use App\Models\TestKey;
 
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
- * Для /sub/{token} поле #announce может включать персональную строку (устройства HWID, остаток срока из БД).
+ * #announce для /sub/{token} — две строки (устройства HWID + срок), без общего маркетингового текста.
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -67,84 +67,96 @@ final class HappSubscriptionAppManagementExtras
 
     private static function composeAnnounce(Subscription|TestKey|null $context): string
     {
-        $global = trim((string) config('marketing.subscription_announce', ''));
-        $personalize = (bool) config('marketing.subscription_announce_personalize', true);
-
-        $personal = '';
-        if ($personalize) {
-            $personal = match (true) {
-                $context instanceof Subscription => self::personalAnnounceForSubscription($context),
-                $context instanceof TestKey => self::personalAnnounceForTestKey($context),
-                default => '',
-            };
-            $personal = trim($personal);
+        if (! (bool) config('marketing.subscription_announce_personalize', true) || $context === null) {
+            return '';
         }
 
-        if ($personal !== '' && $global !== '') {
-            $combined = trim($personal.' '.$global);
-        } elseif ($personal !== '') {
-            $combined = $personal;
-        } else {
-            $combined = $global;
-        }
+        $block = match (true) {
+            $context instanceof Subscription => self::twoLineAnnounceForSubscription($context),
+            $context instanceof TestKey => self::twoLineAnnounceForTestKey($context),
+            default => '',
+        };
 
-        return self::truncateAnnounce($combined);
+        return self::truncateAnnounce($block);
     }
 
-    private static function personalAnnounceForSubscription(Subscription $sub): string
+    private static function twoLineAnnounceForSubscription(Subscription $sub): string
     {
         $used = self::hwidUsedCount($sub->bound_hwid_hashes);
         $max = max(1, (int) $sub->devices);
-        $repl = ['{used}' => (string) $used, '{max}' => (string) $max];
+        $usedStr = (string) $used;
+        $maxStr = (string) $max;
 
-        $expMs = (int) $sub->expiry_ms;
-        if ($expMs <= 0) {
-            return strtr((string) config('marketing.subscription_announce_line_no_expiry'), $repl);
-        }
+        $line1 = strtr((string) config('marketing.subscription_announce_line_devices'), [
+            '{used}' => $usedStr,
+            '{max}' => $maxStr,
+        ]);
+        $value = self::daysLeftValueForSubscription($sub);
+        $line2 = strtr((string) config('marketing.subscription_announce_line_days'), [
+            '{value}' => $value,
+        ]);
 
-        $expSec = (int) floor($expMs / 1000);
-        $now = time();
-        if ($expSec <= $now) {
-            return strtr((string) config('marketing.subscription_announce_line_expired'), $repl);
-        }
-
-        $daysPhrase = self::russianDaysLeftPhrase($expSec - $now);
-        $repl['{days}'] = $daysPhrase;
-
-        return strtr((string) config('marketing.subscription_announce_line_active'), $repl);
+        return $line1."\n".$line2;
     }
 
-    private static function personalAnnounceForTestKey(TestKey $key): string
+    private static function twoLineAnnounceForTestKey(TestKey $key): string
     {
         $used = self::hwidUsedCount($key->bound_hwid_hashes);
         $limitIp = (int) ($key->limit_ip ?? 0);
         if ($limitIp < 1) {
             $limitIp = max(1, (int) config('test_keys.default_limit_ip', 1));
         }
-        $max = $limitIp;
-        $repl = ['{used}' => (string) $used, '{max}' => (string) $max];
+        $usedStr = (string) $used;
+        $maxStr = (string) $limitIp;
 
+        $line1 = strtr((string) config('marketing.subscription_announce_line_devices'), [
+            '{used}' => $usedStr,
+            '{max}' => $maxStr,
+        ]);
+        $value = self::daysLeftValueForTestKey($key);
+        $line2 = strtr((string) config('marketing.subscription_announce_line_days'), [
+            '{value}' => $value,
+        ]);
+
+        return $line1."\n".$line2;
+    }
+
+    private static function daysLeftValueForSubscription(Subscription $sub): string
+    {
+        $expMs = (int) $sub->expiry_ms;
+        if ($expMs <= 0) {
+            return trim((string) config('marketing.subscription_announce_value_no_expiry', '—'));
+        }
+
+        $expSec = (int) floor($expMs / 1000);
+        $now = time();
+        if ($expSec <= $now) {
+            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
+        }
+
+        return self::russianDaysLeftPhrase($expSec - $now);
+    }
+
+    private static function daysLeftValueForTestKey(TestKey $key): string
+    {
         $exp = $key->expires_at;
         if ($exp === null) {
-            return strtr((string) config('marketing.subscription_announce_line_no_expiry'), $repl);
+            return trim((string) config('marketing.subscription_announce_value_no_expiry', '—'));
         }
 
         $expSec = $exp->getTimestamp();
         $now = time();
         if ($expSec <= $now) {
-            return strtr((string) config('marketing.subscription_announce_line_expired'), $repl);
+            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
         }
 
-        $daysPhrase = self::russianDaysLeftPhrase($expSec - $now);
-        $repl['{days}'] = $daysPhrase;
-
-        return strtr((string) config('marketing.subscription_announce_line_active'), $repl);
+        return self::russianDaysLeftPhrase($expSec - $now);
     }
 
     private static function russianDaysLeftPhrase(int $secondsRemaining): string
     {
         if ($secondsRemaining <= 0) {
-            return '0 дней';
+            return trim((string) config('marketing.subscription_announce_value_expired', 'истекло'));
         }
         if ($secondsRemaining < 86400) {
             return 'менее суток';
