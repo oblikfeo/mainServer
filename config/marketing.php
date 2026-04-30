@@ -21,12 +21,12 @@ return [
     ),
 
     /**
-     * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBB или #RRGGBBAA.
-     * Пустая строка в .env: MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR= — не передавать color-profile.
+     * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
+     * Фирменный оранжевый лендинга (views2 --mock-primary). Пустой .env — не передавать color-profile.
      *
      * @see https://www.happ.su/main/dev-docs/app-management
      */
-    'subscription_profile_web_icon_color' => env('MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR', '#9B72CBFF'),
+    'subscription_profile_web_icon_color' => env('MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR', '#FF4D00FF'),
 
     /** Опционально: общая почта поддержки (футер). Персональные данные не подставляйте в репозиторий. */
     'support_email' => env('MARKETING_SUPPORT_EMAIL', ''),
