@@ -69,7 +69,7 @@ final class TestKeySubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $total, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $extras = HappSubscriptionAppManagementExtras::forResponses();
+        $extras = HappSubscriptionAppManagementExtras::forResponses($key);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
         $routingLine = $this->happRoutingLineForBody();
 

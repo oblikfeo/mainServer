@@ -21,6 +21,33 @@ return [
     ),
 
     /**
+     * Подставить в #announce данные из БД по токену /sub/{token} (устройства, срок и т.д.).
+     * Выключить: MARKETING_SUBSCRIPTION_ANNOUNCE_PERSONALIZE=false
+     */
+    'subscription_announce_personalize' => filter_var(
+        env('MARKETING_SUBSCRIPTION_ANNOUNCE_PERSONALIZE', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /** Плейсхолдеры: {used}, {max}, {days} — фраза про остаток срока («5 дней», «менее суток»). */
+    'subscription_announce_line_active' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_ACTIVE',
+        'Устройств {used}/{max}. По подписке осталось {days}.'
+    ),
+
+    /** Если срок в БД не задан (expiry_ms = 0): только устройства. */
+    'subscription_announce_line_no_expiry' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_NO_EXPIRY',
+        'Устройств {used}/{max}.'
+    ),
+
+    /** Подписка просрочена по expiry_ms. Плейсхолдеры: {used}, {max}. */
+    'subscription_announce_line_expired' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_EXPIRED',
+        'Срок доступа истёк (устройств {used}/{max}). Продлите в личном кабинете на сайте.'
+    ),
+
+    /**
      * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
      * Фирменный оранжевый лендинга (views2 --mock-primary). Пустой .env — не передавать color-profile.
      *

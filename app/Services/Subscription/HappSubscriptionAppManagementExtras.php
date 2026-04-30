@@ -2,8 +2,12 @@
 
 namespace App\Services\Subscription;
 
+use App\Models\Subscription;
+use App\Models\TestKey;
+
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
+ * Для /sub/{token} поле #announce может включать персональную строку (устройства HWID, остаток срока из БД).
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -14,7 +18,7 @@ final class HappSubscriptionAppManagementExtras
     /**
      * @return array{body_meta_suffix: string, headers: array<string, string>}
      */
-    public static function forResponses(): array
+    public static function forResponses(Subscription|TestKey|null $context = null): array
     {
         $supportUrl = self::normalizedUrl(
             trim((string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')))
@@ -24,12 +28,7 @@ final class HappSubscriptionAppManagementExtras
             $webUrl = self::normalizedUrl(rtrim((string) config('app.url'), '/'));
         }
 
-        $announce = trim((string) config('marketing.subscription_announce', ''));
-        if ($announce !== '' && function_exists('mb_strlen') && mb_strlen($announce) > self::ANNOUNCE_MAX_LEN) {
-            $announce = mb_substr($announce, 0, self::ANNOUNCE_MAX_LEN);
-        } elseif ($announce !== '' && strlen($announce) > self::ANNOUNCE_MAX_LEN) {
-            $announce = substr($announce, 0, self::ANNOUNCE_MAX_LEN);
-        }
+        $announce = self::composeAnnounce($context);
 
         $body = '';
         $headers = [];
@@ -64,6 +63,148 @@ final class HappSubscriptionAppManagementExtras
             'body_meta_suffix' => $body,
             'headers' => $headers,
         ];
+    }
+
+    private static function composeAnnounce(Subscription|TestKey|null $context): string
+    {
+        $global = trim((string) config('marketing.subscription_announce', ''));
+        $personalize = (bool) config('marketing.subscription_announce_personalize', true);
+
+        $personal = '';
+        if ($personalize) {
+            $personal = match (true) {
+                $context instanceof Subscription => self::personalAnnounceForSubscription($context),
+                $context instanceof TestKey => self::personalAnnounceForTestKey($context),
+                default => '',
+            };
+            $personal = trim($personal);
+        }
+
+        if ($personal !== '' && $global !== '') {
+            $combined = trim($personal.' '.$global);
+        } elseif ($personal !== '') {
+            $combined = $personal;
+        } else {
+            $combined = $global;
+        }
+
+        return self::truncateAnnounce($combined);
+    }
+
+    private static function personalAnnounceForSubscription(Subscription $sub): string
+    {
+        $used = self::hwidUsedCount($sub->bound_hwid_hashes);
+        $max = max(1, (int) $sub->devices);
+        $repl = ['{used}' => (string) $used, '{max}' => (string) $max];
+
+        $expMs = (int) $sub->expiry_ms;
+        if ($expMs <= 0) {
+            return strtr((string) config('marketing.subscription_announce_line_no_expiry'), $repl);
+        }
+
+        $expSec = (int) floor($expMs / 1000);
+        $now = time();
+        if ($expSec <= $now) {
+            return strtr((string) config('marketing.subscription_announce_line_expired'), $repl);
+        }
+
+        $daysPhrase = self::russianDaysLeftPhrase($expSec - $now);
+        $repl['{days}'] = $daysPhrase;
+
+        return strtr((string) config('marketing.subscription_announce_line_active'), $repl);
+    }
+
+    private static function personalAnnounceForTestKey(TestKey $key): string
+    {
+        $used = self::hwidUsedCount($key->bound_hwid_hashes);
+        $limitIp = (int) ($key->limit_ip ?? 0);
+        if ($limitIp < 1) {
+            $limitIp = max(1, (int) config('test_keys.default_limit_ip', 1));
+        }
+        $max = $limitIp;
+        $repl = ['{used}' => (string) $used, '{max}' => (string) $max];
+
+        $exp = $key->expires_at;
+        if ($exp === null) {
+            return strtr((string) config('marketing.subscription_announce_line_no_expiry'), $repl);
+        }
+
+        $expSec = $exp->getTimestamp();
+        $now = time();
+        if ($expSec <= $now) {
+            return strtr((string) config('marketing.subscription_announce_line_expired'), $repl);
+        }
+
+        $daysPhrase = self::russianDaysLeftPhrase($expSec - $now);
+        $repl['{days}'] = $daysPhrase;
+
+        return strtr((string) config('marketing.subscription_announce_line_active'), $repl);
+    }
+
+    private static function russianDaysLeftPhrase(int $secondsRemaining): string
+    {
+        if ($secondsRemaining <= 0) {
+            return '0 дней';
+        }
+        if ($secondsRemaining < 86400) {
+            return 'менее суток';
+        }
+
+        return self::russianDaysWord(intdiv($secondsRemaining, 86400));
+    }
+
+    private static function russianDaysWord(int $days): string
+    {
+        if ($days <= 0) {
+            return '0 дней';
+        }
+
+        $n = abs($days) % 100;
+        $n1 = $n % 10;
+        if ($n >= 11 && $n <= 14) {
+            return $days.' дней';
+        }
+        if ($n1 === 1) {
+            return $days.' день';
+        }
+        if ($n1 >= 2 && $n1 <= 4) {
+            return $days.' дня';
+        }
+
+        return $days.' дней';
+    }
+
+    private static function hwidUsedCount(mixed $hashes): int
+    {
+        if (! is_array($hashes)) {
+            return 0;
+        }
+        $n = 0;
+        foreach ($hashes as $h) {
+            if ($h === null || $h === '') {
+                continue;
+            }
+            $n++;
+        }
+
+        return $n;
+    }
+
+    private static function truncateAnnounce(string $announce): string
+    {
+        if ($announce === '') {
+            return '';
+        }
+
+        if (function_exists('mb_strlen') && mb_strlen($announce) > self::ANNOUNCE_MAX_LEN) {
+            return mb_substr($announce, 0, self::ANNOUNCE_MAX_LEN);
+        }
+
+        if (strlen($announce) > self::ANNOUNCE_MAX_LEN) {
+            return substr($announce, 0, self::ANNOUNCE_MAX_LEN);
+        }
+
+        return $announce;
     }
 
     /**
