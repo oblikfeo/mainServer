@@ -1,16 +1,9 @@
-<div class="lp-profile-block">
+<div class="lp-profile-block" id="profile-telegram">
     <h2 class="text-xs font-black uppercase tracking-wider text-slate-600 mb-0">Telegram</h2>
-
-    @if (! $user->hasVerifiedEmail())
-        <p class="mt-3 text-sm text-slate-700 leading-relaxed border-2 border-dashed border-slate-300 bg-slate-50 px-3 py-2">
-            Подтверждение электронной почты по-прежнему обязательно — используйте кнопку «Подтвердить почту» выше.
-            Привязку Telegram можно сделать сразу: она не заменяет письмо с кодом, но уже появится в профиле.
-        </p>
-    @endif
 
     @if (session('status') === 'telegram-linked')
         <p class="mt-3 text-sm font-semibold text-emerald-900 border-2 border-black bg-emerald-50 px-3 py-2">
-            Telegram успешно привязан к аккаунту.
+            Telegram привязан к аккаунту.
         </p>
     @endif
     @if (session('status') === 'telegram-unlinked')
@@ -20,7 +13,7 @@
     @endif
     @if (session('status') === 'telegram-link-started')
         <p class="mt-3 text-sm font-semibold text-amber-950 border-2 border-black bg-amber-50 px-3 py-2">
-            Откройте ссылку ниже в Telegram — бот пришлёт код. Затем введите код на этой странице.
+            Откройте ссылку в Telegram и введите код из чата в поле ниже.
         </p>
     @endif
 
@@ -56,8 +49,7 @@
         </dl>
     @else
         <p class="mt-3 text-sm text-slate-700 leading-relaxed">
-            Привяжите Telegram, чтобы получать коды от бота для подтверждения на сайте.
-            Нажмите кнопку — откроется ссылка на бота; после открытия чата бот пришлёт шестизначный код — введите его ниже.
+            Запросите ссылку на бота, перейдите в чат и введите присланный <strong>шестизначный</strong> код в поле ниже.
         </p>
 
         @if (session('telegram_start_url'))

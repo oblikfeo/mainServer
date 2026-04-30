@@ -10,25 +10,31 @@ use Illuminate\Support\Facades\Redirect;
 
 final class TelegramLinkController extends Controller
 {
+    /** URL профиля с якорем на блок Telegram — после POST браузер не остаётся в «верхней» точке страницы. */
+    private static function redirectToTelegramBlock(): string
+    {
+        return route('cabinet.profile').'#profile-telegram';
+    }
+
     public function start(Request $request): RedirectResponse
     {
         $user = $request->user();
 
         if ($user->telegram_id !== null) {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Telegram уже привязан.',
             ]);
         }
 
         if (trim((string) config('telegram.link_bot_username', '')) === '') {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Привязка Telegram временно недоступна (не задан TELEGRAM_LINK_BOT_USERNAME на сервере).',
             ]);
         }
 
         [, $plain] = TelegramAccountLinkService::createSession($user);
 
-        return Redirect::route('cabinet.profile')->with([
+        return Redirect::to(self::redirectToTelegramBlock())->with([
             'telegram_start_url' => TelegramAccountLinkService::buildBotDeepLink($plain),
             'status' => 'telegram-link-started',
         ]);
@@ -39,7 +45,7 @@ final class TelegramLinkController extends Controller
         $user = $request->user();
 
         if ($user->telegram_id !== null) {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Telegram уже привязан.',
             ]);
         }
@@ -63,7 +69,7 @@ final class TelegramLinkController extends Controller
             ->first();
 
         if ($session === null) {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Сессия не найдена или истекла. Запросите ссылку заново.',
             ]);
         }
@@ -72,7 +78,7 @@ final class TelegramLinkController extends Controller
         $actual = TelegramAccountLinkService::hashOtpCode($digits);
 
         if (! hash_equals($expected, $actual)) {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Неверный код.',
             ]);
         }
@@ -81,7 +87,7 @@ final class TelegramLinkController extends Controller
         if (TelegramAccountLinkService::telegramIdTakenByAnotherUser($tgId, $user->id)) {
             $session->delete();
 
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Этот Telegram уже привязан к другому аккаунту.',
             ]);
         }
@@ -94,7 +100,7 @@ final class TelegramLinkController extends Controller
 
         TelegramLinkSession::query()->where('user_id', $user->id)->delete();
 
-        return Redirect::route('cabinet.profile')->with('status', 'telegram-linked');
+        return Redirect::to(self::redirectToTelegramBlock())->with('status', 'telegram-linked');
     }
 
     public function unlink(Request $request): RedirectResponse
@@ -102,7 +108,7 @@ final class TelegramLinkController extends Controller
         $user = $request->user();
 
         if ($user->telegram_id === null) {
-            return Redirect::route('cabinet.profile')->withErrors([
+            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
                 'telegram_code' => 'Telegram не был привязан.',
             ]);
         }
@@ -115,6 +121,6 @@ final class TelegramLinkController extends Controller
 
         TelegramLinkSession::query()->where('user_id', $user->id)->delete();
 
-        return Redirect::route('cabinet.profile')->with('status', 'telegram-unlinked');
+        return Redirect::to(self::redirectToTelegramBlock())->with('status', 'telegram-unlinked');
     }
 }
