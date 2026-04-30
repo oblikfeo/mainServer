@@ -17,6 +17,7 @@
 /node_modules
 /public/build
 /public/hot
+/public/tmpSharp
 /public/storage
 /storage/*.key
 /storage/pail
