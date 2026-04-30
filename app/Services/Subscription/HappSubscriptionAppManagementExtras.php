@@ -7,7 +7,7 @@ use App\Models\TestKey;
 
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
- * #announce для /sub/{token} — текст про устройства и срок. В приложении Happ баннер в одну строку (переносы не видны).
+ * #announce при персонализации — только счётчик привязанных устройств (Happ баннер в одну строку).
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -72,131 +72,37 @@ final class HappSubscriptionAppManagementExtras
         }
 
         $block = match (true) {
-            $context instanceof Subscription => self::twoLineAnnounceForSubscription($context),
-            $context instanceof TestKey => self::twoLineAnnounceForTestKey($context),
+            $context instanceof Subscription => self::deviceAnnounceForSubscription($context),
+            $context instanceof TestKey => self::deviceAnnounceForTestKey($context),
             default => '',
         };
 
         return self::truncateAnnounce($block);
     }
 
-    private static function twoLineAnnounceForSubscription(Subscription $sub): string
+    private static function deviceAnnounceForSubscription(Subscription $sub): string
     {
         $used = self::hwidUsedCount($sub->bound_hwid_hashes);
         $max = max(1, (int) $sub->devices);
-        $usedStr = (string) $used;
-        $maxStr = (string) $max;
 
-        $line1 = strtr((string) config('marketing.subscription_announce_line_devices'), [
-            '{used}' => $usedStr,
-            '{max}' => $maxStr,
-        ]);
-        $value = self::daysLeftValueForSubscription($sub);
-        $line2 = strtr((string) config('marketing.subscription_announce_line_days'), [
-            '{value}' => $value,
-        ]);
-
-        return self::joinAnnounceHalves($line1, $line2);
+        return trim(strtr((string) config('marketing.subscription_announce_line_devices'), [
+            '{used}' => (string) $used,
+            '{max}' => (string) $max,
+        ]));
     }
 
-    private static function twoLineAnnounceForTestKey(TestKey $key): string
+    private static function deviceAnnounceForTestKey(TestKey $key): string
     {
         $used = self::hwidUsedCount($key->bound_hwid_hashes);
         $limitIp = (int) ($key->limit_ip ?? 0);
         if ($limitIp < 1) {
             $limitIp = max(1, (int) config('test_keys.default_limit_ip', 1));
         }
-        $usedStr = (string) $used;
-        $maxStr = (string) $limitIp;
 
-        $line1 = strtr((string) config('marketing.subscription_announce_line_devices'), [
-            '{used}' => $usedStr,
-            '{max}' => $maxStr,
-        ]);
-        $value = self::daysLeftValueForTestKey($key);
-        $line2 = strtr((string) config('marketing.subscription_announce_line_days'), [
-            '{value}' => $value,
-        ]);
-
-        return self::joinAnnounceHalves($line1, $line2);
-    }
-
-    /**
-     * Happ показывает announce одной строкой; перенос \n отбрасывается клиентом.
-     */
-    private static function joinAnnounceHalves(string $line1, string $line2): string
-    {
-        $sep = trim((string) config('marketing.subscription_announce_join'));
-        if ($sep === '') {
-            $sep = '          ..................................................          ';
-        }
-
-        return trim($line1).$sep.trim($line2);
-    }
-
-    private static function daysLeftValueForSubscription(Subscription $sub): string
-    {
-        $expMs = (int) $sub->expiry_ms;
-        if ($expMs <= 0) {
-            return trim((string) config('marketing.subscription_announce_value_no_expiry', '—'));
-        }
-
-        $expSec = (int) floor($expMs / 1000);
-        $now = time();
-        if ($expSec <= $now) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
-        }
-
-        return self::russianDaysLeftPhrase($expSec - $now);
-    }
-
-    private static function daysLeftValueForTestKey(TestKey $key): string
-    {
-        $exp = $key->expires_at;
-        if ($exp === null) {
-            return trim((string) config('marketing.subscription_announce_value_no_expiry', '—'));
-        }
-
-        $expSec = $exp->getTimestamp();
-        $now = time();
-        if ($expSec <= $now) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
-        }
-
-        return self::russianDaysLeftPhrase($expSec - $now);
-    }
-
-    private static function russianDaysLeftPhrase(int $secondsRemaining): string
-    {
-        if ($secondsRemaining <= 0) {
-            return trim((string) config('marketing.subscription_announce_value_expired', 'срок истёк'));
-        }
-        if ($secondsRemaining < 86400) {
-            return 'менее суток';
-        }
-
-        return self::russianDaysWord(intdiv($secondsRemaining, 86400));
-    }
-
-    private static function russianDaysWord(int $days): string
-    {
-        if ($days <= 0) {
-            return '0 дней';
-        }
-
-        $n = abs($days) % 100;
-        $n1 = $n % 10;
-        if ($n >= 11 && $n <= 14) {
-            return $days.' дней';
-        }
-        if ($n1 === 1) {
-            return $days.' день';
-        }
-        if ($n1 >= 2 && $n1 <= 4) {
-            return $days.' дня';
-        }
-
-        return $days.' дней';
+        return trim(strtr((string) config('marketing.subscription_announce_line_devices'), [
+            '{used}' => (string) $used,
+            '{max}' => (string) $limitIp,
+        ]));
     }
 
     private static function hwidUsedCount(mixed $hashes): int

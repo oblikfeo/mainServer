@@ -12,7 +12,7 @@ return [
      */
     'subscription_site_url' => env('MARKETING_SUBSCRIPTION_SITE_URL', ''),
     /**
-     * Раньше: общий текст #announce. Сейчас в /sub не используется — только персональные строки (см. subscription_announce_line_*).
+     * Раньше: общий текст #announce. Сейчас в /sub не используется — только блок устройств при персонализации (subscription_announce_line_devices).
      */
     'subscription_announce' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE',
@@ -20,7 +20,7 @@ return [
     ),
 
     /**
-     * Персональный #announce для /sub/{token}: блок «устройства» и «срок» (Happ рисует в одну строку).
+     * Персональный #announce для /sub/{token}: только «Привязанные устройства: used/max» (шаблон ниже).
      * Выключить: MARKETING_SUBSCRIPTION_ANNOUNCE_PERSONALIZE=false
      */
     'subscription_announce_personalize' => filter_var(
@@ -28,28 +28,11 @@ return [
         FILTER_VALIDATE_BOOLEAN
     ),
 
-    /** Склейка двух частей announce (одна строка в Happ). По умолчанию — пробелы и точки; лимит анонса ~200 символов. */
-    'subscription_announce_join' => trim((string) env(
-        'MARKETING_SUBSCRIPTION_ANNOUNCE_JOIN',
-        '          ..................................................          '
-    )),
-    /** Первая строка анонса Happ. Плейсхолдеры: {used}, {max} */
+    /** Анонс Happ при персонализации. Плейсхолдеры: {used}, {max} */
     'subscription_announce_line_devices' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES',
         'Привязанные устройства: {used}/{max}'
     ),
-
-    /** Вторая строка. Плейсхолдер: {value} — «12 дней», «менее суток», «срок истёк», «—» */
-    'subscription_announce_line_days' => env(
-        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DAYS',
-        'До окончания подписки: {value}'
-    ),
-
-    /** Если в БД нет даты окончания (expiry_ms = 0) */
-    'subscription_announce_value_no_expiry' => env('MARKETING_SUBSCRIPTION_ANNOUNCE_VALUE_NO_EXPIRY', '—'),
-
-    /** Срок по БД уже прошёл */
-    'subscription_announce_value_expired' => env('MARKETING_SUBSCRIPTION_ANNOUNCE_VALUE_EXPIRED', 'срок истёк'),
 
     /**
      * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
