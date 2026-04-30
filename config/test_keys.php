@@ -30,6 +30,9 @@ return [
 
     /** Дефолты для выдачи */
     'default_hours' => (int) env('TEST_KEYS_DEFAULT_HOURS', 8),
+
+    /** Максимум часов при выдаче из админки (самовыдача в ЛК ограничена 48 ч в коде). */
+    'admin_issue_max_hours' => max(48, (int) env('TEST_KEYS_ADMIN_MAX_HOURS', 8760)),
     'default_limit_ip' => (int) env('TEST_KEYS_DEFAULT_LIMIT_IP', 1),
     'default_quota_gb' => (int) env('TEST_KEYS_DEFAULT_QUOTA_GB', 5),
 

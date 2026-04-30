@@ -28,12 +28,12 @@ class CabinetController extends Controller
 
         return view('cabinet.index', [
             'items' => $items,
-            'activeTestKey' => TestKey::query()
+            'activeTestKeys' => TestKey::query()
                 ->where('user_id', $user->id)
                 ->whereNull('revoked_at')
                 ->where('expires_at', '>', now())
                 ->orderByDesc('id')
-                ->first(),
+                ->get(),
         ]);
     }
 }

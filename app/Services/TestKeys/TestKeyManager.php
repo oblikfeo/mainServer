@@ -28,19 +28,29 @@ final class TestKeyManager
         }
     }
 
-    public function issueForUser(User $user, ?int $hours = null, bool $applyReferralTestCreditHours = true): TestKey
-    {
+    /**
+     * @param  ?int  $durationHoursCap  верхняя граница длительности в часах; null — 48 (кабинет / рефералка).
+     */
+    public function issueForUser(
+        User $user,
+        ?int $hours = null,
+        bool $applyReferralTestCreditHours = true,
+        ?int $durationHoursCap = null,
+    ): TestKey {
         $this->assertConfigured();
+
+        $cap = $durationHoursCap ?? 48;
+        $cap = max(1, $cap);
 
         $base = $hours ?? (int) config('test_keys.default_hours', 8);
         if ($applyReferralTestCreditHours) {
             $credit = (int) ($user->referral_test_credit_hours ?? 0);
-            $hours = max(1, min(48, (int) $base + $credit));
+            $hours = max(1, min($cap, (int) $base + $credit));
             if ($credit !== 0) {
                 $user->forceFill(['referral_test_credit_hours' => 0])->save();
             }
         } else {
-            $hours = max(1, min(48, (int) $base));
+            $hours = max(1, min($cap, (int) $base));
         }
 
         $now = now();

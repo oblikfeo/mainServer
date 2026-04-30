@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\TestKeys\TestKeyManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TestKeysController extends Controller
@@ -36,25 +38,52 @@ class TestKeysController extends Controller
 
     public function store(Request $request, TestKeyManager $manager): RedirectResponse
     {
+        $adminCap = max(48, (int) config('test_keys.admin_issue_max_hours', 8760));
+
         $validated = $request->validate([
             'email' => ['required', 'string', 'email:rfc'],
-            'hours' => ['nullable', 'integer', 'min:1', 'max:48'],
+            'hours' => ['nullable', 'integer', 'min:1', 'max:'.$adminCap],
+            'create_user' => ['sometimes', 'boolean'],
         ], [
             'email.required' => 'Укажите email пользователя.',
             'email.email' => 'Некорректный email.',
+            'hours.max' => 'Слишком большой срок для админской выдачи (максимум '.$adminCap.' ч).',
         ]);
 
         $email = strtolower(trim((string) $validated['email']));
         $user = User::query()->where('email', $email)->first();
+
         if ($user === null) {
-            return back()->withErrors([
-                'email' => 'Пользователь с таким email не найден (должен быть зарегистрирован).',
+            if (! $request->boolean('create_user')) {
+                return back()->withErrors([
+                    'email' => 'Пользователь не найден. Включите «Нет аккаунта — создать» или попросите зарегистрироваться.',
+                ]);
+            }
+
+            $user = User::query()->create([
+                'name' => strtok($email, '@') ?: $email,
+                'email' => $email,
+                'password' => Hash::make(Str::password(24)),
+                'email_verified_at' => now(),
             ]);
         }
 
         $hours = isset($validated['hours']) ? (int) $validated['hours'] : null;
 
-        $key = $manager->issueForUser($user, $hours);
+        try {
+            $key = $manager->issueForUser(
+                $user,
+                $hours,
+                applyReferralTestCreditHours: false,
+                durationHoursCap: $adminCap,
+            );
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'email' => 'Не удалось выдать ключ: проверьте настройку тестовой связки или панель 3x-ui.',
+                ]);
+        }
 
         return redirect()
             ->route('admin.test_keys')

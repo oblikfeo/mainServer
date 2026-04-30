@@ -3,8 +3,9 @@
         @php
             /** @var \App\Models\User $me */
             $me = Auth::user();
-            /** @var \App\Models\TestKey|null $activeTestKey */
-            $activeTestKey = $activeTestKey ?? null;
+            /** @var iterable<int, \App\Models\TestKey>|\Illuminate\Support\Collection $activeTestKeys */
+            $activeTestKeys = isset($activeTestKeys) ? collect($activeTestKeys) : collect();
+            $hasActiveTestKeys = $activeTestKeys->isNotEmpty();
             $hasPaidSub = !empty($items);
             $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
@@ -12,13 +13,13 @@
         @endphp
 
         {{-- Заголовок раздела "Тестовая подписка" --}}
-        @if ($activeTestKey || ! $me->shouldHideTestSubscriptionOffer())
+        @if ($hasActiveTestKeys || ! $me->shouldHideTestSubscriptionOffer())
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             <article class="lp-card" style="margin-bottom: 2rem;">
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
-                        @if ($activeTestKey)
-                            <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
+                        @if ($hasActiveTestKeys)
+                            <span class="lp-badge-pill lp-badge-pill--ok">Активна@if ($activeTestKeys->count() > 1) ({{ $activeTestKeys->count() }})@endif</span>
                         @elseif ($me->hasVerifiedEmail())
                             <span class="lp-badge-pill">Не активирована</span>
                         @else
@@ -35,7 +36,7 @@
                     @endif
                     @if (session('status') === 'test-key-exists')
                         <div class="lp-warn-box" style="background:#dcfce7;">
-                            У вас уже есть активный тестовый доступ. Скопируйте ссылку подписки ниже.
+                            У вас уже есть активная тестовая подписка (выданная из кабинета). Скопируйте ссылку ниже или дождитесь истечения срока.
                         </div>
                     @endif
 
@@ -54,20 +55,26 @@
                             @endif
                         </div>
                     @else
-                        @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0 && ! $activeTestKey)
+                        @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0 && ! $hasActiveTestKeys)
                             <div class="lp-warn-box" style="background:#eff6ff;">
                                 По приглашению доступно ещё {{ (int) $me->referral_invitee_test_issues_remaining }} тест-ключа по {{ (int) config('test_keys.default_hours', 8) }} ч (по одному активному).
                             </div>
                         @endif
-                        @if ($activeTestKey)
-                            <div class="lp-warn-box" style="background:#f8fafc;">
-                                <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Подписка (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})</div>
-                                <div class="text-xs text-slate-700 mb-2">
-                                    Лимит: {{ (int) ($activeTestKey->quota_gb ?? config('test_keys.default_quota_gb', 50)) }} ГБ ·
-                                    устройств: {{ (int) ($activeTestKey->limit_ip ?? config('test_keys.default_limit_ip', 1)) }}
+                        @if ($hasActiveTestKeys)
+                            @foreach ($activeTestKeys as $activeTestKey)
+                                <div class="lp-warn-box" style="background:#f8fafc;">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                                        Подписка@if ($activeTestKeys->count() > 1) №{{ $activeTestKey->id }}@endif
+                                        (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})
+                                    </div>
+                                    <div class="text-xs text-slate-700 mb-2">
+                                        Лимит: {{ (int) ($activeTestKey->quota_gb ?? config('test_keys.default_quota_gb', 50)) }} ГБ ·
+                                        устройств: {{ (int) ($activeTestKey->limit_ip ?? config('test_keys.default_limit_ip', 1)) }}
+                                    </div>
                                 </div>
+                            @endforeach
 
-                                <div class="lp-howto mt-3">
+                            <div class="lp-howto mt-3">
                                     <div class="lp-field-label">Как подключиться</div>
                                     <div class="lp-steps">
                                         <div class="lp-step">
@@ -126,23 +133,28 @@
                                             <div class="lp-step__num">2</div>
                                             <div class="lp-step__content">
                                                 <div class="lp-step__title">Копируем ссылку</div>
-                                                <div class="lp-copy-row" x-data="{ copied: false }">
-                                                    <button
-                                                        type="button"
-                                                        class="lp-btn lp-btn--copy"
-                                                        :class="copied ? 'lp-btn--copied' : ''"
-                                                        x-on:click="
-                                                            (async () => {
-                                                                try { await navigator.clipboard.writeText(@js($activeTestKey->shareableUrl())); copied = true; setTimeout(() => copied = false, 1600); }
-                                                                catch (e) { copied = false; }
-                                                            })()
-                                                        "
-                                                    >
-                                                        <span x-show="!copied">Скопировать ссылку</span>
-                                                        <span x-show="copied" x-cloak>Скопировано</span>
-                                                    </button>
-                                                    <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
-                                                </div>
+                                                @foreach ($activeTestKeys as $activeTestKey)
+                                                    <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
+                                                        @if ($activeTestKeys->count() > 1)
+                                                            <div class="text-xs text-slate-600 mb-1">Ключ №{{ $activeTestKey->id }}, до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
+                                                        @endif
+                                                        <button
+                                                            type="button"
+                                                            class="lp-btn lp-btn--copy"
+                                                            :class="copied ? 'lp-btn--copied' : ''"
+                                                            x-on:click="
+                                                                (async () => {
+                                                                    try { await navigator.clipboard.writeText(@js($activeTestKey->shareableUrl())); copied = true; setTimeout(() => copied = false, 1600); }
+                                                                    catch (e) { copied = false; }
+                                                                })()
+                                                            "
+                                                        >
+                                                            <span x-show="!copied">Скопировать ссылку</span>
+                                                            <span x-show="copied" x-cloak>Скопировано</span>
+                                                        </button>
+                                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
 
@@ -155,7 +167,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         @else
                             <form method="POST" action="{{ route('cabinet.test_keys.store') }}">
                                 @csrf
