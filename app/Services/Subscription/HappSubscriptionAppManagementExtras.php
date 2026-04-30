@@ -7,7 +7,7 @@ use App\Models\TestKey;
 
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
- * #announce для /sub/{token} — две строки (устройства HWID + срок), без общего маркетингового текста.
+ * #announce для /sub/{token} — текст про устройства и срок. В приложении Happ баннер в одну строку (переносы не видны).
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -96,7 +96,7 @@ final class HappSubscriptionAppManagementExtras
             '{value}' => $value,
         ]);
 
-        return $line1."\n".$line2;
+        return self::joinAnnounceHalves($line1, $line2);
     }
 
     private static function twoLineAnnounceForTestKey(TestKey $key): string
@@ -118,7 +118,20 @@ final class HappSubscriptionAppManagementExtras
             '{value}' => $value,
         ]);
 
-        return $line1."\n".$line2;
+        return self::joinAnnounceHalves($line1, $line2);
+    }
+
+    /**
+     * Happ показывает announce одной строкой; перенос \n отбрасывается клиентом.
+     */
+    private static function joinAnnounceHalves(string $line1, string $line2): string
+    {
+        $sep = trim((string) config('marketing.subscription_announce_join', ' · '));
+        if ($sep === '') {
+            $sep = ' · ';
+        }
+
+        return trim($line1).$sep.trim($line2);
     }
 
     private static function daysLeftValueForSubscription(Subscription $sub): string

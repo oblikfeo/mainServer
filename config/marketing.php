@@ -20,7 +20,7 @@ return [
     ),
 
     /**
-     * Персональный #announce для /sub/{token}: две строки (устройства + срок).
+     * Персональный #announce для /sub/{token}: блок «устройства» и «срок» (Happ рисует в одну строку).
      * Выключить: MARKETING_SUBSCRIPTION_ANNOUNCE_PERSONALIZE=false
      */
     'subscription_announce_personalize' => filter_var(
@@ -28,6 +28,8 @@ return [
         FILTER_VALIDATE_BOOLEAN
     ),
 
+    /** Склейка двух частей announce (Happ не показывает \n). Пустое значение в join — см. код, будет « · » */
+    'subscription_announce_join' => trim((string) env('MARKETING_SUBSCRIPTION_ANNOUNCE_JOIN', ' · ')),
     /** Первая строка анонса Happ. Плейсхолдеры: {used}, {max} */
     'subscription_announce_line_devices' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES',
