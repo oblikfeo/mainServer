@@ -124,7 +124,7 @@
                 @include('views2::partials.pricing-mock-plaques')
             </div>
             <div class="lp-pricing-cta-wrap">
-                <a href="{{ route('cabinet.payment') }}" class="btn-cta">Подключиться</a>
+                <a href="{{ route('cabinet.payment') }}" class="btn-cta btn-cta--primary">Подключиться</a>
             </div>
             <div class="lp-pricing-guarantees">
                 @include('views2::partials.pricing-payment-notes')
