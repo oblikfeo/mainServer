@@ -20,6 +20,14 @@ return [
         'Улучшили "Высокоскоростное соединение"! Теперь youtube еще быстрее!'
     ),
 
+    /**
+     * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBB или #RRGGBBAA.
+     * Пустая строка в .env: MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR= — не передавать color-profile.
+     *
+     * @see https://www.happ.su/main/dev-docs/app-management
+     */
+    'subscription_profile_web_icon_color' => env('MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR', '#9B72CBFF'),
+
     /** Опционально: общая почта поддержки (футер). Персональные данные не подставляйте в репозиторий. */
     'support_email' => env('MARKETING_SUPPORT_EMAIL', ''),
     /** Дата публикации оферты (строка, напр. 07.04.2026). Пусто — текущая дата на сервере. */

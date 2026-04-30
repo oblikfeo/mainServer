@@ -3,7 +3,7 @@
 namespace App\Services\Subscription;
 
 /**
- * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce.
+ * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -48,10 +48,55 @@ final class HappSubscriptionAppManagementExtras
             $body .= '#announce: '.$announce."\n";
         }
 
+        $iconColor = self::happRgbaHexFromConfig();
+        if ($iconColor !== null) {
+            $profileJson = json_encode(
+                ['profileWebPageIconColor' => $iconColor],
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+            );
+            if ($profileJson !== false) {
+                $body .= '#color-profile: '.$profileJson."\n";
+                $headers['color-profile'] = $profileJson;
+            }
+        }
+
         return [
             'body_meta_suffix' => $body,
             'headers' => $headers,
         ];
+    }
+
+    /**
+     * @return non-falsy-string|null #RRGGBBAA для Happ или null (не задано / отключено / невалидно)
+     */
+    private static function happRgbaHexFromConfig(): ?string
+    {
+        $raw = trim((string) config('marketing.subscription_profile_web_icon_color', ''));
+        if ($raw === '') {
+            return null;
+        }
+
+        return self::normalizeHappRgbaHex($raw);
+    }
+
+    private static function normalizeHappRgbaHex(string $value): ?string
+    {
+        if ($value === '' || $value[0] !== '#') {
+            return null;
+        }
+        $hex = strtoupper(substr($value, 1));
+        if (! preg_match('/^[0-9A-F]+$/', $hex)) {
+            return null;
+        }
+        if (strlen($hex) === 3) {
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2].'FF';
+        } elseif (strlen($hex) === 6) {
+            $hex .= 'FF';
+        } elseif (strlen($hex) !== 8) {
+            return null;
+        }
+
+        return '#'.$hex;
     }
 
     private static function normalizedUrl(string $url): string
