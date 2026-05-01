@@ -199,9 +199,9 @@ final class TestKeySubscriptionFeedRenderer
 
     private function profileTitleForHapp(): string
     {
-        $raw = trim((string) config('xui.sub_profile_title', 'nadezhda VPN'));
+        $raw = trim((string) config('xui.sub_profile_title', 'nadezhda 💙 VPN'));
         if ($raw === '') {
-            return 'nadezhda VPN';
+            return 'nadezhda 💙 VPN';
         }
 
         if (function_exists('mb_substr')) {
