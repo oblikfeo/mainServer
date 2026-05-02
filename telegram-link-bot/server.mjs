@@ -74,6 +74,10 @@ const supportReplyMap = new Map();
 
 const bot = new Telegraf(token);
 
+bot.catch((err, ctx) => {
+  console.error('telegraf handler error', err?.message ?? err, ctx?.updateType);
+});
+
 async function tryMarkBlocked(telegramUserId) {
   await apiFetch('/internal/telegram/bot/mark-blocked', {
     method: 'POST',
@@ -492,21 +496,30 @@ app.listen(port, async () => {
       console.error('setWebhook failed', e);
     }
   } else {
-    console.error(
-      'TELEGRAM_WEBHOOK_BASE_URL пуст — включаем long polling (иначе Telegram не доставляет /start)'
-    );
-    try {
-      await bot.telegram.deleteWebhook({ drop_pending_updates: false });
-    } catch (e) {
-      console.error('deleteWebhook', e);
-    }
-    bot
-      .launch()
-      .then(() => console.error('Telegram long polling запущен'))
-      .catch((e) => {
-        console.error('bot.launch failed', e);
-        process.exit(1);
-      });
+    console.error('TELEGRAM_WEBHOOK_BASE_URL пуст — long polling getUpdates');
+    void (async () => {
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        const dropPending = attempt > 1;
+        try {
+          await bot.telegram.deleteWebhook({ drop_pending_updates: dropPending });
+        } catch (e) {
+          console.error('deleteWebhook', e);
+        }
+        try {
+          console.error(`long polling: попытка ${attempt}`);
+          await bot.launch();
+          return;
+        } catch (e) {
+          const code = e?.response?.error_code;
+          console.error('bot.launch', e?.message ?? e);
+          if (code === 409 && attempt < 10) {
+            await new Promise((r) => setTimeout(r, 1500 * attempt));
+            continue;
+          }
+          process.exit(1);
+        }
+      }
+    })();
   }
 });
 
