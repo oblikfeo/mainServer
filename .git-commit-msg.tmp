@@ -1,0 +1,4 @@
+Fix WATA webhook request injection
+
+Add the missing Request import so the webhook route resolves its dependency
+and stops returning 500 on payment callbacks.

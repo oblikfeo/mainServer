@@ -12,6 +12,7 @@ use App\Services\Wata\WataH2hClient;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class WataWebhookController extends Controller
