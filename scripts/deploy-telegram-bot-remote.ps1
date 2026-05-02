@@ -29,16 +29,22 @@ $botToken = $Matches[1]
 $bytes = New-Object byte[] 32
 [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
 $internalHex = -join ($bytes | ForEach-Object { $_.ToString('x2') })
+$bytesIn = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytesIn)
+$botIncomingHex = -join ($bytesIn | ForEach-Object { $_.ToString('x2') })
 
 $runBashOn = Find-RepoFile 'run-bash-on.ps1'
 $vhodLib = Find-RepoFile '_lib.ps1'
-$pollSource = Join-Path $mainServerRoot 'telegram-link-bot\poll.mjs'
+$serverSource = Join-Path $mainServerRoot 'telegram-link-bot\server.mjs'
+$templatesSource = Join-Path $mainServerRoot 'telegram-link-bot\templates.json'
 $pkgSource = Join-Path $mainServerRoot 'telegram-link-bot\package.json'
+$lockSource = Join-Path $mainServerRoot 'telegram-link-bot\package-lock.json'
 $nKey = Find-RepoFile 'ssh-key-nltest-ed25519'
 
 if (-not $runBashOn) { throw 'run-bash-on.ps1 not found.' }
 if (-not $vhodLib) { throw '_lib.ps1 not found.' }
-if (-not (Test-Path -LiteralPath $pollSource)) { throw ('poll.mjs missing: ' + $pollSource) }
+if (-not (Test-Path -LiteralPath $serverSource)) { throw ('server.mjs missing: ' + $serverSource) }
+if (-not (Test-Path -LiteralPath $templatesSource)) { throw ('templates.json missing: ' + $templatesSource) }
 if (-not $nKey -or $nKey.FullName.EndsWith('.pub')) { throw 'ssh-key-nltest-ed25519 private key not found.' }
 
 $hubShBody = @"
@@ -53,6 +59,9 @@ lines = text.splitlines()
 kv = {
   'TELEGRAM_LINK_BOT_USERNAME': 'nadezhdavpn_bot',
   'TELEGRAM_LINK_INTERNAL_API_TOKEN': '$internalHex',
+  'TELEGRAM_BOT_INCOMING_SECRET': '$botIncomingHex',
+  'TELEGRAM_CABINET_MIRROR_URL': 'https://nadezhda.space',
+  'TELEGRAM_BOT_NOTIFY_BASE_URL': '',
 }
 keys_done = set()
 out = []
@@ -90,7 +99,12 @@ $nlEnv = Join-Path $nlTmpDir 'nl_telegram_bot.env'
 Write-Utf8NoBomLines $nlEnv @(
     "TELEGRAM_BOT_TOKEN=$botToken",
     'TELEGRAM_LINK_SITE_URL=https://nadezhda.space',
-    "TELEGRAM_LINK_INTERNAL_API_TOKEN=$internalHex"
+    "TELEGRAM_LINK_INTERNAL_API_TOKEN=$internalHex",
+    "TELEGRAM_BOT_INCOMING_SECRET=$botIncomingHex",
+    'TELEGRAM_WEBHOOK_BASE_URL=',
+    'TELEGRAM_SUPPORT_GROUP_ID=',
+    'TELEGRAM_ADMIN_TELEGRAM_IDS=',
+    'PORT=3850'
 )
 
 . $vhodLib.FullName
@@ -98,8 +112,12 @@ $nlPriv = Copy-NadezhdaSshKey -KeyFileName $nKey.Name -TempBasename 'nl-deploy'
 $scpArgs = (Get-NadezhdaSshBaseArgs -KeyPath $nlPriv) + @('-q', '-B')
 $nh = 'root@193.109.69.247'
 
-& scp @($scpArgs + @($pollSource, "${nh}:/tmp/nl_poll.mjs")); if ($LASTEXITCODE -ne 0) { throw ('scp poll.mjs failed ' + $LASTEXITCODE) }
+& scp @($scpArgs + @($serverSource, "${nh}:/tmp/nl_server.mjs")); if ($LASTEXITCODE -ne 0) { throw ('scp server.mjs failed ' + $LASTEXITCODE) }
+& scp @($scpArgs + @($templatesSource, "${nh}:/tmp/nl_templates.json")); if ($LASTEXITCODE -ne 0) { throw ('scp templates.json failed ' + $LASTEXITCODE) }
 & scp @($scpArgs + @($pkgSource, "${nh}:/tmp/nl_pkg.json")); if ($LASTEXITCODE -ne 0) { throw ('scp package.json failed ' + $LASTEXITCODE) }
+if (Test-Path -LiteralPath $lockSource) {
+    & scp @($scpArgs + @($lockSource, "${nh}:/tmp/nl_pkg_lock.json")); if ($LASTEXITCODE -ne 0) { throw ('scp package-lock.json failed ' + $LASTEXITCODE) }
+}
 & scp @($scpArgs + @($nlEnv, "${nh}:/tmp/nl_telegram_bot.env")); if ($LASTEXITCODE -ne 0) { throw ('scp env failed ' + $LASTEXITCODE) }
 
 $nlSetup = Join-Path $nlTmpDir 'nl_setup_remote.sh'
@@ -114,12 +132,16 @@ if ! command -v node >/dev/null 2>&1; then
   apt-get install -y nodejs
 fi
 mkdir -p /opt/telegram-link-bot
-install -m 644 /tmp/nl_poll.mjs /opt/telegram-link-bot/poll.mjs
+install -m 644 /tmp/nl_server.mjs /opt/telegram-link-bot/server.mjs
+install -m 644 /tmp/nl_templates.json /opt/telegram-link-bot/templates.json
 install -m 644 /tmp/nl_pkg.json /opt/telegram-link-bot/package.json
+if [[ -f /tmp/nl_pkg_lock.json ]]; then install -m 644 /tmp/nl_pkg_lock.json /opt/telegram-link-bot/package-lock.json; fi
 install -m 600 /tmp/nl_telegram_bot.env /etc/telegram-link-bot.env
+cd /opt/telegram-link-bot
+if [[ -f package-lock.json ]]; then npm ci --omit=dev; else npm install --omit=dev; fi
 cat > /etc/systemd/system/telegram-link-bot.service <<'UNIT'
 [Unit]
-Description=Telegram link bot (polling)
+Description=Telegram bot Nadezhda (webhook + HTTP)
 After=network-online.target
 Wants=network-online.target
 
@@ -127,7 +149,7 @@ Wants=network-online.target
 Type=simple
 EnvironmentFile=/etc/telegram-link-bot.env
 WorkingDirectory=/opt/telegram-link-bot
-ExecStart=/usr/bin/node /opt/telegram-link-bot/poll.mjs
+ExecStart=/usr/bin/node /opt/telegram-link-bot/server.mjs
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -143,7 +165,7 @@ systemctl restart telegram-link-bot.service
 systemctl --no-pager -l status telegram-link-bot.service || true
 node --version || true
 
-rm -f /tmp/nl_poll.mjs /tmp/nl_pkg.json /tmp/nl_telegram_bot.env
+rm -f /tmp/nl_server.mjs /tmp/nl_templates.json /tmp/nl_pkg.json /tmp/nl_pkg_lock.json /tmp/nl_telegram_bot.env
 '@
 
 [System.IO.File]::WriteAllText($nlSetup, ($nlBash -replace "`r`n","`n"), (New-Object System.Text.UTF8Encoding $false))

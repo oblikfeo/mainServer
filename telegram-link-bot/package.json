@@ -1,12 +1,16 @@
 {
-  "name": "nadezhda-telegram-link-bot",
+  "name": "nadezhda-telegram-bot",
   "private": true,
-  "version": "1.0.0",
-  "description": "Long polling for привязки Telegram к аккаунту на nadezhda.space (NLtest).",
+  "version": "2.0.0",
+  "description": "Telegram-бот «Надежда»: Webhook, меню, рассылки по API, поддержка (ТЗ).",
   "type": "module",
-  "main": "poll.mjs",
+  "main": "server.mjs",
   "scripts": {
-    "start": "node poll.mjs"
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "telegraf": "^4.16.3"
   },
   "engines": {
     "node": ">=18"

@@ -49,7 +49,7 @@
     @else
         @unless ($telegramStartUrl)
             <p class="mt-3 text-sm text-slate-700 leading-relaxed">
-                Нажмите кнопку — на этой странице ниже появится ссылка для открытия бота в Telegram.
+                Нажмите кнопку — на этой странице ниже появится ссылка для открытия бота. После «Запустить» в Telegram привязка завершится автоматически.
             </p>
             <div class="mt-4 flex flex-wrap gap-3 items-center">
                 <form method="POST" action="{{ route('cabinet.telegram.start') }}">
@@ -63,26 +63,6 @@
             <p class="mt-3 break-all font-mono text-sm border-2 border-black bg-white px-2 py-2">
                 <a href="{{ $telegramStartUrl }}" target="_blank" rel="noopener noreferrer" class="underline font-semibold text-slate-900">{{ $telegramStartUrl }}</a>
             </p>
-
-            <form method="POST" action="{{ route('cabinet.telegram.verify') }}" class="mt-6 space-y-3 max-w-md">
-                @csrf
-                <div>
-                    <label class="block text-sm font-bold uppercase tracking-wide text-slate-600">Код из Telegram</label>
-                    <input
-                        name="telegram_code"
-                        inputmode="numeric"
-                        autocomplete="one-time-code"
-                        maxlength="6"
-                        class="mt-1 block w-full font-mono tracking-widest"
-                        placeholder="000000"
-                        value="{{ old('telegram_code') }}"
-                    />
-                    @error('telegram_code')
-                        <div class="mt-2 text-sm font-semibold text-red-700 border-2 border-black bg-red-50 px-2 py-1">{{ $message }}</div>
-                    @enderror
-                </div>
-                <button type="submit">Подтвердить привязку</button>
-            </form>
         @endunless
     @endif
 </div>

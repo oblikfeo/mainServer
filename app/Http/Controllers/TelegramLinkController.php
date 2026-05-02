@@ -41,73 +41,6 @@ final class TelegramLinkController extends Controller
         return Redirect::to(self::redirectToTelegramBlock());
     }
 
-    public function verify(Request $request): RedirectResponse
-    {
-        $user = $request->user();
-
-        if ($user->telegram_id !== null) {
-            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
-                'telegram_code' => 'Telegram уже привязан.',
-            ]);
-        }
-
-        $validated = $request->validate([
-            'telegram_code' => ['required', 'string', 'regex:/^\d{6}$/'],
-        ], [
-            'telegram_code.required' => 'Введите код из Telegram.',
-            'telegram_code.regex' => 'Код должен состоять из 6 цифр.',
-        ]);
-
-        $digits = (string) $validated['telegram_code'];
-
-        /** @var TelegramLinkSession|null $session */
-        $session = TelegramLinkSession::query()
-            ->where('user_id', $user->id)
-            ->whereNotNull('otp_code_hash')
-            ->whereNotNull('telegram_user_id')
-            ->where('expires_at', '>', now())
-            ->orderByDesc('id')
-            ->first();
-
-        if ($session === null) {
-            $request->session()->forget('telegram_start_url');
-
-            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
-                'telegram_code' => 'Сессия не найдена или истекла. Запросите ссылку заново.',
-            ]);
-        }
-
-        $expected = (string) ($session->otp_code_hash ?? '');
-        $actual = TelegramAccountLinkService::hashOtpCode($digits);
-
-        if (! hash_equals($expected, $actual)) {
-            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
-                'telegram_code' => 'Неверный код.',
-            ]);
-        }
-
-        $tgId = (int) $session->telegram_user_id;
-        if (TelegramAccountLinkService::telegramIdTakenByAnotherUser($tgId, $user->id)) {
-            $session->delete();
-            $request->session()->forget('telegram_start_url');
-
-            return Redirect::to(self::redirectToTelegramBlock())->withErrors([
-                'telegram_code' => 'Этот Telegram уже привязан к другому аккаунту.',
-            ]);
-        }
-
-        $user->forceFill([
-            'telegram_id' => $tgId,
-            'telegram_username' => $session->telegram_username,
-            'telegram_linked_at' => now(),
-        ])->save();
-
-        TelegramLinkSession::query()->where('user_id', $user->id)->delete();
-        $request->session()->forget('telegram_start_url');
-
-        return Redirect::to(self::redirectToTelegramBlock())->with('status', 'telegram-linked');
-    }
-
     public function unlink(Request $request): RedirectResponse
     {
         $user = $request->user();
@@ -122,6 +55,7 @@ final class TelegramLinkController extends Controller
             'telegram_id' => null,
             'telegram_username' => null,
             'telegram_linked_at' => null,
+            'telegram_bot_blocked_at' => null,
         ])->save();
 
         TelegramLinkSession::query()->where('user_id', $user->id)->delete();

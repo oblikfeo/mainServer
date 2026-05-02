@@ -94,9 +94,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/profile/telegram/start', [TelegramLinkController::class, 'start'])
         ->middleware('throttle:10,1')
         ->name('cabinet.telegram.start');
-    Route::post('/dashboard/profile/telegram/verify', [TelegramLinkController::class, 'verify'])
-        ->middleware('throttle:30,1')
-        ->name('cabinet.telegram.verify');
     Route::post('/dashboard/profile/telegram/unlink', [TelegramLinkController::class, 'unlink'])
         ->middleware('throttle:10,1')
         ->name('cabinet.telegram.unlink');

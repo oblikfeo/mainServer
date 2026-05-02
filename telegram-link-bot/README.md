@@ -1,36 +1,48 @@
-# Telegram-привязка (поллер для NLtest)
+# Telegram-бот «Надежда»
 
-Сайт (**mainServer**, Laravel): хранит сессию и код, отдаёт `POST /api/internal/telegram/link/claim` с Bearer-токеном из `TELEGRAM_LINK_INTERNAL_API_TOKEN`.
+Сайт (**mainServer**, Laravel): привязка `/start` с токеном из ЛК, UTM deep links, internal API для бота, рассылки через вызов HTTP бота.
 
-Эта папка — небольшой **Node-процесс**, который можно держать на машине NLtest (см. `Доступы3/readme.md`) или другой, откуда доступен HTTPS до боевого сайта.
+Процесс **Node.js**: HTTPS + webhook, постоянное меню, поддержка (пересылка в группу + ответ reply), приём `POST /internal/notify` от Laravel.
 
-## Что нужно до запуска
+## Переменные окружения
 
-1. BotFather: создать бота, получить `TELEGRAM_BOT_TOKEN`.
-2. То же значение **`TELEGRAM_LINK_INTERNAL_API_TOKEN`** в `.env` приложения Laravel и в переменных окружения этого процесса.
-3. В `.env` приложения указать **`TELEGRAM_LINK_BOT_USERNAME`** — имя бота **без** `@` (иначе пользователь не получит ссылку в профиле).
-4. **`TELEGRAM_LINK_SITE_URL`** — базовый URL сайта HTTPS, доступный с машины NLtest до API (обычно `https://nadezhda.space`).
+**Бот**
 
-## Поллинг и webhook
+| Переменная | Назначение |
+|------------|------------|
+| `TELEGRAM_BOT_TOKEN` | Токен BotFather |
+| `TELEGRAM_LINK_SITE_URL` | Базовый URL сайта (`https://…`), без `/` в конце |
+| `TELEGRAM_LINK_INTERNAL_API_TOKEN` | Тот же Bearer, что `TELEGRAM_LINK_INTERNAL_API_TOKEN` в `.env` Laravel |
+| `TELEGRAM_BOT_INCOMING_SECRET` | Тот же секрет, что `TELEGRAM_BOT_INCOMING_SECRET` в Laravel (вызов рассылок) |
+| `TELEGRAM_WEBHOOK_BASE_URL` | Публичный базовый URL этого сервиса (`https://bot.…`), без `/` в конце; webhook = `{base}/telegram/webhook` |
+| `PORT` | Порт HTTP (по умолчанию `3850`) |
+| `TELEGRAM_SUPPORT_GROUP_ID` | ID группы поддержки (отрицательный для супергрупп), бот должен быть в группе |
+| `TELEGRAM_ADMIN_TELEGRAM_IDS` | Telegram user id админов через запятую (как `TELEGRAM_ADMIN_TELEGRAM_IDS` в Laravel) |
 
-При старте скрипт вызывает **`deleteWebhook`**, чтобы работал **getUpdates**. Если у бота был настроен webhook — он будет снят.
+**Laravel (дополнительно к существующим)**
 
-## Установка на сервере (пример)
+| Переменная | Назначение |
+|------------|------------|
+| `TELEGRAM_CABINET_MIRROR_URL` | Зеркало / вход в ЛК для кнопки «Личный кабинет» (по умолчанию `APP_URL`) |
+| `TELEGRAM_BOT_NOTIFY_BASE_URL` | Базовый URL сервиса бота для `TelegramOutreach` (тот же хост, что webhook) |
+| `TELEGRAM_BOT_INCOMING_SECRET` | Секрет для `Authorization: Bearer …` при вызове бота |
+| `TELEGRAM_ADMIN_TELEGRAM_IDS` | Список admin Telegram user id через запятую |
+
+## Команды администратора (скрытые)
+
+- `/ndstats` — статистика привязок (через API сайта)
+- `/ndbroadcast` — затем одно сообщение (текст с форматированием и/или фото) — массовая рассылка
+- `/ndcancel` — отменить ожидание текста рассылки
+
+## Шаблоны рассылок
+
+Файл `templates.json` — ID для вызова из Laravel (`TelegramOutreach::notifyChat`, `template_id`). Переменные в фигурных скобках: `{date}`, `{url_lk}`, `{amount}`, `{new_date}`, `{reminder}` и т.д.
+
+## Запуск
 
 ```bash
-cd /opt/telegram-link-bot
-# скопировать poll.mjs и package.json из этого репозитория (каталог mainServer/telegram-link-bot/)
-npm install  # не обязательно — без зависимостей
+npm ci
+node server.mjs
 ```
 
-Переменные в `systemd` unit или в `.env` рядом с процессом:
-
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_LINK_SITE_URL`
-- `TELEGRAM_LINK_INTERNAL_API_TOKEN`
-
-Запуск: `node poll.mjs` или `npm start`.
-
-## Проверка
-
-В ЛК (подтверждённая почта) → Профиль → «Получить ссылку на бота» → открыть ссылку → в чате придёт 6 цифр → ввести в форму на сайте.
+Ранее использовался long polling (`poll.mjs`); по ТЗ используется **webhook** — нужен HTTPS и корректный `TELEGRAM_WEBHOOK_BASE_URL`.

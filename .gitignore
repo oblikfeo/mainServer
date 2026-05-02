@@ -15,6 +15,7 @@
 /.zed
 /auth.json
 /node_modules
+/telegram-link-bot/node_modules
 /public/build
 /public/hot
 /public/tmpSharp

@@ -42,6 +42,7 @@ class User extends Authenticatable
             'referral_pending_unlimited_traffic' => 'boolean',
             'referral_subscription_credit_days' => 'decimal:2',
             'telegram_linked_at' => 'datetime',
+            'telegram_bot_blocked_at' => 'datetime',
             'telegram_id' => 'integer',
         ];
     }

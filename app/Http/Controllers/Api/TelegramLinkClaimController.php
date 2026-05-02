@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 
 final class TelegramLinkClaimController extends Controller
 {
+    private const WELCOME_LINKED = 'Добро пожаловать в сервис "Надежда". Ваш аккаунт успешно привязан. Теперь мы на связи: здесь будут появляться сервисные уведомления о вашей подписке и начислениях бонусов. Никакого спама, только по делу.';
+
     public function claim(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -28,7 +30,7 @@ final class TelegramLinkClaimController extends Controller
         if ($session === null || $session->isExpired()) {
             return response()->json([
                 'ok' => false,
-                'error' => 'invalid_or_expired_token',
+                'error' => 'invalid_or_expired',
                 'message' => 'Сессия не найдена или истекла. Откройте раздел профиля на сайте и запросите новую ссылку.',
             ], 422);
         }
@@ -65,20 +67,18 @@ final class TelegramLinkClaimController extends Controller
             ], 409);
         }
 
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $otpHash = TelegramAccountLinkService::hashOtpCode($code);
-
-        $session->forceFill([
-            'otp_code_hash' => $otpHash,
-            'telegram_user_id' => $tgId,
-            'telegram_chat_id' => (int) $data['telegram_chat_id'],
+        $owner->forceFill([
+            'telegram_id' => $tgId,
             'telegram_username' => $data['telegram_username'],
+            'telegram_linked_at' => now(),
+            'telegram_bot_blocked_at' => null,
         ])->save();
+
+        TelegramLinkSession::query()->where('user_id', $owner->id)->delete();
 
         return response()->json([
             'ok' => true,
-            'code_plain' => $code,
-            'message_for_chat' => 'Код для сайта «Надежда»: '.$code."\n\nВведите эти цифры в профиле на сайте в поле подтверждения Telegram.",
+            'message_for_chat' => self::WELCOME_LINKED,
         ]);
     }
 }
