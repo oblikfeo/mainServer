@@ -45,4 +45,4 @@ npm ci
 node server.mjs
 ```
 
-Ранее использовался long polling (`poll.mjs`); по ТЗ используется **webhook** — нужен HTTPS и корректный `TELEGRAM_WEBHOOK_BASE_URL`.
+Ранее использовался long polling (`poll.mjs`); по ТЗ предпочтительно **webhook** с HTTPS и `TELEGRAM_WEBHOOK_BASE_URL`. Если этот URL **не задан**, процесс **снимает webhook** и включает **long polling** (`bot.launch()`), иначе Telegram не доставляет обновления и кнопка Start «молчит».

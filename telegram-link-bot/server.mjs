@@ -131,56 +131,65 @@ bot.start(async (ctx) => {
     return;
   }
 
-  if (!payload) {
-    await safeSendMessage(
-      chatId,
-      templates.stub_start_no_token.text,
-      mainKeyboard()
-    );
-    return;
-  }
-
-  const claimRes = await apiFetch('/internal/telegram/link/claim', {
-    method: 'POST',
-    body: JSON.stringify({
-      deeplink_token: payload,
-      telegram_user_id: uid,
-      telegram_chat_id: chatId,
-      telegram_username: ctx.from?.username ?? null,
-    }),
-  });
-
-  let claimData = {};
   try {
-    claimData = await claimRes.json();
-  } catch {
-    claimData = {};
-  }
+    if (!payload) {
+      await safeSendMessage(
+        chatId,
+        templates.stub_start_no_token.text,
+        mainKeyboard()
+      );
+      return;
+    }
 
-  if (claimRes.ok && claimData.ok === true && claimData.message_for_chat) {
-    await safeSendMessage(chatId, claimData.message_for_chat, mainKeyboard());
-    return;
-  }
-
-  const isInvalidOrExpired =
-    claimData.error === 'invalid_or_expired' ||
-    claimData.error === 'invalid_or_expired_token';
-
-  if (isInvalidOrExpired && payload.length < LINK_TOKEN_LEN) {
-    await apiFetch('/internal/telegram/start/utm', {
+    const claimRes = await apiFetch('/internal/telegram/link/claim', {
       method: 'POST',
       body: JSON.stringify({
+        deeplink_token: payload,
         telegram_user_id: uid,
-        utm_param: payload,
+        telegram_chat_id: chatId,
+        telegram_username: ctx.from?.username ?? null,
       }),
-    }).catch(() => {});
-  }
+    });
 
-  const msg =
-    typeof claimData.message === 'string'
-      ? claimData.message
-      : 'Не удалось завершить привязку. Откройте Личный кабинет на сайте и запросите новую ссылку.';
-  await safeSendMessage(chatId, msg, mainKeyboard());
+    let claimData = {};
+    try {
+      claimData = await claimRes.json();
+    } catch {
+      claimData = {};
+    }
+
+    if (claimRes.ok && claimData.ok === true && claimData.message_for_chat) {
+      await safeSendMessage(chatId, claimData.message_for_chat, mainKeyboard());
+      return;
+    }
+
+    const isInvalidOrExpired =
+      claimData.error === 'invalid_or_expired' ||
+      claimData.error === 'invalid_or_expired_token';
+
+    if (isInvalidOrExpired && payload.length < LINK_TOKEN_LEN) {
+      await apiFetch('/internal/telegram/start/utm', {
+        method: 'POST',
+        body: JSON.stringify({
+          telegram_user_id: uid,
+          utm_param: payload,
+        }),
+      }).catch(() => {});
+    }
+
+    const msg =
+      typeof claimData.message === 'string'
+        ? claimData.message
+        : 'Не удалось завершить привязку. Откройте Личный кабинет на сайте и запросите новую ссылку.';
+    await safeSendMessage(chatId, msg, mainKeyboard());
+  } catch (e) {
+    console.error('bot.start handler', e);
+    await safeSendMessage(
+      chatId,
+      'Сервис временно недоступен. Попробуйте через минуту или откройте сайт nadezhda.space и запросите ссылку в профиле снова.',
+      mainKeyboard()
+    );
+  }
 });
 
 bot.hears('Личный кабинет', async (ctx) => {
@@ -466,17 +475,40 @@ app.post('/internal/notify', async (req, res) => {
   }
 });
 
-app.use(bot.webhookCallback('/telegram/webhook'));
+const useWebhook = webhookBase.length > 0;
 
-app.listen(port, () => {
-  console.error(`nadezhda-telegram-bot listening :${port}`);
-  if (webhookBase) {
+if (useWebhook) {
+  app.use(bot.webhookCallback('/telegram/webhook'));
+}
+
+app.listen(port, async () => {
+  console.error(`nadezhda-telegram-bot HTTP :${port} (notify + ${useWebhook ? 'webhook' : 'no webhook'})`);
+  if (useWebhook) {
     const url = `${webhookBase}/telegram/webhook`;
-    bot.telegram
-      .setWebhook(url)
-      .then(() => console.error('webhook set', url))
-      .catch((e) => console.error('setWebhook', e));
+    try {
+      await bot.telegram.setWebhook(url);
+      console.error('webhook set', url);
+    } catch (e) {
+      console.error('setWebhook failed', e);
+    }
   } else {
-    console.error('TELEGRAM_WEBHOOK_BASE_URL пуст — setWebhook пропущен');
+    console.error(
+      'TELEGRAM_WEBHOOK_BASE_URL пуст — включаем long polling (иначе Telegram не доставляет /start)'
+    );
+    try {
+      await bot.telegram.deleteWebhook({ drop_pending_updates: false });
+    } catch (e) {
+      console.error('deleteWebhook', e);
+    }
+    bot
+      .launch()
+      .then(() => console.error('Telegram long polling запущен'))
+      .catch((e) => {
+        console.error('bot.launch failed', e);
+        process.exit(1);
+      });
   }
 });
+
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
