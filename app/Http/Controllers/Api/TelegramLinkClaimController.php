@@ -30,7 +30,7 @@ final class TelegramLinkClaimController extends Controller
         if ($session === null || $session->isExpired()) {
             return response()->json([
                 'ok' => false,
-                'error' => 'invalid_or_expired',
+                'error' => 'invalid_or_expired_token',
                 'message' => 'Сессия не найдена или истекла. Откройте раздел профиля на сайте и запросите новую ссылку.',
             ], 422);
         }
