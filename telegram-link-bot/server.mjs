@@ -162,10 +162,11 @@ bot.start(async (ctx) => {
     return;
   }
 
-  if (
-    claimData.error === 'invalid_or_expired' &&
-    payload.length < LINK_TOKEN_LEN
-  ) {
+  const isInvalidOrExpired =
+    claimData.error === 'invalid_or_expired' ||
+    claimData.error === 'invalid_or_expired_token';
+
+  if (isInvalidOrExpired && payload.length < LINK_TOKEN_LEN) {
     await apiFetch('/internal/telegram/start/utm', {
       method: 'POST',
       body: JSON.stringify({
