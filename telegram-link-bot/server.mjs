@@ -169,7 +169,13 @@ bot.start(async (ctx) => {
 
     const isInvalidOrExpired =
       claimData.error === 'invalid_or_expired' ||
-      claimData.error === 'invalid_or_expired_token';
+      claimData.error === 'invalid_or_expired_token' ||
+      claimData.error === 'session_not_found' ||
+      claimData.error === 'session_expired';
+
+    console.warn('[tg-link/claim]', claimData.error ?? claimRes.status, {
+      deeplinkLen: payload.length,
+    });
 
     if (isInvalidOrExpired && payload.length < LINK_TOKEN_LEN) {
       await apiFetch('/internal/telegram/start/utm', {

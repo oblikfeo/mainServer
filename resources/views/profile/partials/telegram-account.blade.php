@@ -51,6 +51,10 @@
             </div>
         </dl>
     @else
+        <p class="mt-1 text-xs text-slate-600 leading-snug max-w-xl">
+            Нажмите кнопку ниже на сайте, затем перейдите по открывшейся ссылке в Telegram
+            (<code class="text-[11px]">t.me/… ?start=…</code>). Один переход завершает привязку; если открыть бота просто через поиск без ссылки из кабинета, привязка не выполнится.
+        </p>
         <div class="mt-4">
             @unless ($telegramStartUrl)
                 <form method="POST" action="{{ route('cabinet.telegram.start') }}">

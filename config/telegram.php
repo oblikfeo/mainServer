@@ -7,8 +7,8 @@ return [
      * Bearer-токен для внутренних вызовов API (бот → Laravel).
      */
     'link_internal_api_token' => env('TELEGRAM_LINK_INTERNAL_API_TOKEN'),
-    /** Время жизни привязочной сессии в минутах */
-    'link_session_ttl_minutes' => (int) env('TELEGRAM_LINK_SESSION_TTL_MINUTES', 15),
+    /** Время жизни привязочной сессии в минутах (граница 5–60 в коде создания сессии) */
+    'link_session_ttl_minutes' => (int) env('TELEGRAM_LINK_SESSION_TTL_MINUTES', 45),
     /**
      * Публичный URL ЛК / зеркала для кнопки «Личный кабинет» (ТЗ п.4, 7.4).
      */

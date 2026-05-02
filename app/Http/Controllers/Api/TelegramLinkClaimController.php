@@ -27,11 +27,19 @@ final class TelegramLinkClaimController extends Controller
         /** @var TelegramLinkSession|null $session */
         $session = TelegramLinkSession::query()->where('token_hash', $hash)->first();
 
-        if ($session === null || $session->isExpired()) {
+        if ($session === null) {
             return response()->json([
                 'ok' => false,
-                'error' => 'invalid_or_expired_token',
-                'message' => 'Сессия не найдена или истекла. Откройте раздел профиля на сайте и запросите новую ссылку.',
+                'error' => 'session_not_found',
+                'message' => 'Привязочная ссылка недействительна: на сервере нет активного запроса. В профиле на сайте снова нажмите «Привязать Telegram» и перейдите по новой ссылке без задержки. Обычно это случается, если открыт старый диплинк или ссылку из прошлого нажатия.',
+            ], 422);
+        }
+
+        if ($session->isExpired()) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'session_expired',
+                'message' => 'Время действия привязочной ссылки истекло. В профиле на сайте запросите новую («Привязать Telegram») и откройте её в Telegram в течение нескольких минут.',
             ], 422);
         }
 
