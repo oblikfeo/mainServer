@@ -56,7 +56,7 @@
                 <form method="POST" action="{{ route('cabinet.telegram.start') }}">
                     @csrf
                     <button type="submit" class="lp-account-verify-btn">
-                        Привязать ТГ
+                        Привязать Telegram
                     </button>
                 </form>
             @else
@@ -66,7 +66,7 @@
                     rel="noopener noreferrer"
                     class="lp-account-verify-btn inline-flex items-center justify-center text-center no-underline"
                 >
-                    Привязать ТГ
+                    Привязать Telegram
                 </a>
             @endunless
         </div>
