@@ -7,15 +7,16 @@ use App\Models\Purchase;
 use App\Models\User;
 use App\Services\Referral\ReferralRewardService;
 use App\Services\Subscription\CreateDualBundleSubscription;
+use App\Services\Telegram\TelegramOutreach;
 use App\Services\Wata\WataH2hClient;
-use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class WataWebhookController extends Controller
 {
-    public function __invoke(Request $request, WataH2hClient $wata, CreateDualBundleSubscription $subs, ReferralRewardService $referralRewards): Response
+    public function __invoke(Request $request, WataH2hClient $wata, CreateDualBundleSubscription $subs, ReferralRewardService $referralRewards, TelegramOutreach $telegramOutreach): Response
     {
         $raw = $request->getContent();
         $sig = (string) $request->header('X-Signature', '');
@@ -64,7 +65,7 @@ class WataWebhookController extends Controller
         $isDeclined = $kind === 'Payment' && $status === 'Declined';
 
         try {
-            return DB::transaction(function () use ($order, $payload, $transactionId, $isPaid, $isDeclined, $subs, $referralRewards): Response {
+            return DB::transaction(function () use ($order, $payload, $transactionId, $isPaid, $isDeclined, $subs, $referralRewards, $telegramOutreach): Response {
                 /** @var PaymentOrder|null $locked */
                 $locked = PaymentOrder::query()->whereKey($order->id)->lockForUpdate()->first();
                 if (! $locked) {
@@ -127,6 +128,17 @@ class WataWebhookController extends Controller
 
                 if ($buyer !== null) {
                     $referralRewards->onPurchaseRecorded($purchase);
+                }
+
+                if ($buyer !== null) {
+                    $expMs = (int) $result->subscription->expiry_ms;
+                    $newDate = $expMs <= 0
+                        ? 'без ограничения срока'
+                        : Carbon::createFromTimestampMs($expMs)->timezone((string) config('app.timezone'))->format('d.m.Y');
+                    $telegramOutreach->notifyUserIfEligible($buyer, 'billing_paid_ok', [
+                        'amount' => (string) (int) $locked->amount_rub,
+                        'new_date' => $newDate,
+                    ]);
                 }
 
                 return response('', 200);
