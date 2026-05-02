@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
+use App\Http\Controllers\CabinetNiceController;
 use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
@@ -57,6 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
     Route::get('/dashboard/referral', [CabinetReferralController::class, 'show'])->name('cabinet.referral');
+    Route::get('/nice', [CabinetNiceController::class, 'show'])->name('cabinet.nice');
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
