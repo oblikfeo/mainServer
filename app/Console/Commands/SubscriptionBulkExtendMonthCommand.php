@@ -24,6 +24,7 @@ class SubscriptionBulkExtendMonthCommand extends Command
     protected $signature = 'subscription:bulk-extend-month
         {emails* : Email пользователей (один аргумент = один email)}
         {--days=30 : Сколько календарных дней добавить к expiry_ms}
+        {--no-extend : Пропустить продление, сделать только сброс счётчиков (idempotent)}
         {--dry-run : Только показать действия, ничего не менять}';
 
     protected $description = 'Продлить подписки указанных email на N дней и обнулить счётчики трафика на 3x-ui (FI/NL) и Hy2 (Blitz)';
@@ -39,23 +40,25 @@ class SubscriptionBulkExtendMonthCommand extends Command
 
         $days = (int) $this->option('days');
         $dry = (bool) $this->option('dry-run');
+        $noExtend = (bool) $this->option('no-extend');
 
         if ($emails === []) {
             $this->error('Не передано ни одного email.');
 
             return self::FAILURE;
         }
-        if ($days < 1) {
-            $this->error('--days должен быть >= 1');
+        if (! $noExtend && $days < 1) {
+            $this->error('--days должен быть >= 1 (или используйте --no-extend)');
 
             return self::FAILURE;
         }
 
         $this->line(sprintf(
-            '%s продление: %d email × +%d дней + reset traffic',
+            '%s %s: %d email%s + reset traffic',
             $dry ? '[dry-run]' : 'Запуск',
+            $noExtend ? 'reset-only' : 'продление',
             count($emails),
-            $days
+            $noExtend ? '' : ' × +'.$days.' дней'
         ));
 
         $okEmails = [];
@@ -83,7 +86,7 @@ class SubscriptionBulkExtendMonthCommand extends Command
 
             $allOk = true;
             foreach ($subs as $sub) {
-                $allOk = $this->processSubscription($sub, $days, $dry, $extender) && $allOk;
+                $allOk = $this->processSubscription($sub, $days, $dry, $noExtend, $extender) && $allOk;
             }
 
             if ($allOk) {
@@ -106,6 +109,7 @@ class SubscriptionBulkExtendMonthCommand extends Command
         Subscription $sub,
         int $days,
         bool $dry,
+        bool $noExtend,
         SubscriptionCalendarExtension $extender,
     ): bool {
         $oldExpiry = (int) $sub->expiry_ms;
@@ -124,23 +128,27 @@ class SubscriptionBulkExtendMonthCommand extends Command
         ));
 
         if ($dry) {
-            $this->line('    [dry-run] +'.$days.' дн.; reset trafic FI/NL/Hy2');
+            $this->line('    [dry-run] '.($noExtend ? 'reset-only' : ('+'.$days.' дн.')).'; reset traffic FI/NL/Hy2');
 
             return true;
         }
 
         $ok = true;
 
-        try {
-            $extender->addCalendarDays($sub, $days);
-            $sub->refresh();
-            $newExpiryHuman = $sub->expiry_ms > 0
-                ? date('Y-m-d H:i', (int) ($sub->expiry_ms / 1000))
-                : '∞';
-            $this->info("    expiry: {$oldExpiryHuman} → {$newExpiryHuman}");
-        } catch (Throwable $e) {
-            $this->error('    addCalendarDays: '.$e->getMessage());
-            $ok = false;
+        if (! $noExtend) {
+            try {
+                $extender->addCalendarDays($sub, $days);
+                $sub->refresh();
+                $newExpiryHuman = $sub->expiry_ms > 0
+                    ? date('Y-m-d H:i', (int) ($sub->expiry_ms / 1000))
+                    : '∞';
+                $this->info("    expiry: {$oldExpiryHuman} → {$newExpiryHuman}");
+            } catch (Throwable $e) {
+                $this->error('    addCalendarDays: '.$e->getMessage());
+                $ok = false;
+            }
+        } else {
+            $this->line('    expiry: без изменений (--no-extend)');
         }
 
         $ok = $this->resetXuiTraffic($sub) && $ok;
