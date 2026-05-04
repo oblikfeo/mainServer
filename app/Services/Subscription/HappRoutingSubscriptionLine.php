@@ -63,7 +63,9 @@ final class HappRoutingSubscriptionLine
         $directSites = array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== ''));
         $extraDirectIp = array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== ''));
 
-        $directIpMerged = array_merge(self::defaultDirectIp(), $extraDirectIp);
+        // Запросы DoH к Cloudflare (1.1.1.1) иначе уходят в GlobalProxy → в Hy2; при мёртвом реле на ноде DNS не поднимается и «нет интернета» вообще.
+        $doHBootstrapIpv4 = ['1.1.1.1/32', '1.0.0.1/32'];
+        $directIpMerged = array_merge($doHBootstrapIpv4, self::defaultDirectIp(), $extraDirectIp);
         $seenIp = [];
         $directIp = [];
         foreach ($directIpMerged as $ip) {
