@@ -22,12 +22,6 @@ return [
     'display_name' => env('HY2_DISPLAY_NAME', '🇭🇰 Высокая скорость'),
     'server_description' => env('HY2_SERVER_DESC', 'global'),
 
-    /**
-     * В фрагменте hy2:// после # не добавлять ?serverDescription=… (режимы b64/dual как у VLESS).
-     * У Happ это часто ломает разбор URI при эмодзи/кириллице в имени узла — по умолчанию выкл.
-     */
-    'uri_append_server_description' => filter_var(env('HY2_URI_APPEND_SERVER_DESCRIPTION', false), FILTER_VALIDATE_BOOL),
-
     'ssh_host' => env('HY2_SSH_HOST', '222.167.208.75'),
     'ssh_user' => env('HY2_SSH_USER', 'root'),
     'ssh_key' => env('HY2_SSH_KEY', ''),
