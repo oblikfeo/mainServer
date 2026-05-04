@@ -38,6 +38,22 @@ final class BlitzClient
     }
 
     /**
+     * Сбрасывает счётчик трафика пользователя (download_bytes / upload_bytes / account_creation_date)
+     * и переводит его в статус On-hold. `expiration_days` и `max_download_bytes` сохраняются.
+     * После следующего коннекта таймер `expiration_days` стартует заново.
+     *
+     * @throws BlitzException
+     */
+    public function resetUser(string $username): void
+    {
+        $this->runCli(
+            'reset-user',
+            ['-u', $username],
+            "reset user {$username}"
+        );
+    }
+
+    /**
      * @throws BlitzException
      */
     public function editUser(string $username, ?int $trafficGb = null, ?int $expirationDays = null): void

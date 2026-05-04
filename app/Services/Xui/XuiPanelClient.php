@@ -74,6 +74,20 @@ final class XuiPanelClient
     }
 
     /**
+     * Сброс счётчика трафика (up/down) у клиента inbound по email — стандартный 3x-ui эндпоинт.
+     * `totalGB` и `expiryTime` остаются нетронутыми.
+     */
+    public function resetClientTraffic(int $inboundId, string $email): void
+    {
+        $path = 'panel/api/inbounds/'.$inboundId.'/resetClientTraffic/'.rawurlencode($email);
+        $r = $this->http->post($path);
+        $j = json_decode((string) $r->getBody(), true);
+        if (! is_array($j) || empty($j['success'])) {
+            throw new XuiPanelException($j['msg'] ?? 'resetClientTraffic отклонён');
+        }
+    }
+
+    /**
      * Список inbound (3x-ui: GET panel/api/inbounds/list). Нужен предварительный login().
      *
      * @return list<array<string, mixed>>
