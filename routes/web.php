@@ -131,6 +131,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');
         Route::get('/subscription/routing', [SubscriptionSettingsController::class, 'editRouting'])->name('subscription.routing');
         Route::post('/subscription/routing', [SubscriptionSettingsController::class, 'updateRouting'])->name('subscription.routing.update');
+        Route::get('/subscription/announce', [SubscriptionSettingsController::class, 'editAnnounce'])->name('subscription.announce');
+        Route::post('/subscription/announce', [SubscriptionSettingsController::class, 'updateAnnounce'])->name('subscription.announce.update');
         Route::post('/subscription', [SubscriptionController::class, 'store'])
             ->middleware('throttle:8,1')
             ->name('subscription.store');

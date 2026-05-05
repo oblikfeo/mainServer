@@ -75,4 +75,61 @@ class SubscriptionSettingsController extends Controller
             ->route('admin.subscription.routing')
             ->with('status', 'Сохранено. Клиентам нужно обновить подписку в Happ.');
     }
+
+    public function editAnnounce(): View
+    {
+        $raw = (string) (AppSetting::getValue('marketing_announce_text') ?? '');
+        $raw = str_replace(["\r\n", "\r"], "\n", $raw);
+
+        $fallback = trim((string) config('marketing.subscription_announce_line_devices'));
+        $effective = $raw !== '' ? $raw : $fallback;
+
+        return view('admin.subscription.announce', [
+            'announceTemplate' => $raw,
+            'announceFallback' => $fallback,
+            'announcePreview' => $this->renderAnnouncePreview($effective),
+            'announceMaxLen' => 200,
+        ]);
+    }
+
+    public function updateAnnounce(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'announce_text' => ['nullable', 'string', 'max:4000'],
+        ]);
+
+        $input = (string) ($data['announce_text'] ?? '');
+        $input = str_replace(["\r\n", "\r"], "\n", $input);
+        $input = trim($input, " \t\n");
+
+        if ($input === '') {
+            AppSetting::forgetKey('marketing_announce_text');
+
+            return redirect()
+                ->route('admin.subscription.announce')
+                ->with('status', 'Анонс очищен — Happ покажет дефолтную строку про устройства.');
+        }
+
+        AppSetting::setValue('marketing_announce_text', $input);
+
+        return redirect()
+            ->route('admin.subscription.announce')
+            ->with('status', 'Анонс сохранён. Клиентам нужно обновить подписку в Happ.');
+    }
+
+    /**
+     * Возвращает текст анонса с подставленными плейсхолдерами для предпросмотра в админке
+     * (used/max берём фиктивные «1/5», чтобы был наглядный пример).
+     */
+    private function renderAnnouncePreview(string $template): string
+    {
+        $vars = [
+            '{used}' => '1',
+            '{max}' => '5',
+            '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
+            '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
+        ];
+
+        return strtr($template, $vars);
+    }
 }

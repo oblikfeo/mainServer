@@ -2,12 +2,22 @@
 
 namespace App\Services\Subscription;
 
+use App\Models\AppSetting;
 use App\Models\Subscription;
 use App\Models\TestKey;
+use Throwable;
 
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
- * #announce при персонализации — только счётчик привязанных устройств (Happ баннер в одну строку).
+ *
+ * #announce собирается так:
+ *   1) Произвольный многострочный шаблон из админки (AppSetting `marketing_announce_text`)
+ *      — поддерживает переносы строк и плейсхолдеры {used} / {max} / {brand} / {support}.
+ *   2) Если шаблон пуст — fallback на однострочное «Привязанные устройства: {used}/{max}»
+ *      (config marketing.subscription_announce_line_devices).
+ *   3) Текст кодируется в base64 и отдаётся как `announce: base64:<…>` И в HTTP-заголовке,
+ *      И в теле подписки. Часть версий Happ рендерит \n внутри base64-полезной нагрузки —
+ *      этим мы и пробуем «многострочный» анонс, не дожидаясь Provider ID / sub-info-text.
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -44,7 +54,11 @@ final class HappSubscriptionAppManagementExtras
         }
 
         if ($announce !== '') {
-            $body .= '#announce: '.$announce."\n";
+            // Всегда base64 — это единственный документированный способ передать произвольный
+            // текст через `announce:` (в т.ч. с управляющими символами вроде \n).
+            $announceField = 'base64:'.base64_encode($announce);
+            $body .= '#announce: '.$announceField."\n";
+            $headers['announce'] = $announceField;
         }
 
         $iconColor = self::happRgbaHexFromConfig();
@@ -67,42 +81,87 @@ final class HappSubscriptionAppManagementExtras
 
     private static function composeAnnounce(Subscription|TestKey|null $context): string
     {
-        if (! (bool) config('marketing.subscription_announce_personalize', true) || $context === null) {
+        if (! (bool) config('marketing.subscription_announce_personalize', true)) {
             return '';
         }
 
-        $block = match (true) {
-            $context instanceof Subscription => self::deviceAnnounceForSubscription($context),
-            $context instanceof TestKey => self::deviceAnnounceForTestKey($context),
-            default => '',
-        };
+        [$used, $max] = self::deviceCounters($context);
 
-        return self::truncateAnnounce($block);
-    }
-
-    private static function deviceAnnounceForSubscription(Subscription $sub): string
-    {
-        $used = self::hwidUsedCount($sub->bound_hwid_hashes);
-        $max = max(1, (int) $sub->devices);
-
-        return trim(strtr((string) config('marketing.subscription_announce_line_devices'), [
+        $vars = [
             '{used}' => (string) $used,
             '{max}' => (string) $max,
-        ]));
-    }
+            '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
+            '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
+        ];
 
-    private static function deviceAnnounceForTestKey(TestKey $key): string
-    {
-        $used = self::hwidUsedCount($key->bound_hwid_hashes);
-        $limitIp = (int) ($key->limit_ip ?? 0);
-        if ($limitIp < 1) {
-            $limitIp = max(1, (int) config('test_keys.default_limit_ip', 1));
+        $template = self::adminAnnounceTemplate();
+        if ($template === '') {
+            // Назад-совместимый дефолт: одна строка про устройства.
+            $template = (string) config('marketing.subscription_announce_line_devices');
+        }
+        if ($template === '') {
+            return '';
         }
 
-        return trim(strtr((string) config('marketing.subscription_announce_line_devices'), [
-            '{used}' => (string) $used,
-            '{max}' => (string) $limitIp,
-        ]));
+        $rendered = self::normalizeNewlines(strtr($template, $vars));
+        $rendered = self::stripPlainTextBom($rendered);
+        $rendered = trim($rendered, " \t\r\n");
+
+        return self::truncateAnnounce($rendered);
+    }
+
+    private static function adminAnnounceTemplate(): string
+    {
+        try {
+            $raw = AppSetting::getValue('marketing_announce_text') ?? '';
+        } catch (Throwable) {
+            $raw = '';
+        }
+
+        return self::normalizeNewlines((string) $raw);
+    }
+
+    /**
+     * Унифицируем переносы строк к LF: textarea в браузерах посылает CRLF,
+     * Happ ожидает (по эмпирике) именно \n внутри base64-payload.
+     */
+    private static function normalizeNewlines(string $value): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", $value);
+    }
+
+    private static function stripPlainTextBom(string $value): string
+    {
+        if (strncmp($value, "\xEF\xBB\xBF", 3) === 0) {
+            return substr($value, 3);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @return array{0:int,1:int} [used, max]
+     */
+    private static function deviceCounters(Subscription|TestKey|null $context): array
+    {
+        if ($context instanceof Subscription) {
+            $used = self::hwidUsedCount($context->bound_hwid_hashes);
+            $max = max(1, (int) $context->devices);
+
+            return [$used, $max];
+        }
+
+        if ($context instanceof TestKey) {
+            $used = self::hwidUsedCount($context->bound_hwid_hashes);
+            $limit = (int) ($context->limit_ip ?? 0);
+            if ($limit < 1) {
+                $limit = max(1, (int) config('test_keys.default_limit_ip', 1));
+            }
+
+            return [$used, $limit];
+        }
+
+        return [0, 0];
     }
 
     private static function hwidUsedCount(mixed $hashes): int

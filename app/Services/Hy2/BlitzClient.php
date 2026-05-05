@@ -104,17 +104,18 @@ final class BlitzClient
             $uri .= '?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
         }
 
-        $name = $displayName ?? (string) config('hy2.display_name', 'Hysteria2');
+        $title = $displayName ?? (string) config('hy2.display_name', 'Hysteria2');
         $serverDesc = trim((string) config('hy2.server_description', ''));
         $sdFormat = strtolower(trim((string) config('xui.vless_server_description_format', 'b64')));
 
+        // Title — UTF-8 (эмодзи/русский) → rawurlencode, чтобы фрагмент был валидным URI.
+        // ?serverDescription=... приклеиваем СЫРЫМ (Happ парсит именно «#title?serverDescription=…»).
+        $uri .= '#'.rawurlencode($title);
         if ($serverDesc !== '' && $sdFormat === 'b64') {
-            $name .= '?serverDescription='.rtrim(base64_encode($serverDesc), '=');
+            $uri .= '?serverDescription='.rtrim(base64_encode($serverDesc), '=');
         } elseif ($serverDesc !== '' && $sdFormat === 'dual') {
-            $name .= '?'.$serverDesc;
+            $uri .= '?'.rawurlencode($serverDesc);
         }
-
-        $uri .= '#'.rawurlencode($name);
 
         return $uri;
     }

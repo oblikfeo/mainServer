@@ -12,6 +12,15 @@
                 Обход VPN (Happ)
             </span>
         </a>
+
+        <a
+            href="{{ route('admin.subscription.announce') }}"
+            class="group flex items-center justify-center rounded-2xl border-2 border-slate-200 bg-white p-6 sm:p-10 shadow-sm hover:border-slate-900 hover:shadow-lg transition-all min-h-[120px] sm:min-h-[140px] active:scale-[0.99]"
+        >
+            <span class="text-lg sm:text-2xl xl:text-3xl font-bold text-slate-900 text-center leading-snug px-2 group-hover:text-slate-700">
+                Анонс в Happ
+            </span>
+        </a>
         <a
             href="{{ route('admin.servers') }}"
             class="group flex items-center justify-center rounded-2xl border-2 border-slate-200 bg-white p-6 sm:p-10 shadow-sm hover:border-slate-900 hover:shadow-lg transition-all min-h-[120px] sm:min-h-[140px] active:scale-[0.99]"
