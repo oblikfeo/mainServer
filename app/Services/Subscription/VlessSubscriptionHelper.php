@@ -26,7 +26,7 @@ final class VlessSubscriptionHelper
     }
 
     /**
-     * Фрагмент vless:// для Happ: первая строка — title (до 30 симв.), вторая — подпись вместо «VLESS».
+     * Фрагмент vless:// для Happ: первая строка — title (до 30 симв.), подпись (серая строка) ограничена happ_fragment_subtitle_max_chars.
      *
      * Формат строго по примерам офф. доки Happ:
      *   `#<title_RAW_UTF8>?serverDescription=<base64_padded>`
@@ -59,10 +59,14 @@ final class VlessSubscriptionHelper
             return $base.'#'.$title;
         }
 
-        if (function_exists('mb_substr')) {
-            $serverDescription = mb_substr($serverDescription, 0, 30);
-        } else {
-            $serverDescription = substr($serverDescription, 0, 30);
+        $subtitleMax = max(48, min(160, (int) config('xui.happ_fragment_subtitle_max_chars', 96)));
+
+        if (function_exists('mb_strlen')) {
+            if (mb_strlen($serverDescription) > $subtitleMax) {
+                $serverDescription = mb_substr($serverDescription, 0, $subtitleMax);
+            }
+        } elseif (strlen($serverDescription) > $subtitleMax) {
+            $serverDescription = substr($serverDescription, 0, $subtitleMax);
         }
 
         $format = strtolower(trim($format)) === 'b64' ? 'b64' : 'dual';

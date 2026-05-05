@@ -189,7 +189,6 @@ final class CreateDualBundleSubscription
     {
         $nodes = config('xui.nodes', []);
         $order = config('xui.bundle_order', ['fi', 'nl']);
-        $subDesc = (string) config('xui.vless_server_description', '');
         $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
         $out = ['fi' => '', 'nl' => '', 'hy2' => '', 'warning' => null];
@@ -224,7 +223,7 @@ final class CreateDualBundleSubscription
                 $out[$key] = VlessSubscriptionHelper::setVlessFragment(
                     $line,
                     (string) ($node['vless_display_name'] ?? strtoupper($key)),
-                    $subDesc,
+                    SubscriptionHappSubtitle::forBundle((string) $key),
                     $subFmt
                 );
             } catch (Throwable $e) {

@@ -20,6 +20,13 @@ return [
     'insecure' => filter_var(env('HY2_INSECURE', true), FILTER_VALIDATE_BOOL),
 
     'display_name' => env('HY2_DISPLAY_NAME', '🇭🇰 Высокая скорость'),
+
+    /** Серая строка HY2 в Happ; если пусто — берётся SUB_GRAY_HY2, иначе server_description ниже. */
+    'gray_subtitle' => (static function (): string {
+        $a = trim((string) env('HY2_GRAY_SUBTITLE', ''));
+
+        return $a !== '' ? $a : trim((string) env('SUB_GRAY_HY2', ''));
+    })(),
     'server_description' => env('HY2_SERVER_DESC', 'global'),
 
     'ssh_host' => env('HY2_SSH_HOST', '222.167.208.75'),

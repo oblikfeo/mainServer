@@ -58,7 +58,7 @@ final class TestKeySubscriptionFeedRenderer
         $line = VlessSubscriptionHelper::setVlessFragment(
             $line,
             (string) config('test_keys.vless_display_name', 'Trial'),
-            (string) config('xui.vless_server_description', ''),
+            SubscriptionHappSubtitle::forTestKey(),
             (string) config('xui.vless_server_description_format', 'dual')
         );
 

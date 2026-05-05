@@ -90,6 +90,15 @@ return [
     /** true — человекочитаемый JSON (merged); для per_node игнорируется (одна строка на профиль). */
     'sub_json_pretty_print' => filter_var(env('SUB_JSON_PRETTY_PRINT', false), FILTER_VALIDATE_BOOL),
 
+    'sub_gray_subtitles' => [
+        'fi' => trim((string) env('SUB_GRAY_FI', '')),
+        'nl' => trim((string) env('SUB_GRAY_NL', '')),
+        'trial' => trim((string) env('SUB_GRAY_TRIAL', '')),
+    ],
+
+    /** Серая строка во фрагменте vless:// / hy2:// (Happ URI); JSON-подпись через meta для JSON не ограничивается. */
+    'happ_fragment_subtitle_max_chars' => max(48, min(160, (int) env('HAPP_FRAGMENT_SUBTITLE_MAX_CHARS', 96))),
+
     /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
     'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
 

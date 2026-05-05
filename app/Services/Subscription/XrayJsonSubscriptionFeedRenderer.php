@@ -106,10 +106,7 @@ final class XrayJsonSubscriptionFeedRenderer
                     $remarks = trim((string) ($node['vless_display_name'] ?? strtoupper((string) $entry['key'])));
                     $remarks = $this->shortenHappLabel($remarks, 64);
 
-                    $metaDesc = trim((string) ($node['vless_server_description'] ?? ''));
-                    if ($metaDesc === '') {
-                        $metaDesc = trim((string) config('xui.vless_server_description', ''));
-                    }
+                    $metaDesc = SubscriptionHappSubtitle::forBundle((string) $entry['key']);
                     if ($globalMetaOverride !== '') {
                         $metaDesc = $globalMetaOverride;
                     }
@@ -191,9 +188,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $extras = HappSubscriptionAppManagementExtras::forResponses($key);
 
             $trialRemarks = $this->shortenHappLabel(trim((string) config('test_keys.vless_display_name', 'Trial')), 64);
-            $metaDesc = trim((string) config('xui.vless_server_description', ''));
-
-            $doc = $this->buildXrayDoc([$ob], $trialRemarks, $metaDesc);
+            $metaDesc = SubscriptionHappSubtitle::forTestKey();
 
             $jsonPretty = $this->encodeJsonDocument(
                 $doc,
@@ -283,7 +278,7 @@ final class XrayJsonSubscriptionFeedRenderer
             'line' => VlessSubscriptionHelper::setVlessFragment(
                 $line,
                 (string) config('test_keys.vless_display_name', 'Trial'),
-                (string) config('xui.vless_server_description', ''),
+                SubscriptionHappSubtitle::forTestKey(),
                 (string) config('xui.vless_server_description_format', 'dual')
             ),
             'userinfo' => $userinfo,
@@ -495,7 +490,7 @@ final class XrayJsonSubscriptionFeedRenderer
         foreach ($entries as $entry) {
             $node = $nodes[$entry['key']] ?? [];
             $name = trim((string) ($node['vless_display_name'] ?? strtoupper((string) $entry['key'])));
-            $desc = trim((string) ($node['vless_server_description'] ?? ''));
+            $desc = SubscriptionHappSubtitle::forBundle((string) $entry['key']);
             if ($desc !== '') {
                 $parts[] = $name.' — '.$desc;
             }

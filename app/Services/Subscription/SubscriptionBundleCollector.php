@@ -42,7 +42,7 @@ final class SubscriptionBundleCollector
                 continue;
             }
 
-            $line = $this->extractProcessedVlessLine($resp, $node, strtoupper((string) $key));
+                $line = $this->extractProcessedVlessLine($resp, $node, strtoupper((string) $key), (string) $key);
             if ($line !== '') {
                 $entries[] = [
                     'key' => $key,
@@ -110,7 +110,7 @@ final class SubscriptionBundleCollector
     /**
      * @param  array<string, mixed>  $node
      */
-    private function extractProcessedVlessLine(\Illuminate\Http\Client\Response $resp, array $node, string $label): string
+    private function extractProcessedVlessLine(\Illuminate\Http\Client\Response $resp, array $node, string $label, string $bundleKey): string
     {
         if (! $resp->successful()) {
             return '';
@@ -138,7 +138,7 @@ final class SubscriptionBundleCollector
             (string) ($node['reality_sid'] ?? '')
         );
 
-        $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
+        $serverDesc = SubscriptionHappSubtitle::forBundle($bundleKey);
 
         return VlessSubscriptionHelper::setVlessFragment(
             $line,
