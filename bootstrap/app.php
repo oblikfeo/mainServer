@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\SubscriptionClearBoundHwidCommand::class,
         \App\Console\Commands\SubscriptionUpdateQuotaCommand::class,
         \App\Console\Commands\SubscriptionCreateAdminCommand::class,
+        \App\Console\Commands\SubscriptionCreateForUserCommand::class,
         \App\Console\Commands\TestKeysCleanupCommand::class,
         \App\Console\Commands\MailTestCommand::class,
         \App\Console\Commands\MassInviteTestMailCommand::class,

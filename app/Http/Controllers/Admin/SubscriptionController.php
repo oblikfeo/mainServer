@@ -23,7 +23,7 @@ class SubscriptionController extends Controller
     public function store(Request $request, CreateDualBundleSubscription $service): RedirectResponse
     {
         $data = $request->validate([
-            'devices' => ['required', 'integer', 'min:1', 'max:5'],
+            'devices' => ['required', 'integer', 'min:1', 'max:100'],
             'days' => ['required', 'integer', 'min:1', 'max:365'],
             'gb' => ['required', 'integer', 'min:1', 'max:50000'],
         ]);
@@ -78,7 +78,7 @@ class SubscriptionController extends Controller
     public function storeCool(Request $request, CreateDualBundleSubscription $service): RedirectResponse
     {
         $data = $request->validate([
-            'devices' => ['required', 'integer', 'min:1', 'max:5'],
+            'devices' => ['required', 'integer', 'min:1', 'max:100'],
             'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'exists:users,email'],
         ]);
 

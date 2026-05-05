@@ -30,11 +30,16 @@
 
             <div>
                 <label for="devices" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Устройства (Happ HWID + limitIp в панели на каждый узел)</label>
-                <select name="devices" id="devices" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]">
-                    @foreach ([1, 2, 3, 4, 5] as $n)
-                        <option value="{{ $n }}" @selected((int) old('devices', 3) === $n)>{{ $n }}</option>
-                    @endforeach
-                </select>
+                <input
+                    type="number"
+                    name="devices"
+                    id="devices"
+                    min="1"
+                    max="100"
+                    required
+                    value="{{ old('devices', 3) }}"
+                    class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]"
+                >
                 @error('devices')
                     <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
@@ -53,12 +58,17 @@
             </div>
 
             <div>
-                <label for="gb" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Трафик (ГБ)</label>
-                <select name="gb" id="gb" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]">
-                    @foreach ([30, 50, 70, 100, 150, 200] as $g)
-                        <option value="{{ $g }}" @selected((int) old('gb', 100) === $g)>{{ $g }}</option>
-                    @endforeach
-                </select>
+                <label for="gb" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Трафик (ГБ, до 50000)</label>
+                <input
+                    type="number"
+                    name="gb"
+                    id="gb"
+                    min="1"
+                    max="50000"
+                    required
+                    value="{{ old('gb', 100) }}"
+                    class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]"
+                >
                 @error('gb')
                     <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
@@ -103,11 +113,16 @@
 
             <div>
                 <label for="cool_devices" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Устройства</label>
-                <select name="devices" id="cool_devices" class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-indigo-400 focus:ring-indigo-400 min-h-[44px]">
-                    @foreach ([1, 2, 3, 4, 5] as $n)
-                        <option value="{{ $n }}" @selected((int) old('devices', 3) === $n)>{{ $n }}</option>
-                    @endforeach
-                </select>
+                <input
+                    type="number"
+                    name="devices"
+                    id="cool_devices"
+                    min="1"
+                    max="100"
+                    required
+                    value="{{ old('devices', 3) }}"
+                    class="w-full sm:max-w-xs rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-indigo-400 focus:ring-indigo-400 min-h-[44px]"
+                >
                 @error('devices')
                     <p class="mt-1 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
