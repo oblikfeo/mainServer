@@ -65,8 +65,8 @@ return [
     'sub_output_b64' => env('SUB_OUTPUT_B64', '0') === '1',
 
     /**
-     * Формат GET /sub/{token}: uri (по умолчанию, hy2+vless строками) или xray_json — один конфиг JSON Xray.
-     * Откат: SUB_FEED_FORMAT=uri
+     * Формат GET /sub/{token}: uri — hy2+vless строки (боевой). xray_json — тело с Xray JSON (см. SUB_JSON_* в .env).
+     * По умолчанию в config: uri, если переменную не задали.
      */
     'sub_feed_format' => strtolower(trim((string) env('SUB_FEED_FORMAT', 'uri'))),
 
