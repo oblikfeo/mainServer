@@ -80,6 +80,16 @@ return [
      */
     'sub_json_direct_domains' => null,
 
+    /**
+     * Как упаковать несколько узлов FI/NL в JSON-подписку:
+     * per_node — отдельный JSON на каждый VLESS (как несколько конфигов; свои remarks + meta.serverDescription на узел — ближе к URI-подписке).
+     * merged — один профиль и balancer между узлами (в Happ часто выглядит как один туннель / нестабильно).
+     */
+    'sub_json_bundle_mode' => strtolower(trim((string) env('SUB_JSON_BUNDLE_MODE', 'per_node'))),
+
+    /** true — человекочитаемый JSON (merged); для per_node игнорируется (одна строка на профиль). */
+    'sub_json_pretty_print' => filter_var(env('SUB_JSON_PRETTY_PRINT', false), FILTER_VALIDATE_BOOL),
+
     /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
     'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
 

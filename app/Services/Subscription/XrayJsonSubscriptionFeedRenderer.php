@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * Подписка Happ в виде одного JSON-конфига Xray (+ опционально hy2:// строкой ниже для гибрида).
+ * Подписка Happ: JSON конфиг Xray (per_node по умолчанию или merged + balancer).
  * Откат: SUB_FEED_FORMAT=uri в .env
  */
 final class XrayJsonSubscriptionFeedRenderer
@@ -30,13 +30,16 @@ final class XrayJsonSubscriptionFeedRenderer
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
         try {
+            $bundleMode = strtolower(trim((string) config('xui.sub_json_bundle_mode', 'per_node')));
+
             $bundle = $this->bundleCollector->collect($nodes, $bundleOrder, $sub);
 
-            $outbounds = [];
-
+            $convertedRows = [];
             foreach ($bundle['vless_entries'] as $idx => $entry) {
-                $tag = 'proxy-'.preg_replace('/[^a-zA-Z0-9_-]/', '_', $entry['key']).'-'.$idx;
                 $stripped = explode('#', $entry['line'], 2)[0];
+                $tag = $bundleMode === 'merged'
+                    ? ('proxy-'.preg_replace('/[^a-zA-Z0-9_-]/', '_', $entry['key']).'-'.$idx)
+                    : 'proxy';
                 $ob = VlessUriToXrayOutbound::convert($stripped, $tag);
                 if ($ob === null) {
                     Log::warning('subscription.json.vless_convert_failed', [
@@ -46,10 +49,10 @@ final class XrayJsonSubscriptionFeedRenderer
 
                     continue;
                 }
-                $outbounds[] = $ob;
+                $convertedRows[] = ['entry' => $entry, 'ob' => $ob];
             }
 
-            if ($outbounds === []) {
+            if ($convertedRows === []) {
                 throw new \RuntimeException('Не удалось собрать ни одного VLESS outbound в JSON.');
             }
 
@@ -70,21 +73,52 @@ final class XrayJsonSubscriptionFeedRenderer
             $profileTitle = $this->profileTitleForHapp();
             $extras = HappSubscriptionAppManagementExtras::forResponses($sub);
 
-            $metaDesc = $this->composeMetaServerDescription($nodes, $bundle['vless_entries']);
-            if (trim(config('xui.sub_json_meta_server_description', '')) !== '') {
-                $metaDesc = trim((string) config('xui.sub_json_meta_server_description'));
+            $globalMetaOverride = trim((string) config('xui.sub_json_meta_server_description', ''));
+
+            if ($bundleMode === 'merged') {
+                $forMeta = [];
+                foreach ($convertedRows as $row) {
+                    $forMeta[] = $row['entry'];
+                }
+                $metaDesc = $this->composeMetaServerDescription($nodes, $forMeta);
+                if ($globalMetaOverride !== '') {
+                    $metaDesc = $globalMetaOverride;
+                }
+                $mergedOutbounds = array_map(static fn (array $row): mixed => $row['ob'], $convertedRows);
+
+                $doc = $this->buildXrayDoc(
+                    $mergedOutbounds,
+                    $profileTitle,
+                    $metaDesc,
+                );
+
+                $jsonBlob = $this->encodeJsonDocument(
+                    $doc,
+                    filter_var(config('xui.sub_json_pretty_print', false), FILTER_VALIDATE_BOOL),
+                );
+            } else {
+                $jsonPieces = [];
+                foreach ($convertedRows as $row) {
+                    /** @var array{key:string,line:string,userinfo:array<string,int>} $entry */
+                    $entry = $row['entry'];
+
+                    $node = $nodes[$entry['key']] ?? [];
+                    $remarks = trim((string) ($node['vless_display_name'] ?? strtoupper((string) $entry['key'])));
+                    $remarks = $this->shortenHappLabel($remarks, 64);
+
+                    $metaDesc = trim((string) ($node['vless_server_description'] ?? ''));
+                    if ($metaDesc === '') {
+                        $metaDesc = trim((string) config('xui.vless_server_description', ''));
+                    }
+                    if ($globalMetaOverride !== '') {
+                        $metaDesc = $globalMetaOverride;
+                    }
+
+                    $doc = $this->buildXrayDoc([$row['ob']], $remarks, $metaDesc);
+                    $jsonPieces[] = $this->encodeJsonDocument($doc, false);
+                }
+                $jsonBlob = implode("\n", $jsonPieces);
             }
-
-            $doc = $this->buildXrayDoc(
-                $outbounds,
-                $profileTitle,
-                $metaDesc,
-            );
-
-            $jsonPretty = json_encode(
-                $doc,
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
-            );
 
             $routingLine = $this->happRoutingLineForBody();
             $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
@@ -94,7 +128,7 @@ final class XrayJsonSubscriptionFeedRenderer
                 $bodySuffix = "\n".trim((string) $bundle['hy2_uri'])."\n";
             }
 
-            $coreBody = $meta."\n".$jsonPretty.$bodySuffix;
+            $coreBody = $meta."\n".$jsonBlob.$bodySuffix;
 
             if (config('xui.sub_output_b64', false)) {
                 $encoded = base64_encode($coreBody)."\n";
@@ -155,13 +189,15 @@ final class XrayJsonSubscriptionFeedRenderer
 
             $profileTitle = $this->profileTitleForHapp();
             $extras = HappSubscriptionAppManagementExtras::forResponses($key);
+
+            $trialRemarks = $this->shortenHappLabel(trim((string) config('test_keys.vless_display_name', 'Trial')), 64);
             $metaDesc = trim((string) config('xui.vless_server_description', ''));
 
-            $doc = $this->buildXrayDoc([$ob], $profileTitle, $metaDesc);
+            $doc = $this->buildXrayDoc([$ob], $trialRemarks, $metaDesc);
 
-            $jsonPretty = json_encode(
+            $jsonPretty = $this->encodeJsonDocument(
                 $doc,
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR
+                filter_var(config('xui.sub_json_pretty_print', false), FILTER_VALIDATE_BOOL),
             );
 
             $routingLine = config('test_keys.apply_happ_routing', false) ? $this->happRoutingLineForBody() : null;
@@ -252,6 +288,32 @@ final class XrayJsonSubscriptionFeedRenderer
             ),
             'userinfo' => $userinfo,
         ];
+    }
+
+    private function encodeJsonDocument(array $doc, bool $pretty): string
+    {
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR;
+        if ($pretty) {
+            $flags |= JSON_PRETTY_PRINT;
+        }
+
+        return json_encode($doc, $flags);
+    }
+
+    private function shortenHappLabel(string $value, int $max): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return $value;
+        }
+        if (function_exists('mb_strlen') && mb_strlen($value) > $max) {
+            return mb_substr($value, 0, $max);
+        }
+        if (strlen($value) > $max) {
+            return substr($value, 0, $max);
+        }
+
+        return $value;
     }
 
     /**
