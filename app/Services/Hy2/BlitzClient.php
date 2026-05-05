@@ -109,10 +109,11 @@ final class BlitzClient
         $sdFormat = strtolower(trim((string) config('xui.vless_server_description_format', 'b64')));
 
         // Title — UTF-8 (эмодзи/русский) → rawurlencode, чтобы фрагмент был валидным URI.
-        // ?serverDescription=... приклеиваем СЫРЫМ (Happ парсит именно «#title?serverDescription=…»).
+        // `?serverDescription=...` приклеиваем СЫРЫМ — это структурные разделители фрагмента.
+        // base64 строго с padding `=` — без него Happ не парсит serverDescription.
         $uri .= '#'.rawurlencode($title);
         if ($serverDesc !== '' && $sdFormat === 'b64') {
-            $uri .= '?serverDescription='.rtrim(base64_encode($serverDesc), '=');
+            $uri .= '?serverDescription='.base64_encode($serverDesc);
         } elseif ($serverDesc !== '' && $sdFormat === 'dual') {
             $uri .= '?'.rawurlencode($serverDesc);
         }

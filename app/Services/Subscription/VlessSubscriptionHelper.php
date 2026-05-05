@@ -28,9 +28,11 @@ final class VlessSubscriptionHelper
     /**
      * Фрагмент vless:// для Happ: первая строка — title (до 30 симв.), вторая — подпись вместо «VLESS».
      *
-     * Формат фрагмента строго по доке Happ: `#<rawurlencoded_title>?serverDescription=<base64_no_pad>`.
-     * Title с эмодзи/кириллицей обязательно urlencod-им, иначе у части парсеров Happ фрагмент валится.
-     * Сепаратор `?` и `=` оставляем сырыми — это разделители самого фрагмента, а не данные title.
+     * Формат фрагмента строго по доке Happ: `#<rawurlencoded_title>?serverDescription=<base64_padded>`.
+     * - Title с эмодзи/пробелами urlencod-им, чтобы фрагмент был валидным URI.
+     * - `?` и `=` оставляем сырыми — это структурные разделители фрагмента.
+     * - Base64 ОБЯЗАТЕЛЬНО с padding `=` — без него Happ не парсит serverDescription
+     *   (см. примеры в офф. доке: `SGFwcCB0aGUgYmVzdA==`).
      *
      * @param  string  $format  dual | b64
      */
@@ -67,7 +69,7 @@ final class VlessSubscriptionHelper
         $format = strtolower(trim($format)) === 'b64' ? 'b64' : 'dual';
 
         if ($format === 'b64') {
-            $fragment = $encodedTitle.'?serverDescription='.rtrim(base64_encode($serverDescription), '=');
+            $fragment = $encodedTitle.'?serverDescription='.base64_encode($serverDescription);
         } else {
             // Happ: «Set after title via the ? separator» — #ИмяУзла?подпись
             $fragment = $encodedTitle.'?'.rawurlencode($serverDescription);
