@@ -61,6 +61,25 @@ return [
     'sub_profile_update_hours' => env('SUB_PROFILE_UPDATE_HOURS', '12'),
     'sub_output_b64' => env('SUB_OUTPUT_B64', '0') === '1',
 
+    /**
+     * Формат GET /sub/{token}: uri (по умолчанию, hy2+vless строками) или xray_json — один конфиг JSON Xray.
+     * Откат: SUB_FEED_FORMAT=uri
+     */
+    'sub_feed_format' => strtolower(trim((string) env('SUB_FEED_FORMAT', 'uri'))),
+
+    /** Непустое значение фиксирует meta.serverDescription в JSON-подписке (перекрывает авто-сборку по узлам). */
+    'sub_json_meta_server_description' => trim((string) env('SUB_JSON_META_SERVER_DESCRIPTION', '')),
+
+    /** После JSON на новой строке добавить hy2:// при наличии HY2 в подписке. */
+    'sub_json_append_hy2_uri' => filter_var(env('SUB_JSON_APPEND_HY2', true), FILTER_VALIDATE_BOOL),
+
+    /**
+     * Переопределение пресета routing.rules до основного outbound. null — список «русские сервисы direct» как в образце конкурентов.
+     *
+     * @var null|list<array<string, mixed>>
+     */
+    'sub_json_direct_domains' => null,
+
     /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
     'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
 

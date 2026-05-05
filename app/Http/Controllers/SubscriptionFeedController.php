@@ -7,6 +7,7 @@ use App\Models\TestKey;
 use App\Services\Subscription\MergedSubscriptionFeedRenderer;
 use App\Services\Subscription\SubscriptionFeedHwidGate;
 use App\Services\Subscription\TestKeySubscriptionFeedRenderer;
+use App\Services\Subscription\XrayJsonSubscriptionFeedRenderer;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,7 +17,8 @@ class SubscriptionFeedController extends Controller
         Request $request,
         string $token,
         SubscriptionFeedHwidGate $hwidGate,
-        MergedSubscriptionFeedRenderer $renderer,
+        MergedSubscriptionFeedRenderer $uriFeedRenderer,
+        XrayJsonSubscriptionFeedRenderer $xrayJsonFeedRenderer,
         TestKeySubscriptionFeedRenderer $testKeyRenderer,
     ): Response {
         $subscription = Subscription::query()->where('token', $token)->first();
@@ -26,7 +28,9 @@ class SubscriptionFeedController extends Controller
                 return $deny;
             }
 
-            return $renderer->render($subscription);
+            return $this->subFeedFormat() === 'xray_json'
+                ? $xrayJsonFeedRenderer->render($subscription)
+                : $uriFeedRenderer->render($subscription);
         }
 
         $testKey = TestKey::query()
@@ -44,6 +48,13 @@ class SubscriptionFeedController extends Controller
             return $deny;
         }
 
-        return $testKeyRenderer->render($testKey);
+        return $this->subFeedFormat() === 'xray_json'
+            ? $xrayJsonFeedRenderer->renderTestKey($testKey)
+            : $testKeyRenderer->render($testKey);
+    }
+
+    private function subFeedFormat(): string
+    {
+        return strtolower(trim((string) config('xui.sub_feed_format', 'uri')));
     }
 }

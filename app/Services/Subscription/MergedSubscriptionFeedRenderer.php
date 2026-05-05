@@ -4,9 +4,6 @@ namespace App\Services\Subscription;
 
 use App\Models\AppSetting;
 use App\Models\Subscription;
-use App\Services\Hy2\BlitzClient;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -14,6 +11,10 @@ use Throwable;
 final class MergedSubscriptionFeedRenderer
 {
     private const BYTES_PER_GB = 1_073_741_824;
+
+    public function __construct(
+        private readonly SubscriptionBundleCollector $bundleCollector,
+    ) {}
 
     public function render(Subscription $sub): Response
     {
@@ -24,36 +25,21 @@ final class MergedSubscriptionFeedRenderer
         $userinfos = [];
 
         try {
-            $responses = $this->fetchPanelSubsParallel($nodes, $bundleOrder, $sub);
+            $bundle = $this->bundleCollector->collect($nodes, $bundleOrder, $sub);
 
-            if (config('hy2.enabled')) {
-                $hy2User = (string) ($sub->hy2_username ?? '');
-                $hy2Pass = (string) ($sub->hy2_password ?? '');
-                if ($hy2User !== '' && $hy2Pass !== '') {
-                    $lines[] = BlitzClient::buildUri($hy2User, $hy2Pass);
-                }
+            if ($bundle['hy2_uri'] !== null && $bundle['hy2_uri'] !== '') {
+                $lines[] = $bundle['hy2_uri'];
             }
 
-            foreach ($bundleOrder as $key) {
-                $node = $nodes[$key] ?? [];
-                $resp = $responses[$key] ?? null;
-                if ($resp === null) {
-                    continue;
-                }
-
-                $ok = $this->appendVlessLineIfOk($lines, $resp, $node, strtoupper($key));
-                if ($ok) {
-                    $userinfos[$key] = $this->parseUserinfoHeader($resp->header('subscription-userinfo'));
+            foreach ($bundle['vless_entries'] as $entry) {
+                $lines[] = $entry['line'];
+                if ($entry['userinfo'] !== []) {
+                    $userinfos[$entry['key']] = $entry['userinfo'];
                 }
             }
 
             if ($lines === []) {
-                $statuses = [];
-                foreach ($bundleOrder as $key) {
-                    $resp = $responses[$key] ?? null;
-                    $statuses[] = strtoupper($key).': '.($resp ? ($resp->successful() ? 'тело пусто' : 'HTTP '.$resp->status()) : 'нет ответа');
-                }
-                throw new \RuntimeException('Ни один узел не отдал рабочую подписку ('.implode(', ', $statuses).').');
+                throw new \RuntimeException('Ни один узел не отдал рабочую подписку.');
             }
         } catch (Throwable $e) {
             Log::warning('subscription.feed.error', [
@@ -104,148 +90,7 @@ final class MergedSubscriptionFeedRenderer
             $headers['routing'] = $routingLine;
         }
 
-        // Имя профиля только в теле (#profile-title) — в HTTP-заголовке UTF-8/прокси часто ломают ответ.
         return new Response($body, 200, $headers);
-    }
-
-    /**
-     * Параллельно запрашиваем все ноды из bundle_order.
-     *
-     * @param  array<string, array<string, mixed>>  $nodes
-     * @param  list<string>  $bundleOrder
-     * @return array<string, \Illuminate\Http\Client\Response>
-     */
-    private function fetchPanelSubsParallel(array $nodes, array $bundleOrder, Subscription $sub): array
-    {
-        $requests = [];
-
-        foreach ($bundleOrder as $key) {
-            $node = $nodes[$key] ?? [];
-            $origin = rtrim((string) ($node['sub_origin'] ?? ''), '/');
-            if ($origin === '') {
-                continue;
-            }
-
-            $subIdField = $key.'_sub_id';
-            $subId = (string) ($sub->$subIdField ?? '');
-            if ($subId === '') {
-                continue;
-            }
-
-            $requests[$key] = [
-                'url' => $origin.'/sub/'.rawurlencode($subId),
-                'headers' => $this->panelSubHeaders((string) ($node['pub_host'] ?? '')),
-            ];
-        }
-
-        if ($requests === []) {
-            throw new \RuntimeException('Нет настроенных узлов с sub_origin в .env');
-        }
-
-        $responses = Http::pool(function (Pool $pool) use ($requests) {
-            $poolRequests = [];
-            foreach ($requests as $key => $cfg) {
-                $poolRequests[] = $pool->as($key)
-                    ->withoutVerifying()
-                    ->withHeaders($cfg['headers'])
-                    ->connectTimeout(12)
-                    ->timeout(28)
-                    ->get($cfg['url']);
-            }
-            return $poolRequests;
-        });
-
-        return $responses;
-    }
-
-    /**
-     * @param  list<string>  $lines
-     * @param  array<string, mixed>  $node
-     */
-    private function appendVlessLineIfOk(array &$lines, \Illuminate\Http\Client\Response $resp, array $node, string $label): bool
-    {
-        if (! $resp->successful()) {
-            return false;
-        }
-        $raw = trim($resp->body());
-        if ($raw === '') {
-            return false;
-        }
-        $line = VlessSubscriptionHelper::extractVlessLineFromSubscriptionBody($raw);
-        if ($line === '' || ! str_starts_with($line, 'vless://')) {
-            return false;
-        }
-
-        // Заменяем localhost / 127.0.0.1 на публичный хост из конфига
-        $pubHost = trim((string) ($node['pub_host'] ?? ''));
-        if ($pubHost !== '' && (str_contains($line, '@127.0.0.1:') || str_contains($line, '@localhost:'))) {
-            $line = VlessSubscriptionHelper::replaceVlessHost($line, $pubHost);
-        }
-
-        // Для TLS с самоподписанным сертификатом добавляем allowInsecure и sni
-        if ($pubHost !== '' && str_contains($line, 'security=tls')) {
-            $line = VlessSubscriptionHelper::ensureTlsInsecure($line, $pubHost);
-        }
-        $line = VlessSubscriptionHelper::ensureRealitySid(
-            $line,
-            (string) ($node['reality_sid'] ?? '')
-        );
-
-        $serverDesc = (string) ($node['vless_server_description'] ?? config('xui.vless_server_description', ''));
-
-        $lines[] = VlessSubscriptionHelper::setVlessFragment(
-            $line,
-            (string) ($node['vless_display_name'] ?? $label),
-            $serverDesc,
-            (string) config('xui.vless_server_description_format', 'dual')
-        );
-
-        return true;
-    }
-
-    /**
-     * Пустые X-Forwarded-* ломают часть инсталляций 3x-ui/nginx; не шлём, если pub_host не задан.
-     *
-     * @return array<string, string>
-     */
-    private function panelSubHeaders(string $pubHost): array
-    {
-        $headers = [
-            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'identity',
-        ];
-        $pubHost = trim($pubHost);
-        if ($pubHost !== '') {
-            $headers['X-Forwarded-Host'] = $pubHost;
-            $headers['X-Real-IP'] = $pubHost;
-        }
-
-        return $headers;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function parseUserinfoHeader(?string $val): array
-    {
-        if ($val === null || $val === '') {
-            return [];
-        }
-
-        $out = [];
-        foreach (explode(';', $val) as $part) {
-            $part = trim($part);
-            if (! str_contains($part, '=')) {
-                continue;
-            }
-            [$k, $v] = explode('=', $part, 2);
-            $k = trim($k);
-            $v = trim($v);
-            $out[$k] = (int) round((float) $v);
-        }
-
-        return $out;
     }
 
     private function formatUserinfoValue(int $upload, int $download, int $total, int $expireSec): string
