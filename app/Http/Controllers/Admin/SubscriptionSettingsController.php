@@ -83,10 +83,6 @@ class SubscriptionSettingsController extends Controller
 
         return view('admin.subscription.announce', [
             'announceExtra' => $raw,
-            'announceLineDevices' => (string) config('marketing.subscription_announce_line_devices'),
-            'announceLineExpiry' => (string) config('marketing.subscription_announce_line_expiry'),
-            'announcePreview' => $this->renderAnnouncePreview($raw),
-            'announceMaxLen' => 200,
         ]);
     }
 
@@ -102,49 +98,12 @@ class SubscriptionSettingsController extends Controller
 
         if ($input === '') {
             AppSetting::forgetKey('marketing_announce_text');
-
-            return redirect()
-                ->route('admin.subscription.announce')
-                ->with('status', 'Дополнительный блок очищен — останутся только строки про устройства и срок.');
+        } else {
+            AppSetting::setValue('marketing_announce_text', $input);
         }
-
-        AppSetting::setValue('marketing_announce_text', $input);
 
         return redirect()
             ->route('admin.subscription.announce')
-            ->with('status', 'Анонс сохранён. Клиентам нужно обновить подписку в Happ.');
-    }
-
-    /**
-     * Полный текст анонса (3 секции) с фиктивными значениями used=1/max=5/days=30 — для предпросмотра в админке.
-     */
-    private function renderAnnouncePreview(string $extraTemplate): string
-    {
-        $vars = [
-            '{used}' => '1',
-            '{max}' => '5',
-            '{days}' => '30',
-            '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
-            '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
-        ];
-
-        $lines = [];
-
-        $devicesTpl = trim((string) config('marketing.subscription_announce_line_devices'));
-        if ($devicesTpl !== '') {
-            $lines[] = strtr($devicesTpl, $vars);
-        }
-
-        $expiryTpl = trim((string) config('marketing.subscription_announce_line_expiry'));
-        if ($expiryTpl !== '') {
-            $lines[] = strtr($expiryTpl, $vars);
-        }
-
-        $extra = trim($extraTemplate, " \t\n");
-        if ($extra !== '') {
-            $lines[] = strtr($extra, $vars);
-        }
-
-        return implode("\n", $lines);
+            ->with('status', 'Сохранено.');
     }
 }
