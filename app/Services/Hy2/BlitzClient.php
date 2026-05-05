@@ -108,14 +108,14 @@ final class BlitzClient
         $serverDesc = trim((string) config('hy2.server_description', ''));
         $sdFormat = strtolower(trim((string) config('xui.vless_server_description_format', 'b64')));
 
-        // Title — UTF-8 (эмодзи/русский) → rawurlencode, чтобы фрагмент был валидным URI.
-        // `?serverDescription=...` приклеиваем СЫРЫМ — это структурные разделители фрагмента.
-        // base64 строго с padding `=` — без него Happ не парсит serverDescription.
-        $uri .= '#'.rawurlencode($title);
+        // Title — сырые UTF-8 байты в фрагменте (так в примерах офф. доки и в JSON-конфигах
+        // конкурентов с meta.serverDescription). rawurlencode title → Happ не парсит подпись.
+        // `?serverDescription=...` сырой; base64 строго с padding `=`.
+        $uri .= '#'.$title;
         if ($serverDesc !== '' && $sdFormat === 'b64') {
             $uri .= '?serverDescription='.base64_encode($serverDesc);
         } elseif ($serverDesc !== '' && $sdFormat === 'dual') {
-            $uri .= '?'.rawurlencode($serverDesc);
+            $uri .= '?'.$serverDesc;
         }
 
         return $uri;

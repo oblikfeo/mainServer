@@ -28,11 +28,12 @@ final class VlessSubscriptionHelper
     /**
      * Фрагмент vless:// для Happ: первая строка — title (до 30 симв.), вторая — подпись вместо «VLESS».
      *
-     * Формат фрагмента строго по доке Happ: `#<rawurlencoded_title>?serverDescription=<base64_padded>`.
-     * - Title с эмодзи/пробелами urlencod-им, чтобы фрагмент был валидным URI.
-     * - `?` и `=` оставляем сырыми — это структурные разделители фрагмента.
-     * - Base64 ОБЯЗАТЕЛЬНО с padding `=` — без него Happ не парсит serverDescription
-     *   (см. примеры в офф. доке: `SGFwcCB0aGUgYmVzdA==`).
+     * Формат строго по примерам офф. доки Happ:
+     *   `#<title_RAW_UTF8>?serverDescription=<base64_padded>`
+     * - Title оставляем сырыми UTF-8 байтами (как в примерах конкурентов и в офф. JSON `remarks`).
+     *   rawurlencode эмпирически ломает парсер Happ: подпись не появляется.
+     * - `?` и `=` сырые — структурные разделители фрагмента.
+     * - Base64 ОБЯЗАТЕЛЬНО с padding `=` — без него Happ не парсит serverDescription.
      *
      * @param  string  $format  dual | b64
      */
@@ -53,11 +54,9 @@ final class VlessSubscriptionHelper
             $title = substr($title, 0, 30);
         }
 
-        $encodedTitle = rawurlencode($title);
-
         $serverDescription = trim($serverDescription);
         if ($serverDescription === '') {
-            return $base.'#'.$encodedTitle;
+            return $base.'#'.$title;
         }
 
         if (function_exists('mb_substr')) {
@@ -69,10 +68,10 @@ final class VlessSubscriptionHelper
         $format = strtolower(trim($format)) === 'b64' ? 'b64' : 'dual';
 
         if ($format === 'b64') {
-            $fragment = $encodedTitle.'?serverDescription='.base64_encode($serverDescription);
+            $fragment = $title.'?serverDescription='.base64_encode($serverDescription);
         } else {
             // Happ: «Set after title via the ? separator» — #ИмяУзла?подпись
-            $fragment = $encodedTitle.'?'.rawurlencode($serverDescription);
+            $fragment = $title.'?'.$serverDescription;
         }
 
         return $base.'#'.$fragment;
