@@ -27,7 +27,8 @@ return [
 
         return $a !== '' ? $a : trim((string) env('SUB_GRAY_HY2', ''));
     })(),
-    'server_description' => env('HY2_SERVER_DESC', 'global'),
+    'server_description' => env('HY2_SERVER_DESC', 'Wi-Fi — высокая скорость, без LTE'),
+
 
     'ssh_host' => env('HY2_SSH_HOST', '222.167.208.75'),
     'ssh_user' => env('HY2_SSH_USER', 'root'),

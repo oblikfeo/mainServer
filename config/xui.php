@@ -28,7 +28,8 @@ return [
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
             'client_flow' => env('XUI_FI_FLOW', 'xtls-rprx-vision'),
             'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 LTE Город 1 🏙️',
-            'vless_server_description' => env('XUI_FI_SERVER_DESC', 'белый список'),
+            'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE Финляндия — основной узел'),
+
             'reality_sid' => env('XUI_FI_REALITY_SID', ''),
         ],
         'nl' => [
@@ -41,7 +42,8 @@ return [
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
             'client_flow' => env('XUI_NL_FLOW', 'xtls-rprx-vision'),
             'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 LTE Город 2 🏙️',
-            'vless_server_description' => env('XUI_NL_SERVER_DESC', 'белый список'),
+            'vless_server_description' => env('XUI_NL_SERVER_DESC', 'LTE Нидерланды — запасной узел'),
+
             'reality_sid' => env('XUI_NL_REALITY_SID', ''),
         ],
     ],
@@ -50,7 +52,8 @@ return [
      * Подпись под заголовком узла в Happ (вместо «VLESS»). Пусто — не добавлять вторую часть.
      * @see https://www.happ.su/main/dev-docs/app-management
      */
-    'vless_server_description' => trim((string) env('XUI_VLESS_SERVER_DESCRIPTION', 'белый список')),
+    'vless_server_description' => trim((string) env('XUI_VLESS_SERVER_DESCRIPTION', 'LTE · стабильное соединение')),
+
 
     /** b64 = #Title?serverDescription=<base64>; dual = #Title?подпись. @see happ.su app-management */
     'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'b64'))),
@@ -103,7 +106,7 @@ return [
     'sub_json_prepend_share_lines' => filter_var(env('SUB_JSON_PREPEND_SHARE_LINES', true), FILTER_VALIDATE_BOOL),
 
     /**
-     * Добавлять в этот префикс строки vless://. false — только hy2:// + JSON с VLESS (серая строка из meta, как у JSON-конкурентов).
+     * Добавлять в префикс строки vless:// (по умолчанию да). Если false — только hy2 и JSON-профили: часть мобильных клиентов не увидит LTE; на ПК Happ часто добавляет пометку JSON.
      */
     'sub_json_prepend_vless_uris' => filter_var(env('SUB_JSON_PREPEND_VLESS', true), FILTER_VALIDATE_BOOL),
 

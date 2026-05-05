@@ -12,7 +12,7 @@ use Throwable;
 
 /**
  * Подписка Happ: JSON Xray + опционально строки vless/hy2 перед JSON (совместимость с мобильным импортом по ссылке).
- * SUB_JSON_PREPEND_VLESS=0 — префикс только hy2, VLESS только внутри JSON (meta.serverDescription в списке, как у конкурентов).
+ * По умолчанию vless в префиксе включён; SUB_JSON_PREPEND_VLESS=0 режет LTE на части клиентов и включает JSON-профили (на ПК бывает приписка JSON).
  * Откат: SUB_FEED_FORMAT=uri в .env
  */
 final class XrayJsonSubscriptionFeedRenderer
