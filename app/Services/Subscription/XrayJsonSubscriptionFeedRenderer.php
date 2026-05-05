@@ -123,6 +123,16 @@ final class XrayJsonSubscriptionFeedRenderer
             $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
             $uriBlock = $prependUris ? $this->plainSubscriptionShareLinesBlock($bundle) : '';
 
+            $embedExplicit = strtolower(trim((string) config('xui.sub_json_embed_profiles_env', '')));
+            $embedProfiles = match ($embedExplicit) {
+                '1', 'true', 'yes', 'always' => true,
+                '0', 'false', 'no', 'never' => false,
+                default => ! $prependUris,
+            };
+            if (! $embedProfiles) {
+                $jsonBlob = '';
+            }
+
             $bodySuffix = '';
             if (
                 filter_var(config('xui.sub_json_append_hy2_uri', true), FILTER_VALIDATE_BOOL)
@@ -198,6 +208,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $trialRemarks = $this->shortenHappLabel(trim((string) config('test_keys.vless_display_name', 'Trial')), 64);
             $metaDesc = SubscriptionHappSubtitle::forTestKey();
 
+            $doc = $this->buildXrayDoc([$ob], $trialRemarks, $metaDesc);
             $jsonPretty = $this->encodeJsonDocument(
                 $doc,
                 filter_var(config('xui.sub_json_pretty_print', false), FILTER_VALIDATE_BOOL),

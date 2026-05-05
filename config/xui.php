@@ -102,6 +102,13 @@ return [
     /** По умолчанию true: перед JSON добавить hy2+vless строки как в URI-режиме (мобильный Happ часто не парсит JSON из тела URL-подписки). */
     'sub_json_prepend_share_lines' => filter_var(env('SUB_JSON_PREPEND_SHARE_LINES', true), FILTER_VALIDATE_BOOL),
 
+    /**
+     * Вкладывать Xray JSON после share-линий. Пустое значение env = auto.
+     * Auto: при включённом prepend — не вкладывать (иначе дубликаты VLESS + VLESS|JSON на десктопе).
+     * SUB_JSON_EMBED_PROFILES=1|0|true|false|always|never
+     */
+    'sub_json_embed_profiles_env' => strtolower(trim((string) env('SUB_JSON_EMBED_PROFILES', ''))),
+
     /** Кэш запросов к панелям на странице «Отчёт» (секунды). */
     'report_traffic_cache_ttl' => (int) env('XUI_REPORT_TRAFFIC_CACHE_TTL', 60),
 
