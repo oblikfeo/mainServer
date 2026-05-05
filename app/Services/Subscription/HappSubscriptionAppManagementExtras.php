@@ -5,19 +5,21 @@ namespace App\Services\Subscription;
 use App\Models\AppSetting;
 use App\Models\Subscription;
 use App\Models\TestKey;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
  *
- * #announce собирается так:
- *   1) Произвольный многострочный шаблон из админки (AppSetting `marketing_announce_text`)
- *      — поддерживает переносы строк и плейсхолдеры {used} / {max} / {brand} / {support}.
- *   2) Если шаблон пуст — fallback на однострочное «Привязанные устройства: {used}/{max}»
- *      (config marketing.subscription_announce_line_devices).
- *   3) Текст кодируется в base64 и отдаётся как `announce: base64:<…>` И в HTTP-заголовке,
- *      И в теле подписки. Часть версий Happ рендерит \n внутри base64-полезной нагрузки —
- *      этим мы и пробуем «многострочный» анонс, не дожидаясь Provider ID / sub-info-text.
+ * Тело #announce собирается из трёх частей сверху вниз:
+ *   1) Фикс. «Привязанные устройства: used/max» (всегда).
+ *   2) Фикс. «Дней до окончания подписки: N» (только если задана дата).
+ *   3) Произвольный текст из админки (AppSetting `marketing_announce_text`),
+ *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support}.
+ *
+ * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
+ * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
+ * base64-полезной нагрузки — этим мы пробуем многострочный анонс без Provider ID.
  *
  * @see https://www.happ.su/main/dev-docs/app-management
  */
@@ -86,24 +88,39 @@ final class HappSubscriptionAppManagementExtras
         }
 
         [$used, $max] = self::deviceCounters($context);
+        $daysLeft = self::daysLeft($context);
 
         $vars = [
             '{used}' => (string) $used,
             '{max}' => (string) $max,
+            '{days}' => $daysLeft !== null ? (string) $daysLeft : '',
             '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
             '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
         ];
 
-        $template = self::adminAnnounceTemplate();
-        if ($template === '') {
-            // Назад-совместимый дефолт: одна строка про устройства.
-            $template = (string) config('marketing.subscription_announce_line_devices');
-        }
-        if ($template === '') {
-            return '';
+        $lines = [];
+
+        // Строка 1: устройства. Всегда.
+        $devicesTpl = trim((string) config('marketing.subscription_announce_line_devices', 'Привязанные устройства: {used}/{max}'));
+        if ($devicesTpl !== '') {
+            $lines[] = strtr($devicesTpl, $vars);
         }
 
-        $rendered = self::normalizeNewlines(strtr($template, $vars));
+        // Строка 2: дней до окончания. Только при наличии даты.
+        if ($daysLeft !== null) {
+            $expiryTpl = trim((string) config('marketing.subscription_announce_line_expiry', 'Дней до окончания подписки: {days}'));
+            if ($expiryTpl !== '') {
+                $lines[] = strtr($expiryTpl, $vars);
+            }
+        }
+
+        // Строка 3+: произвольный блок из админки.
+        $extra = self::adminAnnounceTemplate();
+        if ($extra !== '') {
+            $lines[] = strtr($extra, $vars);
+        }
+
+        $rendered = self::normalizeNewlines(implode("\n", $lines));
         $rendered = self::stripPlainTextBom($rendered);
         $rendered = trim($rendered, " \t\r\n");
 
@@ -118,7 +135,33 @@ final class HappSubscriptionAppManagementExtras
             $raw = '';
         }
 
-        return self::normalizeNewlines((string) $raw);
+        return trim(self::normalizeNewlines((string) $raw), " \t\n");
+    }
+
+    /**
+     * Сколько целых дней осталось до окончания подписки. null — если даты нет; 0 — если уже истекла.
+     */
+    private static function daysLeft(Subscription|TestKey|null $context): ?int
+    {
+        $expiresAt = null;
+
+        if ($context instanceof Subscription) {
+            $expiresAt = $context->expiresAt();
+        } elseif ($context instanceof TestKey) {
+            $expiresAt = $context->expires_at instanceof Carbon ? $context->expires_at : null;
+        }
+
+        if (! $expiresAt instanceof Carbon) {
+            return null;
+        }
+
+        $diffSeconds = $expiresAt->getTimestamp() - Carbon::now()->getTimestamp();
+        if ($diffSeconds <= 0) {
+            return 0;
+        }
+
+        // ceil: «осталось 23 часа» → 1 день, не 0; чувствительнее, чем floor, и согласуется с UX «N дней».
+        return (int) ceil($diffSeconds / 86400);
     }
 
     /**

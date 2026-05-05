@@ -28,10 +28,16 @@ return [
         FILTER_VALIDATE_BOOLEAN
     ),
 
-    /** Анонс Happ при персонализации. Плейсхолдеры: {used}, {max} */
+    /** Анонс Happ — первая строка (устройства). Плейсхолдеры: {used}, {max} */
     'subscription_announce_line_devices' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES',
         'Привязанные устройства: {used}/{max}'
+    ),
+
+    /** Анонс Happ — вторая строка (срок). Плейсхолдер: {days} */
+    'subscription_announce_line_expiry' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_EXPIRY',
+        'Дней до окончания подписки: {days}'
     ),
 
     /**

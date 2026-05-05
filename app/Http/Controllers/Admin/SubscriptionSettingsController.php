@@ -81,13 +81,11 @@ class SubscriptionSettingsController extends Controller
         $raw = (string) (AppSetting::getValue('marketing_announce_text') ?? '');
         $raw = str_replace(["\r\n", "\r"], "\n", $raw);
 
-        $fallback = trim((string) config('marketing.subscription_announce_line_devices'));
-        $effective = $raw !== '' ? $raw : $fallback;
-
         return view('admin.subscription.announce', [
-            'announceTemplate' => $raw,
-            'announceFallback' => $fallback,
-            'announcePreview' => $this->renderAnnouncePreview($effective),
+            'announceExtra' => $raw,
+            'announceLineDevices' => (string) config('marketing.subscription_announce_line_devices'),
+            'announceLineExpiry' => (string) config('marketing.subscription_announce_line_expiry'),
+            'announcePreview' => $this->renderAnnouncePreview($raw),
             'announceMaxLen' => 200,
         ]);
     }
@@ -107,7 +105,7 @@ class SubscriptionSettingsController extends Controller
 
             return redirect()
                 ->route('admin.subscription.announce')
-                ->with('status', 'Анонс очищен — Happ покажет дефолтную строку про устройства.');
+                ->with('status', 'Дополнительный блок очищен — останутся только строки про устройства и срок.');
         }
 
         AppSetting::setValue('marketing_announce_text', $input);
@@ -118,18 +116,35 @@ class SubscriptionSettingsController extends Controller
     }
 
     /**
-     * Возвращает текст анонса с подставленными плейсхолдерами для предпросмотра в админке
-     * (used/max берём фиктивные «1/5», чтобы был наглядный пример).
+     * Полный текст анонса (3 секции) с фиктивными значениями used=1/max=5/days=30 — для предпросмотра в админке.
      */
-    private function renderAnnouncePreview(string $template): string
+    private function renderAnnouncePreview(string $extraTemplate): string
     {
         $vars = [
             '{used}' => '1',
             '{max}' => '5',
+            '{days}' => '30',
             '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
             '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
         ];
 
-        return strtr($template, $vars);
+        $lines = [];
+
+        $devicesTpl = trim((string) config('marketing.subscription_announce_line_devices'));
+        if ($devicesTpl !== '') {
+            $lines[] = strtr($devicesTpl, $vars);
+        }
+
+        $expiryTpl = trim((string) config('marketing.subscription_announce_line_expiry'));
+        if ($expiryTpl !== '') {
+            $lines[] = strtr($expiryTpl, $vars);
+        }
+
+        $extra = trim($extraTemplate, " \t\n");
+        if ($extra !== '') {
+            $lines[] = strtr($extra, $vars);
+        }
+
+        return implode("\n", $lines);
     }
 }

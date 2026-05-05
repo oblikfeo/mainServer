@@ -14,9 +14,9 @@
         <div>
             <h1 class="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Анонс в Happ</h1>
             <p class="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed">
-                Текст в строке <code class="rounded bg-slate-100 px-1">#announce</code> — баннер над списком серверов в Happ.
-                Поддерживает многострочный текст: переносы строк сохраняются (передаются в base64-нагрузке).
-                <strong>Лимит — 200 символов</strong>, всё что длиннее обрежется.
+                Баннер <code class="rounded bg-slate-100 px-1">#announce</code> над списком серверов в Happ
+                собирается из трёх секций. Первые две — фиксированные, третья редактируется здесь.
+                Общий лимит — <strong>200 символов</strong>, дальше Happ обрежет.
             </p>
         </div>
 
@@ -27,16 +27,36 @@
         @endif
 
         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 text-sm text-slate-700 space-y-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Что подставляется автоматически</h2>
+            <ol class="list-decimal list-inside space-y-2 leading-relaxed">
+                <li>
+                    <strong>Строка 1.</strong> <span class="font-mono text-slate-900">{{ $announceLineDevices }}</span>
+                    <span class="text-slate-500">— показывается всегда.</span>
+                </li>
+                <li>
+                    <strong>Строка 2.</strong> <span class="font-mono text-slate-900">{{ $announceLineExpiry }}</span>
+                    <span class="text-slate-500">— показывается, если у подписки задана дата окончания.</span>
+                </li>
+                <li>
+                    <strong>Строка 3+.</strong> <span class="text-slate-900">Текст из поля ниже.</span>
+                </li>
+            </ol>
+            <p class="text-xs text-slate-500 pt-1">
+                Сами шаблоны строк 1–2 хранятся в <code class="rounded bg-white px-1 border border-slate-200">.env</code>
+                (<code class="rounded bg-white px-1 border border-slate-200">MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES</code>,
+                <code class="rounded bg-white px-1 border border-slate-200">MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_EXPIRY</code>).
+            </p>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 text-sm text-slate-700 space-y-2">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Доступные плейсхолдеры</h2>
             <ul class="text-sm space-y-1">
                 <li><code class="rounded bg-white px-1 border border-slate-200">{used}</code> — сколько устройств уже привязано</li>
                 <li><code class="rounded bg-white px-1 border border-slate-200">{max}</code> — лимит устройств в подписке</li>
-                <li><code class="rounded bg-white px-1 border border-slate-200">{brand}</code> — название бренда (config marketing.brand_name)</li>
-                <li><code class="rounded bg-white px-1 border border-slate-200">{support}</code> — URL службы поддержки</li>
+                <li><code class="rounded bg-white px-1 border border-slate-200">{days}</code> — сколько дней осталось до окончания</li>
+                <li><code class="rounded bg-white px-1 border border-slate-200">{brand}</code> — название бренда</li>
+                <li><code class="rounded bg-white px-1 border border-slate-200">{support}</code> — URL поддержки</li>
             </ul>
-            <p class="text-xs text-slate-500 pt-1">
-                Если поле пустое — Happ покажет дефолт «{{ $announceFallback }}».
-            </p>
         </div>
 
         <form
@@ -47,7 +67,7 @@
             @csrf
             <div>
                 <label for="announce_text" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    Текст анонса (хранится в базе)
+                    Дополнительный текст под устройствами и сроком
                 </label>
                 <textarea
                     name="announce_text"
@@ -55,25 +75,28 @@
                     rows="6"
                     maxlength="4000"
                     placeholder="Напр.:
-Устройства: {used}/{max}
-Поддержка: {support}"
+Поддержка: {support}
+Спасибо что с нами!"
                     class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 font-mono text-sm focus:border-slate-400 focus:ring-slate-400"
-                >{{ old('announce_text', $announceTemplate) }}</textarea>
+                >{{ old('announce_text', $announceExtra) }}</textarea>
                 @error('announce_text')
                     <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                 @enderror
                 <p class="mt-2 text-xs text-slate-500">
-                    Лимит, после которого Happ обрежет: {{ $announceMaxLen }} символов.
+                    Учитывается весь баннер целиком: после {{ $announceMaxLen }} символов Happ обрежет.
                 </p>
             </div>
 
             <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm space-y-2">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Предпросмотр (used=1, max=5)</h3>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Предпросмотр (used=1, max=5, days=30)</h3>
                 @if (trim($announcePreview) === '')
                     <p class="text-xs text-slate-500">Пусто.</p>
                 @else
                     <pre class="whitespace-pre-wrap font-mono text-xs text-slate-800">{{ $announcePreview }}</pre>
                 @endif
+                <p class="text-[11px] text-slate-500">
+                    Длина текущего предпросмотра: <strong>{{ mb_strlen(trim($announcePreview)) }}</strong> символов.
+                </p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
@@ -81,7 +104,7 @@
                     Сохранить
                 </button>
                 <p class="text-xs text-slate-500 self-center">
-                    Очистите поле и сохраните — вернётся дефолт.
+                    Очистите поле — останутся только строки про устройства и срок.
                 </p>
             </div>
         </form>
