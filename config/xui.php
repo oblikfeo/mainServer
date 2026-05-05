@@ -103,8 +103,13 @@ return [
     'sub_json_prepend_share_lines' => filter_var(env('SUB_JSON_PREPEND_SHARE_LINES', true), FILTER_VALIDATE_BOOL),
 
     /**
+     * Добавлять в этот префикс строки vless://. false — только hy2:// + JSON с VLESS (серая строка из meta, как у JSON-конкурентов).
+     */
+    'sub_json_prepend_vless_uris' => filter_var(env('SUB_JSON_PREPEND_VLESS', true), FILTER_VALIDATE_BOOL),
+
+    /**
      * Вкладывать Xray JSON после share-линий. Пустое значение env = auto.
-     * Auto: при включённом prepend — не вкладывать (иначе дубликаты VLESS + VLESS|JSON на десктопе).
+     * Auto: не вкладывать только если prepend содержит vless:// (совпадение с JSON на десктопе Happ).
      * SUB_JSON_EMBED_PROFILES=1|0|true|false|always|never
      */
     'sub_json_embed_profiles_env' => strtolower(trim((string) env('SUB_JSON_EMBED_PROFILES', ''))),
