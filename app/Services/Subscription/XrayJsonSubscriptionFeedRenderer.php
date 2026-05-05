@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 /**
- * Подписка Happ: JSON конфиг Xray (per_node по умолчанию или merged + balancer).
+ * Подписка Happ: JSON Xray + опционально строки vless/hy2 перед JSON (совместимость с мобильным импортом по ссылке).
  * Откат: SUB_FEED_FORMAT=uri в .env
  */
 final class XrayJsonSubscriptionFeedRenderer
@@ -120,12 +120,20 @@ final class XrayJsonSubscriptionFeedRenderer
             $routingLine = $this->happRoutingLineForBody();
             $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
+            $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
+            $uriBlock = $prependUris ? $this->plainSubscriptionShareLinesBlock($bundle) : '';
+
             $bodySuffix = '';
-            if (filter_var(config('xui.sub_json_append_hy2_uri', true), FILTER_VALIDATE_BOOL) && $bundle['hy2_uri'] !== null && $bundle['hy2_uri'] !== '') {
+            if (
+                filter_var(config('xui.sub_json_append_hy2_uri', true), FILTER_VALIDATE_BOOL)
+                && (! $prependUris)
+                && $bundle['hy2_uri'] !== null && $bundle['hy2_uri'] !== ''
+            ) {
                 $bodySuffix = "\n".trim((string) $bundle['hy2_uri'])."\n";
             }
 
-            $coreBody = $meta."\n".$jsonBlob.$bodySuffix;
+            $middle = $uriBlock !== '' ? $uriBlock."\n" : '';
+            $coreBody = $meta."\n".$middle.$jsonBlob.$bodySuffix;
 
             if (config('xui.sub_output_b64', false)) {
                 $encoded = base64_encode($coreBody)."\n";
@@ -309,6 +317,31 @@ final class XrayJsonSubscriptionFeedRenderer
         }
 
         return $value;
+    }
+
+    /**
+     * Строки hy2+vless как в режиме uri — многие мобильные сборки Happ по URL парсят только их и игнорируют голый JSON ниже мета-блока.
+     *
+     * @param  array{
+     *   hy2_uri: ?string,
+     *   vless_entries: list<array{key:string,line:string,userinfo?:array<string,int>}>
+     * }  $bundle
+     */
+    private function plainSubscriptionShareLinesBlock(array $bundle): string
+    {
+        $lines = [];
+        $hy2 = isset($bundle['hy2_uri']) ? trim((string) $bundle['hy2_uri']) : '';
+        if ($hy2 !== '') {
+            $lines[] = $hy2;
+        }
+        foreach ($bundle['vless_entries'] ?? [] as $row) {
+            $line = isset($row['line']) ? trim((string) $row['line']) : '';
+            if ($line !== '') {
+                $lines[] = $line;
+            }
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
