@@ -16,7 +16,7 @@ final class MergedSubscriptionFeedRenderer
         private readonly SubscriptionBundleCollector $bundleCollector,
     ) {}
 
-    public function render(Subscription $sub): Response
+    public function render(Subscription $sub, bool $likelyMobileClient = false): Response
     {
         $nodes = config('xui.nodes', []);
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
@@ -64,7 +64,7 @@ final class MergedSubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
+        $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down, $likelyMobileClient);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $routingLine = $this->happRoutingLineForBody();

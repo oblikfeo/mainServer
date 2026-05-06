@@ -28,9 +28,11 @@ class SubscriptionFeedController extends Controller
                 return $deny;
             }
 
+            $mobile = $this->subscriptionFetchLikelyMobile($request);
+
             return $this->subFeedFormat() === 'xray_json'
-                ? $xrayJsonFeedRenderer->render($subscription)
-                : $uriFeedRenderer->render($subscription);
+                ? $xrayJsonFeedRenderer->render($subscription, $mobile)
+                : $uriFeedRenderer->render($subscription, $mobile);
         }
 
         $testKey = TestKey::query()
@@ -48,13 +50,29 @@ class SubscriptionFeedController extends Controller
             return $deny;
         }
 
+        $mobile = $this->subscriptionFetchLikelyMobile($request);
+
         return $this->subFeedFormat() === 'xray_json'
-            ? $xrayJsonFeedRenderer->renderTestKey($testKey)
-            : $testKeyRenderer->render($testKey);
+            ? $xrayJsonFeedRenderer->renderTestKey($testKey, $mobile)
+            : $testKeyRenderer->render($testKey, $mobile);
     }
 
     private function subFeedFormat(): string
     {
         return strtolower(trim((string) config('xui.sub_feed_format', 'uri')));
+    }
+
+    /** Мобильный Happ на iOS/Android не показывает блок sub-info над анонсом — ниже дублируем CTA в #announce. */
+    private function subscriptionFetchLikelyMobile(Request $request): bool
+    {
+        $ua = strtolower((string) $request->userAgent());
+
+        return str_contains($ua, 'iphone')
+            || str_contains($ua, 'ipad')
+            || str_contains($ua, 'android')
+            || str_contains($ua, 'mobile')
+            || str_contains($ua, 'cfnetwork')
+            || str_contains($ua, 'okhttp')
+            || str_contains($ua, 'happ');
     }
 }

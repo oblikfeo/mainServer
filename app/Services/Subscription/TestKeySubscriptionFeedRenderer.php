@@ -12,7 +12,7 @@ final class TestKeySubscriptionFeedRenderer
 {
     private const BYTES_PER_GB = 1_073_741_824;
 
-    public function render(TestKey $key): Response
+    public function render(TestKey $key, bool $likelyMobileClient = false): Response
     {
         $line = '';
         $ui = [];
@@ -69,7 +69,7 @@ final class TestKeySubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $total, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down);
+        $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down, $likelyMobileClient);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
         $routingLine = config('test_keys.apply_happ_routing', false) ? $this->happRoutingLineForBody() : null;
 
