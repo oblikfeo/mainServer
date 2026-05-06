@@ -42,7 +42,7 @@ return [
 
     /**
      * Анонс Happ — опциональная строка с {site}. В поле announce URL не становится гиперссылкой.
-     * Кнопка: subscription_happ_sub_info_* и иконка #profile-web-page-url.
+     * Кнопку входа даёт sub-info; иконка profile-web-page-url — только если кнопку выключили (пустой текст кнопки).
      */
     'subscription_announce_line_site' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE',

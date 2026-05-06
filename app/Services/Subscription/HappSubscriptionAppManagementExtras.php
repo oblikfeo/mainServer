@@ -18,7 +18,7 @@ use Throwable;
  *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
- * Отдельно от текста: метаданные Happ «sub-info-*» (кнопка) и «profile-web-page-url» (иконка сайта) — см. forResponses().
+ * Отдельно от текста: либо «sub-info» (кнопка), либо иконка «profile-web-page-url» — не оба сразу, чтобы в UI была одна кнопка входа.
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -54,12 +54,17 @@ final class HappSubscriptionAppManagementExtras
             $headers['support-url'] = $supportUrl;
         }
 
-        if ($webUrl !== '') {
+        $subInfoButton = self::happSubInfoWillShow($webUrl);
+
+        // Иконка «сайт» в строке профиля — только если нет кнопки sub-info (иначе два одинаковых входа).
+        if ($webUrl !== '' && ! $subInfoButton) {
             $body .= "#profile-web-page-url: {$webUrl}\n";
             $headers['profile-web-page-url'] = $webUrl;
         }
 
-        self::appendHappSubInfoBlock($body, $headers, $webUrl);
+        if ($subInfoButton) {
+            self::appendHappSubInfoBlock($body, $headers, $webUrl);
+        }
 
         if ($announce !== '') {
             // Всегда base64 — это единственный документированный способ передать произвольный
@@ -69,15 +74,18 @@ final class HappSubscriptionAppManagementExtras
             $headers['announce'] = $announceField;
         }
 
-        $iconColor = self::happRgbaHexFromConfig();
-        if ($iconColor !== null) {
-            $profileJson = json_encode(
-                ['profileWebPageIconColor' => $iconColor],
-                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
-            );
-            if ($profileJson !== false) {
-                $body .= '#color-profile: '.$profileJson."\n";
-                $headers['color-profile'] = $profileJson;
+        // Цвет иконки profile-web-page — только если эта иконка реально отправлена.
+        if ($webUrl !== '' && ! $subInfoButton) {
+            $iconColor = self::happRgbaHexFromConfig();
+            if ($iconColor !== null) {
+                $profileJson = json_encode(
+                    ['profileWebPageIconColor' => $iconColor],
+                    JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+                );
+                if ($profileJson !== false) {
+                    $body .= '#color-profile: '.$profileJson."\n";
+                    $headers['color-profile'] = $profileJson;
+                }
             }
         }
 
@@ -85,6 +93,23 @@ final class HappSubscriptionAppManagementExtras
             'body_meta_suffix' => $body,
             'headers' => $headers,
         ];
+    }
+
+    /**
+     * Показывать блок sub-info (кнопка): тот же URL, что и у входа в ЛК / лендинг.
+     */
+    private static function happSubInfoWillShow(string $webUrl): bool
+    {
+        if ($webUrl === '') {
+            return false;
+        }
+
+        $rawText = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
+        if ($rawText === '0') {
+            return false;
+        }
+
+        return trim((string) config('marketing.subscription_happ_sub_info_button_text', '')) !== '';
     }
 
     /**
