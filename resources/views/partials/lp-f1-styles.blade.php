@@ -910,6 +910,32 @@
         font-weight: 600;
         line-height: 1.35;
     }
+    .lp-f1 .lp-subscription-url-fallback {
+        margin-top: 0.5rem;
+        padding: 0.5rem 0.6rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 0.35rem;
+        background: #f8fafc;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .lp-f1 .lp-subscription-url-fallback__label {
+        display: block;
+        font-size: 0.625rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+        margin-bottom: 0.35rem;
+    }
+    .lp-f1 .lp-subscription-url-fallback__url {
+        display: block;
+        font-size: 0.625rem;
+        line-height: 1.5;
+        word-break: break-all;
+        color: #0f172a;
+        font-family: ui-monospace, "Cascadia Code", monospace;
+    }
     .lp-f1 .lp-btn.lp-btn--copy {
         display: inline-flex;
         align-items: center;
@@ -1051,6 +1077,42 @@
         border: 3px solid var(--lp-ink);
     }
     .lp-f1 .lp-empty .lp-btn:hover { background: #E03E00; color: #fff; }
+    .lp-f1 .lp-empty.lp-empty--compact {
+        padding: 1.25rem 1rem;
+        text-align: left;
+    }
+    .lp-f1 .lp-empty.lp-empty--compact .lp-text-muted-tight {
+        margin-top: 0.55rem !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        color: #656565 !important;
+        line-height: 1.45 !important;
+    }
+    .lp-f1 .lp-pay-renewal-block {
+        margin-top: 2.75rem;
+        padding-top: 2rem;
+        border-top: 4px solid #e5e7eb;
+    }
+    .lp-f1 .lp-text-intro-muted {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #475569;
+        line-height: 1.45;
+        margin: 0;
+    }
+    .lp-f1 .lp-mb-tariffs { margin-bottom: 1.25rem; }
+    .lp-f1 .lp-tariff-card.lp-tariff-card--renew { margin-bottom: 1.25rem; }
+    .lp-f1 .lp-tariff-card.lp-tariff-card--renew:last-child { margin-bottom: 0; }
+    .lp-f1 .lp-renew-pack-hint {
+        margin: 0.35rem 0 0 0;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        color: #64748b;
+    }
+    .lp-f1 .lp-renew-status-expired {
+        font-weight: 900;
+        color: #b91c1c;
+    }
     .lp-f1 .lp-muted { font-size: 0.75rem; color: #555; font-weight: 500; margin-top: 0.35rem; }
     .lp-f1 .lp-mono { font-family: ui-monospace, monospace; font-weight: 700; font-size: 0.8125rem; }
     .lp-f1 .lp-badge-pill {

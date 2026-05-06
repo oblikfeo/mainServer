@@ -11,6 +11,7 @@ class PaymentOrder extends Model
         'order_id',
         'user_id',
         'subscription_id',
+        'purpose',
         'provider',
         'status',
         'amount_rub',

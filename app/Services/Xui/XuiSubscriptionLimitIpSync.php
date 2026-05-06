@@ -13,12 +13,6 @@ final class XuiSubscriptionLimitIpSync
 {
     public function syncForSubscription(Subscription $sub): void
     {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
-        if ($user === '' || $pass === '') {
-            return;
-        }
-
         $limitIp = max(0, (int) $sub->devices);
 
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
@@ -35,7 +29,9 @@ final class XuiSubscriptionLimitIpSync
             }
             $base = (string) ($node['panel_base'] ?? '');
             $inboundId = (int) ($node['inbound_id'] ?? 0);
-            if ($base === '' || $inboundId < 1) {
+            $user = (string) ($node['panel_username'] ?? config('xui.panel_username', ''));
+            $pass = (string) ($node['panel_password'] ?? config('xui.panel_password', ''));
+            if ($base === '' || $inboundId < 1 || $user === '' || $pass === '') {
                 continue;
             }
 

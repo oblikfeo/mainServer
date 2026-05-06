@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
+use App\Models\Subscription;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,10 +23,17 @@ class CabinetCreatePaymentLinkController extends Controller
         $data = $request->validate([
             'plan' => ['required', 'string', 'max:32'],
             'period' => ['required', 'string', 'max:32'],
+            'purpose' => ['nullable', 'string', 'in:new,renew'],
+            'subscription_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $plan = (string) $data['plan'];
         $period = (string) $data['period'];
+        $purpose = (string) ($data['purpose'] ?? 'new');
+
+        if ($purpose === 'renew') {
+            return $this->createRenewalOrder($wata, $user, $plan, $period, $data);
+        }
 
         $products = config('payments.products', []);
         $planCfg = is_array($products) ? ($products[$plan] ?? null) : null;
@@ -49,6 +57,8 @@ class CabinetCreatePaymentLinkController extends Controller
         $order = PaymentOrder::query()->create([
             'order_id' => $orderId,
             'user_id' => $user->id,
+            'subscription_id' => null,
+            'purpose' => 'new',
             'provider' => 'wata',
             'status' => 'created',
             'amount_rub' => $amountRub,
@@ -59,6 +69,97 @@ class CabinetCreatePaymentLinkController extends Controller
             'days' => $days,
             'devices' => $devices,
             'quota_gb' => $quotaGb,
+        ]);
+
+        $payload = [
+            'type' => 'OneTime',
+            'amount' => (float) number_format($amountRub, 2, '.', ''),
+            'currency' => 'RUB',
+            'description' => $desc,
+            'orderId' => $orderId,
+            'successRedirectUrl' => (string) config('wata.success_url'),
+            'failRedirectUrl' => (string) config('wata.fail_url'),
+        ];
+
+        $link = $wata->createPaymentLink($payload);
+
+        $order->provider_link_id = $link['id'];
+        $order->status = 'pending';
+        $order->provider_payload = $link;
+        $order->save();
+
+        return response()->json([
+            'url' => $link['url'],
+        ]);
+    }
+
+    /**
+     * @param  array{subscription_id?: int|null}  $data
+     */
+    private function createRenewalOrder(
+        WataH2hClient $wata,
+        $user,
+        string $plan,
+        string $period,
+        array $data,
+    ): JsonResponse {
+        $subscriptionId = isset($data['subscription_id']) ? (int) $data['subscription_id'] : 0;
+        if ($subscriptionId < 1) {
+            return response()->json(['error' => 'subscription_required'], 422);
+        }
+
+        /** @var Subscription|null $subscription */
+        $subscription = Subscription::query()
+            ->whereKey($subscriptionId)
+            ->where('user_id', $user->id)
+            ->first();
+        if ($subscription === null) {
+            return response()->json(['error' => 'subscription_not_found'], 422);
+        }
+
+        $soloCap = (int) config('payments.products.solo.devices', 2);
+        $expectedPlan = $subscription->devices <= $soloCap ? 'solo' : 'family';
+        if ($plan !== $expectedPlan) {
+            return response()->json(['error' => 'plan_mismatch'], 422);
+        }
+
+        $renewals = config('payments.renewals', []);
+        $planCfg = is_array($renewals) ? ($renewals[$plan] ?? null) : null;
+        $rows = is_array($planCfg) ? ($planCfg['rows'] ?? null) : null;
+        $row = is_array($rows) ? ($rows[$period] ?? null) : null;
+        if (! is_array($row)) {
+            return response()->json(['error' => 'unknown_renewal'], 422);
+        }
+
+        $addDays = (int) ($row['days'] ?? 0);
+        $addQuotaGb = (int) ($row['quota_gb'] ?? 0);
+        $amountRub = (int) ($row['amount_rub'] ?? 0);
+        $addDevices = (int) ($planCfg['add_devices'] ?? 0);
+        if ($addDays < 1 || $addQuotaGb < 1 || $amountRub < 1) {
+            throw new RuntimeException('Неверная конфигурация payments.renewals для '.$plan.' / '.$period);
+        }
+        if ($addDevices < 0 || $addDevices > 100) {
+            return response()->json(['error' => 'invalid_configuration'], 500);
+        }
+
+        $orderId = 'ord_'.(string) Str::ulid();
+        $desc = 'Продление #'.$subscription->public_code.' · '.$plan.' · '.$period;
+
+        $order = PaymentOrder::query()->create([
+            'order_id' => $orderId,
+            'user_id' => $user->id,
+            'subscription_id' => $subscription->id,
+            'purpose' => 'renew',
+            'provider' => 'wata',
+            'status' => 'created',
+            'amount_rub' => $amountRub,
+            'currency' => 'RUB',
+            'description' => $desc,
+            'tariff_plan' => $plan,
+            'tariff_period' => $period,
+            'days' => $addDays,
+            'devices' => $addDevices,
+            'quota_gb' => $addQuotaGb,
         ]);
 
         $payload = [

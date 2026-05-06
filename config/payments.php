@@ -26,5 +26,28 @@ return [
             ],
         ],
     ],
+
+    /**
+     * Продление существующей подписки: к сумме добавляются days / quota_gb / devices (если указано в ряду).
+     * План solo|family подбирается в UI по лимиту устройств (см. CabinetPaymentController).
+     */
+    'renewals' => [
+        'solo' => [
+            'add_devices' => 0,
+            'rows' => [
+                '1 месяц' => ['days' => 30, 'quota_gb' => 100, 'amount_rub' => 290],
+                '3 месяца' => ['days' => 90, 'quota_gb' => 300, 'amount_rub' => 700],
+                '6 месяцев' => ['days' => 180, 'quota_gb' => 600, 'amount_rub' => 1190],
+            ],
+        ],
+        'family' => [
+            'add_devices' => 0,
+            'rows' => [
+                '1 месяц' => ['days' => 30, 'quota_gb' => 250, 'amount_rub' => 650],
+                '3 месяца' => ['days' => 90, 'quota_gb' => 750, 'amount_rub' => 1600],
+                '6 месяцев' => ['days' => 180, 'quota_gb' => 1500, 'amount_rub' => 2800],
+            ],
+        ],
+    ],
 ];
 

@@ -64,7 +64,7 @@
             <p class="px-6 py-10 text-center text-slate-500 text-sm">Заказов нет.</p>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse min-w-[72rem]">
+                <table class="w-full text-sm text-left border-collapse min-w-[78rem]">
                     <thead>
                         <tr class="bg-slate-900 text-white">
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Создан</th>
@@ -72,6 +72,7 @@
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Статус</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Сумма</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Тариф</th>
+                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Тип</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[12rem]" scope="col">Пользователь</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Link ID</th>
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Transaction ID</th>
@@ -95,6 +96,16 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-900 font-bold tabular-nums whitespace-nowrap text-right">{{ number_format((int) $o->amount_rub, 0, ',', ' ') }} ₽</td>
                                 <td class="px-4 py-3 text-slate-800 text-xs whitespace-nowrap">{{ $o->tariff_plan }} · {{ $o->tariff_period }}</td>
+                                <td class="px-4 py-3 text-slate-800 text-xs whitespace-nowrap">
+                                    @if (($o->purpose ?? 'new') === 'renew')
+                                        Продление
+                                        @if ($o->subscription_id)
+                                            · sub #{{ $o->subscription_id }}
+                                        @endif
+                                    @else
+                                        Новая подписка
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 text-slate-800 text-xs break-all" title="{{ $o->user?->email ?? '' }}">{{ $o->user?->email ?? '—' }}</td>
                                 <td class="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $o->provider_link_id ?? '—' }}</td>
                                 <td class="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">{{ $o->provider_transaction_id ?? '—' }}</td>

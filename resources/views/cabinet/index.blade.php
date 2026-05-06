@@ -153,6 +153,10 @@
                                                             <span x-show="copied" x-cloak>Скопировано</span>
                                                         </button>
                                                         <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                                        <div class="lp-subscription-url-fallback">
+                                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                                            <code class="lp-subscription-url-fallback__url">{{ $activeTestKey->shareableUrl() }}</code>
+                                                        </div>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -310,6 +314,10 @@
                                                 <span x-show="copied" x-cloak>Скопировано</span>
                                             </button>
                                             <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                            <div class="lp-subscription-url-fallback">
+                                                <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                                <code class="lp-subscription-url-fallback__url">{{ $row['subscriptionUrl'] }}</code>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
