@@ -42,7 +42,7 @@ return [
 
     /**
      * Анонс Happ — опциональная строка с {site}. В поле announce URL не становится гиперссылкой.
-     * Кнопку входа даёт sub-info; иконка profile-web-page-url — только если кнопку выключили (пустой текст кнопки).
+     * Основной вход в ЛК в Happ: #profile-web-page-url (синий элемент) и при желании sub-info.
      */
     'subscription_announce_line_site' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE',
@@ -84,10 +84,11 @@ return [
     ),
 
     /**
-     * Определять «нужно продление» по истечению срока и (если известен трафик в фиде) по квоте.
+     * Красная кнопка «продлить» также по исчерпанию трафика (сумма upload+download в фиде vs квота).
+     * По умолчанию выключено — из-за суммирования по узлам возможны ложные срабатывания; достаточно срока.
      */
-    'happ_triggers_renew_when_exhausted' => filter_var(
-        env('HAPP_TRIGGERS_RENEW_WHEN_EXHAUSTED', true),
+    'happ_renew_check_traffic' => filter_var(
+        env('HAPP_RENEW_CHECK_TRAFFIC', false),
         FILTER_VALIDATE_BOOLEAN
     ),
 

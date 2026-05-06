@@ -18,7 +18,8 @@ use Throwable;
  *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
- * Отдельно: кнопка sub-info — «войти» или «продлить» (истек срок/трафик); иконка profile-web-page-url только если sub-info выключен.
+ * Отдельно: #profile-web-page-url — основной синий вход на сайт/ЛК в Happ (всегда, если есть URL).
+ * Дополнительно sub-info: «войти» (активная подписка) или «продлить» (истёк срок; опционально по трафику).
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -65,7 +66,8 @@ final class HappSubscriptionAppManagementExtras
 
         $subInfoTier = self::happSubInfoTier($webUrl, $needsRenewal);
 
-        if ($webUrl !== '' && $subInfoTier === 'none') {
+        // Синий вход в Happ — всегда отдельно от sub-info (док.: profile-web-page-url).
+        if ($webUrl !== '') {
             $body .= "#profile-web-page-url: {$webUrl}\n";
             $headers['profile-web-page-url'] = $webUrl;
         }
@@ -82,8 +84,7 @@ final class HappSubscriptionAppManagementExtras
             $headers['announce'] = $announceField;
         }
 
-        // Цвет иконки profile-web-page — только если эта иконка реально отправлена.
-        if ($webUrl !== '' && $subInfoTier === 'none') {
+        if ($webUrl !== '') {
             $iconColor = self::happRgbaHexFromConfig();
             if ($iconColor !== null) {
                 $profileJson = json_encode(
@@ -423,13 +424,13 @@ final class HappSubscriptionAppManagementExtras
         ?int $usageUploadBytes,
         ?int $usageDownloadBytes,
     ): bool {
-        if (! (bool) config('marketing.happ_triggers_renew_when_exhausted', true)) {
-            return false;
-        }
-
         if ($context instanceof Subscription) {
             if ($context->isExpired()) {
                 return true;
+            }
+
+            if (! (bool) config('marketing.happ_renew_check_traffic', false)) {
+                return false;
             }
 
             return self::subscriptionTrafficLooksExhausted($context, $usageUploadBytes, $usageDownloadBytes);
@@ -438,6 +439,10 @@ final class HappSubscriptionAppManagementExtras
         if ($context instanceof TestKey) {
             if ($context->isExpired()) {
                 return true;
+            }
+
+            if (! (bool) config('marketing.happ_renew_check_traffic', false)) {
+                return false;
             }
 
             return self::testKeyTrafficLooksExhausted($context, $usageUploadBytes, $usageDownloadBytes);
