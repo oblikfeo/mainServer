@@ -66,6 +66,15 @@ return [
     ),
 
     /**
+     * Ссылки Happ на вход в ЛК по токену подписки (/auth/via-token/{token}). Выключить: false.
+     * Если подписка без user_id — по-прежнему открывается публичный сайт (MARKETING_SUBSCRIPTION_SITE_URL / APP_URL).
+     */
+    'happ_cabinet_link_enabled' => filter_var(
+        env('HAPP_CABINET_LINK_ENABLED', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /**
      * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
      * Фирменный оранжевый лендинга (views2 --mock-primary). Пустой .env — не передавать color-profile.
      *

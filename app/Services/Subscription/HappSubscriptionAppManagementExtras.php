@@ -42,7 +42,7 @@ final class HappSubscriptionAppManagementExtras
         $supportUrl = self::normalizedUrl(
             trim((string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')))
         );
-        $webUrl = self::subscriptionWebUrl();
+        $webUrl = self::happCabinetOrPublicSiteUrl($context);
 
         $announce = self::composeAnnounce($context);
 
@@ -133,7 +133,7 @@ final class HappSubscriptionAppManagementExtras
             '{days}' => $daysLeft !== null ? (string) $daysLeft : '',
             '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
             '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
-            '{site}' => self::subscriptionWebUrl(),
+            '{site}' => self::happCabinetOrPublicSiteUrl($context),
         ];
 
         $lines = [];
@@ -338,6 +338,34 @@ final class HappSubscriptionAppManagementExtras
         }
 
         return strlen($value) > $maxChars ? substr($value, 0, $maxChars) : $value;
+    }
+
+    private static function happCabinetOrPublicSiteUrl(Subscription|TestKey|null $context): string
+    {
+        $fallback = self::subscriptionWebUrl();
+        if (! (bool) config('marketing.happ_cabinet_link_enabled', true)) {
+            return $fallback;
+        }
+
+        if ($context instanceof Subscription) {
+            $token = trim((string) $context->token);
+            if ($token !== '' && (int) $context->user_id > 0) {
+                return route('auth.via_token', ['token' => $token], absolute: true);
+            }
+
+            return $fallback;
+        }
+
+        if ($context instanceof TestKey) {
+            $token = trim((string) $context->token);
+            if ($token !== '' && (int) $context->user_id > 0 && ! $context->isRevoked() && ! $context->isExpired()) {
+                return route('auth.via_token', ['token' => $token], absolute: true);
+            }
+
+            return $fallback;
+        }
+
+        return $fallback;
     }
 
     /** Публичный URL сайта для анонса и кнопки профиля: MARKETING_SUBSCRIPTION_SITE_URL или APP_URL. */

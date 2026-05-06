@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\SubscriptionTokenCabinetLoginController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -10,6 +11,12 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
+
+/** Вход в ЛК по токену подписки (ссылки Happ: profile-web-page-url, sub-info-button-link). */
+Route::get('/auth/via-token/{token}', SubscriptionTokenCabinetLoginController::class)
+    ->middleware('throttle:30,1')
+    ->where('token', '[A-Za-z0-9_-]{10,120}')
+    ->name('auth.via_token');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
