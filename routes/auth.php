@@ -12,7 +12,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-/** Вход в ЛК по токену подписки (ссылки Happ: profile-web-page-url, sub-info-button-link). */
+/** Вход в ЛК по токену подписки (#profile-web-page-url в фиде Happ). */
 Route::get('/auth/via-token/{token}', SubscriptionTokenCabinetLoginController::class)
     ->middleware('throttle:30,1')
     ->where('token', '[A-Za-z0-9_-]{10,120}')

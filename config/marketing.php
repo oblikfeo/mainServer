@@ -42,7 +42,7 @@ return [
 
     /**
      * Анонс Happ — опциональная строка с {site}. В поле announce URL не становится гиперссылкой.
-     * Основной вход в ЛК в Happ: #profile-web-page-url (синий элемент) и при желании sub-info.
+     * Вход в ЛК только через #profile-web-page-url (одноразовая ссылка по токену, см. happ_cabinet_link_enabled).
      */
     'subscription_announce_line_site' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE',
@@ -50,51 +50,11 @@ return [
     ),
 
     /**
-     * Happ Advanced announcements: подпись над кнопкой (до 200 симв.). Пусто — без видимой подписи (только кнопка).
-     *
-     * @see https://www.happ.su/main/dev-docs/app-management
-     */
-    'subscription_happ_sub_info_text' => env(
-        'MARKETING_HAPP_SUB_INFO_TEXT',
-        ''
-    ),
-
-    /** Текст кнопки (до 25 символов по доке Happ). */
-    'subscription_happ_sub_info_button_text' => env(
-        'MARKETING_HAPP_SUB_INFO_BUTTON',
-        'Войти на сайт'
-    ),
-
-    /** Кнопка «продлить» в Happ (sub-info), если срок/трафик исчерпаны. */
-    'subscription_happ_sub_info_button_renew_text' => env(
-        'MARKETING_HAPP_SUB_INFO_BUTTON_RENEW',
-        'Продлить подписку'
-    ),
-
-    /** Цвет блока sub-info при продлении (док. Happ: red | blue | green). */
-    'subscription_happ_sub_info_renew_color' => env(
-        'MARKETING_HAPP_SUB_INFO_RENEW_COLOR',
-        'red'
-    ),
-
-    /** Необязательная подпись над красной кнопкой; пусто — только кнопка. */
-    'subscription_happ_sub_info_renew_caption' => env(
-        'MARKETING_HAPP_SUB_INFO_RENEW_CAPTION',
-        ''
-    ),
-
-    /**
-     * Красная кнопка «продлить» также по исчерпанию трафика (сумма upload+download в фиде vs квота).
+     * К расчёту «нужно продление» (query intent=renew в URL профиля и логика анонса): также по исчерпанию трафика по фиду.
      * По умолчанию выключено — из-за суммирования по узлам возможны ложные срабатывания; достаточно срока.
      */
     'happ_renew_check_traffic' => filter_var(
         env('HAPP_RENEW_CHECK_TRAFFIC', false),
-        FILTER_VALIDATE_BOOLEAN
-    ),
-
-    /** Показывать красную кнопку продления вместо оранжевой «войти». */
-    'happ_renew_sub_info_when_exhausted' => filter_var(
-        env('HAPP_RENEW_SUB_INFO_WHEN_EXHAUSTED', true),
         FILTER_VALIDATE_BOOLEAN
     ),
 
@@ -110,14 +70,6 @@ return [
     'subscription_happ_exhausted_announce_fallback' => env(
         'MARKETING_HAPP_EXHAUSTED_ANNOUNCE_FALLBACK',
         ''
-    ),
-
-    /**
-     * Цвет блока sub-info в Happ. В доке указаны red, blue, green; для фирменного оранжевого пробуем orange.
-     */
-    'subscription_happ_sub_info_color' => env(
-        'MARKETING_HAPP_SUB_INFO_COLOR',
-        'orange'
     ),
 
     /**

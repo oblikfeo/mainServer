@@ -18,8 +18,7 @@ use Throwable;
  *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
- * Отдельно: #profile-web-page-url — основной синий вход на сайт/ЛК в Happ (всегда, если есть URL).
- * Дополнительно sub-info: «войти» (активная подписка) или «продлить» (истёк срок; опционально по трафику).
+ * Отдельно: #profile-web-page-url — вход в ЛК по одноразовой ссылке /auth/via-token/… (если включено в конфиге).
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -54,8 +53,6 @@ final class HappSubscriptionAppManagementExtras
         $needsRenewal = self::contextNeedsRenewal($context, $usageUploadBytes, $usageDownloadBytes);
         $webUrl = self::happCabinetOrPublicSiteUrl($context, $needsRenewal);
 
-        $subInfoTier = self::happSubInfoTier($webUrl, $needsRenewal);
-
         $announce = self::composeAnnounce($context, $needsRenewal);
 
         $body = '';
@@ -66,14 +63,10 @@ final class HappSubscriptionAppManagementExtras
             $headers['support-url'] = $supportUrl;
         }
 
-        // Синий вход в Happ — всегда отдельно от sub-info (док.: profile-web-page-url).
+        // Одноразовый вход в ЛК: Happ открывает #profile-web-page-url в браузере.
         if ($webUrl !== '') {
             $body .= "#profile-web-page-url: {$webUrl}\n";
             $headers['profile-web-page-url'] = $webUrl;
-        }
-
-        if ($subInfoTier !== 'none') {
-            self::appendHappSubInfoBlock($body, $headers, $webUrl, $subInfoTier);
         }
 
         if ($announce !== '') {
@@ -102,93 +95,6 @@ final class HappSubscriptionAppManagementExtras
             'body_meta_suffix' => $body,
             'headers' => $headers,
         ];
-    }
-
-    /** @return 'none'|'login'|'renew' */
-    private static function happSubInfoTier(string $webUrl, bool $needsRenewal): string
-    {
-        if ($webUrl === '') {
-            return 'none';
-        }
-
-        if ($needsRenewal && (bool) config('marketing.happ_renew_sub_info_when_exhausted', true)) {
-            return 'renew';
-        }
-
-        $rawDisable = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
-        if ($rawDisable === '0') {
-            return 'none';
-        }
-
-        return trim((string) config('marketing.subscription_happ_sub_info_button_text', '')) !== ''
-            ? 'login'
-            : 'none';
-    }
-
-    private static function appendHappSubInfoBlock(string &$body, array &$headers, string $webUrl, string $tier): void
-    {
-        if ($webUrl === '') {
-            return;
-        }
-
-        if ($tier === 'renew') {
-            $rawBtn = trim((string) config('marketing.subscription_happ_sub_info_button_renew_text', ''));
-            if ($rawBtn === '') {
-                return;
-            }
-            $buttonText = self::truncateUtf8($rawBtn, 25);
-
-            $rawCaption = trim((string) config('marketing.subscription_happ_sub_info_renew_caption', ''));
-            $infoText = ($rawCaption === '' || $rawCaption === '0')
-                ? "\u{200B}"
-                : self::truncateUtf8($rawCaption, 200);
-
-            $rawColor = trim((string) config('marketing.subscription_happ_sub_info_renew_color', 'red'));
-            if ($rawColor !== '' && $rawColor !== '0') {
-                $body .= '#sub-info-color: '.$rawColor."\n";
-                $headers['sub-info-color'] = $rawColor;
-            }
-
-            $body .= '#sub-info-text: '.$infoText."\n";
-            $headers['sub-info-text'] = $infoText;
-
-            $body .= '#sub-info-button-text: '.$buttonText."\n";
-            $headers['sub-info-button-text'] = $buttonText;
-
-            $body .= '#sub-info-button-link: '.$webUrl."\n";
-            $headers['sub-info-button-link'] = $webUrl;
-
-            return;
-        }
-
-        $rawBtn = trim((string) config('marketing.subscription_happ_sub_info_button_text', ''));
-        if ($rawBtn === '') {
-            return;
-        }
-        $buttonText = self::truncateUtf8($rawBtn, 25);
-
-        $rawText = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
-        if ($rawText === '0') {
-            return;
-        }
-        $infoText = ($rawText === '')
-            ? "\u{200B}"
-            : self::truncateUtf8($rawText, 200);
-
-        $rawColor = trim((string) config('marketing.subscription_happ_sub_info_color', ''));
-        if ($rawColor !== '' && $rawColor !== '0') {
-            $body .= '#sub-info-color: '.$rawColor."\n";
-            $headers['sub-info-color'] = $rawColor;
-        }
-
-        $body .= '#sub-info-text: '.$infoText."\n";
-        $headers['sub-info-text'] = $infoText;
-
-        $body .= '#sub-info-button-text: '.$buttonText."\n";
-        $headers['sub-info-button-text'] = $buttonText;
-
-        $body .= '#sub-info-button-link: '.$webUrl."\n";
-        $headers['sub-info-button-link'] = $webUrl;
     }
 
     private static function composeAnnounce(Subscription|TestKey|null $context, bool $needsRenewal): string
@@ -403,22 +309,6 @@ final class HappSubscriptionAppManagementExtras
         return $url === '' ? '' : rtrim($url, '/');
     }
 
-    private static function truncateUtf8(string $value, int $maxChars): string
-    {
-        if ($maxChars < 1) {
-            return '';
-        }
-        if (function_exists('mb_strlen')) {
-            if (mb_strlen($value) > $maxChars) {
-                return mb_substr($value, 0, $maxChars);
-            }
-
-            return $value;
-        }
-
-        return strlen($value) > $maxChars ? substr($value, 0, $maxChars) : $value;
-    }
-
     private static function contextNeedsRenewal(
         Subscription|TestKey|null $context,
         ?int $usageUploadBytes,
@@ -520,7 +410,7 @@ final class HappSubscriptionAppManagementExtras
         return $url.(str_contains($url, '?') ? '&' : '?').'intent=renew';
     }
 
-    /** Публичный URL сайта для анонса и кнопки профиля: MARKETING_SUBSCRIPTION_SITE_URL или APP_URL. */
+    /** Публичный URL сайта и одноразовый вход: MARKETING_SUBSCRIPTION_SITE_URL / APP_URL и auth.via_token. */
     private static function subscriptionWebUrl(): string
     {
         $webUrl = self::normalizedUrl(trim((string) config('marketing.subscription_site_url')));
