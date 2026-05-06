@@ -25,7 +25,7 @@ final class XrayJsonSubscriptionFeedRenderer
         private readonly SubscriptionBundleCollector $bundleCollector,
     ) {}
 
-    public function render(Subscription $sub, bool $likelyMobileClient = false): Response
+    public function render(Subscription $sub): Response
     {
         $nodes = config('xui.nodes', []);
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
@@ -72,7 +72,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
             $profileTitle = $this->profileTitleForHapp();
-            $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down, $likelyMobileClient);
+            $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
 
             $globalMetaOverride = trim((string) config('xui.sub_json_meta_server_description', ''));
 
@@ -181,7 +181,7 @@ final class XrayJsonSubscriptionFeedRenderer
         }
     }
 
-    public function renderTestKey(TestKey $key, bool $likelyMobileClient = false): Response
+    public function renderTestKey(TestKey $key): Response
     {
         $payload = $this->fetchTestKeyPayload($key);
 
@@ -205,7 +205,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $userinfo = $this->formatUserinfoValue($up, $down, $total, $expireSec);
 
             $profileTitle = $this->profileTitleForHapp();
-            $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down, $likelyMobileClient);
+            $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down);
 
             $trialRemarks = $this->shortenHappLabel(trim((string) config('test_keys.vless_display_name', 'Trial')), 64);
             $metaDesc = SubscriptionHappSubtitle::forTestKey();

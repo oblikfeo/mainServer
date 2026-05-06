@@ -40,14 +40,12 @@ final class HappSubscriptionAppManagementExtras
     /**
      * @param  ?int  $usageUploadBytes  Сумма upload по узлам (байты); null — проверка только по дате истечения.
      * @param  ?int  $usageDownloadBytes  Сумма download по узлам (байты).
-     * @param  bool  $likelyMobileClient  iOS/Android: в Happ часто нет цветного sub-info над анонсом — дублируем URL в #announce.
      * @return array{body_meta_suffix: string, headers: array<string, string>}
      */
     public static function forResponses(
         Subscription|TestKey|null $context = null,
         ?int $usageUploadBytes = null,
         ?int $usageDownloadBytes = null,
-        bool $likelyMobileClient = false,
     ): array {
         $supportUrl = self::normalizedUrl(
             trim((string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')))
@@ -59,13 +57,6 @@ final class HappSubscriptionAppManagementExtras
         $subInfoTier = self::happSubInfoTier($webUrl, $needsRenewal);
 
         $announce = self::composeAnnounce($context, $needsRenewal);
-        if ((bool) config('marketing.happ_announce_duplicate_cta_on_mobile', true) && $likelyMobileClient && $webUrl !== '') {
-            $line = self::mobilePlainCtaLine($webUrl, $needsRenewal, $subInfoTier);
-            if ($line !== '') {
-                $announce = $announce === '' ? $line : $line."\n\n".$announce;
-                $announce = self::truncateAnnounce($announce);
-            }
-        }
 
         $body = '';
         $headers = [];
@@ -198,23 +189,6 @@ final class HappSubscriptionAppManagementExtras
 
         $body .= '#sub-info-button-link: '.$webUrl."\n";
         $headers['sub-info-button-link'] = $webUrl;
-    }
-
-    /**
-     * Дублирование CTA в теле #announce для мобильного Happ: блок sub-info над анонсом там часто не рисуется.
-     */
-    private static function mobilePlainCtaLine(string $webUrl, bool $needsRenewal, string $subInfoTier): string
-    {
-        if ($needsRenewal || $subInfoTier === 'renew') {
-            $tpl = trim((string) config('marketing.happ_announce_mobile_line_renew', 'Продлить подписку: {url}'));
-        } else {
-            $tpl = trim((string) config('marketing.happ_announce_mobile_line_login', 'Личный кабинет: {url}'));
-        }
-        if ($tpl === '') {
-            return '';
-        }
-
-        return strtr($tpl, ['{url}' => $webUrl]);
     }
 
     private static function composeAnnounce(Subscription|TestKey|null $context, bool $needsRenewal): string

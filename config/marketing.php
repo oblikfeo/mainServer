@@ -113,26 +113,6 @@ return [
     ),
 
     /**
-     * В мобильном Happ iOS/Android блок sub-info над анонсом часто не отображается — дублируем вход/продление строкой в #announce.
-     */
-    'happ_announce_duplicate_cta_on_mobile' => filter_var(
-        env('HAPP_ANNOUNCE_MOBILE_PLAIN_CTA', true),
-        FILTER_VALIDATE_BOOLEAN
-    ),
-
-    /** Плейсхолдер {url}; для мобильного дублирования в #announce при активной подписке. */
-    'happ_announce_mobile_line_login' => env(
-        'MARKETING_HAPP_ANNOUNCE_MOBILE_LOGIN',
-        'Личный кабинет: {url}'
-    ),
-
-    /** Плейсхолдер {url}; при необходимости продления. */
-    'happ_announce_mobile_line_renew' => env(
-        'MARKETING_HAPP_ANNOUNCE_MOBILE_RENEW',
-        'Продлить подписку: {url}'
-    ),
-
-    /**
      * Цвет блока sub-info в Happ. В доке указаны red, blue, green; для фирменного оранжевого пробуем orange.
      */
     'subscription_happ_sub_info_color' => env(
