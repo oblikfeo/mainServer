@@ -64,7 +64,7 @@ final class MergedSubscriptionFeedRenderer
         $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
-        $extras = HappSubscriptionAppManagementExtras::forResponses($sub);
+        $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $routingLine = $this->happRoutingLineForBody();

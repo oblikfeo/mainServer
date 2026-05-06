@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Вход в личный кабинет по секрету токена подписки (тот же, что в URL /sub/{token}).
- * Используется в ссылках Happ (#profile-web-page-url, sub-info).
+ * Вход в личный кабинет по токену подписки. Ссылка из Happ.
+ * Query intent=renew — после входа открыть вкладку продления.
  */
 final class SubscriptionTokenCabinetLoginController extends Controller
 {
@@ -62,6 +62,10 @@ final class SubscriptionTokenCabinetLoginController extends Controller
         }
 
         $request->session()->regenerate();
+
+        if ($request->query('intent') === 'renew') {
+            return redirect()->to(route('cabinet.renewal', absolute: false));
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

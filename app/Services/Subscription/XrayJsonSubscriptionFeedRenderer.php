@@ -72,7 +72,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
 
             $profileTitle = $this->profileTitleForHapp();
-            $extras = HappSubscriptionAppManagementExtras::forResponses($sub);
+            $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
 
             $globalMetaOverride = trim((string) config('xui.sub_json_meta_server_description', ''));
 
@@ -205,7 +205,7 @@ final class XrayJsonSubscriptionFeedRenderer
             $userinfo = $this->formatUserinfoValue($up, $down, $total, $expireSec);
 
             $profileTitle = $this->profileTitleForHapp();
-            $extras = HappSubscriptionAppManagementExtras::forResponses($key);
+            $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down);
 
             $trialRemarks = $this->shortenHappLabel(trim((string) config('test_keys.vless_display_name', 'Trial')), 64);
             $metaDesc = SubscriptionHappSubtitle::forTestKey();

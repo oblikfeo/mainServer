@@ -65,6 +65,52 @@ return [
         'Войти на сайт'
     ),
 
+    /** Кнопка «продлить» в Happ (sub-info), если срок/трафик исчерпаны. */
+    'subscription_happ_sub_info_button_renew_text' => env(
+        'MARKETING_HAPP_SUB_INFO_BUTTON_RENEW',
+        'Продлить подписку'
+    ),
+
+    /** Цвет блока sub-info при продлении (док. Happ: red | blue | green). */
+    'subscription_happ_sub_info_renew_color' => env(
+        'MARKETING_HAPP_SUB_INFO_RENEW_COLOR',
+        'red'
+    ),
+
+    /** Необязательная подпись над красной кнопкой; пусто — только кнопка. */
+    'subscription_happ_sub_info_renew_caption' => env(
+        'MARKETING_HAPP_SUB_INFO_RENEW_CAPTION',
+        ''
+    ),
+
+    /**
+     * Определять «нужно продление» по истечению срока и (если известен трафик в фиде) по квоте.
+     */
+    'happ_triggers_renew_when_exhausted' => filter_var(
+        env('HAPP_TRIGGERS_RENEW_WHEN_EXHAUSTED', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /** Показывать красную кнопку продления вместо оранжевой «войти». */
+    'happ_renew_sub_info_when_exhausted' => filter_var(
+        env('HAPP_RENEW_SUB_INFO_WHEN_EXHAUSTED', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /**
+     * Убрать персональный #announce (устройства, дни, админский текст), когда нужно продление.
+     */
+    'subscription_announce_suppress_when_needs_renewal' => filter_var(
+        env('MARKETING_ANNOUNCE_SUPPRESS_WHEN_NEEDS_RENEWAL', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /** Если не пусто — одна строка announce при исчерпании вместо полного молчания. */
+    'subscription_happ_exhausted_announce_fallback' => env(
+        'MARKETING_HAPP_EXHAUSTED_ANNOUNCE_FALLBACK',
+        ''
+    ),
+
     /**
      * Цвет блока sub-info в Happ. В доке указаны red, blue, green; для фирменного оранжевого пробуем orange.
      */
