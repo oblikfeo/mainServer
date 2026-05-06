@@ -88,7 +88,7 @@ final class HappSubscriptionAppManagementExtras
     }
 
     /**
-     * Блок sub-info: кликабельная кнопка с URL (док. Happ). Без текста или при «0» — не отправляем.
+     * Блок sub-info: кнопка с URL (док. Happ). Пустая подпись = только кнопка (невидимый ZWSP для клиента).
      */
     private static function appendHappSubInfoBlock(string &$body, array &$headers, string $webUrl): void
     {
@@ -96,17 +96,26 @@ final class HappSubscriptionAppManagementExtras
             return;
         }
 
-        $rawText = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
-        if ($rawText === '' || $rawText === '0') {
-            return;
-        }
-
-        $infoText = self::truncateUtf8($rawText, 200);
         $rawBtn = trim((string) config('marketing.subscription_happ_sub_info_button_text', ''));
         if ($rawBtn === '') {
             return;
         }
         $buttonText = self::truncateUtf8($rawBtn, 25);
+
+        $rawText = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
+        if ($rawText === '0') {
+            return;
+        }
+        // Пустая строка в конфиге = без видимой подписи; Happ отключает блок при пустом sub-info-text.
+        $infoText = ($rawText === '')
+            ? "\u{200B}"
+            : self::truncateUtf8($rawText, 200);
+
+        $rawColor = trim((string) config('marketing.subscription_happ_sub_info_color', ''));
+        if ($rawColor !== '' && $rawColor !== '0') {
+            $body .= '#sub-info-color: '.$rawColor."\n";
+            $headers['sub-info-color'] = $rawColor;
+        }
 
         $body .= '#sub-info-text: '.$infoText."\n";
         $headers['sub-info-text'] = $infoText;

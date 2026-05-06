@@ -50,19 +50,27 @@ return [
     ),
 
     /**
-     * Happ Advanced announcements: отдельный блок с кнопкой «в браузер». Пустой текст — блок не передаём.
+     * Happ Advanced announcements: подпись над кнопкой (до 200 симв.). Пусто — без видимой подписи (только кнопка).
      *
      * @see https://www.happ.su/main/dev-docs/app-management
      */
     'subscription_happ_sub_info_text' => env(
         'MARKETING_HAPP_SUB_INFO_TEXT',
-        'Личный кабинет и тарифы — на сайте.'
+        ''
     ),
 
-    /** Подпись кнопки (до 25 символов по доке Happ). Пусто — кнопку не показываем. */
+    /** Текст кнопки (до 25 символов по доке Happ). */
     'subscription_happ_sub_info_button_text' => env(
         'MARKETING_HAPP_SUB_INFO_BUTTON',
-        'Открыть'
+        'Войти на сайт'
+    ),
+
+    /**
+     * Цвет блока sub-info в Happ. В доке указаны red, blue, green; для фирменного оранжевого пробуем orange.
+     */
+    'subscription_happ_sub_info_color' => env(
+        'MARKETING_HAPP_SUB_INFO_COLOR',
+        'orange'
     ),
 
     /**
