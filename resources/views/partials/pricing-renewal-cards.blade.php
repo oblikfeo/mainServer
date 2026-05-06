@@ -3,8 +3,6 @@
         $renewPlan = (int) $sub->devices <= (int) $soloDeviceCap ? 'solo' : 'family';
         $renewPack = config('payments.renewals.'.$renewPlan);
         $rows = is_array($renewPack) ? ($renewPack['rows'] ?? []) : [];
-        $tariffUi = collect(config('marketing.tariffs', []))->firstWhere('id', $renewPlan);
-        $tariffTitle = is_array($tariffUi) ? (string) ($tariffUi['title'] ?? $renewPlan) : $renewPlan;
         $exp = $sub->expiresAt();
     @endphp
     <article class="lp-renew-card" aria-labelledby="renew-sub-{{ $sub->id }}-title">
@@ -12,7 +10,6 @@
             <h3 class="lp-renew-card__title" id="renew-sub-{{ $sub->id }}-title">
                 Подписка <span class="lp-renew-card__code">№{{ $sub->public_code }}</span>
             </h3>
-            <p class="lp-renew-card__plan-line">Линейка продления: <strong>{{ $tariffTitle }}</strong></p>
 
             <dl class="lp-renew-stats">
                 <div class="lp-renew-stats__row">
