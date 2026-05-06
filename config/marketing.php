@@ -28,7 +28,15 @@ return [
         FILTER_VALIDATE_BOOLEAN
     ),
 
-    /** Анонс Happ — первая строка (устройства). Плейсхолдеры: {used}, {max} */
+    /**
+     * Первая строка #announce: подсказка про вход на сайт (кнопка «ⓘ» / профиль в Happ). Пусто — не показывать.
+     */
+    'subscription_announce_cabinet_hint' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_CABINET_HINT',
+        'Для входа в личный кабинет на сайте используйте кнопку ⓘ'
+    ),
+
+    /** Анонс Happ — строка «Привязанные устройства» (после подсказки). Плейсхолдеры: {used}, {max} */
     'subscription_announce_line_devices' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_DEVICES',
         'Привязанные устройства: {used}/{max}'

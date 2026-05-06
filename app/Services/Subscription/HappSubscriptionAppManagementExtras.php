@@ -12,10 +12,11 @@ use Throwable;
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
  *
  * Тело #announce собирается из частей сверху вниз:
- *   1) Фикс. «Привязанные устройства: used/max» (всегда).
- *   2) Фикс. «Дней до окончания подписки: N» (только если задана дата).
- *   3) Необязательная строка (subscription_announce_line_site, плейсхолдер {site}) — plain text; URL в ней не кликабелен в Happ.
- *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
+ *   1) Подсказка про вход на сайт (subscription_announce_cabinet_hint).
+ *   2) «Привязанные устройства: used/max» (всегда).
+ *   3) «Дней до окончания подписки: N» (только если задана дата).
+ *   4) Необязательная строка (subscription_announce_line_site, плейсхолдер {site}) — plain text; URL в ней не кликабелен в Happ.
+ *   5) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
  * Отдельно: #profile-web-page-url — вход в ЛК по одноразовой ссылке /auth/via-token/… (если включено в конфиге).
@@ -105,8 +106,13 @@ final class HappSubscriptionAppManagementExtras
 
         if ($needsRenewal && (bool) config('marketing.subscription_announce_suppress_when_needs_renewal', true)) {
             $fallback = trim((string) config('marketing.subscription_happ_exhausted_announce_fallback', ''));
+            if ($fallback === '') {
+                return '';
+            }
+            $hint = trim((string) config('marketing.subscription_announce_cabinet_hint', ''));
+            $combined = $hint === '' ? $fallback : $hint."\n\n".$fallback;
 
-            return $fallback === '' ? '' : self::truncateAnnounce($fallback);
+            return self::truncateAnnounce($combined);
         }
 
         [$used, $max] = self::deviceCounters($context);
@@ -123,7 +129,12 @@ final class HappSubscriptionAppManagementExtras
 
         $lines = [];
 
-        // Строка 1: устройства. Всегда.
+        $cabinetHint = trim((string) config('marketing.subscription_announce_cabinet_hint', ''));
+        if ($cabinetHint !== '') {
+            $lines[] = strtr($cabinetHint, $vars);
+        }
+
+        // Строка: устройства. Всегда после подсказки.
         $devicesTpl = trim((string) config('marketing.subscription_announce_line_devices', 'Привязанные устройства: {used}/{max}'));
         if ($devicesTpl !== '') {
             $lines[] = strtr($devicesTpl, $vars);
