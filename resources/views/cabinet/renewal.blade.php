@@ -1,6 +1,5 @@
 <x-cabinet-layout>
     <div class="max-w-4xl mx-auto lp-renew-page">
-        <h2 class="lp-page-section-title">Продление</h2>
 
         @if ($renewalSubscriptions->isEmpty())
             <div class="lp-empty lp-empty--compact">
