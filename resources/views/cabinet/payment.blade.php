@@ -16,7 +16,7 @@
                     </p>
                 </div>
             @else
-                <div class="lp-tariff-cards lp-tariff-cards--renewal">
+                <div class="lp-renew-stack">
                     @include('partials.pricing-renewal-cards', [
                         'renewalSubscriptions' => $renewalSubscriptions,
                         'soloDeviceCap' => $soloDeviceCap,

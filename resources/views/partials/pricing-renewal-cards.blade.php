@@ -7,49 +7,77 @@
         $tariffTitle = is_array($tariffUi) ? (string) ($tariffUi['title'] ?? $renewPlan) : $renewPlan;
         $exp = $sub->expiresAt();
     @endphp
-    <article
-        class="lp-tariff-card lp-tariff-card--renew lp-tariff-card--{{ $renewPlan }}"
-        aria-labelledby="renew-sub-{{ $sub->id }}-title"
-    >
-        <header class="lp-tariff-card__head">
-            <h3 class="lp-tariff-card__title" id="renew-sub-{{ $sub->id }}-title">
-                №{{ $sub->public_code }} · {{ $tariffTitle }}
+    <article class="lp-renew-card" aria-labelledby="renew-sub-{{ $sub->id }}-title">
+        <header class="lp-renew-card__head">
+            <h3 class="lp-renew-card__title" id="renew-sub-{{ $sub->id }}-title">
+                Подписка <span class="lp-renew-card__code">№{{ $sub->public_code }}</span>
             </h3>
-            <p class="lp-tariff-card__meta">
-                @if ($sub->isExpired())
-                    <span class="lp-renew-status-expired">Срок истёк</span>
-                @else
-                    Активна
-                @endif
-                · {{ (int) $sub->devices }} устр.
-                @if ((int) $sub->quota_gb <= 0)
-                    · квота безлимит
-                @else
-                    · {{ (int) $sub->quota_gb }} ГБ
-                @endif
+            <p class="lp-renew-card__plan-line">Линейка продления: <strong>{{ $tariffTitle }}</strong></p>
+
+            <dl class="lp-renew-stats">
+                <div class="lp-renew-stats__row">
+                    <dt>Статус</dt>
+                    <dd>
+                        @if ($sub->isExpired())
+                            <span class="lp-renew-badge-expired">истекла</span>
+                        @else
+                            активна
+                        @endif
+                    </dd>
+                </div>
+                <div class="lp-renew-stats__row">
+                    <dt>Устройств</dt>
+                    <dd>{{ (int) $sub->devices }}</dd>
+                </div>
+                <div class="lp-renew-stats__row">
+                    <dt>Трафик</dt>
+                    <dd>
+                        @if ((int) $sub->quota_gb <= 0)
+                            без лимита
+                        @else
+                            {{ number_format((int) $sub->quota_gb, 0, ',', ' ') }} ГБ
+                        @endif
+                    </dd>
+                </div>
                 @if ($exp)
-                    · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
+                    <div class="lp-renew-stats__row">
+                        <dt>Действует до</dt>
+                        <dd class="lp-renew-stats__date">{{ $exp->timezone(config('app.timezone'))->format('d.m.Y · H:i') }}</dd>
+                    </div>
+                @else
+                    <div class="lp-renew-stats__row">
+                        <dt>Срок</dt>
+                        <dd>без ограничения по дате</dd>
+                    </div>
                 @endif
-            </p>
+            </dl>
         </header>
-        <div class="lp-tariff-card__body">
+
+        <div class="lp-renew-options" role="list">
             @foreach ($rows as $period => $rRow)
                 @php
-                    $amt = (string) (($rRow['amount_rub'] ?? 0) > 0 ? $rRow['amount_rub'] : '');
-                    $displayRow = ['amount' => $amt];
+                    $amt = (int) ($rRow['amount_rub'] ?? 0);
+                    $bonusDays = (int) ($rRow['days'] ?? 0);
+                    $bonusGb = (int) ($rRow['quota_gb'] ?? 0);
                 @endphp
-                <div class="lp-tariff-card__row lp-tariff-card__row--with-pay">
-                    <div class="lp-tariff-card__row-left">
-                        <span class="lp-tariff-card__period">{{ $period }}</span>
-                        <div class="lp-tariff-card__price-block">
-                            @include('partials.pricing-tariff-price-block', ['row' => $displayRow])
-                        </div>
-                        @if (($rRow['days'] ?? 0) > 0 && ($rRow['quota_gb'] ?? 0) > 0)
-                            <p class="lp-renew-pack-hint">
-                                +{{ (int) $rRow['days'] }} дн. · +{{ (int) $rRow['quota_gb'] }} ГБ
-                            </p>
+                <div class="lp-renew-option" role="listitem">
+                    <div class="lp-renew-option__main">
+                        <span class="lp-renew-option__period">{{ $period }}</span>
+                        @if ($bonusDays > 0 || $bonusGb > 0)
+                            <span class="lp-renew-option__bonus">
+                                @if ($bonusDays > 0)
+                                    +{{ $bonusDays }} дн.
+                                @endif
+                                @if ($bonusDays > 0 && $bonusGb > 0)
+                                    <span aria-hidden="true"> · </span>
+                                @endif
+                                @if ($bonusGb > 0)
+                                    +{{ number_format($bonusGb, 0, ',', ' ') }} ГБ
+                                @endif
+                            </span>
                         @endif
                     </div>
+                    <span class="lp-renew-option__price" aria-label="Сумма">{{ number_format($amt, 0, ',', ' ') }} ₽</span>
                     <button
                         type="button"
                         class="lp-cab-pay-btn lp-cab-renew-pay-btn"
@@ -59,7 +87,7 @@
                         data-tariff-period="{{ $period }}"
                         data-tariff-amount="{{ $amt }}"
                     >
-                        Оплатить продление
+                        Оплатить
                     </button>
                 </div>
             @endforeach

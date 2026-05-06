@@ -1093,17 +1093,150 @@
         padding-top: 2rem;
         border-top: 4px solid #e5e7eb;
     }
-    .lp-f1 .lp-tariff-card.lp-tariff-card--renew { margin-bottom: 1.25rem; }
-    .lp-f1 .lp-tariff-card.lp-tariff-card--renew:last-child { margin-bottom: 0; }
-    .lp-f1 .lp-renew-pack-hint {
-        margin: 0.35rem 0 0 0;
-        font-size: 0.6875rem;
+    .lp-f1 .lp-renew-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.125rem;
+        max-width: 32rem;
+    }
+    .lp-f1 .lp-renew-card {
+        border: 2px solid var(--lp-ink);
+        background: #fff;
+        box-shadow: 3px 3px 0 rgba(15, 23, 42, 0.06);
+    }
+    .lp-f1 .lp-renew-card__head {
+        padding: 0.875rem 1rem 0.95rem;
+        border-bottom: 2px solid rgba(15, 23, 42, 0.08);
+    }
+    .lp-f1 .lp-renew-card__title {
+        margin: 0 0 0.35rem 0;
+        font-size: 0.9375rem;
+        font-weight: 800;
+        line-height: 1.35;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-renew-card__code {
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, monospace;
+    }
+    .lp-f1 .lp-renew-card__plan-line {
+        margin: 0 0 0.65rem 0;
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        color: #475569;
+    }
+    .lp-f1 .lp-renew-card__plan-line strong {
+        color: #0f172a;
+        font-weight: 800;
+    }
+    .lp-f1 .lp-renew-stats {
+        margin: 0;
+        display: grid;
+        gap: 0.4rem;
+    }
+    .lp-f1 .lp-renew-stats__row {
+        display: grid;
+        grid-template-columns: minmax(5rem, 6.75rem) minmax(0, 1fr);
+        gap: 0.35rem 0.85rem;
+        align-items: baseline;
+        font-size: 0.8125rem;
+        line-height: 1.45;
+    }
+    .lp-f1 .lp-renew-stats dt {
+        margin: 0;
         font-weight: 700;
         color: #64748b;
     }
-    .lp-f1 .lp-renew-status-expired {
+    .lp-f1 .lp-renew-stats dd {
+        margin: 0;
+        font-weight: 600;
+        color: #111827;
+        word-break: break-word;
+        font-variant-numeric: tabular-nums;
+    }
+    .lp-f1 .lp-renew-stats__date {
+        white-space: normal;
+        word-break: break-word;
+    }
+    .lp-f1 .lp-renew-badge-expired {
+        display: inline-block;
+        font-weight: 800;
+        font-size: 0.8125rem;
+        color: #991b1b;
+        background: #fee2e2;
+        padding: 0.12rem 0.42rem;
+        border: 1px solid rgba(153, 27, 27, 0.25);
+    }
+    .lp-f1 .lp-renew-options {
+        margin: 0;
+        padding: 0;
+    }
+    .lp-f1 .lp-renew-option {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(auto, max-content) auto;
+        gap: 0.65rem 1.1rem;
+        align-items: center;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .lp-f1 .lp-renew-option:last-child {
+        border-bottom: none;
+    }
+    .lp-f1 .lp-renew-option__main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.28rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-renew-option__period {
+        font-size: 0.875rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        color: #111827;
+        line-height: 1.35;
+        text-transform: none;
+    }
+    .lp-f1 .lp-renew-option__bonus {
+        font-size: 0.78125rem;
+        font-weight: 600;
+        color: #64748b;
+        line-height: 1.42;
+        text-transform: none;
+    }
+    .lp-f1 .lp-renew-option__price {
+        font-size: 1rem;
         font-weight: 900;
-        color: #b91c1c;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        color: var(--lp-ink);
+        justify-self: end;
+    }
+    @media (max-width: 560px) {
+        .lp-f1 .lp-renew-stats__row {
+            grid-template-columns: 1fr;
+            gap: 0.1rem;
+        }
+        .lp-f1 .lp-renew-stats dt {
+            margin-top: 0.35rem;
+        }
+        .lp-f1 .lp-renew-stats__row:first-child dt {
+            margin-top: 0;
+        }
+        .lp-f1 .lp-renew-option {
+            grid-template-columns: 1fr;
+            align-items: stretch;
+            gap: 0.65rem;
+        }
+        .lp-f1 .lp-renew-option__price {
+            justify-self: start;
+            font-size: 1.0625rem;
+        }
+        .lp-f1 .lp-renew-option .lp-cab-pay-btn {
+            width: 100%;
+        }
+        .lp-f1 .lp-renew-stack {
+            max-width: none;
+        }
     }
     .lp-f1 .lp-muted { font-size: 0.75rem; color: #555; font-weight: 500; margin-top: 0.35rem; }
     .lp-f1 .lp-mono { font-family: ui-monospace, monospace; font-weight: 700; font-size: 0.8125rem; }
