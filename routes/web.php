@@ -12,6 +12,7 @@ use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetNiceController;
 use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
+use App\Http\Controllers\CabinetRenewalController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
 use App\Http\Controllers\EmailCodeVerificationController;
@@ -63,6 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
     Route::get('/dashboard/payment', CabinetPaymentController::class)->name('cabinet.payment');
+    Route::get('/dashboard/renewal', CabinetRenewalController::class)->name('cabinet.renewal');
     Route::post('/dashboard/payment/link', CabinetCreatePaymentLinkController::class)
         ->middleware('throttle:20,1')
         ->name('cabinet.payment.link');

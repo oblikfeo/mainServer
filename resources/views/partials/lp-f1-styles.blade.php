@@ -1088,11 +1088,6 @@
         color: #656565 !important;
         line-height: 1.45 !important;
     }
-    .lp-f1 .lp-pay-renewal-block {
-        margin-top: 2.75rem;
-        padding-top: 2rem;
-        border-top: 4px solid #e5e7eb;
-    }
     .lp-f1 .lp-renew-stack {
         display: flex;
         flex-direction: column;
