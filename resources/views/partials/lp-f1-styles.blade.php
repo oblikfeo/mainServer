@@ -1173,8 +1173,8 @@
     }
     .lp-f1 .lp-renew-option {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(auto, max-content) auto;
-        gap: 0.65rem 1.1rem;
+        grid-template-columns: max-content minmax(0, 1fr) auto;
+        gap: 0.65rem 1.25rem;
         align-items: center;
         padding: 0.7rem 1rem;
         border-bottom: 1px solid #e5e7eb;
@@ -1182,11 +1182,17 @@
     .lp-f1 .lp-renew-option:last-child {
         border-bottom: none;
     }
-    .lp-f1 .lp-renew-option__main {
-        display: flex;
-        flex-direction: column;
-        gap: 0.28rem;
+    .lp-f1 .lp-renew-option__lead {
+        flex-shrink: 0;
         min-width: 0;
+    }
+    .lp-f1 .lp-renew-option__middle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+        padding-inline: 0.25rem;
     }
     .lp-f1 .lp-renew-option__period {
         font-size: 0.875rem;
@@ -1195,11 +1201,14 @@
         color: #111827;
         line-height: 1.35;
         text-transform: none;
+        white-space: nowrap;
     }
     .lp-f1 .lp-renew-option__bonuses {
         display: flex;
         flex-direction: column;
         gap: 0.18rem;
+        align-items: center;
+        text-align: center;
     }
     .lp-f1 .lp-renew-option__bonus-line {
         display: block;
@@ -1208,6 +1217,14 @@
         color: #64748b;
         line-height: 1.42;
         text-transform: none;
+        font-variant-numeric: tabular-nums;
+    }
+    .lp-f1 .lp-renew-option__tail {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        flex-shrink: 0;
     }
     .lp-f1 .lp-renew-option__price {
         font-size: 1rem;
@@ -1215,7 +1232,6 @@
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
         color: var(--lp-ink);
-        justify-self: end;
     }
     @media (max-width: 560px) {
         .lp-f1 .lp-renew-stats__row {
@@ -1231,10 +1247,22 @@
         .lp-f1 .lp-renew-option {
             grid-template-columns: 1fr;
             align-items: stretch;
-            gap: 0.65rem;
+            gap: 0.5rem;
+        }
+        .lp-f1 .lp-renew-option__middle {
+            justify-content: flex-start;
+            padding-inline: 0;
+        }
+        .lp-f1 .lp-renew-option__bonuses {
+            align-items: flex-start;
+            text-align: left;
+        }
+        .lp-f1 .lp-renew-option__tail {
+            flex-direction: column;
+            align-items: stretch;
+            flex-wrap: nowrap;
         }
         .lp-f1 .lp-renew-option__price {
-            justify-self: start;
             font-size: 1.0625rem;
         }
         .lp-f1 .lp-renew-option .lp-cab-pay-btn {

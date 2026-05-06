@@ -61,8 +61,10 @@
                     $bonusGb = (int) ($rRow['quota_gb'] ?? 0);
                 @endphp
                 <div class="lp-renew-option" role="listitem">
-                    <div class="lp-renew-option__main">
+                    <div class="lp-renew-option__lead">
                         <span class="lp-renew-option__period">{{ $period }}</span>
+                    </div>
+                    <div class="lp-renew-option__middle">
                         @if ($bonusDays > 0 || $bonusGb > 0)
                             <div class="lp-renew-option__bonuses">
                                 @if ($bonusDays > 0)
@@ -74,18 +76,20 @@
                             </div>
                         @endif
                     </div>
-                    <span class="lp-renew-option__price" aria-label="Сумма">{{ number_format($amt, 0, ',', ' ') }} ₽</span>
-                    <button
-                        type="button"
-                        class="lp-cab-pay-btn lp-cab-renew-pay-btn"
-                        data-purpose="renew"
-                        data-subscription-id="{{ $sub->id }}"
-                        data-tariff-plan="{{ $renewPlan }}"
-                        data-tariff-period="{{ $period }}"
-                        data-tariff-amount="{{ $amt }}"
-                    >
-                        Оплатить
-                    </button>
+                    <div class="lp-renew-option__tail">
+                        <span class="lp-renew-option__price" aria-label="Сумма">{{ number_format($amt, 0, ',', ' ') }} ₽</span>
+                        <button
+                            type="button"
+                            class="lp-cab-pay-btn lp-cab-renew-pay-btn"
+                            data-purpose="renew"
+                            data-subscription-id="{{ $sub->id }}"
+                            data-tariff-plan="{{ $renewPlan }}"
+                            data-tariff-period="{{ $period }}"
+                            data-tariff-amount="{{ $amt }}"
+                        >
+                            Оплатить
+                        </button>
+                    </div>
                 </div>
             @endforeach
         </div>
