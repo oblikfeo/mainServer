@@ -41,6 +41,16 @@ return [
     ),
 
     /**
+     * Анонс Happ — строка с URL сайта для проверки кликабельности в клиенте.
+     * Плейсхолдер {site} подставляется как MARKETING_SUBSCRIPTION_SITE_URL или APP_URL.
+     * Пустая строка — не выводить (выключить через env MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE=).
+     */
+    'subscription_announce_line_site' => env(
+        'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE',
+        'Сайт: {site}'
+    ),
+
+    /**
      * Цвет иконки кнопки «сайт» в Happ (color-profile → profileWebPageIconColor), формат #RRGGBBAA как в доке Happ.
      * Фирменный оранжевый лендинга (views2 --mock-primary). Пустой .env — не передавать color-profile.
      *

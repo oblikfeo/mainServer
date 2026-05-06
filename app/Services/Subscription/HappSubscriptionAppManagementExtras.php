@@ -11,11 +11,12 @@ use Throwable;
 /**
  * Поля управления приложением Happ (App management): support-url, profile-web-page-url, announce, color-profile.
  *
- * Тело #announce собирается из трёх частей сверху вниз:
+ * Тело #announce собирается из частей сверху вниз:
  *   1) Фикс. «Привязанные устройства: used/max» (всегда).
  *   2) Фикс. «Дней до окончания подписки: N» (только если задана дата).
- *   3) Произвольный текст из админки (AppSetting `marketing_announce_text`),
- *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support}.
+ *   3) Необязательная строка с URL сайта (subscription_announce_line_site, плейсхолдер {site}) — для ссылок в тексте анонса.
+ *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
+ *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -25,7 +26,11 @@ use Throwable;
  */
 final class HappSubscriptionAppManagementExtras
 {
-    private const ANNOUNCE_MAX_LEN = 200;
+    /**
+     * Ограничение длины полезной нагрузки #announce (после base64 Happ показывает текст).
+     * С запасом под несколько строк и URL; при необходимости см. конфиг и админский блок.
+     */
+    private const ANNOUNCE_MAX_LEN = 400;
 
     /**
      * @return array{body_meta_suffix: string, headers: array<string, string>}
@@ -35,10 +40,7 @@ final class HappSubscriptionAppManagementExtras
         $supportUrl = self::normalizedUrl(
             trim((string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')))
         );
-        $webUrl = self::normalizedUrl(trim((string) config('marketing.subscription_site_url')));
-        if ($webUrl === '') {
-            $webUrl = self::normalizedUrl(rtrim((string) config('app.url'), '/'));
-        }
+        $webUrl = self::subscriptionWebUrl();
 
         $announce = self::composeAnnounce($context);
 
@@ -96,6 +98,7 @@ final class HappSubscriptionAppManagementExtras
             '{days}' => $daysLeft !== null ? (string) $daysLeft : '',
             '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
             '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
+            '{site}' => self::subscriptionWebUrl(),
         ];
 
         $lines = [];
@@ -114,7 +117,13 @@ final class HappSubscriptionAppManagementExtras
             }
         }
 
-        // Строка 3+: произвольный блок из админки.
+        // Строка с URL сайта (проверка linkify в Happ; шаблон пустой — не выводим).
+        $siteTpl = trim((string) config('marketing.subscription_announce_line_site', ''));
+        if ($siteTpl !== '' && $vars['{site}'] !== '') {
+            $lines[] = strtr($siteTpl, $vars);
+        }
+
+        // Произвольный блок из админки.
         $extra = self::adminAnnounceTemplate();
         if ($extra !== '') {
             $lines[] = strtr($extra, $vars);
@@ -278,5 +287,16 @@ final class HappSubscriptionAppManagementExtras
         $url = trim($url);
 
         return $url === '' ? '' : rtrim($url, '/');
+    }
+
+    /** Публичный URL сайта для анонса и кнопки профиля: MARKETING_SUBSCRIPTION_SITE_URL или APP_URL. */
+    private static function subscriptionWebUrl(): string
+    {
+        $webUrl = self::normalizedUrl(trim((string) config('marketing.subscription_site_url')));
+        if ($webUrl === '') {
+            $webUrl = self::normalizedUrl(rtrim((string) config('app.url'), '/'));
+        }
+
+        return $webUrl;
     }
 }
