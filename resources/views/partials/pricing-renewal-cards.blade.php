@@ -64,17 +64,14 @@
                     <div class="lp-renew-option__main">
                         <span class="lp-renew-option__period">{{ $period }}</span>
                         @if ($bonusDays > 0 || $bonusGb > 0)
-                            <span class="lp-renew-option__bonus">
+                            <div class="lp-renew-option__bonuses">
                                 @if ($bonusDays > 0)
-                                    +{{ $bonusDays }} дн.
-                                @endif
-                                @if ($bonusDays > 0 && $bonusGb > 0)
-                                    <span aria-hidden="true"> · </span>
+                                    <span class="lp-renew-option__bonus-line">+{{ $bonusDays }} дн.</span>
                                 @endif
                                 @if ($bonusGb > 0)
-                                    +{{ number_format($bonusGb, 0, ',', ' ') }} ГБ
+                                    <span class="lp-renew-option__bonus-line">+{{ number_format($bonusGb, 0, ',', ' ') }} ГБ</span>
                                 @endif
-                            </span>
+                            </div>
                         @endif
                     </div>
                     <span class="lp-renew-option__price" aria-label="Сумма">{{ number_format($amt, 0, ',', ' ') }} ₽</span>

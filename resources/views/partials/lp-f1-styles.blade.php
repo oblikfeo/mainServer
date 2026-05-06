@@ -1196,7 +1196,13 @@
         line-height: 1.35;
         text-transform: none;
     }
-    .lp-f1 .lp-renew-option__bonus {
+    .lp-f1 .lp-renew-option__bonuses {
+        display: flex;
+        flex-direction: column;
+        gap: 0.18rem;
+    }
+    .lp-f1 .lp-renew-option__bonus-line {
+        display: block;
         font-size: 0.78125rem;
         font-weight: 600;
         color: #64748b;
