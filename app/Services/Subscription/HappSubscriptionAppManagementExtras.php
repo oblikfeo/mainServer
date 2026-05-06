@@ -14,9 +14,11 @@ use Throwable;
  * Тело #announce собирается из частей сверху вниз:
  *   1) Фикс. «Привязанные устройства: used/max» (всегда).
  *   2) Фикс. «Дней до окончания подписки: N» (только если задана дата).
- *   3) Необязательная строка с URL сайта (subscription_announce_line_site, плейсхолдер {site}) — для ссылок в тексте анонса.
+ *   3) Необязательная строка (subscription_announce_line_site, плейсхолдер {site}) — plain text; URL в ней не кликабелен в Happ.
  *   4) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
+ *
+ * Отдельно от текста: метаданные Happ «sub-info-*» (кнопка) и «profile-web-page-url» (иконка сайта) — см. forResponses().
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -57,6 +59,8 @@ final class HappSubscriptionAppManagementExtras
             $headers['profile-web-page-url'] = $webUrl;
         }
 
+        self::appendHappSubInfoBlock($body, $headers, $webUrl);
+
         if ($announce !== '') {
             // Всегда base64 — это единственный документированный способ передать произвольный
             // текст через `announce:` (в т.ч. с управляющими символами вроде \n).
@@ -81,6 +85,37 @@ final class HappSubscriptionAppManagementExtras
             'body_meta_suffix' => $body,
             'headers' => $headers,
         ];
+    }
+
+    /**
+     * Блок sub-info: кликабельная кнопка с URL (док. Happ). Без текста или при «0» — не отправляем.
+     */
+    private static function appendHappSubInfoBlock(string &$body, array &$headers, string $webUrl): void
+    {
+        if ($webUrl === '') {
+            return;
+        }
+
+        $rawText = trim((string) config('marketing.subscription_happ_sub_info_text', ''));
+        if ($rawText === '' || $rawText === '0') {
+            return;
+        }
+
+        $infoText = self::truncateUtf8($rawText, 200);
+        $rawBtn = trim((string) config('marketing.subscription_happ_sub_info_button_text', ''));
+        if ($rawBtn === '') {
+            return;
+        }
+        $buttonText = self::truncateUtf8($rawBtn, 25);
+
+        $body .= '#sub-info-text: '.$infoText."\n";
+        $headers['sub-info-text'] = $infoText;
+
+        $body .= '#sub-info-button-text: '.$buttonText."\n";
+        $headers['sub-info-button-text'] = $buttonText;
+
+        $body .= '#sub-info-button-link: '.$webUrl."\n";
+        $headers['sub-info-button-link'] = $webUrl;
     }
 
     private static function composeAnnounce(Subscription|TestKey|null $context): string
@@ -117,7 +152,7 @@ final class HappSubscriptionAppManagementExtras
             }
         }
 
-        // Строка с URL сайта (проверка linkify в Happ; шаблон пустой — не выводим).
+        // Необязательная строка с {site} — только plain text (Happ не линкует URL внутри announce).
         $siteTpl = trim((string) config('marketing.subscription_announce_line_site', ''));
         if ($siteTpl !== '' && $vars['{site}'] !== '') {
             $lines[] = strtr($siteTpl, $vars);
@@ -287,6 +322,22 @@ final class HappSubscriptionAppManagementExtras
         $url = trim($url);
 
         return $url === '' ? '' : rtrim($url, '/');
+    }
+
+    private static function truncateUtf8(string $value, int $maxChars): string
+    {
+        if ($maxChars < 1) {
+            return '';
+        }
+        if (function_exists('mb_strlen')) {
+            if (mb_strlen($value) > $maxChars) {
+                return mb_substr($value, 0, $maxChars);
+            }
+
+            return $value;
+        }
+
+        return strlen($value) > $maxChars ? substr($value, 0, $maxChars) : $value;
     }
 
     /** Публичный URL сайта для анонса и кнопки профиля: MARKETING_SUBSCRIPTION_SITE_URL или APP_URL. */

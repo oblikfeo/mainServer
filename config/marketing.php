@@ -41,13 +41,28 @@ return [
     ),
 
     /**
-     * Анонс Happ — строка с URL сайта для проверки кликабельности в клиенте.
-     * Плейсхолдер {site} подставляется как MARKETING_SUBSCRIPTION_SITE_URL или APP_URL.
-     * Пустая строка — не выводить (выключить через env MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE=).
+     * Анонс Happ — опциональная строка с {site}. В поле announce URL не становится гиперссылкой.
+     * Кнопка: subscription_happ_sub_info_* и иконка #profile-web-page-url.
      */
     'subscription_announce_line_site' => env(
         'MARKETING_SUBSCRIPTION_ANNOUNCE_LINE_SITE',
-        'Сайт: {site}'
+        ''
+    ),
+
+    /**
+     * Happ Advanced announcements: отдельный блок с кнопкой «в браузер». Пустой текст — блок не передаём.
+     *
+     * @see https://www.happ.su/main/dev-docs/app-management
+     */
+    'subscription_happ_sub_info_text' => env(
+        'MARKETING_HAPP_SUB_INFO_TEXT',
+        'Личный кабинет и тарифы — на сайте.'
+    ),
+
+    /** Подпись кнопки (до 25 символов по доке Happ). Пусто — кнопку не показываем. */
+    'subscription_happ_sub_info_button_text' => env(
+        'MARKETING_HAPP_SUB_INFO_BUTTON',
+        'Открыть'
     ),
 
     /**
