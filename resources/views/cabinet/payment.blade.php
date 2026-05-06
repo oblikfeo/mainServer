@@ -1,18 +1,12 @@
 <x-cabinet-layout>
     <div class="max-w-4xl mx-auto">
         <h2 class="lp-page-section-title">Новая подписка</h2>
-        <p class="lp-text-intro-muted lp-mb-tariffs">
-            Оформление нового доступа: после оплаты появится отдельная подписка в разделе «Мои подписки».
-        </p>
         <div class="lp-tariff-cards">
             @include('partials.pricing-tariff-cards', ['showPayButtons' => true])
         </div>
 
         <div class="lp-pay-renewal-block">
             <h2 class="lp-page-section-title">Продление подписки</h2>
-            <p class="lp-text-intro-muted lp-mb-tariffs">
-                Те же пакеты дней и трафика добавляются к уже существующей подписке (ссылка в Happ не меняется).
-            </p>
 
             @if ($renewalSubscriptions->isEmpty())
                 <div class="lp-empty lp-empty--compact">

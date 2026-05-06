@@ -1093,14 +1093,6 @@
         padding-top: 2rem;
         border-top: 4px solid #e5e7eb;
     }
-    .lp-f1 .lp-text-intro-muted {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: #475569;
-        line-height: 1.45;
-        margin: 0;
-    }
-    .lp-f1 .lp-mb-tariffs { margin-bottom: 1.25rem; }
     .lp-f1 .lp-tariff-card.lp-tariff-card--renew { margin-bottom: 1.25rem; }
     .lp-f1 .lp-tariff-card.lp-tariff-card--renew:last-child { margin-bottom: 0; }
     .lp-f1 .lp-renew-pack-hint {
