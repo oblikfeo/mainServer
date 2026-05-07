@@ -53,7 +53,7 @@
                 </li>
             </ol>
             <p class="text-xs text-slate-500 pt-1">
-                Лимит распознанных правил из этого поля: до {{ $maxRoutingEntries }} записей. Строки с <code class="rounded bg-slate-100 px-1">#</code> в начале — комментарии, в подписку не попадают.
+                В самом Happ при отсутствии полей <code class="rounded bg-slate-100 px-1">Geoipurl</code>/<code class="rounded bg-slate-100 px-1">Geositeurl</code> в профиле подставляются дефолтные ссылки на .dat (см. документацию Happ). В подписке эти поля передаются <strong>пустыми строками</strong>, чтобы этого не происходило.
             </p>
         </div>
 
