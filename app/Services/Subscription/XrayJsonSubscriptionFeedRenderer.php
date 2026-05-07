@@ -518,6 +518,8 @@ final class XrayJsonSubscriptionFeedRenderer
                     'domain:vkusvill.ru',
                     'domain:ozon.ru',
                     'domain:wildberries.ru',
+                    'domain:wbbasket.ru',
+                    'domain:wb.ru',
                     'domain:tinkoff.ru',
                     'domain:gosuslugi.ru',
                     'domain:nalog.gov.ru',

@@ -146,7 +146,7 @@ return [
         /**
          * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, keyword: …).
          * В подписке в JSON профиля Happ явно передаются пустые Geoipurl/Geositeurl — иначе клиент подставляет дефолтные URL на .dat.
-         * Набор как у типичных конкурентов: явные domain: для РФ/служебных хостов + 2ip.ru.
+         * Набор как у типичных конкурентов + доп. суффиксы под реальный трафик (WB: wbbasket.ru не покрывается domain:wildberries.ru).
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
@@ -165,6 +165,8 @@ return [
                 'domain:vkusvill.ru',
                 'domain:ozon.ru',
                 'domain:wildberries.ru',
+                'domain:wbbasket.ru',
+                'domain:wb.ru',
                 'domain:tinkoff.ru',
                 'domain:gosuslugi.ru',
                 'domain:nalog.gov.ru',
