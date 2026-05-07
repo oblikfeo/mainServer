@@ -37,7 +37,7 @@ return [
     'default_quota_gb' => (int) env('TEST_KEYS_DEFAULT_QUOTA_GB', 5),
 
     /**
-     * Прикладывать к ответу /sub по тест-ключу тот же happ-routing, что у платной подписки (direct/geosite).
+     * Прикладывать к ответу /sub по тест-ключу тот же happ-routing, что у платной подписки (DirectSites из конфига).
      * false — только vless, проще диагностика «есть ли трафик» на тестовой панели.
      */
     'apply_happ_routing' => filter_var(

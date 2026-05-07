@@ -141,13 +141,35 @@ return [
         /** Имя профиля в Happ (короткое) */
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
         /**
-         * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, geosite: …).
-         * geosite:category-ru — все российские сервисы идут мимо VPN (ВК, Ozon, ВБ, Яндекс и т.д.).
-         * 2ip.ru — проверка «без VPN».
+         * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, keyword: …).
+         * Без geosite:/geoip: — Happ не подставляет Geoipurl/Geositeurl и не качает .dat (снижает отказы у клиентов).
+         * Набор как у типичных конкурентов: явные domain: для РФ/служебных хостов + 2ip.ru.
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
-            'geosite:category-ru,domain:2ip.ru'
+            implode(',', [
+                'domain:mtalk.google.com',
+                'domain:push.apple.com',
+                'domain:api.push.apple.com',
+                'domain:push-apple.com.akadns.net',
+                'domain:courier.push.apple.com',
+                'domain:mangabuff.ru',
+                'domain:yandex.com',
+                'domain:yandex.net',
+                'domain:yandex.ru',
+                'domain:mail.ru',
+                'domain:vk.com',
+                'domain:vkusvill.ru',
+                'domain:ozon.ru',
+                'domain:wildberries.ru',
+                'domain:tinkoff.ru',
+                'domain:gosuslugi.ru',
+                'domain:nalog.gov.ru',
+                'domain:mos.ru',
+                'domain:2gis.com',
+                'domain:2gis.ru',
+                'domain:2ip.ru',
+            ])
         ))))),
     ],
 ];

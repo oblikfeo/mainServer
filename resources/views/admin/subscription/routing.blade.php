@@ -37,8 +37,9 @@
             <ol class="list-decimal list-inside space-y-2 leading-relaxed">
                 <li>
                     <strong>База из сервера</strong> — список в <code class="rounded bg-white px-1 border border-slate-200">.env</code> как
-                    <code class="rounded bg-white px-1 border border-slate-200">HAPP_DIRECT_SITES</code> (через запятую). Обычно там, например,
-                    <code class="rounded bg-white px-1 border border-slate-200">geosite:category-ru</code> и точечные домены.
+                    <code class="rounded bg-white px-1 border border-slate-200">HAPP_DIRECT_SITES</code> (через запятую). Рекомендуется список
+                    <code class="rounded bg-white px-1 border border-slate-200">domain:...</code> без <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> —
+                    иначе Happ снова потребует скачивание geo-файлов.
                 </li>
                 <li>
                     <strong>Дополнение из админки</strong> — многострочное поле ниже хранится в базе. Одна строка = одно правило.
@@ -47,8 +48,8 @@
                 <li>
                     <strong>В подписке</strong> база и дополнение объединяются и уходят в Happ как <code class="rounded bg-white px-1 border border-slate-200">DirectSites</code>
                     и при необходимости <code class="rounded bg-white px-1 border border-slate-200">DirectIp</code>.
-                    Для правил <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> / <code class="rounded bg-white px-1 border border-slate-200">geoip:</code>
-                    клиент подкачивает geo-файлы (у вас это уже зашито в генератор подписки).
+                    Если в итоговом списке есть <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> или <code class="rounded bg-white px-1 border border-slate-200">geoip:</code>,
+                    в профиль добавятся URL geo-файлов и Happ их загрузит.
                 </li>
             </ol>
             <p class="text-xs text-slate-500 pt-1">
@@ -98,8 +99,8 @@
                     <p>full:api.example.com</p>
                     <p><span class="text-slate-500"># можно вставить URL — возьмём только хост</span></p>
                     <p>https://www.ozon.ru/path</p>
-                    <p><span class="text-slate-500"># категория из geosite.dat (не дублируйте то, что уже в .env)</span></p>
-                    <p>geosite:category-ru</p>
+                    <p><span class="text-slate-500"># geosite: — снова включит загрузку .dat у клиента (по возможности избегать)</span></p>
+                    <p># geosite:google</p>
                     <p><span class="text-slate-500"># IPv4 / CIDR / geoip для DirectIp</span></p>
                     <p>geoip:ru</p>
                     <p>192.168.1.0/24</p>
