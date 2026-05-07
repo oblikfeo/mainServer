@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Services\Subscription\HappRoutingMergedInput;
 use App\Services\Subscription\HappRoutingRulesParser;
+use App\Services\Subscription\HappRoutingSubscriptionLine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,20 +20,7 @@ class SubscriptionSettingsController extends Controller
         $configSites = config('xui.happ_routing.direct_sites', []);
 
         $configSites = is_array($configSites) ? $configSites : [];
-        $mergedSites = [];
-        $seen = [];
-        foreach ([...$configSites, ...$routingPreview['sites']] as $s) {
-            $s = trim((string) $s);
-            if ($s === '') {
-                continue;
-            }
-            $k = strtolower($s);
-            if (isset($seen[$k])) {
-                continue;
-            }
-            $seen[$k] = true;
-            $mergedSites[] = $s;
-        }
+        $mergedSites = HappRoutingMergedInput::mergeUniqueTokens($configSites, $routingPreview['sites']);
 
         $directIpFromAdmin = array_values(array_filter(array_map('trim', $routingPreview['ips']), fn (string $s): bool => $s !== ''));
 
@@ -39,7 +28,9 @@ class SubscriptionSettingsController extends Controller
             'routingRules' => (string) $routingRaw,
             'routingConfigSites' => $configSites,
             'routingMergedSites' => $mergedSites,
+            'routingHappProfileSites' => HappRoutingSubscriptionLine::sitesForHappProfile($mergedSites),
             'routingDirectIpFromAdmin' => $directIpFromAdmin,
+            'routingHappProfileIpExtras' => HappRoutingSubscriptionLine::extraDirectIpForHappProfile($directIpFromAdmin),
             'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
             'maxRoutingEntries' => HappRoutingRulesParser::MAX_OUTPUT_ENTRIES,
         ]);

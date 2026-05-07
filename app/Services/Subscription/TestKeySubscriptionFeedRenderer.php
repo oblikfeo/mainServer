@@ -2,7 +2,6 @@
 
 namespace App\Services\Subscription;
 
-use App\Models\AppSetting;
 use App\Models\TestKey;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\Response;
@@ -154,47 +153,10 @@ final class TestKeySubscriptionFeedRenderer
             $name = 'direct';
         }
 
-        $configSites = $cfg['direct_sites'] ?? [];
-        if (! is_array($configSites)) {
-            $configSites = [];
-        }
-
-        $adminRaw = '';
-        try {
-            $adminRaw = AppSetting::getValue('happ_routing_rules') ?? '';
-        } catch (Throwable) {
-        }
-
-        $parsed = HappRoutingRulesParser::parse((string) $adminRaw);
-        $sites = $this->mergeUniqueRoutingTokens($configSites, $parsed['sites']);
+        $sites = HappRoutingMergedInput::mergedDirectSites();
         $onAdd = filter_var($cfg['onadd'] ?? true, FILTER_VALIDATE_BOOL);
 
-        return HappRoutingSubscriptionLine::buildOnAddLine($name, $sites, $onAdd, $parsed['ips']);
-    }
-
-    /**
-     * @param  list<string>|array<int|string, mixed>  $base
-     * @param  list<string>  $extra
-     * @return list<string>
-     */
-    private function mergeUniqueRoutingTokens(array $base, array $extra): array
-    {
-        $seen = [];
-        $out = [];
-        foreach ([...$base, ...$extra] as $s) {
-            $s = trim((string) $s);
-            if ($s === '') {
-                continue;
-            }
-            $k = strtolower($s);
-            if (isset($seen[$k])) {
-                continue;
-            }
-            $seen[$k] = true;
-            $out[] = $s;
-        }
-
-        return $out;
+        return HappRoutingSubscriptionLine::buildOnAddLine($name, $sites, $onAdd, HappRoutingMergedInput::adminDirectIpTokens());
     }
 
     private function profileTitleForHapp(): string

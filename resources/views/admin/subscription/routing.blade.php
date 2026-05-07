@@ -48,8 +48,8 @@
                 <li>
                     <strong>В подписке</strong> база и дополнение объединяются и уходят в Happ как <code class="rounded bg-white px-1 border border-slate-200">DirectSites</code>
                     и при необходимости <code class="rounded bg-white px-1 border border-slate-200">DirectIp</code>.
-                    Если в итоговом списке есть <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> или <code class="rounded bg-white px-1 border border-slate-200">geoip:</code>,
-                    в профиль добавятся URL geo-файлов и Happ их загрузит.
+                    Правила <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> и <code class="rounded bg-white px-1 border border-slate-200">geoip:</code>
+                    при генерации подписки <strong>отбрасываются</strong> — без них Happ не получит URL на .dat и не будет пытаться их качать (см. предпросмотр ниже).
                 </li>
             </ol>
             <p class="text-xs text-slate-500 pt-1">
@@ -99,10 +99,9 @@
                     <p>full:api.example.com</p>
                     <p><span class="text-slate-500"># можно вставить URL — возьмём только хост</span></p>
                     <p>https://www.ozon.ru/path</p>
-                    <p><span class="text-slate-500"># geosite: — снова включит загрузку .dat у клиента (по возможности избегать)</span></p>
+                    <p><span class="text-slate-500"># geosite: — будет отброшено (не попадёт в Happ-профиль)</span></p>
                     <p># geosite:google</p>
-                    <p><span class="text-slate-500"># IPv4 / CIDR / geoip для DirectIp</span></p>
-                    <p>geoip:ru</p>
+                    <p><span class="text-slate-500"># geoip: — будет отброшено; для обхода используйте CIDR или domain:</span></p>
                     <p>192.168.1.0/24</p>
                 </div>
             </details>
@@ -110,14 +109,15 @@
             <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Предпросмотр итога для подписки</h3>
                 <p class="text-xs text-slate-600">
-                    Ниже — объединение <strong>базы из .env</strong> и <strong>распознанных</strong> строк из поля (как увидит Happ в <code class="rounded bg-white px-1 border border-slate-200">DirectSites</code>).
+                    Сначала — объединение <strong>базы из .env</strong> и правил из поля. Ниже — то, что реально уйдёт в Happ (без <code class="rounded bg-white px-1 border">geosite:</code>/<code class="rounded bg-white px-1 border">geoip:</code>).
+                    В URI-подписке список доменов не показывается как отдельный конфиг: он внутри строки <code class="rounded bg-white px-1 border">happ://routing/…</code> (base64).
                 </p>
                 <div>
-                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectSites</div>
+                    <div class="text-xs font-semibold text-slate-600 mb-1">Сводное объединение (как на сервере)</div>
                     @if (empty($routingMergedSites))
                         <p class="text-xs text-slate-500">Пока пусто (проверьте .env и поле выше).</p>
                     @else
-                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all max-h-48 overflow-y-auto">
+                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all max-h-40 overflow-y-auto">
                             @foreach ($routingMergedSites as $s)
                                 <li>{{ $s }}</li>
                             @endforeach
@@ -125,12 +125,34 @@
                     @endif
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectIp (только из этого поля: IPv4, CIDR, geoip:…)</div>
+                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectSites в Happ-профиле</div>
+                    @if (empty($routingHappProfileSites))
+                        <p class="text-xs text-slate-500">Нет ни одного правила с доменом после отсечения geosite (или всё только geosite).</p>
+                    @else
+                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all max-h-48 overflow-y-auto">
+                            @foreach ($routingHappProfileSites as $s)
+                                <li>{{ $s }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+                <div>
+                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectIp из админки (IPv4, CIDR) — в профиль плюс служебные сети</div>
                     @if (empty($routingDirectIpFromAdmin))
                         <p class="text-xs text-slate-500">Из админки не задано.</p>
                     @else
                         <ul class="font-mono text-xs text-slate-800 space-y-1 break-all">
                             @foreach ($routingDirectIpFromAdmin as $s)
+                                <li>{{ $s }}</li>
+                            @endforeach
+                        </ul>
+                    @endif
+                    @if (! empty($routingDirectIpFromAdmin) && (count($routingHappProfileIpExtras) !== count($routingDirectIpFromAdmin)))
+                        <p class="text-[11px] text-amber-800 mt-2">
+                            Часть строк отброшена (например <code class="rounded bg-amber-100 px-1">geoip:</code>) — в Happ попадут только:
+                        </p>
+                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all mt-1">
+                            @foreach ($routingHappProfileIpExtras as $s)
                                 <li>{{ $s }}</li>
                             @endforeach
                         </ul>

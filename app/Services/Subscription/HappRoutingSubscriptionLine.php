@@ -5,34 +5,13 @@ namespace App\Services\Subscription;
 /**
  * Строка маршрутизации Happ для тела подписки / заголовка routing.
  *
+ * geosite:/geoip: не попадают в профиль: иначе Happ тянет .dat (частые сбои).
+ * При необходимости категорий — только явные domain:/full: в конфиге/админке.
+ *
  * @see https://www.happ.su/main/dev-docs/routing
  */
 final class HappRoutingSubscriptionLine
 {
-    /**
-     * Geo файлы нужны только если используются токены geoip:/geosite:.
-     *
-     * @param  list<string>  $directSites
-     * @param  list<string>  $directIp
-     */
-    private static function needsGeoFiles(array $directSites, array $directIp): bool
-    {
-        foreach ($directSites as $s) {
-            $s = strtolower(trim((string) $s));
-            if (str_starts_with($s, 'geosite:')) {
-                return true;
-            }
-        }
-        foreach ($directIp as $s) {
-            $s = strtolower(trim((string) $s));
-            if (str_starts_with($s, 'geoip:')) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /**
      * Стандартные приватные сети + broadcast (как в примере Happ).
      *
@@ -52,7 +31,49 @@ final class HappRoutingSubscriptionLine
 
     /**
      * @param  list<string>  $directSites
-     * @param  list<string>  $extraDirectIp  Доп. DirectIp (CIDR, geoip:, одиночный IPv4).
+     * @return list<string>
+     */
+    public static function sitesForHappProfile(array $directSites): array
+    {
+        $out = [];
+        foreach ($directSites as $s) {
+            $s = trim((string) $s);
+            if ($s === '') {
+                continue;
+            }
+            if (str_starts_with(strtolower($s), 'geosite:')) {
+                continue;
+            }
+            $out[] = $s;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  list<string>  $extraDirectIp
+     * @return list<string>
+     */
+    public static function extraDirectIpForHappProfile(array $extraDirectIp): array
+    {
+        $out = [];
+        foreach ($extraDirectIp as $s) {
+            $s = trim((string) $s);
+            if ($s === '') {
+                continue;
+            }
+            if (str_starts_with(strtolower($s), 'geoip:')) {
+                continue;
+            }
+            $out[] = $s;
+        }
+
+        return $out;
+    }
+
+    /**
+     * @param  list<string>  $directSites
+     * @param  list<string>  $extraDirectIp  Доп. DirectIp (CIDR, одиночный IPv4). geoip: отбрасывается.
      */
     public static function buildOnAddLine(
         string $profileName,
@@ -60,8 +81,12 @@ final class HappRoutingSubscriptionLine
         bool $useOnAdd = true,
         array $extraDirectIp = [],
     ): ?string {
-        $directSites = array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== ''));
-        $extraDirectIp = array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== ''));
+        $directSites = self::sitesForHappProfile(array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== '')));
+        $extraDirectIp = self::extraDirectIpForHappProfile(array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== '')));
+
+        if ($directSites === [] && $extraDirectIp === []) {
+            return null;
+        }
 
         // Запросы DoH к Cloudflare (1.1.1.1) иначе уходят в GlobalProxy → в Hy2; при мёртвом реле на ноде DNS не поднимается и «нет интернета» вообще.
         $doHBootstrapIpv4 = ['1.1.1.1/32', '1.0.0.1/32'];
@@ -76,12 +101,6 @@ final class HappRoutingSubscriptionLine
             $seenIp[$k] = true;
             $directIp[] = $ip;
         }
-
-        if ($directSites === [] && $extraDirectIp === []) {
-            return null;
-        }
-
-        $needGeo = self::needsGeoFiles($directSites, $directIp);
 
         // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
         // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
@@ -104,13 +123,6 @@ final class HappRoutingSubscriptionLine
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),
         ];
-
-        if ($needGeo) {
-            // Российские geo файлы (обновляются автоматически).
-            // @see https://github.com/runetfreedom/russia-v2ray-rules-dat
-            $profile['Geoipurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geoip.dat';
-            $profile['Geositeurl'] = 'https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/geosite.dat';
-        }
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
