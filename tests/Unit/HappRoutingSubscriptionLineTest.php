@@ -15,11 +15,11 @@ final class HappRoutingSubscriptionLineTest extends TestCase
         ], true, ['geoip:ru', '192.168.3.0/24']);
 
         $this->assertNotNull($line);
-        $this->assertStringNotContainsString('Geoipurl', $line);
-        $this->assertStringNotContainsString('Geositeurl', $line);
         $b64 = (string) preg_replace('#^happ://routing/(onadd|add)/#', '', (string) $line);
         $json = json_decode((string) base64_decode($b64, true), true);
         $this->assertIsArray($json);
+        $this->assertSame('', $json['Geoipurl'] ?? null);
+        $this->assertSame('', $json['Geositeurl'] ?? null);
         $this->assertContains('domain:vk.com', $json['DirectSites'] ?? []);
     }
 

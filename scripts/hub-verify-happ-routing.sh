@@ -22,7 +22,7 @@ fi
 
 _rules_out="$(php artisan tinker --execute='echo App\Models\AppSetting::getValue("happ_routing_rules") ?? "";' 2>/dev/null | tail -1)"
 if echo "$_rules_out" | grep -qiE 'geosite:|geoip:'; then
-  echo "happ_routing_rules in DB contains geosite/geoip вЂ” clearing key."
+  echo "happ_routing_rules in DB contains geosite/geoip РІР‚вЂќ clearing key."
   php artisan tinker --execute='App\Models\AppSetting::forgetKey("happ_routing_rules");'
 fi
 
@@ -31,12 +31,12 @@ php artisan cache:clear
 php artisan view:clear
 
 echo "=== HAPP_DIRECT_SITES in .env after ==="
-grep -n '^HAPP_DIRECT_SITES=' .env || echo "(unset вЂ” OK)"
+grep -n '^HAPP_DIRECT_SITES=' .env || echo "(unset РІР‚вЂќ OK)"
 
 echo "=== direct_sites count + sample ==="
 php artisan tinker --execute='$s=config("xui.happ_routing.direct_sites"); echo "count=".count($s).PHP_EOL.implode(",", array_slice($s,0,10))."...".PHP_EOL;'
 
-echo "=== happ line must not contain Geoipurl ==="
-php artisan tinker --execute='$s=config("xui.happ_routing.direct_sites"); $line=App\Services\Subscription\HappRoutingSubscriptionLine::buildOnAddLine("direct", $s, true, []); $ok=$line===null||(!str_contains($line,"Geoipurl")&&!str_contains($line,"Geositeurl")); echo ($ok?"OK":"BAD").PHP_EOL.(substr($line??"",0,100)).PHP_EOL;'
+echo "=== decoded profile: Geoipurl/Geositeurl must be empty strings ==="
+php artisan tinker --execute='$s=config("xui.happ_routing.direct_sites"); $line=App\Services\Subscription\HappRoutingSubscriptionLine::buildOnAddLine("direct", $s, true, []); $b64=preg_replace("#^happ://routing/(onadd|add)/#", "", $line); $j=json_decode(base64_decode($b64,true),true); echo (($j["Geoipurl"]??null)==="" && ($j["Geositeurl"]??null)==="")?"OK":"BAD"; echo PHP_EOL;'
 
 echo "=== done ==="

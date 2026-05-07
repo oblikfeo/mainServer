@@ -142,7 +142,7 @@ return [
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
         /**
          * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, keyword: …).
-         * Без geosite:/geoip: — Happ не подставляет Geoipurl/Geositeurl и не качает .dat (снижает отказы у клиентов).
+         * В подписке в JSON профиля Happ явно передаются пустые Geoipurl/Geositeurl — иначе клиент подставляет дефолтные URL на .dat.
          * Набор как у типичных конкурентов: явные domain: для РФ/служебных хостов + 2ip.ru.
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(

@@ -5,8 +5,8 @@ namespace App\Services\Subscription;
 /**
  * Строка маршрутизации Happ для тела подписки / заголовка routing.
  *
- * geosite:/geoip: не попадают в профиль: иначе Happ тянет .dat (частые сбои).
- * При необходимости категорий — только явные domain:/full: в конфиге/админке.
+ * geosite:/geoip: не попадают в DirectSites/DirectIp: иначе нужны внешние .dat.
+ * Поля Geoipurl/Geositeurl задаём пустыми строками — иначе Happ подставляет дефолтные URL (см. happ.su routing).
  *
  * @see https://www.happ.su/main/dev-docs/routing
  */
@@ -104,6 +104,7 @@ final class HappRoutingSubscriptionLine
 
         // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
         // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
+        // Пустые строки обязательны: иначе Happ подставляет дефолтный профиль с URL на .dat (см. dev-docs/routing).
         $profile = [
             'Name' => $profileName,
             'GlobalProxy' => 'true',
@@ -113,12 +114,18 @@ final class HappRoutingSubscriptionLine
             'DomesticDNSType' => 'DoH',
             'DomesticDNSDomain' => 'https://dns.google/dns-query',
             'DomesticDNSIP' => '8.8.8.8',
+            'Geoipurl' => '',
+            'Geositeurl' => '',
             'DnsHosts' => [
                 'cloudflare-dns.com' => '1.1.1.1',
                 'dns.google' => '8.8.8.8',
             ],
             'DirectSites' => $directSites,
             'DirectIp' => $directIp,
+            'ProxySites' => [],
+            'ProxyIp' => [],
+            'BlockSites' => [],
+            'BlockIp' => [],
             'DomainStrategy' => 'AsIs',
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),
