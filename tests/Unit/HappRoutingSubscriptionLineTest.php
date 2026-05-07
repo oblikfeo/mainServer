@@ -7,7 +7,12 @@ use PHPUnit\Framework\TestCase;
 
 final class HappRoutingSubscriptionLineTest extends TestCase
 {
-    public function test_geosite_is_stripped_and_no_geo_urls_in_line(): void
+    public function test_routing_off_deeplink_constant(): void
+    {
+        $this->assertSame('happ://routing/off', HappRoutingSubscriptionLine::ROUTING_OFF_DEEPLINK);
+    }
+
+    public function test_geosite_is_stripped_and_geo_urls_empty_in_profile(): void
     {
         $line = HappRoutingSubscriptionLine::buildOnAddLine('direct', [
             'geosite:category-ru',

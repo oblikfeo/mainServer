@@ -70,7 +70,7 @@ final class TestKeySubscriptionFeedRenderer
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down);
         $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
-        $routingLine = config('test_keys.apply_happ_routing', false) ? $this->happRoutingLineForBody() : null;
+        $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
 
         $body = $meta.$line."\n";
         if (config('xui.sub_output_b64', false)) {
@@ -139,24 +139,6 @@ final class TestKeySubscriptionFeedRenderer
     private function formatUserinfoValue(int $upload, int $download, int $total, int $expireSec): string
     {
         return "upload={$upload}; download={$download}; total={$total}; expire={$expireSec}";
-    }
-
-    private function happRoutingLineForBody(): ?string
-    {
-        $cfg = config('xui.happ_routing', []);
-        if (! is_array($cfg) || ! filter_var($cfg['enabled'] ?? false, FILTER_VALIDATE_BOOL)) {
-            return null;
-        }
-
-        $name = trim((string) ($cfg['profile_name'] ?? 'direct'));
-        if ($name === '') {
-            $name = 'direct';
-        }
-
-        $sites = HappRoutingMergedInput::mergedDirectSites();
-        $onAdd = filter_var($cfg['onadd'] ?? true, FILTER_VALIDATE_BOOL);
-
-        return HappRoutingSubscriptionLine::buildOnAddLine($name, $sites, $onAdd, HappRoutingMergedInput::adminDirectIpTokens());
     }
 
     private function profileTitleForHapp(): string

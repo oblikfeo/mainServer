@@ -14,15 +14,20 @@
         <div>
             <h1 class="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">Обход VPN в Happ</h1>
             <p class="mt-2 text-sm sm:text-base text-slate-600 leading-relaxed">
-                Здесь настраиваются дополнительные правила <strong>Direct</strong> (трафик идёт мимо VPN, напрямую в интернет).
-                Они попадают в подписку как профиль маршрутизации Happ — пользователю достаточно обновить подписку в приложении.
+                <strong>По умолчанию</strong> сервер <strong>не включает</strong> маршрутизацию Happ: в подписку уходит только
+                <code class="rounded bg-slate-100 px-1 text-sm">happ://routing/off</code> (см.
+                <a href="https://www.happ.su/main/dev-docs/routing" class="underline underline-offset-2" target="_blank" rel="noopener noreferrer">документацию Happ</a>),
+                чтобы приложение отключило профили с geo-файлами. Списки Direct ниже используются только если в .env включён
+                <code class="rounded bg-slate-100 px-1 text-sm">HAPP_ROUTING_ENABLED=true</code>.
             </p>
         </div>
 
         @if (! $happRoutingEnabled)
-            <div class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-amber-950 text-sm">
-                <strong>Внимание:</strong> в конфиге выключено <code class="rounded bg-amber-100/80 px-1">HAPP_ROUTING_ENABLED</code>.
-                Правила из .env и из этого экрана <strong>не попадут</strong> в выдачу подписки, пока не включите опцию и не сбросите кэш конфига на сервере.
+            <div class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sky-950 text-sm leading-relaxed">
+                <strong>Режим без маршрутизации Happ.</strong> В выдаче подписки — первая строка
+                <code class="rounded bg-white/80 px-1">happ://routing/off</code>; правила из .env и из поля ниже в клиент <strong>не отправляются</strong>.
+                Чтобы снова отдавать профиль с DirectSites, задайте <code class="rounded bg-white/80 px-1">HAPP_ROUTING_ENABLED=true</code> в .env и выполните на сервере
+                <code class="rounded bg-white/80 px-1">php artisan config:clear</code>.
             </div>
         @endif
 

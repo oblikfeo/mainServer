@@ -131,11 +131,14 @@ return [
 
     /**
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
+     * По умолчанию выключено: в подписку уходит happ://routing/off (см. dev-docs/routing), без загрузки geo-профилей.
      *
      * @see https://www.happ.su/main/dev-docs/routing
      */
     'happ_routing' => [
-        'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
+        'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', false), FILTER_VALIDATE_BOOL),
+        /** При enabled=false — первая строка подписки и заголовок routing: happ://routing/off (отключить маршрутизацию в Happ). */
+        'send_off_when_disabled' => filter_var(env('HAPP_ROUTING_SEND_OFF_WHEN_DISABLED', true), FILTER_VALIDATE_BOOL),
         /** true = happ://routing/onadd/... (активировать при получении) */
         'onadd' => filter_var(env('HAPP_ROUTING_ONADD', true), FILTER_VALIDATE_BOOL),
         /** Имя профиля в Happ (короткое) */

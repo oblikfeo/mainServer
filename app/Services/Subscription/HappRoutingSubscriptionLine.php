@@ -5,13 +5,44 @@ namespace App\Services\Subscription;
 /**
  * Строка маршрутизации Happ для тела подписки / заголовка routing.
  *
- * geosite:/geoip: не попадают в DirectSites/DirectIp: иначе нужны внешние .dat.
- * Поля Geoipurl/Geositeurl задаём пустыми строками — иначе Happ подставляет дефолтные URL (см. happ.su routing).
+ * Документация: https://www.happ.su/main/dev-docs/routing — `happ://routing/off` отключает маршрутизацию.
+ * При отключённом HAPP_ROUTING_ENABLED по умолчанию в подписку уходит только `happ://routing/off` (без профилей и geo URL).
+ *
+ * Если HAPP_ROUTING_ENABLED=true — profиль onadd/add с DirectSites (geosite/geoip отсекаются). Пустые Geoipurl/Geositeurl — иначе Happ подставляет Loyalsoldier.
  *
  * @see https://www.happ.su/main/dev-docs/routing
  */
 final class HappRoutingSubscriptionLine
 {
+    public const ROUTING_OFF_DEEPLINK = 'happ://routing/off';
+
+    /**
+     * Строка для подписки: отключение маршрутизации, либо happ://routing/onadd/… с правилами.
+     */
+    public static function feedRoutingLine(): ?string
+    {
+        $cfg = config('xui.happ_routing', []);
+        if (! is_array($cfg)) {
+            return null;
+        }
+
+        if (! filter_var($cfg['enabled'] ?? false, FILTER_VALIDATE_BOOL)) {
+            return filter_var($cfg['send_off_when_disabled'] ?? true, FILTER_VALIDATE_BOOL)
+                ? self::ROUTING_OFF_DEEPLINK
+                : null;
+        }
+
+        $name = trim((string) ($cfg['profile_name'] ?? 'direct'));
+        if ($name === '') {
+            $name = 'direct';
+        }
+
+        $sites = HappRoutingMergedInput::mergedDirectSites();
+        $onAdd = filter_var($cfg['onadd'] ?? true, FILTER_VALIDATE_BOOL);
+
+        return self::buildOnAddLine($name, $sites, $onAdd, HappRoutingMergedInput::adminDirectIpTokens());
+    }
+
     /**
      * Стандартные приватные сети + broadcast (как в примере Happ).
      *

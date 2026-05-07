@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot check/fix on hub: drop geosite from .env, clear admin rules if they force geo, clear caches.
+# One-shot check/fix on hub: HAPP routing off by default, no geosite in .env, clear bad admin rules, caches.
 set -eu
 cd /var/www/vpn-hub
 
@@ -22,7 +22,7 @@ fi
 
 _rules_out="$(php artisan tinker --execute='echo App\Models\AppSetting::getValue("happ_routing_rules") ?? "";' 2>/dev/null | tail -1)"
 if echo "$_rules_out" | grep -qiE 'geosite:|geoip:'; then
-  echo "happ_routing_rules in DB contains geosite/geoip РІР‚вЂќ clearing key."
+  echo "happ_routing_rules in DB contains geosite/geoip вЂ” clearing key."
   php artisan tinker --execute='App\Models\AppSetting::forgetKey("happ_routing_rules");'
 fi
 
@@ -31,12 +31,9 @@ php artisan cache:clear
 php artisan view:clear
 
 echo "=== HAPP_DIRECT_SITES in .env after ==="
-grep -n '^HAPP_DIRECT_SITES=' .env || echo "(unset РІР‚вЂќ OK)"
+grep -n '^HAPP_DIRECT_SITES=' .env || echo "(unset вЂ” OK)"
 
-echo "=== direct_sites count + sample ==="
-php artisan tinker --execute='$s=config("xui.happ_routing.direct_sites"); echo "count=".count($s).PHP_EOL.implode(",", array_slice($s,0,10))."...".PHP_EOL;'
-
-echo "=== decoded profile: Geoipurl/Geositeurl must be empty strings ==="
-php artisan tinker --execute='$s=config("xui.happ_routing.direct_sites"); $line=App\Services\Subscription\HappRoutingSubscriptionLine::buildOnAddLine("direct", $s, true, []); $b64=preg_replace("#^happ://routing/(onadd|add)/#", "", $line); $j=json_decode(base64_decode($b64,true),true); echo (($j["Geoipurl"]??null)==="" && ($j["Geositeurl"]??null)==="")?"OK":"BAD"; echo PHP_EOL;'
+echo "=== feedRoutingLine (expect happ://routing/off when HAPP_ROUTING_ENABLED false) ==="
+php artisan tinker --execute='echo App\Services\Subscription\HappRoutingSubscriptionLine::feedRoutingLine(); echo PHP_EOL;'
 
 echo "=== done ==="
