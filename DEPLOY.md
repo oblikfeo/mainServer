@@ -41,3 +41,5 @@ php artisan view:cache
 Сброс привязки устройств (поддержка): `php artisan subscription:clear-bound-hwid {id}`
 
 Тест без Happ: в `.env` временно `SUBSCRIPTION_FEED_REQUIRE_HWID=false` или запрос с заголовком `X-Hwid: test`.
+
+Опционально для ЛК (понятное имя устройства): при запросе подписки можно передать один из заголовков `X-Happ-Device-Name`, `X-Device-Name`, `Happ-Device`, `X-Device-Model` — значение попадёт в карточку «Привязанные устройства». Стандартный Happ обычно шлёт только `X-Hwid`; для Android модель часто выводится из User-Agent (например `SM-S918B`), для iPhone в UA обычно нет «iPhone 14» — без своего заголовка от клиента будет только «iPhone» / «iPad».

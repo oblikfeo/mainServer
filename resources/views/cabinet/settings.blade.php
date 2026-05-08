@@ -80,12 +80,32 @@
                                             @foreach ($list as $hash)
                                                 @php
                                                     $meta = $metaMap[$hash] ?? null;
+                                                    $label = is_array($meta) ? trim((string) ($meta['label'] ?? '')) : '';
                                                     $type = is_array($meta) ? trim((string) ($meta['type'] ?? '')) : '';
                                                     $ip = is_array($meta) ? trim((string) ($meta['ip'] ?? '')) : '';
+                                                    $seenRaw = is_array($meta) ? trim((string) ($meta['seen_at'] ?? '')) : '';
+                                                    $seenLabel = '—';
+                                                    if ($seenRaw !== '') {
+                                                        try {
+                                                            $seenLabel = \Illuminate\Support\Carbon::parse($seenRaw)->timezone(config('app.timezone'))->format('d.m.Y H:i');
+                                                        } catch (\Throwable) {
+                                                            $seenLabel = $seenRaw;
+                                                        }
+                                                    }
+                                                    if ($label === '') {
+                                                        $label = $type !== '' ? $type : 'Устройство';
+                                                    }
                                                 @endphp
                                                 <li class="lp-device-row flex flex-wrap items-center justify-between gap-2 border-2 border-black bg-slate-50 px-2 py-2">
-                                                    <span class="text-xs font-bold text-slate-800 break-all">
-                                                        Тип: {{ $type !== '' ? $type : 'Неизвестно' }} · IP: {{ $ip !== '' ? $ip : '—' }}
+                                                    <span class="text-xs font-bold text-slate-800 break-words min-w-0">
+                                                        <span class="block text-sm text-black">{{ $label }}</span>
+                                                        <span class="block font-normal text-slate-600 mt-0.5">
+                                                            IP: {{ $ip !== '' ? $ip : '—' }}
+                                                            @if ($type !== '' && $type !== $label)
+                                                                · {{ $type }}
+                                                            @endif
+                                                            · обновлено: {{ $seenLabel }}
+                                                        </span>
                                                     </span>
                                                     <form
                                                         method="POST"
@@ -145,12 +165,32 @@
                                             @foreach ($list as $hash)
                                                 @php
                                                     $meta = $metaMap[$hash] ?? null;
+                                                    $label = is_array($meta) ? trim((string) ($meta['label'] ?? '')) : '';
                                                     $type = is_array($meta) ? trim((string) ($meta['type'] ?? '')) : '';
                                                     $ip = is_array($meta) ? trim((string) ($meta['ip'] ?? '')) : '';
+                                                    $seenRaw = is_array($meta) ? trim((string) ($meta['seen_at'] ?? '')) : '';
+                                                    $seenLabel = '—';
+                                                    if ($seenRaw !== '') {
+                                                        try {
+                                                            $seenLabel = \Illuminate\Support\Carbon::parse($seenRaw)->timezone(config('app.timezone'))->format('d.m.Y H:i');
+                                                        } catch (\Throwable) {
+                                                            $seenLabel = $seenRaw;
+                                                        }
+                                                    }
+                                                    if ($label === '') {
+                                                        $label = $type !== '' ? $type : 'Устройство';
+                                                    }
                                                 @endphp
                                                 <li class="lp-device-row flex flex-wrap items-center justify-between gap-2 border-2 border-black bg-slate-50 px-2 py-2">
-                                                    <span class="text-xs font-bold text-slate-800 break-all">
-                                                        Тип: {{ $type !== '' ? $type : 'Неизвестно' }} · IP: {{ $ip !== '' ? $ip : '—' }}
+                                                    <span class="text-xs font-bold text-slate-800 break-words min-w-0">
+                                                        <span class="block text-sm text-black">{{ $label }}</span>
+                                                        <span class="block font-normal text-slate-600 mt-0.5">
+                                                            IP: {{ $ip !== '' ? $ip : '—' }}
+                                                            @if ($type !== '' && $type !== $label)
+                                                                · {{ $type }}
+                                                            @endif
+                                                            · обновлено: {{ $seenLabel }}
+                                                        </span>
                                                     </span>
                                                     <form
                                                         method="POST"

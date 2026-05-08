@@ -52,6 +52,11 @@ class CabinetSettingsController extends Controller
         ));
 
         $subscription->bound_hwid_hashes = $hashes === [] ? null : $hashes;
+        $meta = $subscription->bound_hwid_meta;
+        if (is_array($meta) && isset($meta[$target])) {
+            unset($meta[$target]);
+            $subscription->bound_hwid_meta = $meta === [] ? null : $meta;
+        }
         $subscription->save();
 
         return back()->with('status', 'device-unbound');
@@ -63,6 +68,7 @@ class CabinetSettingsController extends Controller
         abort_unless((int) $subscription->user_id === (int) $user->id, 403);
 
         $subscription->bound_hwid_hashes = null;
+        $subscription->bound_hwid_meta = null;
         $subscription->save();
 
         return back()->with('status', 'devices-cleared');
@@ -90,6 +96,11 @@ class CabinetSettingsController extends Controller
         ));
 
         $testKey->bound_hwid_hashes = $hashes === [] ? null : $hashes;
+        $meta = $testKey->bound_hwid_meta;
+        if (is_array($meta) && isset($meta[$target])) {
+            unset($meta[$target]);
+            $testKey->bound_hwid_meta = $meta === [] ? null : $meta;
+        }
         $testKey->save();
 
         return back()->with('status', 'test-device-unbound');
@@ -101,6 +112,7 @@ class CabinetSettingsController extends Controller
         abort_unless((int) $testKey->user_id === (int) $user->id, 403);
 
         $testKey->bound_hwid_hashes = null;
+        $testKey->bound_hwid_meta = null;
         $testKey->save();
 
         return back()->with('status', 'test-devices-cleared');

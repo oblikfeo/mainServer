@@ -170,23 +170,83 @@ final class SubscriptionFeedHwidGate
     }
 
     /**
-     * @return array{type: string, ip: string, seen_at: string}
+     * Дополнительные заголовки с «человеческим» именем устройства (если клиент пришлёт).
+     * Happ по умолчанию шлёт только X-Hwid; без своих заголовков точная модель iOS в UA обычно недоступна.
+     *
+     * @return list<string>
+     */
+    private static function deviceFriendlyNameHeaderNames(): array
+    {
+        return [
+            'X-Happ-Device-Name',
+            'X-Device-Name',
+            'Happ-Device',
+            'X-Device-Model',
+        ];
+    }
+
+    public static function peekDeviceFriendlyName(Request $request): string
+    {
+        foreach (self::deviceFriendlyNameHeaderNames() as $name) {
+            $v = $request->header($name);
+            if (! is_string($v)) {
+                continue;
+            }
+            $v = trim($v);
+            if ($v === '') {
+                continue;
+            }
+            if (function_exists('mb_strlen') && mb_strlen($v) > 96) {
+                return mb_substr($v, 0, 96).'…';
+            }
+            if (strlen($v) > 96) {
+                return substr($v, 0, 96).'…';
+            }
+
+            return $v;
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array{type: string, label: string, ip: string, seen_at: string}
      */
     private function buildDeviceMeta(Request $request): array
     {
-        $ua = strtolower(trim((string) $request->userAgent()));
+        $uaRaw = (string) $request->userAgent();
+        $uaLower = strtolower(trim($uaRaw));
         $type = 'Неизвестно';
-        if ($ua !== '') {
-            if (str_contains($ua, 'android')) {
+        if ($uaLower !== '') {
+            if (str_contains($uaLower, 'ipad')) {
+                $type = 'iPad';
+            } elseif (str_contains($uaLower, 'iphone')) {
+                $type = 'iPhone';
+            } elseif (str_contains($uaLower, 'android')) {
                 $type = 'Android';
-            } elseif (str_contains($ua, 'iphone') || str_contains($ua, 'ipad') || str_contains($ua, 'ios')) {
-                $type = 'iOS';
-            } elseif (str_contains($ua, 'windows')) {
+            } elseif (str_contains($uaLower, 'windows')) {
                 $type = 'Windows';
-            } elseif (str_contains($ua, 'macintosh') || str_contains($ua, 'mac os')) {
+            } elseif (str_contains($uaLower, 'macintosh') || str_contains($uaLower, 'mac os')) {
                 $type = 'macOS';
-            } elseif (str_contains($ua, 'linux')) {
+            } elseif (str_contains($uaLower, 'linux')) {
                 $type = 'Linux';
+            } elseif (str_contains($uaLower, 'ios')) {
+                $type = 'iOS';
+            }
+        }
+
+        $friendly = self::peekDeviceFriendlyName($request);
+        $androidModel = self::guessAndroidModelFromUa($uaRaw);
+        $label = $friendly;
+        if ($label === '') {
+            if ($androidModel !== '' && $type === 'Android') {
+                $label = 'Android · '.$androidModel;
+            } elseif ($type === 'Windows' || $type === 'macOS' || $type === 'Linux') {
+                $label = $type;
+            } elseif ($type === 'iPhone' || $type === 'iPad') {
+                $label = $type;
+            } else {
+                $label = $type !== 'Неизвестно' ? $type : 'Устройство';
             }
         }
 
@@ -197,13 +257,33 @@ final class SubscriptionFeedHwidGate
 
         return [
             'type' => $type,
+            'label' => $label,
             'ip' => $ip,
             'seen_at' => now()->toIso8601String(),
         ];
     }
 
     /**
-     * @return array<string, array{type?: string, ip?: string, seen_at?: string}>
+     * Типичный фрагмент Android UA: "… Linux; Android 14; SM-S918B Build/UP1A…"
+     */
+    private static function guessAndroidModelFromUa(string $ua): string
+    {
+        $ua = trim($ua);
+        if ($ua === '' || stripos($ua, 'Android') === false) {
+            return '';
+        }
+        if (preg_match('/Android\s+[\d._]+;\s*([^)]+?)\s*(?:Build\/|\))/i', $ua, $m)) {
+            $model = trim(preg_replace('/\s+/', ' ', (string) $m[1]));
+            if ($model !== '' && strlen($model) < 80) {
+                return $model;
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array<string, array{type?: string, label?: string, ip?: string, seen_at?: string}>
      */
     private function sanitizeMetaMap(mixed $metaMap): array
     {
@@ -216,8 +296,14 @@ final class SubscriptionFeedHwidGate
             if (! is_string($hash) || strlen($hash) !== 64 || ! is_array($meta)) {
                 continue;
             }
+            $type = isset($meta['type']) ? (string) $meta['type'] : 'Неизвестно';
+            $label = isset($meta['label']) ? trim((string) $meta['label']) : '';
+            if ($label === '') {
+                $label = $type !== '' && $type !== 'Неизвестно' ? $type : 'Устройство';
+            }
             $out[$hash] = [
-                'type' => isset($meta['type']) ? (string) $meta['type'] : 'Неизвестно',
+                'type' => $type,
+                'label' => $label,
                 'ip' => isset($meta['ip']) ? (string) $meta['ip'] : '—',
                 'seen_at' => isset($meta['seen_at']) ? (string) $meta['seen_at'] : '',
             ];
