@@ -19,7 +19,7 @@ use Throwable;
  *   5) Произвольный текст из админки (AppSetting `marketing_announce_text`),
  *      поддерживает переносы строк и плейсхолдеры {used} / {max} / {days} / {brand} / {support} / {site}.
  *
- * Отдельно: #profile-web-page-url — вход в ЛК по одноразовой ссылке /auth/via-token/… (если включено в конфиге).
+ * Одноразовый вход в ЛК: Happ открывает #profile-web-page-url в браузере (после входа — страница «Продление»).
  *
  * Всё кодируется в base64 и отдаётся как `announce: base64:<…>` одновременно
  * и в HTTP-заголовке, и в теле подписки. На практике Happ рендерит \n внутри
@@ -392,7 +392,8 @@ final class HappSubscriptionAppManagementExtras
             if ($token !== '' && (int) $context->user_id > 0) {
                 $url = route('auth.via_token', ['token' => $token], absolute: true);
 
-                return self::maybeAppendRenewIntent($url, $needsRenewal, true);
+                // Кнопка сайта в Happ всегда ведёт в ЛК на страницу продления.
+                return self::maybeAppendRenewIntent($url, true, true);
             }
 
             return $fallback;
@@ -403,7 +404,7 @@ final class HappSubscriptionAppManagementExtras
             if ($token !== '' && (int) $context->user_id > 0 && ! $context->isRevoked() && ! $context->isExpired()) {
                 $url = route('auth.via_token', ['token' => $token], absolute: true);
 
-                return self::maybeAppendRenewIntent($url, $needsRenewal, true);
+                return self::maybeAppendRenewIntent($url, true, true);
             }
 
             return $fallback;

@@ -89,7 +89,7 @@ return [
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     /** Имя профиля в Happ (до 25 символов): заголовок и #profile-title в теле */
     'sub_profile_title' => env('SUB_PROFILE_TITLE', 'Nadezhda 🧭 VPN'),
-    'sub_profile_update_hours' => env('SUB_PROFILE_UPDATE_HOURS', '12'),
+    'sub_profile_update_hours' => env('SUB_PROFILE_UPDATE_HOURS', '3'),
     'sub_output_b64' => env('SUB_OUTPUT_B64', '0') === '1',
 
     /**
