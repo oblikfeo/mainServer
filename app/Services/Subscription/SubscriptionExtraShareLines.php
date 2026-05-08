@@ -43,6 +43,36 @@ final class SubscriptionExtraShareLines
     }
 
     /**
+     * Полный порядок строк подписки для Happ: Домашний 1/2 → LTE (FI/NL) → Wi‑Fi (hy2 Blitz).
+     *
+     * @param  array{
+     *     hy2_uri: ?string,
+     *     vless_entries: list<array{line?: string}>
+     * }  $bundle
+     * @return list<string>
+     */
+    public static function orderedWithBundle(array $bundle, bool $includePanelVless = true): array
+    {
+        $lines = self::lines();
+
+        if ($includePanelVless) {
+            foreach ($bundle['vless_entries'] ?? [] as $entry) {
+                $line = trim((string) ($entry['line'] ?? ''));
+                if ($line !== '') {
+                    $lines[] = $line;
+                }
+            }
+        }
+
+        $hy2 = isset($bundle['hy2_uri']) ? trim((string) $bundle['hy2_uri']) : '';
+        if ($hy2 !== '') {
+            $lines[] = $hy2;
+        }
+
+        return $lines;
+    }
+
+    /**
      * В подписке везде hy2://; клиентский ввод иногда hysteria2://.
      */
     public static function normalizeHy2Scheme(string $uri): string

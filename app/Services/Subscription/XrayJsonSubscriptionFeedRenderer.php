@@ -122,10 +122,10 @@ final class XrayJsonSubscriptionFeedRenderer
 
             $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
             $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
-            $uriBlock = $prependUris ? $this->plainSubscriptionShareLinesBlock($bundle, $prependVless) : '';
-            $extraLines = SubscriptionExtraShareLines::lines();
-            if ($extraLines !== []) {
-                $uriBlock = trim($uriBlock."\n".implode("\n", $extraLines))."\n";
+            $uriBlock = '';
+            if ($prependUris) {
+                $ordered = SubscriptionExtraShareLines::orderedWithBundle($bundle, $prependVless);
+                $uriBlock = $ordered !== [] ? implode("\n", $ordered)."\n" : '';
             }
 
             $embedExplicit = strtolower(trim((string) config('xui.sub_json_embed_profiles_env', '')));
@@ -333,34 +333,6 @@ final class XrayJsonSubscriptionFeedRenderer
         }
 
         return $value;
-    }
-
-    /**
-     * Строки hy2 (+ опционально vless) как в режиме uri — многие мобильные сборки Happ по URL парсят только их и игнорируют голый JSON ниже мета-блока.
-     *
-     * @param  array{
-     *   hy2_uri: ?string,
-     *   vless_entries: list<array{key:string,line:string,userinfo?:array<string,int>}>
-     * }  $bundle
-     */
-    private function plainSubscriptionShareLinesBlock(array $bundle, bool $includeVless = true): string
-    {
-        $lines = [];
-        $hy2 = isset($bundle['hy2_uri']) ? trim((string) $bundle['hy2_uri']) : '';
-        if ($hy2 !== '') {
-            $lines[] = $hy2;
-        }
-        if (! $includeVless) {
-            return implode("\n", $lines);
-        }
-        foreach ($bundle['vless_entries'] ?? [] as $row) {
-            $line = isset($row['line']) ? trim((string) $row['line']) : '';
-            if ($line !== '') {
-                $lines[] = $line;
-            }
-        }
-
-        return implode("\n", $lines);
     }
 
     /**

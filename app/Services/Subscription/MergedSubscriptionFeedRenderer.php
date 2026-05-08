@@ -20,26 +20,18 @@ final class MergedSubscriptionFeedRenderer
         $nodes = config('xui.nodes', []);
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
-        $lines = [];
         $userinfos = [];
 
         try {
             $bundle = $this->bundleCollector->collect($nodes, $bundleOrder, $sub);
 
-            if ($bundle['hy2_uri'] !== null && $bundle['hy2_uri'] !== '') {
-                $lines[] = $bundle['hy2_uri'];
-            }
-
             foreach ($bundle['vless_entries'] as $entry) {
-                $lines[] = $entry['line'];
                 if ($entry['userinfo'] !== []) {
                     $userinfos[$entry['key']] = $entry['userinfo'];
                 }
             }
 
-            foreach (SubscriptionExtraShareLines::lines() as $extraLine) {
-                $lines[] = $extraLine;
-            }
+            $lines = SubscriptionExtraShareLines::orderedWithBundle($bundle, true);
 
             if ($lines === []) {
                 throw new \RuntimeException('Ни один узел не отдал рабочую подписку.');
