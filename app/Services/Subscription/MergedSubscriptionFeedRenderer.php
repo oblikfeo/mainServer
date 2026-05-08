@@ -37,6 +37,10 @@ final class MergedSubscriptionFeedRenderer
                 }
             }
 
+            foreach (SubscriptionExtraShareLines::lines() as $extraLine) {
+                $lines[] = $extraLine;
+            }
+
             if ($lines === []) {
                 throw new \RuntimeException('Ни один узел не отдал рабочую подписку.');
             }

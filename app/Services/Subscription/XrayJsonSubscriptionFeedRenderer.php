@@ -123,6 +123,10 @@ final class XrayJsonSubscriptionFeedRenderer
             $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
             $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
             $uriBlock = $prependUris ? $this->plainSubscriptionShareLinesBlock($bundle, $prependVless) : '';
+            $extraLines = SubscriptionExtraShareLines::lines();
+            if ($extraLines !== []) {
+                $uriBlock = trim($uriBlock."\n".implode("\n", $extraLines))."\n";
+            }
 
             $embedExplicit = strtolower(trim((string) config('xui.sub_json_embed_profiles_env', '')));
             $embedProfiles = match ($embedExplicit) {
