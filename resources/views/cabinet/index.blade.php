@@ -24,7 +24,7 @@
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
                         @if ($hasAnyActiveTestAccess)
-                            <span class="lp-badge-pill lp-badge-pill--ok">Активна@if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }})@endif</span>
+                            <span class="lp-badge-pill lp-badge-pill--ok">Активна @if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }}) @endif</span>
                         @elseif ($me->hasVerifiedEmail())
                             <span class="lp-badge-pill">Не активирована</span>
                         @else
@@ -70,7 +70,7 @@
                                 @php $trialExp = $trialSub->expiresAt(); @endphp
                                 <div class="lp-warn-box" style="background:#f8fafc;">
                                     <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                                        Пробная подписка Happ@if ($activeTrialSubscriptions->count() > 1) №{{ $trialSub->id }}@endif
+                                        Пробная подписка Happ @if ($activeTrialSubscriptions->count() > 1) №{{ $trialSub->id }} @endif
                                         @if ($trialExp)
                                             (до {{ $trialExp->timezone(config('app.timezone'))->format('d.m.Y H:i') }})
                                         @endif
@@ -85,7 +85,7 @@
                             @foreach ($activeTestKeys as $activeTestKey)
                                 <div class="lp-warn-box" style="background:#f8fafc;">
                                     <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                                        Старый тест-ключ@if ($activeTestKeys->count() > 1) №{{ $activeTestKey->id }}@endif
+                                        Старый тест-ключ @if ($activeTestKeys->count() > 1) №{{ $activeTestKey->id }} @endif
                                         (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})
                                     </div>
                                     <div class="text-xs text-slate-700 mb-2">
