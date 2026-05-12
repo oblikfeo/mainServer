@@ -18,20 +18,9 @@
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     @endphp
 
-    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: 'paid' }" @endif>
+    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: null }" @endif>
         @if ($showBothTabs)
-            <div class="lp-cab-tabbar mb-4" role="tablist" aria-label="Подписки">
-                <button
-                    type="button"
-                    role="tab"
-                    class="lp-cab-tab"
-                    :class="tab === 'trial' ? 'lp-cab-tab--active' : ''"
-                    :aria-selected="tab === 'trial' ? 'true' : 'false'"
-                    @click="tab = 'trial'"
-                >
-                    <span class="lp-cab-tab__title">Пробные подписки</span>
-                    <span class="lp-cab-tab__sub">Пробный Happ, старые тест-ключи</span>
-                </button>
+            <div class="lp-cab-tabbar mb-3" role="tablist" aria-label="Подписки">
                 <button
                     type="button"
                     role="tab"
@@ -43,17 +32,37 @@
                     <span class="lp-cab-tab__title">Платные подписки</span>
                     <span class="lp-cab-tab__sub">Оплаченный доступ</span>
                 </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="lp-cab-tab"
+                    :class="tab === 'trial' ? 'lp-cab-tab--active' : ''"
+                    :aria-selected="tab === 'trial' ? 'true' : 'false'"
+                    @click="tab = 'trial'"
+                >
+                    <span class="lp-cab-tab__title">Пробные подписки</span>
+                    <span class="lp-cab-tab__sub">Пробный Happ, старые тест-ключи</span>
+                </button>
             </div>
+            <p class="text-sm font-semibold text-slate-600 mb-3" x-show="tab === null" x-cloak>
+                Выберите раздел выше — содержимое появится после клика.
+            </p>
         @endif
 
         {{-- Раздел пробных подписок --}}
         @if ($showTrialSection)
-            <div @if ($showBothTabs) x-show="tab === 'trial'" x-cloak @endif>
+            <div @if ($showBothTabs) x-show="tab === 'trial'" x-cloak x-transition @endif>
             @unless ($showBothTabs)
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             @endunless
-            <article class="lp-card" style="margin-bottom: 2rem;">
-                <div class="lp-card__head">
+            <article class="lp-card" style="margin-bottom: 2rem;" x-data="{ open: {{ $showBothTabs ? 'false' : 'true' }} }">
+                <button
+                    type="button"
+                    class="lp-card__head"
+                    style="width:100%;text-align:left;cursor:pointer;"
+                    x-on:click="open = !open"
+                    :aria-expanded="open"
+                >
                     <div class="flex flex-wrap items-center gap-2">
                         @if ($hasAnyActiveTestAccess)
                             <span class="lp-badge-pill lp-badge-pill--ok">Активна @if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }}) @endif</span>
@@ -62,10 +71,14 @@
                         @else
                             <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение почты</span>
                         @endif
+                        <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
+                            <span x-show="!open">Развернуть</span>
+                            <span x-show="open" x-cloak>Свернуть</span>
+                        </span>
                     </div>
                     <p class="lp-card__head-note">&nbsp;</p>
-                </div>
-                <div class="lp-card__body lp-stack">
+                </button>
+                <div class="lp-card__body lp-stack" x-show="open" x-cloak @if ($showBothTabs) x-transition @endif>
                     @if (session('status') === 'test-key-issued')
                         <div class="lp-warn-box" style="background:#dcfce7;">
                             Тестовый доступ выдан. Скопируйте ссылку подписки ниже и добавьте в Happ.
@@ -263,7 +276,7 @@
         @endif
 
         @if ($showBothTabs)
-            <div x-show="tab === 'paid'" x-cloak>
+            <div x-show="tab === 'paid'" x-cloak x-transition>
         @endif
         @unless ($showBothTabs)
         <h2 class="lp-page-section-title">Платные подписки</h2>
@@ -282,7 +295,7 @@
                     $sub = $row['subscription'];
                     $exp = $sub->expiresAt();
                 @endphp
-                <article class="lp-card" x-data="{ open: true }">
+                <article class="lp-card" x-data="{ open: false }">
                     <button
                         type="button"
                         class="lp-card__head"
