@@ -65,9 +65,9 @@
                 <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-slate-50/80">
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
                         @if (($bundle['id'] ?? '') === 'trial')
-                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (test keys)</span>
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (legacy trial)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['trial_online_clients'] ?? 0) : '—' }}</span>
-                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Онлайн-клиенты по активным test_keys (3x-ui)</span>
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Старая панель TEST_KEYS, если настроена. Новые триалы — на FI/NL.</span>
                         @elseif (($bundle['id'] ?? '') === 'hy2')
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (Blitz)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>

@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Subscription\CreateDualBundleSubscription;
+use App\Models\TestKey;
+use App\Services\Subscription\TrialSubscriptionIssuer;
+use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class TestSubscriptionController extends Controller
 {
-    public function store(Request $request, CreateDualBundleSubscription $service): RedirectResponse
+    public function store(Request $request, TrialSubscriptionIssuer $issuer): RedirectResponse
     {
         $user = $request->user();
-
-        if (! filter_var((string) env('TEST_SUBSCRIPTION_ENABLED', '0'), FILTER_VALIDATE_BOOL)) {
-            return back()->withErrors([
-                'test_subscription' => 'Тестовые ключи временно недоступны. Мы подключим отдельную связку и вернём эту функцию.',
-            ]);
-        }
 
         if (! $user->hasVerifiedEmail()) {
             return back()->withErrors([
@@ -24,21 +20,38 @@ class TestSubscriptionController extends Controller
             ]);
         }
 
-        if ($user->subscriptions()->exists()) {
+        if ($user->hasActiveNonTrialSubscription()) {
             return back()->withErrors([
-                'test_subscription' => 'Тестовая подписка уже была создана для этого аккаунта.',
+                'test_subscription' => 'Тестовая подписка недоступна: у вас уже есть активная платная подписка.',
             ]);
         }
 
-        $devices = (int) env('TEST_SUBSCRIPTION_DEVICES', 1);
-        $days = (int) env('TEST_SUBSCRIPTION_DAYS', 1);
-        $quotaGb = (int) env('TEST_SUBSCRIPTION_QUOTA_GB', 2);
+        $legacyKey = TestKey::query()
+            ->where('user_id', $user->id)
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->exists();
 
-        $service->create($devices, $days, $quotaGb, $user->id);
+        if ($legacyKey || $user->activeTrialSubscription() !== null) {
+            return back()->withErrors([
+                'test_subscription' => 'У вас уже есть активная тестовая подписка.',
+            ]);
+        }
+
+        try {
+            $issuer->issueFromCabinet($user, false);
+        } catch (XuiPanelException $e) {
+            return back()->withErrors([
+                'test_subscription' => 'Не удалось создать тестовую подписку: '.$e->getMessage(),
+            ]);
+        } catch (\Throwable) {
+            return back()->withErrors([
+                'test_subscription' => 'Не удалось создать тестовую подписку. Попробуйте позже.',
+            ]);
+        }
 
         return redirect()
             ->route('dashboard')
             ->with('status', 'test-subscription-created');
     }
 }
-

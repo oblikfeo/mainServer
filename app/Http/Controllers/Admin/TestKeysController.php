@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\TestKey;
+use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Subscription\DestroySubscription;
+use App\Services\Subscription\TrialSubscriptionIssuer;
 use App\Services\TestKeys\TestKeyManager;
+use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,14 +19,14 @@ class TestKeysController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = TestKey::query()->with('user')->orderByDesc('id');
+        $q = Subscription::query()->with('user')->where('is_trial', true)->orderByDesc('id');
 
         if ($request->get('state') === 'active') {
-            $q->whereNull('revoked_at')->where('expires_at', '>', now());
+            $nowMs = (int) (now()->getTimestamp() * 1000);
+            $q->where('expiry_ms', '>', $nowMs);
         } elseif ($request->get('state') === 'expired') {
-            $q->whereNull('revoked_at')->where('expires_at', '<=', now());
-        } elseif ($request->get('state') === 'revoked') {
-            $q->whereNotNull('revoked_at');
+            $nowMs = (int) (now()->getTimestamp() * 1000);
+            $q->where('expiry_ms', '>', 0)->where('expiry_ms', '<=', $nowMs);
         }
 
         if (filled($request->get('email'))) {
@@ -36,9 +39,9 @@ class TestKeysController extends Controller
         ]);
     }
 
-    public function store(Request $request, TestKeyManager $manager): RedirectResponse
+    public function store(Request $request, TrialSubscriptionIssuer $issuer): RedirectResponse
     {
-        $adminCap = max(48, (int) config('test_keys.admin_issue_max_hours', 8760));
+        $adminCap = max(48, (int) config('trial_subscription.admin_hours_max', 8760));
 
         $validated = $request->validate([
             'email' => ['required', 'string', 'email:rfc'],
@@ -71,37 +74,72 @@ class TestKeysController extends Controller
         $hours = isset($validated['hours']) ? (int) $validated['hours'] : null;
 
         try {
-            $key = $manager->issueForUser(
-                $user,
-                $hours,
-                applyReferralTestCreditHours: false,
-                durationHoursCap: $adminCap,
-            );
-        } catch (\Throwable $e) {
+            $result = $issuer->issueFromAdmin($user, $hours);
+        } catch (XuiPanelException $e) {
             return back()
                 ->withInput()
                 ->withErrors([
-                    'email' => 'Не удалось выдать ключ: проверьте настройку тестовой связки или панель 3x-ui.',
+                    'email' => 'Не удалось выдать тест: '.$e->getMessage(),
+                ]);
+        } catch (\Throwable) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'email' => 'Не удалось выдать тестовую подписку. Проверьте узлы XUI/HY2 и конфигурацию.',
                 ]);
         }
 
         return redirect()
             ->route('admin.test_keys')
-            ->with('status', 'issued:'.$key->id);
+            ->with('status', 'issued:'.$result->subscription->id);
     }
 
-    public function revoke(TestKey $testKey, TestKeyManager $manager): RedirectResponse
+    public function revoke(Subscription $subscription, DestroySubscription $destroyer): RedirectResponse
     {
-        $manager->revoke($testKey, 'manual');
+        if (! $subscription->is_trial) {
+            abort(404);
+        }
 
-        return back()->with('status', 'revoked:'.$testKey->id);
+        $id = $subscription->id;
+
+        try {
+            $destroyer->destroy($subscription);
+        } catch (XuiPanelException $e) {
+            return back()->withErrors([
+                'email' => 'Не удалось снять подписку: '.$e->getMessage(),
+            ]);
+        }
+
+        return back()->with('status', 'revoked:'.$id);
     }
 
-    public function cleanup(TestKeyManager $manager): RedirectResponse
+    /**
+     * Удаляет истёкшие пробные подписки с панелей и из БД; плюс legacy test_keys через старую панель.
+     */
+    public function cleanup(DestroySubscription $destroyer, TestKeyManager $legacyKeys): RedirectResponse
     {
-        $n = $manager->cleanupExpired();
+        $n = 0;
+        $nowMs = (int) (now()->getTimestamp() * 1000);
+
+        $expiredTrials = Subscription::query()
+            ->where('is_trial', true)
+            ->where('expiry_ms', '>', 0)
+            ->where('expiry_ms', '<=', $nowMs)
+            ->orderBy('id')
+            ->limit(100)
+            ->get();
+
+        foreach ($expiredTrials as $sub) {
+            try {
+                $destroyer->destroy($sub);
+                $n++;
+            } catch (\Throwable) {
+                // продолжаем остальные
+            }
+        }
+
+        $n += $legacyKeys->cleanupExpired();
 
         return back()->with('status', 'cleanup:'.$n);
     }
 }
-

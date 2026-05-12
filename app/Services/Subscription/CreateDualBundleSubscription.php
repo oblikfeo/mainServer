@@ -18,6 +18,9 @@ final class CreateDualBundleSubscription
     private const BYTES_PER_GB = 1_073_741_824;
 
     /**
+     * @param  ?int  $expiryMsOverride  Явный срок окончания (мс с эпохи) для XUI; перекрывает расчёт из $days, если задан и не безлимит по времени.
+     * @param  ?int  $hy2ExpirationDays  Дней для Blitz addUser; по умолчанию равно $days.
+     *
      * @throws XuiPanelException
      */
     public function create(
@@ -26,15 +29,23 @@ final class CreateDualBundleSubscription
         int $quotaGb,
         ?int $userId = null,
         bool $unlimitedTraffic = false,
-        bool $unlimitedTime = false
-    ): CreatedSubscriptionResult
-    {
+        bool $unlimitedTime = false,
+        bool $isTrial = false,
+        ?int $expiryMsOverride = null,
+        ?int $hy2ExpirationDays = null,
+    ): CreatedSubscriptionResult {
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
 
-        $expiryMs = $unlimitedTime
-            ? 0
-            : (int) ((time() + $days * 86400) * 1000);
+        if ($unlimitedTime) {
+            $expiryMs = 0;
+        } elseif ($expiryMsOverride !== null) {
+            $expiryMs = max(0, $expiryMsOverride);
+        } else {
+            $expiryMs = (int) ((time() + $days * 86400) * 1000);
+        }
+
+        $hy2Days = $hy2ExpirationDays ?? max(0, $days);
 
         if (count($order) < 1) {
             throw new XuiPanelException('Пустой список узлов в config/xui.php (bundle_order)');
@@ -135,7 +146,7 @@ final class CreateDualBundleSubscription
 
             try {
                 $blitz = new BlitzClient();
-                $blitz->addUser($hy2Username, $hy2Password, $hy2TrafficGb, $days);
+                $blitz->addUser($hy2Username, $hy2Password, $hy2TrafficGb, max(1, $hy2Days));
             } catch (BlitzException $e) {
                 Log::warning('hy2.create_user_failed', ['error' => $e->getMessage()]);
                 $rollbackMsg = $this->rollbackClients($createdClients);
@@ -159,6 +170,7 @@ final class CreateDualBundleSubscription
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
+            'is_trial' => $isTrial,
         ]);
 
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);

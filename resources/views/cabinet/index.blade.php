@@ -5,7 +5,12 @@
             $me = Auth::user();
             /** @var iterable<int, \App\Models\TestKey>|\Illuminate\Support\Collection $activeTestKeys */
             $activeTestKeys = isset($activeTestKeys) ? collect($activeTestKeys) : collect();
+            /** @var iterable<int, \App\Models\Subscription>|\Illuminate\Support\Collection $activeTrialSubscriptions */
+            $activeTrialSubscriptions = isset($activeTrialSubscriptions) ? collect($activeTrialSubscriptions) : collect();
             $hasActiveTestKeys = $activeTestKeys->isNotEmpty();
+            $hasActiveTrials = $activeTrialSubscriptions->isNotEmpty();
+            $hasAnyActiveTestAccess = $hasActiveTestKeys || $hasActiveTrials;
+            $trialHours = (int) config('trial_subscription.hours', 3);
             $hasPaidSub = !empty($items);
             $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
@@ -13,13 +18,13 @@
         @endphp
 
         {{-- Заголовок раздела "Тестовая подписка" --}}
-        @if ($hasActiveTestKeys || ! $me->shouldHideTestSubscriptionOffer())
+        @if ($hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer())
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             <article class="lp-card" style="margin-bottom: 2rem;">
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
-                        @if ($hasActiveTestKeys)
-                            <span class="lp-badge-pill lp-badge-pill--ok">Активна@if ($activeTestKeys->count() > 1) ({{ $activeTestKeys->count() }})@endif</span>
+                        @if ($hasAnyActiveTestAccess)
+                            <span class="lp-badge-pill lp-badge-pill--ok">Активна@if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }})@endif</span>
                         @elseif ($me->hasVerifiedEmail())
                             <span class="lp-badge-pill">Не активирована</span>
                         @else
@@ -51,20 +56,36 @@
                             Чтобы получить тестовую подписку, подтвердите почту в
                             <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
                             @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0)
-                                <p class="mt-2 text-slate-700">По приглашению вам начислено {{ (int) $me->referral_invitee_test_issues_remaining }} отдельных тест-периода по {{ (int) config('test_keys.default_hours', 8) }} ч — каждый после подтверждения почты и когда предыдущий ключ истёк.</p>
+                                <p class="mt-2 text-slate-700">По приглашению вам начислено {{ (int) $me->referral_invitee_test_issues_remaining }} отдельных тест-периода по {{ $trialHours }} ч — каждый после подтверждения почты и когда предыдущий период истёк.</p>
                             @endif
                         </div>
                     @else
-                        @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0 && ! $hasActiveTestKeys)
+                        @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0 && ! $hasAnyActiveTestAccess)
                             <div class="lp-warn-box" style="background:#eff6ff;">
-                                По приглашению доступно ещё {{ (int) $me->referral_invitee_test_issues_remaining }} тест-ключа по {{ (int) config('test_keys.default_hours', 8) }} ч (по одному активному).
+                                По приглашению доступно ещё {{ (int) $me->referral_invitee_test_issues_remaining }} тест-периода по {{ $trialHours }} ч (по одному активному).
                             </div>
                         @endif
-                        @if ($hasActiveTestKeys)
+                        @if ($hasActiveTrials)
+                            @foreach ($activeTrialSubscriptions as $trialSub)
+                                @php $trialExp = $trialSub->expiresAt(); @endphp
+                                <div class="lp-warn-box" style="background:#f8fafc;">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                                        Пробная подписка Happ@if ($activeTrialSubscriptions->count() > 1) №{{ $trialSub->id }}@endif
+                                        @if ($trialExp)
+                                            (до {{ $trialExp->timezone(config('app.timezone'))->format('d.m.Y H:i') }})
+                                        @endif
+                                    </div>
+                                    <div class="text-xs text-slate-700 mb-2">
+                                        Лимит: {{ (int) $trialSub->quota_gb }} ГБ · устройств: {{ (int) $trialSub->devices }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+                        @if ($hasAnyActiveTestAccess)
                             @foreach ($activeTestKeys as $activeTestKey)
                                 <div class="lp-warn-box" style="background:#f8fafc;">
                                     <div class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                                        Подписка@if ($activeTestKeys->count() > 1) №{{ $activeTestKey->id }}@endif
+                                        Старый тест-ключ@if ($activeTestKeys->count() > 1) №{{ $activeTestKey->id }}@endif
                                         (до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }})
                                     </div>
                                     <div class="text-xs text-slate-700 mb-2">
@@ -133,10 +154,36 @@
                                             <div class="lp-step__num">2</div>
                                             <div class="lp-step__content">
                                                 <div class="lp-step__title">Копируем ссылку</div>
-                                                @foreach ($activeTestKeys as $activeTestKey)
+                                                @foreach ($activeTrialSubscriptions as $trialSub)
                                                     <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
+                                                        @if ($activeTrialSubscriptions->count() > 1)
+                                                            <div class="text-xs text-slate-600 mb-1">Пробная №{{ $trialSub->id }}, до {{ $trialSub->expiresAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
+                                                        @endif
+                                                        <button
+                                                            type="button"
+                                                            class="lp-btn lp-btn--copy"
+                                                            :class="copied ? 'lp-btn--copied' : ''"
+                                                            x-on:click="
+                                                                (async () => {
+                                                                    try { await navigator.clipboard.writeText(@js($trialSub->shareableSubUrl())); copied = true; setTimeout(() => copied = false, 1600); }
+                                                                    catch (e) { copied = false; }
+                                                                })()
+                                                            "
+                                                        >
+                                                            <span x-show="!copied">Скопировать ссылку</span>
+                                                            <span x-show="copied" x-cloak>Скопировано</span>
+                                                        </button>
+                                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                                        <div class="lp-subscription-url-fallback">
+                                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                                            <code class="lp-subscription-url-fallback__url">{{ $trialSub->shareableSubUrl() }}</code>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                                @foreach ($activeTestKeys as $activeTestKey)
+                                                    <div class="lp-copy-row @if ($activeTrialSubscriptions->isNotEmpty() || ! $loop->first) mt-3 @endif" x-data="{ copied: false }">
                                                         @if ($activeTestKeys->count() > 1)
-                                                            <div class="text-xs text-slate-600 mb-1">Ключ №{{ $activeTestKey->id }}, до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
+                                                            <div class="text-xs text-slate-600 mb-1">Старый ключ №{{ $activeTestKey->id }}, до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
                                                         @endif
                                                         <button
                                                             type="button"

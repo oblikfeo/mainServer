@@ -41,7 +41,7 @@ return [
         [
             'id' => 'trial',
             'name' => 'Связка TRIAL',
-            'subtitle' => 'Тестовые ключи · Yandex → NLtest',
+            'subtitle' => 'Legacy: старые тест-ключи (отдельная панель). Новые триалы — на FI/NL.',
             'ip' => env('LINK_TRIAL_IP', '158.160.219.3'),
             'ssh_user' => env('LINK_TRIAL_SSH_USER', 'oblik'),
             'ssh_private_key' => env('LINK_TRIAL_SSH_KEY', ''),

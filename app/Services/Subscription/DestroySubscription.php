@@ -18,13 +18,7 @@ final class DestroySubscription
      */
     public function destroy(Subscription $subscription): void
     {
-        $user = (string) config('xui.panel_username');
-        $pass = (string) config('xui.panel_password');
         $nodes = config('xui.nodes', []);
-
-        if ($user === '' || $pass === '') {
-            throw new XuiPanelException('Не заданы XUI_PANEL_USER / XUI_PANEL_PASSWORD');
-        }
 
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
@@ -44,6 +38,14 @@ final class DestroySubscription
             $inboundId = (int) ($node['inbound_id'] ?? 0);
             if ($base === '' || $inboundId < 1) {
                 continue;
+            }
+
+            $user = (string) ($node['panel_username'] ?? '');
+            $pass = (string) ($node['panel_password'] ?? '');
+            if ($user === '' || $pass === '') {
+                throw new XuiPanelException(
+                    "Не заданы креды для узла «{$bundleKey}» при удалении подписки (XUI_".strtoupper($bundleKey).'_USER/PASSWORD)'
+                );
             }
 
             $email = $this->clientEmail($node, $subId);

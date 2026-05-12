@@ -21,6 +21,7 @@ class Subscription extends Model
         'quota_gb',
         'expiry_ms',
         'devices',
+        'is_trial',
         'bound_hwid_hashes',
         'bound_hwid_meta',
     ];
@@ -32,6 +33,7 @@ class Subscription extends Model
             'quota_gb' => 'integer',
             'expiry_ms' => 'integer',
             'devices' => 'integer',
+            'is_trial' => 'boolean',
             'bound_hwid_hashes' => 'array',
             'bound_hwid_meta' => 'array',
         ];
@@ -89,6 +91,11 @@ class Subscription extends Model
         $at = $this->expiresAt();
 
         return $at === null ? false : $at->isPast();
+    }
+
+    public function shareableSubUrl(): string
+    {
+        return url('/sub/'.$this->token);
     }
 
 }

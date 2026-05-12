@@ -127,7 +127,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/test-keys/cleanup', [TestKeysController::class, 'cleanup'])
             ->middleware('throttle:10,1')
             ->name('test_keys.cleanup');
-        Route::post('/test-keys/{testKey}/revoke', [TestKeysController::class, 'revoke'])
+        Route::post('/test-keys/{subscription}/revoke', [TestKeysController::class, 'revoke'])
             ->middleware('throttle:60,1')
             ->name('test_keys.revoke');
         Route::get('/subscription/create', [SubscriptionController::class, 'create'])->name('subscription.create');

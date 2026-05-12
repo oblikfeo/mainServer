@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\TestKey;
-use App\Services\TestKeys\TestKeyManager;
+use App\Services\Subscription\TrialSubscriptionIssuer;
+use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CabinetTestKeysController extends Controller
 {
-    public function store(Request $request, TestKeyManager $manager): RedirectResponse
+    public function store(Request $request, TrialSubscriptionIssuer $issuer): RedirectResponse
     {
         $user = $request->user();
 
@@ -19,10 +20,9 @@ class CabinetTestKeysController extends Controller
             ]);
         }
 
-        // Если уже есть подписка — тестовая подписка не нужна
-        if ($user->subscriptions()->exists()) {
+        if ($user->hasActiveNonTrialSubscription()) {
             return back()->withErrors([
-                'test_key' => 'Тестовая подписка недоступна: у вас уже есть подписка.',
+                'test_key' => 'Тестовая подписка недоступна: у вас уже есть активная платная подписка.',
             ]);
         }
 
@@ -36,11 +36,15 @@ class CabinetTestKeysController extends Controller
             return back()->with('status', 'test-key-exists');
         }
 
-        $defaultHours = (int) config('test_keys.default_hours', 8);
+        if ($user->activeTrialSubscription() !== null) {
+            return back()->with('status', 'test-key-exists');
+        }
+
+        $referralSlot = (int) $user->referral_invitee_test_issues_remaining > 0;
 
         try {
-            if ((int) $user->referral_invitee_test_issues_remaining > 0) {
-                $manager->issueForUser($user, $defaultHours, false);
+            if ($referralSlot) {
+                $issuer->issueFromCabinet($user, true);
                 $user->forceFill([
                     'referral_invitee_test_issues_remaining' => max(
                         0,
@@ -48,15 +52,18 @@ class CabinetTestKeysController extends Controller
                     ),
                 ])->save();
             } else {
-                $manager->issueForUser($user, null);
+                $issuer->issueFromCabinet($user, false);
             }
-        } catch (\Throwable $e) {
+        } catch (XuiPanelException $e) {
             return back()->withErrors([
-                'test_key' => 'Не удалось выдать тестовую подписку. Связка может быть не настроена.',
+                'test_key' => 'Не удалось выдать тестовую подписку: '.$e->getMessage(),
+            ]);
+        } catch (\Throwable) {
+            return back()->withErrors([
+                'test_key' => 'Не удалось выдать тестовую подписку. Попробуйте позже или напишите в поддержку.',
             ]);
         }
 
         return back()->with('status', 'test-key-issued');
     }
 }
-

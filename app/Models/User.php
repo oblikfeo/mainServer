@@ -77,11 +77,36 @@ class User extends Authenticatable
     }
 
     /**
-     * Скрывать блок «Тестовая подписка» для самостоятельной выдачи (кнопка в ЛК), если уже есть платная подписка.
-     * Активный тест-ключ из админки всё равно показывается в этом блоке (@see CabinetController index).
+     * Скрывать блок «Тестовая подписка» для самостоятельной выдачи (кнопка в ЛК), если уже есть активная платная подписка.
+     * Пробные подписки (is_trial) не считаются платными.
      */
     public function shouldHideTestSubscriptionOffer(): bool
     {
-        return $this->subscriptions()->exists();
+        return $this->hasActiveNonTrialSubscription();
+    }
+
+    public function hasActiveNonTrialSubscription(): bool
+    {
+        $nowMs = (int) (now()->getTimestamp() * 1000);
+
+        return $this->subscriptions()
+            ->where('is_trial', false)
+            ->where(function ($q) use ($nowMs) {
+                $q->where('expiry_ms', '<=', 0)
+                    ->orWhere('expiry_ms', '>', $nowMs);
+            })
+            ->exists();
+    }
+
+    /** Активная пробная подписка (по сроку expiry_ms). */
+    public function activeTrialSubscription(): ?Subscription
+    {
+        $nowMs = (int) (now()->getTimestamp() * 1000);
+
+        return $this->subscriptions()
+            ->where('is_trial', true)
+            ->where('expiry_ms', '>', $nowMs)
+            ->orderByDesc('id')
+            ->first();
     }
 }
