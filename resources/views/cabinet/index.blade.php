@@ -1,6 +1,5 @@
 <x-cabinet-layout>
-    <div class="max-w-4xl mx-auto">
-        @php
+    @php
             /** @var \App\Models\User $me */
             $me = Auth::user();
             /** @var iterable<int, \App\Models\TestKey>|\Illuminate\Support\Collection $activeTestKeys */
@@ -11,15 +10,48 @@
             $hasActiveTrials = $activeTrialSubscriptions->isNotEmpty();
             $hasAnyActiveTestAccess = $hasActiveTestKeys || $hasActiveTrials;
             $trialHours = (int) config('trial_subscription.hours', 3);
-            $hasPaidSub = !empty($items);
+            $hasPaidSub = ! empty($items);
+            $showTrialSection = $hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer();
+            $showBothTabs = $showTrialSection && $hasPaidSub;
             $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
-        @endphp
+    @endphp
 
-        {{-- Заголовок раздела "Тестовая подписка" --}}
-        @if ($hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer())
+    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: 'paid' }" @endif>
+        @if ($showBothTabs)
+            <div class="lp-cab-tabbar mb-4" role="tablist" aria-label="Подписки">
+                <button
+                    type="button"
+                    role="tab"
+                    class="lp-cab-tab"
+                    :class="tab === 'trial' ? 'lp-cab-tab--active' : ''"
+                    :aria-selected="tab === 'trial' ? 'true' : 'false'"
+                    @click="tab = 'trial'"
+                >
+                    <span class="lp-cab-tab__title">Пробные подписки</span>
+                    <span class="lp-cab-tab__sub">Пробный Happ, старые тест-ключи</span>
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    class="lp-cab-tab"
+                    :class="tab === 'paid' ? 'lp-cab-tab--active' : ''"
+                    :aria-selected="tab === 'paid' ? 'true' : 'false'"
+                    @click="tab = 'paid'"
+                >
+                    <span class="lp-cab-tab__title">Платные подписки</span>
+                    <span class="lp-cab-tab__sub">Оплаченный доступ</span>
+                </button>
+            </div>
+        @endif
+
+        {{-- Раздел пробных подписок --}}
+        @if ($showTrialSection)
+            <div @if ($showBothTabs) x-show="tab === 'trial'" x-cloak @endif>
+            @unless ($showBothTabs)
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
+            @endunless
             <article class="lp-card" style="margin-bottom: 2rem;">
                 <div class="lp-card__head">
                     <div class="flex flex-wrap items-center gap-2">
@@ -227,10 +259,15 @@
                     @endif
                 </div>
             </article>
+            </div>
         @endif
 
-        {{-- Заголовок раздела "Платные подписки" --}}
+        @if ($showBothTabs)
+            <div x-show="tab === 'paid'" x-cloak>
+        @endif
+        @unless ($showBothTabs)
         <h2 class="lp-page-section-title">Платные подписки</h2>
+        @endunless
 
         @if ($items === [])
             <div class="lp-empty">
@@ -382,5 +419,51 @@
                 </article>
             @endforeach
         @endif
+
+        @if ($showBothTabs)
+            </div>
+        @endif
+
+        <style>
+            .lp-f1 .lp-cab-tabbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            .lp-f1 .lp-cab-tab {
+                flex: 1 1 12rem;
+                text-align: left;
+                padding: 0.65rem 0.85rem;
+                border: 3px solid var(--lp-ink, #0f172a);
+                background: #f1f5f9;
+                color: var(--lp-ink, #0f172a);
+                cursor: pointer;
+                border-radius: 0.35rem;
+                transition: background 0.12s ease, box-shadow 0.12s ease;
+            }
+            .lp-f1 .lp-cab-tab:hover {
+                background: #fff;
+            }
+            .lp-f1 .lp-cab-tab--active {
+                background: #fff;
+                box-shadow: 5px 5px 0 var(--lp-ink, #0f172a);
+            }
+            .lp-f1 .lp-cab-tab__title {
+                display: block;
+                font-size: 0.8125rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                line-height: 1.2;
+            }
+            .lp-f1 .lp-cab-tab__sub {
+                display: block;
+                margin-top: 0.25rem;
+                font-size: 0.6875rem;
+                font-weight: 600;
+                color: #475569;
+                line-height: 1.25;
+            }
+        </style>
     </div>
 </x-cabinet-layout>
