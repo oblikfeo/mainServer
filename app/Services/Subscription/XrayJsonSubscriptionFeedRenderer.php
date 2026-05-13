@@ -26,6 +26,10 @@ final class XrayJsonSubscriptionFeedRenderer
 
     public function render(Subscription $sub): Response
     {
+        if (ExpiredSubscriptionVlessStubs::shouldUse($sub)) {
+            return $this->renderExpiredStubJsonFeed($sub);
+        }
+
         $nodes = config('xui.nodes', []);
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 
@@ -182,6 +186,127 @@ final class XrayJsonSubscriptionFeedRenderer
                 'Retry-After' => '30',
             ]);
         }
+    }
+
+    private function renderExpiredStubJsonFeed(Subscription $sub): Response
+    {
+        $quotaGb = (int) $sub->quota_gb;
+        $totalCap = $quotaGb > 0 ? $quotaGb * self::BYTES_PER_GB : 0;
+        $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
+        $userinfo = $this->formatUserinfoValue(0, 0, $totalCap, $expireSec);
+
+        $profileTitle = $this->profileTitleForHapp();
+        $extras = HappSubscriptionAppManagementExtras::forResponses($sub, 0, 0);
+
+        $stubLines = ExpiredSubscriptionVlessStubs::lines();
+        /** @var array<string, mixed> $stubCfg */
+        $stubCfg = config('xui.sub_expired_stub', []);
+        $remarkPairs = [
+            [
+                trim((string) ($stubCfg['line1_title'] ?? '')),
+                trim((string) ($stubCfg['line1_subtitle'] ?? '')),
+            ],
+            [
+                trim((string) ($stubCfg['line2_title'] ?? '')),
+                trim((string) ($stubCfg['line2_subtitle'] ?? '')),
+            ],
+        ];
+
+        $bundleMode = strtolower(trim((string) config('xui.sub_json_bundle_mode', 'per_node')));
+        $globalMetaOverride = trim((string) config('xui.sub_json_meta_server_description', ''));
+
+        $convertedRows = [];
+        foreach ($stubLines as $idx => $line) {
+            $stripped = explode('#', $line, 2)[0];
+            $tag = $bundleMode === 'merged'
+                ? ('proxy-expired-'.$idx)
+                : 'proxy';
+            $ob = VlessUriToXrayOutbound::convert($stripped, $tag);
+            if ($ob === null) {
+                Log::warning('subscription.json.expired_stub_convert_failed', ['idx' => $idx]);
+
+                continue;
+            }
+            $convertedRows[] = ['ob' => $ob, 'idx' => $idx];
+        }
+
+        if ($convertedRows === []) {
+            return new Response('Error: expired stub VLESS parse failed', 503, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Retry-After' => '30',
+            ]);
+        }
+
+        if ($bundleMode === 'merged') {
+            $mergedOutbounds = array_map(static fn (array $r): mixed => $r['ob'], $convertedRows);
+            $metaDesc = $globalMetaOverride !== '' ? $globalMetaOverride : 'Подписка окончена';
+            $doc = $this->buildXrayDoc(
+                $mergedOutbounds,
+                $profileTitle,
+                $metaDesc,
+            );
+            $jsonBlob = $this->encodeJsonDocument(
+                $doc,
+                filter_var(config('xui.sub_json_pretty_print', false), FILTER_VALIDATE_BOOL),
+            );
+        } else {
+            $jsonPieces = [];
+            foreach ($convertedRows as $row) {
+                $i = (int) $row['idx'];
+                [$rt, $st] = $remarkPairs[$i] ?? ['', ''];
+                $remarks = $this->shortenHappLabel($rt !== '' ? $rt : '—', 64);
+                $metaDesc = $globalMetaOverride !== '' ? $globalMetaOverride : $st;
+                $doc = $this->buildXrayDoc([$row['ob']], $remarks, $metaDesc);
+                $jsonPieces[] = $this->encodeJsonDocument($doc, false);
+            }
+            $jsonBlob = implode("\n", $jsonPieces);
+        }
+
+        $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
+        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+
+        $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
+        $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
+        $uriBlock = '';
+        if ($prependUris) {
+            $uriLines = $prependVless ? $stubLines : [];
+            $uriBlock = $uriLines !== [] ? implode("\n", $uriLines)."\n" : '';
+        }
+
+        $embedExplicit = strtolower(trim((string) config('xui.sub_json_embed_profiles_env', '')));
+        $embedProfiles = match ($embedExplicit) {
+            '1', 'true', 'yes', 'always' => true,
+            '0', 'false', 'no', 'never' => false,
+            default => ! $prependUris || ! $prependVless,
+        };
+        if (! $embedProfiles) {
+            $jsonBlob = '';
+        }
+
+        $middle = $uriBlock !== '' ? $uriBlock."\n" : '';
+        $coreBody = $meta."\n".$middle.$jsonBlob;
+
+        if (config('xui.sub_output_b64', false)) {
+            $encoded = base64_encode($coreBody)."\n";
+            $body = ($routingLine !== null ? $routingLine."\n" : '').$encoded;
+        } else {
+            $body = ($routingLine !== null ? $routingLine."\n" : '').$coreBody;
+        }
+
+        $hours = (string) config('xui.sub_profile_update_hours', '12');
+        $headers = array_merge([
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'subscription-userinfo' => $userinfo,
+            'profile-update-interval' => $hours,
+        ], $extras['headers']);
+        if (config('xui.feed_require_hwid', true)) {
+            $headers['subscription-always-hwid-enable'] = '1';
+        }
+        if ($routingLine !== null) {
+            $headers['routing'] = $routingLine;
+        }
+
+        return new Response($body, 200, $headers);
     }
 
     public function renderTestKey(TestKey $key): Response

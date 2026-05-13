@@ -86,6 +86,29 @@ return [
     /** b64 = #Title?serverDescription=<base64>; dual = #Title?подпись. @see happ.su app-management */
     'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'b64'))),
 
+    /**
+     * Истёкшая по дате подписка: вместо узлов с панелей — только две простые VLESS-заглушки (127.0.0.1:1).
+     * Happ обновит список при следующем автообновлении подписки.
+     *
+     * @var array{
+     *   enabled: bool,
+     *   line1_title: string,
+     *   line1_subtitle: string,
+     *   line2_title: string,
+     *   line2_subtitle: string
+     * }
+     */
+    'sub_expired_stub' => [
+        'enabled' => filter_var(env('SUB_EXPIRED_STUB_ENABLED', true), FILTER_VALIDATE_BOOL),
+        'line1_title' => trim((string) env('SUB_EXPIRED_STUB_LINE1_TITLE', 'Подписка окончена')),
+        'line1_subtitle' => trim((string) env(
+            'SUB_EXPIRED_STUB_LINE1_SUBTITLE',
+            'Действие вашей подписки окончено'
+        )),
+        'line2_title' => trim((string) env('SUB_EXPIRED_STUB_LINE2_TITLE', 'Для продления нажмите на ⓘ')),
+        'line2_subtitle' => trim((string) env('SUB_EXPIRED_STUB_LINE2_SUBTITLE', '')),
+    ],
+
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     /** Имя профиля в Happ (до 25 символов): заголовок и #profile-title в теле */
     'sub_profile_title' => env('SUB_PROFILE_TITLE', 'Nadezhda 🧭 VPN'),
