@@ -487,7 +487,7 @@ final class XrayJsonSubscriptionFeedRenderer
                 'loglevel' => 'warning',
             ],
             'meta' => [
-                'serverDescription' => $metaServerDescription,
+                'serverDescription' => HappServerDescriptionLimiter::clamp($metaServerDescription),
             ],
             'remarks' => $remarks,
             'inbounds' => [

@@ -2,6 +2,7 @@
 
 namespace App\Services\Hy2;
 
+use App\Services\Subscription\HappServerDescriptionLimiter;
 use App\Services\Subscription\SubscriptionHappSubtitle;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
@@ -106,14 +107,7 @@ final class BlitzClient
         }
 
         $title = $displayName ?? (string) config('hy2.display_name', 'Hysteria2');
-        $serverDesc = SubscriptionHappSubtitle::forHy2();
-        $subtitleMax = max(48, min(160, (int) config('xui.happ_fragment_subtitle_max_chars', 96)));
-        if ($serverDesc !== '' && function_exists('mb_strlen')
-            && mb_strlen($serverDesc) > $subtitleMax) {
-            $serverDesc = mb_substr($serverDesc, 0, $subtitleMax);
-        } elseif ($serverDesc !== '' && strlen($serverDesc) > $subtitleMax) {
-            $serverDesc = substr($serverDesc, 0, $subtitleMax);
-        }
+        $serverDesc = HappServerDescriptionLimiter::clamp(SubscriptionHappSubtitle::forHy2());
         $sdFormat = strtolower(trim((string) config('xui.vless_server_description_format', 'b64')));
 
         // Title — сырые UTF-8 байты в фрагменте (так в примерах офф. доки и в JSON-конфигах

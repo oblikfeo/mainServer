@@ -176,8 +176,22 @@ return [
         'trial' => trim((string) env('SUB_GRAY_TRIAL', '')),
     ],
 
-    /** Серая строка во фрагменте vless:// / hy2:// (Happ URI); JSON-подпись через meta для JSON не ограничивается. */
-    'happ_fragment_subtitle_max_chars' => max(48, min(160, (int) env('HAPP_FRAGMENT_SUBTITLE_MAX_CHARS', 96))),
+    /**
+     * Happ serverDescription / meta.serverDescription: лимит символов (по доке премиума — 30).
+     * HAPP_FRAGMENT_SUBTITLE_MAX_CHARS оставлен как запасной синоним для старых .env.
+     */
+    'happ_server_description_max_chars' => (static function (): int {
+        $primary = env('HAPP_SERVER_DESCRIPTION_MAX_CHARS');
+        if ($primary !== null && $primary !== '') {
+            return max(1, min(160, (int) $primary));
+        }
+        $legacy = env('HAPP_FRAGMENT_SUBTITLE_MAX_CHARS');
+        if ($legacy !== null && $legacy !== '') {
+            return max(1, min(160, (int) $legacy));
+        }
+
+        return 30;
+    })(),
 
     /** По умолчанию true: перед JSON добавить hy2+vless строки как в URI-режиме (мобильный Happ часто не парсит JSON из тела URL-подписки). */
     'sub_json_prepend_share_lines' => filter_var(env('SUB_JSON_PREPEND_SHARE_LINES', true), FILTER_VALIDATE_BOOL),

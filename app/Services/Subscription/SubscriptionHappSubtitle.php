@@ -3,7 +3,8 @@
 namespace App\Services\Subscription;
 
 /**
- * Тексты «серой строки» под именем узла в Happ и в meta.serverDescription JSON-подписки.
+ * Тексты под именем узла в Happ и в meta.serverDescription JSON-подписки.
+ * Длина подписи ограничивается {@see HappServerDescriptionLimiter} (по умолчанию 30 символов, дока Happ).
  *
  * Приоритет: SUB_GRAY_* / HY2_GRAY_SUBTITLE, затем описание ноды, затем общий fallback.
  */
