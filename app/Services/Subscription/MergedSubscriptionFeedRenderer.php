@@ -64,7 +64,8 @@ final class MergedSubscriptionFeedRenderer
 
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+        $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($sub->token);
+        $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
 
@@ -81,7 +82,7 @@ final class MergedSubscriptionFeedRenderer
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ], $extras['headers']);
+        ], $extras['headers'], $providerExtras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }
@@ -104,7 +105,8 @@ final class MergedSubscriptionFeedRenderer
 
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($sub, 0, 0);
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+        $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($sub->token);
+        $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
 
@@ -121,7 +123,7 @@ final class MergedSubscriptionFeedRenderer
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ], $extras['headers']);
+        ], $extras['headers'], $providerExtras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }

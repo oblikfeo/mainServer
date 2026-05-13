@@ -87,6 +87,32 @@ return [
     'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'b64'))),
 
     /**
+     * Happ Provider ID: заголовок providerid и строка #providerid в теле /sub/{token}.
+     * HAPP_PROVIDER_ID — для всех подписок; HAPP_PROVIDER_ID_BY_TOKEN — JSON {"token":"id"} перекрывает для указанных токенов.
+     *
+     * @see https://www.happ.su/main/ru/dev-docs/provider-id
+     */
+    'happ_provider_id' => trim((string) env('HAPP_PROVIDER_ID', '')),
+
+    /** @var array<string, string> */
+    'happ_provider_id_by_token' => (static function (): array {
+        $raw = trim((string) env('HAPP_PROVIDER_ID_BY_TOKEN', ''));
+        if ($raw === '') {
+            return [];
+        }
+        $decoded = json_decode($raw, true);
+        if (! is_array($decoded)) {
+            return [];
+        }
+        $out = [];
+        foreach ($decoded as $k => $v) {
+            $out[(string) $k] = (string) $v;
+        }
+
+        return $out;
+    })(),
+
+    /**
      * Истёкшая по дате подписка: вместо узлов с панелей — только две простые VLESS-заглушки (127.0.0.1:1).
      * Happ обновит список при следующем автообновлении подписки.
      *

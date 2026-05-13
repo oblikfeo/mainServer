@@ -122,7 +122,8 @@ final class XrayJsonSubscriptionFeedRenderer
             }
 
             $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
-            $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+            $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($sub->token);
+            $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
             $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
             $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
@@ -166,7 +167,7 @@ final class XrayJsonSubscriptionFeedRenderer
                 'Content-Type' => 'text/plain; charset=utf-8',
                 'subscription-userinfo' => $userinfo,
                 'profile-update-interval' => $hours,
-            ], $extras['headers']);
+            ], $extras['headers'], $providerExtras['headers']);
             if (config('xui.feed_require_hwid', true)) {
                 $headers['subscription-always-hwid-enable'] = '1';
             }
@@ -263,7 +264,8 @@ final class XrayJsonSubscriptionFeedRenderer
         }
 
         $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+        $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($sub->token);
+        $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
 
         $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
         $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
@@ -298,7 +300,7 @@ final class XrayJsonSubscriptionFeedRenderer
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ], $extras['headers']);
+        ], $extras['headers'], $providerExtras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }
@@ -345,7 +347,8 @@ final class XrayJsonSubscriptionFeedRenderer
             );
 
             $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
-            $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+            $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($key->token);
+            $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
             $coreBody = $meta."\n".$jsonPretty."\n";
 
             if (config('xui.sub_output_b64', false)) {
@@ -360,7 +363,7 @@ final class XrayJsonSubscriptionFeedRenderer
                 'Content-Type' => 'text/plain; charset=utf-8',
                 'subscription-userinfo' => $userinfo,
                 'profile-update-interval' => $hours,
-            ], $extras['headers']);
+            ], $extras['headers'], $providerExtras['headers']);
             if (config('xui.feed_require_hwid', true)) {
                 $headers['subscription-always-hwid-enable'] = '1';
             }

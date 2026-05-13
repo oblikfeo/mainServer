@@ -69,7 +69,8 @@ final class TestKeySubscriptionFeedRenderer
 
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($key, $up, $down);
-        $meta = "#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+        $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($key->token);
+        $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
         $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
 
         $body = $meta.$line."\n";
@@ -85,7 +86,7 @@ final class TestKeySubscriptionFeedRenderer
             'Content-Type' => 'text/plain; charset=utf-8',
             'subscription-userinfo' => $userinfo,
             'profile-update-interval' => $hours,
-        ], $extras['headers']);
+        ], $extras['headers'], $providerExtras['headers']);
         if (config('xui.feed_require_hwid', true)) {
             $headers['subscription-always-hwid-enable'] = '1';
         }
