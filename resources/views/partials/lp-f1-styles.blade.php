@@ -872,27 +872,21 @@
         color: #444;
         text-align: right;
     }
-    .lp-f1 .lp-card__head--with-action {
-        align-items: flex-start;
-        gap: 0.5rem 0.75rem;
+    .lp-f1 .lp-card--paid-sub .lp-card__head {
+        border-bottom: none;
     }
-    .lp-f1 .lp-card__head--with-action .lp-card__head-toggle {
-        flex: 1 1 12rem;
-        min-width: 0;
-        margin: 0;
-        text-align: left;
-        cursor: pointer;
-        background: transparent;
-        border: 0;
-        padding: 0;
-        font: inherit;
-        color: inherit;
+    .lp-f1 .lp-card__renew-bar {
+        display: flex;
+        justify-content: center;
+        padding: 0.55rem 1rem 0.65rem;
+        background: #fbfbfb;
+        border-bottom: 4px solid var(--lp-ink);
     }
-    .lp-f1 .lp-card__head--with-action .lp-card__head-toggle .lp-card__head-note {
-        margin-top: 0.5rem;
-    }
-    .lp-f1 .lp-card__head--with-action .lp-btn.lp-btn--renew {
-        align-self: center;
+    @media (min-width: 480px) {
+        .lp-f1 .lp-card__renew-bar {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
     }
     .lp-f1 .lp-card__body { padding: 1rem 1rem 1.15rem; }
     @media (min-width: 480px) {
