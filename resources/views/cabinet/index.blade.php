@@ -282,13 +282,6 @@
         <h2 class="lp-page-section-title">Платные подписки</h2>
         @endunless
 
-        @if ($items !== [])
-            <p class="lp-cab-dash__renew-hint">
-                Срок и тариф продления — в
-                <a href="{{ route('cabinet.renewal') }}" class="lp-auth-secondary">разделе «Продление»</a>.
-            </p>
-        @endif
-
         @if ($items === [])
             <div class="lp-empty">
                 <p>У вас пока нет платных подписок.</p>

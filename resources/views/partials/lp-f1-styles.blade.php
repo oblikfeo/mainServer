@@ -1116,13 +1116,6 @@
         outline: 2px solid var(--lp-ink);
         outline-offset: 2px;
     }
-    .lp-f1 .lp-cab-dash__renew-hint {
-        margin: 0 0 1rem 0;
-        font-size: 0.8125rem;
-        font-weight: 600;
-        line-height: 1.45;
-        color: #475569;
-    }
     .lp-f1 .lp-empty.lp-empty--compact {
         padding: 1.25rem 1rem;
         text-align: left;
