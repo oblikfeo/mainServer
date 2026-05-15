@@ -1138,6 +1138,26 @@
         background: #fff;
         box-shadow: 3px 3px 0 rgba(15, 23, 42, 0.06);
     }
+    @keyframes lp-renew-card-flash {
+        0%, 100% {
+            background-color: #fff;
+            box-shadow: 3px 3px 0 rgba(15, 23, 42, 0.06);
+        }
+        50% {
+            background-color: #ffcfb3;
+            box-shadow: 3px 3px 0 var(--lp-orange), 0 0 0 2px var(--lp-orange);
+        }
+    }
+    .lp-f1 .lp-renew-card.lp-renew-card--flash {
+        animation: lp-renew-card-flash 0.38s ease-in-out 3;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .lp-f1 .lp-renew-card.lp-renew-card--flash {
+            animation: none;
+            outline: 3px solid var(--lp-orange);
+            outline-offset: 2px;
+        }
+    }
     .lp-f1 .lp-renew-card__head {
         padding: 0.875rem 1rem 0.95rem;
         border-bottom: 2px solid rgba(15, 23, 42, 0.08);
