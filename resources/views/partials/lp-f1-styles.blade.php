@@ -872,21 +872,16 @@
         color: #444;
         text-align: right;
     }
-    .lp-f1 .lp-card--paid-sub .lp-card__head {
-        border-bottom: none;
+    .lp-f1 .lp-cab-paid-sub-unit {
+        margin-bottom: 1.25rem;
     }
-    .lp-f1 .lp-card__renew-bar {
+    .lp-f1 .lp-cab-paid-sub-unit .lp-card {
+        margin-bottom: 0;
+    }
+    .lp-f1 .lp-cab-sub-renew-below {
         display: flex;
         justify-content: center;
-        padding: 0.55rem 1rem 0.65rem;
-        background: #fbfbfb;
-        border-bottom: 4px solid var(--lp-ink);
-    }
-    @media (min-width: 480px) {
-        .lp-f1 .lp-card__renew-bar {
-            padding-left: 1.25rem;
-            padding-right: 1.25rem;
-        }
+        margin-top: 0.65rem;
     }
     .lp-f1 .lp-card__body { padding: 1rem 1rem 1.15rem; }
     @media (min-width: 480px) {

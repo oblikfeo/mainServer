@@ -302,7 +302,8 @@
                     $sub = $row['subscription'];
                     $exp = $sub->expiresAt();
                 @endphp
-                <article class="lp-card lp-card--paid-sub" x-data="{ open: false }">
+                <div class="lp-cab-paid-sub-unit">
+                <article class="lp-card" x-data="{ open: false }">
                     <button
                         type="button"
                         class="lp-card__head"
@@ -336,12 +337,6 @@
                             @endif
                         </p>
                     </button>
-                    <div class="lp-card__renew-bar">
-                        <a
-                            href="{{ route('cabinet.renewal') }}#renew-sub-{{ $sub->id }}-title"
-                            class="lp-btn lp-btn--renew"
-                        >Продлить</a>
-                    </div>
                     <div class="lp-card__body lp-stack" x-show="open" x-cloak x-transition>
                         @if (! empty($row['decodeWarning']))
                             <div class="lp-warn-box">
@@ -443,6 +438,13 @@
                         </div>
                     </div>
                 </article>
+                <div class="lp-cab-sub-renew-below">
+                    <a
+                        href="{{ route('cabinet.renewal') }}#renew-sub-{{ $sub->id }}-title"
+                        class="lp-btn lp-btn--renew"
+                    >Продлить</a>
+                </div>
+                </div>
             @endforeach
         @endif
 
