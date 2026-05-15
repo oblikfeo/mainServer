@@ -282,6 +282,13 @@
         <h2 class="lp-page-section-title">Платные подписки</h2>
         @endunless
 
+        @if ($items !== [])
+            <p class="lp-cab-dash__renew-hint">
+                Срок и тариф продления — в
+                <a href="{{ route('cabinet.renewal') }}" class="lp-auth-secondary">разделе «Продление»</a>.
+            </p>
+        @endif
+
         @if ($items === [])
             <div class="lp-empty">
                 <p>У вас пока нет платных подписок.</p>
@@ -296,39 +303,44 @@
                     $exp = $sub->expiresAt();
                 @endphp
                 <article class="lp-card" x-data="{ open: false }">
-                    <button
-                        type="button"
-                        class="lp-card__head"
-                        style="width:100%;text-align:left;cursor:pointer;"
-                        x-on:click="open = !open"
-                        :aria-expanded="open"
-                    >
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="lp-mono">#{{ $sub->public_code }}</span>
-                            @if ($sub->isExpired())
-                                <span class="lp-badge-pill lp-badge-pill--bad">Истекла</span>
-                            @else
-                                <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
-                            @endif
-                            <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
-                                <span x-show="!open">Развернуть</span>
-                                <span x-show="open" x-cloak>Свернуть</span>
-                            </span>
-                        </div>
-                        <p class="lp-card__head-note">
-                            {{ $sub->devices }} устр. · квота
-                            @if ((int) $sub->quota_gb <= 0)
-                                безлимит
-                            @else
-                                {{ $sub->quota_gb }} ГБ
-                            @endif
-                            @if ($exp)
-                                · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
-                            @else
-                                · без срока
-                            @endif
-                        </p>
-                    </button>
+                    <div class="lp-card__head lp-card__head--with-action">
+                        <button
+                            type="button"
+                            class="lp-card__head-toggle"
+                            x-on:click="open = !open"
+                            :aria-expanded="open"
+                        >
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="lp-mono">#{{ $sub->public_code }}</span>
+                                @if ($sub->isExpired())
+                                    <span class="lp-badge-pill lp-badge-pill--bad">Истекла</span>
+                                @else
+                                    <span class="lp-badge-pill lp-badge-pill--ok">Активна</span>
+                                @endif
+                                <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
+                                    <span x-show="!open">Развернуть</span>
+                                    <span x-show="open" x-cloak>Свернуть</span>
+                                </span>
+                            </div>
+                            <p class="lp-card__head-note">
+                                {{ $sub->devices }} устр. · квота
+                                @if ((int) $sub->quota_gb <= 0)
+                                    безлимит
+                                @else
+                                    {{ $sub->quota_gb }} ГБ
+                                @endif
+                                @if ($exp)
+                                    · до {{ $exp->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
+                                @else
+                                    · без срока
+                                @endif
+                            </p>
+                        </button>
+                        <a
+                            href="{{ route('cabinet.renewal') }}#renew-sub-{{ $sub->id }}-title"
+                            class="lp-btn lp-btn--renew"
+                        >Продлить</a>
+                    </div>
                     <div class="lp-card__body lp-stack" x-show="open" x-cloak x-transition>
                         @if (! empty($row['decodeWarning']))
                             <div class="lp-warn-box">

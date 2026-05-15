@@ -872,6 +872,28 @@
         color: #444;
         text-align: right;
     }
+    .lp-f1 .lp-card__head--with-action {
+        align-items: flex-start;
+        gap: 0.5rem 0.75rem;
+    }
+    .lp-f1 .lp-card__head--with-action .lp-card__head-toggle {
+        flex: 1 1 12rem;
+        min-width: 0;
+        margin: 0;
+        text-align: left;
+        cursor: pointer;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        color: inherit;
+    }
+    .lp-f1 .lp-card__head--with-action .lp-card__head-toggle .lp-card__head-note {
+        margin-top: 0.5rem;
+    }
+    .lp-f1 .lp-card__head--with-action .lp-btn.lp-btn--renew {
+        align-self: center;
+    }
     .lp-f1 .lp-card__body { padding: 1rem 1rem 1.15rem; }
     @media (min-width: 480px) {
         .lp-f1 .lp-card__body { padding: 1.15rem 1.25rem 1.35rem; }
@@ -1077,6 +1099,41 @@
         border: 3px solid var(--lp-ink);
     }
     .lp-f1 .lp-empty .lp-btn:hover { background: #E03E00; color: #fff; }
+    .lp-f1 .lp-btn.lp-btn--renew {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.625rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: #fff;
+        background: var(--lp-orange);
+        border: 2px solid var(--lp-ink);
+        border-radius: 0.25rem;
+        box-shadow: 2px 2px 0 var(--lp-ink);
+        transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
+        white-space: nowrap;
+    }
+    .lp-f1 .lp-btn.lp-btn--renew:hover {
+        background: #E03E00;
+        color: #fff;
+        transform: translate(1px, 1px);
+        box-shadow: 1px 1px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-btn.lp-btn--renew:focus-visible {
+        outline: 2px solid var(--lp-ink);
+        outline-offset: 2px;
+    }
+    .lp-f1 .lp-cab-dash__renew-hint {
+        margin: 0 0 1rem 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        line-height: 1.45;
+        color: #475569;
+    }
     .lp-f1 .lp-empty.lp-empty--compact {
         padding: 1.25rem 1rem;
         text-align: left;
