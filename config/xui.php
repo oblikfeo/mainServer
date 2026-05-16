@@ -18,8 +18,11 @@ return [
     'bundle_order' => ['fi', 'nl'],
 
     /**
-     * Общие для всех подписок доп. узлы (конец тела после FI/NL/hy2 Blitz).
-     * Секреты лучше переопределять через .env (SUB_EXTRA_*); значения по умолчанию — тестовый NL VPS.
+     * Общие узлы в начале каждой подписки Happ (п. 1–2), одинаковые для всех клиентов:
+     *   1) VLESS — один inbound, одна ссылка;
+     *   2) Hysteria2 — тот же сервер, одна ссылка.
+     * Далее в SubscriptionExtraShareLines::orderedWithBundle: FI/NL (п. 3–4, per-client в 3x-ui), Blitz HY2 Hostkey (п. 5).
+     * Задаётся только через .env (SUB_EXTRA_*); в репозитории секретов и URI нет.
      *
      * @var array{
      *   enabled: bool,
@@ -27,22 +30,19 @@ return [
      *   vless_title: string,
      *   vless_subtitle: string,
      *   hy2_uri: string,
-     *   hy2_fragment: string
+     *   hy2_fragment: string,
+     *   hy2_auth_user: string
      * }
      */
     'sub_extra' => [
-        'enabled' => filter_var(env('SUB_EXTRA_ENABLED', true), FILTER_VALIDATE_BOOL),
-        'vless_uri' => trim((string) env(
-            'SUB_EXTRA_VLESS_URI',
-            'vless://a75de635-c516-46fd-810a-75e3b5af3d1c@naivefortestoblik.mooo.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.microsoft.com&fp=chrome&pbk=fjXvEUa1SV_r8m0TchKnDPkyD4dvdaF_4Xh5hBCbeSg&sid=0b5333d5a3bca9ea&type=tcp&headerType=none'
-        )),
+        'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
         'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Домашний интернет 1 ⚡')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
-        'hy2_uri' => trim((string) env(
-            'SUB_EXTRA_HY2_URI',
-            'hysteria2://:8B0FTAJYAajOR0pBR0bqGyw@naivefortestoblik.mooo.com:443?sni=naivefortestoblik.mooo.com'
-        )),
+        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
         'hy2_fragment' => trim((string) env('SUB_EXTRA_HY2_FRAGMENT', '🇺🇸 Домашний интернет 2 ⚡')),
+        /** Если в URI только пароль (hy2://:pass@host), Happ/Xray ждут логин — подставляется это имя. */
+        'hy2_auth_user' => trim((string) env('SUB_EXTRA_HY2_USER', 'nadezhda')),
     ],
 
     'nodes' => [

@@ -3,7 +3,7 @@
 namespace App\Services\Subscription;
 
 /**
- * Дополнительные share-строки (vless/hy2) для всех подписок — из config('xui.sub_extra').
+ * Общие share-строки (п. 1–2 подписки): VLESS + Hy2 на домашнем сервере, одинаковые для всех клиентов.
  */
 final class SubscriptionExtraShareLines
 {
@@ -13,7 +13,7 @@ final class SubscriptionExtraShareLines
     public static function lines(): array
     {
         $extra = config('xui.sub_extra', []);
-        if (! is_array($extra) || ! filter_var($extra['enabled'] ?? true, FILTER_VALIDATE_BOOL)) {
+        if (! is_array($extra) || ! self::isConfigured($extra)) {
             return [];
         }
 
@@ -30,7 +30,7 @@ final class SubscriptionExtraShareLines
             $out[] = $v;
         }
 
-        $h = self::normalizeHy2Scheme(trim((string) ($extra['hy2_uri'] ?? '')));
+        $h = self::ensureHy2Username(self::normalizeHy2Scheme(trim((string) ($extra['hy2_uri'] ?? ''))));
         if ($h !== '') {
             $frag = trim((string) ($extra['hy2_fragment'] ?? ''));
             if ($frag !== '') {
@@ -73,6 +73,19 @@ final class SubscriptionExtraShareLines
     }
 
     /**
+     * @param  array<string, mixed>  $extra
+     */
+    public static function isConfigured(array $extra): bool
+    {
+        if (filter_var($extra['enabled'] ?? false, FILTER_VALIDATE_BOOL)) {
+            return true;
+        }
+
+        return trim((string) ($extra['vless_uri'] ?? '')) !== ''
+            || trim((string) ($extra['hy2_uri'] ?? '')) !== '';
+    }
+
+    /**
      * В подписке везде hy2://; клиентский ввод иногда hysteria2://.
      */
     public static function normalizeHy2Scheme(string $uri): string
@@ -85,5 +98,45 @@ final class SubscriptionExtraShareLines
         }
 
         return $uri;
+    }
+
+    /**
+     * Happ/Xray не принимают hy2://:password@host без логина — подставляем SUB_EXTRA_HY2_USER.
+     */
+    public static function ensureHy2Username(string $uri): string
+    {
+        $uri = self::normalizeHy2Scheme($uri);
+        if ($uri === '') {
+            return '';
+        }
+
+        $parts = parse_url($uri);
+        if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'hy2') {
+            return $uri;
+        }
+
+        $user = (string) ($parts['user'] ?? '');
+        $pass = (string) ($parts['pass'] ?? '');
+        if ($user !== '' || $pass === '') {
+            return $uri;
+        }
+
+        $authUser = trim((string) config('xui.sub_extra.hy2_auth_user', 'nadezhda'));
+        if ($authUser === '') {
+            return $uri;
+        }
+
+        $host = (string) ($parts['host'] ?? '');
+        if ($host === '') {
+            return $uri;
+        }
+
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $query = isset($parts['query']) && $parts['query'] !== '' ? '?'.$parts['query'] : '';
+        $fragment = isset($parts['fragment']) && $parts['fragment'] !== '' ? '#'.$parts['fragment'] : '';
+
+        return 'hy2://'
+            .rawurlencode($authUser).':'.rawurlencode($pass)
+            .'@'.$host.$port.$query.$fragment;
     }
 }
