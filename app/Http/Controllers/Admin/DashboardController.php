@@ -59,7 +59,7 @@ class DashboardController extends Controller
                     $bundle['home_hy2_label'] = $homeHy2Title;
                     $bundleForHome = $bundle;
                     $bundle['metrics'] = Cache::remember(
-                        'bundle_home_metrics_v1_'.$id,
+                        'bundle_home_metrics_v2_'.$id,
                         $ttl,
                         fn () => $this->homeBundleMetrics->fetch($bundleForHome)
                     );
@@ -105,7 +105,7 @@ class DashboardController extends Controller
                 return 0;
             }
             if (($b['id'] ?? '') === 'home') {
-                return (int) ($m['home_vless_online'] ?? 0) + (int) ($m['home_hy2_online'] ?? 0);
+                return (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0) + (int) ($m['home_hy2_online'] ?? 0);
             }
             if (isset($m['panel_online_clients'])) {
                 return (int) $m['panel_online_clients'];

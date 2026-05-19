@@ -45,17 +45,37 @@ if [ -r /proc/sys/net/netfilter/nf_conntrack_max ]; then
   ct_max=$(cat /proc/sys/net/netfilter/nf_conntrack_max)
 fi
 count_tcp() {
-  ss -Hnt state established 2>/dev/null | awk -v p="$port" '
+  ss -Hnto state established 2>/dev/null | awk -v p="$port" '
   function local_port_ok(s) { return (s ~ ":" p "$" || s ~ "]:" p "$") }
   function peer_ip(peer, ip) {
     if (peer ~ /^\[::ffff:[0-9.]+\]:[0-9]+$/) { ip=peer; sub(/^\[::ffff:/,"",ip); sub(/\]:[0-9]+$/,"",ip); return ip }
     if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) { ip=peer; sub(/:[0-9]+$/,"",ip); return ip }
     return ""
   }
-  { if (NF<4) next; loc=$3; peer=$4; if ($1 ~ /^[0-9]+$/) { loc=$3; peer=$4 } else { loc=$5; peer=$6 }
-    if (!local_port_ok(loc)) next; ip=peer_ip(peer); if (ip=="" || ip=="127.0.0.1") next; print ip }
-  ' | sort -u | wc -l | tr -d " "
+  {
+    if (NF < 4) next
+    rq=$1; sq=$2; loc=$3; peer=$4; line=$0
+    if ($1 ~ /^[0-9]+$/) { rq=$1; sq=$2; loc=$3; peer=$4 }
+    else if ($1 == "tcp" || $1 == "tcp6") { if (NF < 6) next; rq=$2; sq=$3; loc=$5; peer=$6; line=$0 }
+    else next
+    if (!local_port_ok(loc)) next
+    ip=peer_ip(peer)
+    if (ip=="" || ip=="127.0.0.1") next
+    ips[ip]=1
+    sessions++
+    if (rq + sq > 0 || line ~ /timer:\(on,/) active[ip]=1
+  }
+  END {
+    n_ips=0; n_active=0
+    for (i in ips) n_ips++
+    for (i in active) n_active++
+    print n_ips, sessions, n_active
+  }'
 }
+read -r home_vless_ips home_vless_tcp home_vless_active <<< "$(count_tcp)"
+home_vless_ips=${home_vless_ips:-0}
+home_vless_tcp=${home_vless_tcp:-0}
+home_vless_active=${home_vless_active:-0}
 count_udp() {
   ss -Hna udp 2>/dev/null | awk -v p="$port" '
   function local_port_ok(s) { return (s ~ ":" p "$" || s ~ "]:" p "$") }
@@ -70,12 +90,11 @@ count_udp() {
     ip=peer_ip(peer); if (ip=="" || ip=="127.0.0.1" || ip=="*") next; print ip }
   ' | sort -u | wc -l | tr -d " "
 }
-home_vless_online=$(count_tcp)
 home_hy2_online=$(count_udp)
-home_vless_online=${home_vless_online:-0}
+home_vless_online=${home_vless_active:-0}
 home_hy2_online=${home_hy2_online:-0}
-printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nhome_vless_online:%s\nhome_hy2_online:%s\n' \
-  "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$home_vless_online" "$home_hy2_online"
+printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nhome_vless_online:%s\nhome_vless_ips:%s\nhome_vless_tcp:%s\nhome_vless_active:%s\nhome_hy2_online:%s\n' \
+  "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$home_vless_online" "$home_vless_ips" "$home_vless_tcp" "$home_vless_active" "$home_hy2_online"
 BASH;
 
         try {
@@ -134,7 +153,9 @@ BASH;
         $cpuUtilPct = (int) min(100, max(0, round($loadPerCpu * 100)));
         $memUsedPct = (int) min(100, max(0, round(100 * $memUsedKb / $memTotalKb)));
 
-        $vlessOnline = (int) $data['home_vless_online'];
+        $vlessActive = (int) ($data['home_vless_active'] ?? $data['home_vless_online'] ?? 0);
+        $vlessIps = (int) ($data['home_vless_ips'] ?? $vlessActive);
+        $vlessTcp = (int) ($data['home_vless_tcp'] ?? 0);
         $hy2Online = (int) $data['home_hy2_online'];
 
         return [
@@ -158,9 +179,12 @@ BASH;
             'conntrack_level' => $ctMax > 0 && $ctPct !== null ? $this->conntrackLevel($ctPct) : null,
             'cpu_level' => $this->loadLevel($loadPerCpu),
             'ram_level' => $this->ramLevel($memUsedPct),
-            'home_vless_online' => $vlessOnline,
+            'home_vless_online' => $vlessActive,
+            'home_vless_ips' => $vlessIps,
+            'home_vless_tcp' => $vlessTcp,
+            'home_vless_active' => $vlessActive,
             'home_hy2_online' => $hy2Online,
-            'unique_remote_ips' => $vlessOnline + $hy2Online,
+            'unique_remote_ips' => $vlessActive + $hy2Online,
         ];
     }
 
