@@ -3,7 +3,8 @@
 namespace App\Services\Subscription;
 
 /**
- * Общие share-строки (п. 1): VLESS на домашнем сервере, одинаковые для всех клиентов.
+ * Общие share-строки (п. 1–2): VLESS + Hy2 на домашнем VPS (доступы5), одинаковые для всех.
+ * Per-user Wi‑Fi (Blitz на Hostkey) в подписку не входит — см. subscription:purge-hy2.
  */
 final class SubscriptionExtraShareLines
 {
@@ -30,15 +31,22 @@ final class SubscriptionExtraShareLines
             $out[] = $v;
         }
 
+        $h = self::ensureHy2Username(self::normalizeHy2Scheme(trim((string) ($extra['hy2_uri'] ?? ''))));
+        if ($h !== '') {
+            $frag = trim((string) ($extra['hy2_fragment'] ?? ''));
+            if ($frag !== '') {
+                $h = explode('#', $h, 2)[0].'#'.$frag;
+            }
+            $out[] = $h;
+        }
+
         return $out;
     }
 
     /**
-     * Порядок строк подписки для Happ: общий VLESS → LTE (FI/NL).
+     * Порядок: Домашний VLESS/Hy2 → LTE (FI/NL).
      *
-     * @param  array{
-     *     vless_entries: list<array{line?: string}>
-     * }  $bundle
+     * @param  array{vless_entries: list<array{line?: string}>}  $bundle
      * @return list<string>
      */
     public static function orderedWithBundle(array $bundle, bool $includePanelVless = true): array
@@ -66,6 +74,62 @@ final class SubscriptionExtraShareLines
             return true;
         }
 
-        return trim((string) ($extra['vless_uri'] ?? '')) !== '';
+        return trim((string) ($extra['vless_uri'] ?? '')) !== ''
+            || trim((string) ($extra['hy2_uri'] ?? '')) !== '';
+    }
+
+    /**
+     * В подписке везде hy2://; клиентский ввод иногда hysteria2://.
+     */
+    public static function normalizeHy2Scheme(string $uri): string
+    {
+        if ($uri === '') {
+            return '';
+        }
+        if (str_starts_with($uri, 'hysteria2://')) {
+            return 'hy2://'.substr($uri, strlen('hysteria2://'));
+        }
+
+        return $uri;
+    }
+
+    /**
+     * Happ/Xray не принимают hy2://:password@host без логина — подставляем SUB_EXTRA_HY2_USER.
+     */
+    public static function ensureHy2Username(string $uri): string
+    {
+        $uri = self::normalizeHy2Scheme($uri);
+        if ($uri === '') {
+            return '';
+        }
+
+        $parts = parse_url($uri);
+        if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'hy2') {
+            return $uri;
+        }
+
+        $user = (string) ($parts['user'] ?? '');
+        $pass = (string) ($parts['pass'] ?? '');
+        if ($user !== '' || $pass === '') {
+            return $uri;
+        }
+
+        $authUser = trim((string) config('xui.sub_extra.hy2_auth_user', 'nadezhda'));
+        if ($authUser === '') {
+            return $uri;
+        }
+
+        $host = (string) ($parts['host'] ?? '');
+        if ($host === '') {
+            return $uri;
+        }
+
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $query = isset($parts['query']) && $parts['query'] !== '' ? '?'.$parts['query'] : '';
+        $fragment = isset($parts['fragment']) && $parts['fragment'] !== '' ? '#'.$parts['fragment'] : '';
+
+        return 'hy2://'
+            .rawurlencode($authUser).':'.rawurlencode($pass)
+            .'@'.$host.$port.$query.$fragment;
     }
 }

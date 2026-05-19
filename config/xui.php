@@ -18,16 +18,27 @@ return [
     'bundle_order' => ['fi', 'nl'],
 
     /**
-     * Общий VLESS в начале каждой подписки Happ (одинаковый для всех клиентов).
-     * Далее FI/NL per-client из 3x-ui. Задаётся через .env (SUB_EXTRA_*).
+     * Общие узлы в начале подписки (доступы5, 185.121.14.153): VLESS + Hy2, одна ссылка на всех.
+     * Далее FI/NL per-client. Wi‑Fi (Blitz Hostkey) сюда не входит.
      *
-     * @var array{enabled: bool, vless_uri: string, vless_title: string, vless_subtitle: string}
+     * @var array{
+     *   enabled: bool,
+     *   vless_uri: string,
+     *   vless_title: string,
+     *   vless_subtitle: string,
+     *   hy2_uri: string,
+     *   hy2_fragment: string,
+     *   hy2_auth_user: string
+     * }
      */
     'sub_extra' => [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
         'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Домашний интернет 1 ⚡')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
+        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
+        'hy2_fragment' => trim((string) env('SUB_EXTRA_HY2_FRAGMENT', '🇺🇸 Домашний интернет 2 ⚡')),
+        'hy2_auth_user' => trim((string) env('SUB_EXTRA_HY2_USER', 'nadezhda')),
     ],
 
     'nodes' => [
