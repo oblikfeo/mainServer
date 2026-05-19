@@ -74,6 +74,7 @@ return [
 
 
     /** b64 = #Title?serverDescription=<base64>; dual = #Title?подпись. @see happ.su app-management */
+    /** dual ломает парсинг vless на iOS Happ (фрагмент #title?подпись); для продакшена — b64. */
     'vless_server_description_format' => strtolower(trim((string) env('XUI_VLESS_SD_FORMAT', 'b64'))),
 
     /**

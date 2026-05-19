@@ -56,11 +56,11 @@ final class MergedSubscriptionFeedRenderer
 
         $quotaGb = (int) $sub->quota_gb;
         $totalCap = $quotaGb > 0 ? $quotaGb * self::BYTES_PER_GB : 0;
-        $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
+        $expireSec = SubscriptionFeedUserinfo::expireUnixForSubscription($sub);
 
         $up = array_sum(array_column($userinfos, 'upload'));
         $down = array_sum(array_column($userinfos, 'download'));
-        $userinfo = $this->formatUserinfoValue($up, $down, $totalCap, $expireSec);
+        $userinfo = SubscriptionFeedUserinfo::format($up, $down, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($sub, $up, $down);
@@ -113,8 +113,8 @@ final class MergedSubscriptionFeedRenderer
 
         $quotaGb = (int) $sub->quota_gb;
         $totalCap = $quotaGb > 0 ? $quotaGb * self::BYTES_PER_GB : 0;
-        $expireSec = (int) (($sub->expiry_ms ?? 0) / 1000);
-        $userinfo = $this->formatUserinfoValue(0, 0, $totalCap, $expireSec);
+        $expireSec = SubscriptionFeedUserinfo::expireUnixForSubscription($sub);
+        $userinfo = SubscriptionFeedUserinfo::format(0, 0, $totalCap, $expireSec);
 
         $profileTitle = $this->profileTitleForHapp();
         $extras = HappSubscriptionAppManagementExtras::forResponses($sub, 0, 0);
