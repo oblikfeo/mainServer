@@ -39,27 +39,24 @@ class DashboardController extends Controller
             'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
         ];
 
-        $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Домашний интернет 1'));
-        $homeHy2Title = trim((string) config('xui.sub_extra.hy2_fragment', 'Домашний интернет 2'));
-        $homeHy2Title = preg_replace('/^#/', '', $homeHy2Title) ?? $homeHy2Title;
+        $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Быстрый Wi-Fi'));
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $homeHy2Title) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
                 $bundle['online'] = Cache::remember(
-                    'bundle_health_v1_'.$id,
+                    'bundle_health_v2_'.$id,
                     $healthTtl,
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
 
                 if ($id === 'home') {
                     $bundle['home_vless_label'] = $homeVlessTitle;
-                    $bundle['home_hy2_label'] = $homeHy2Title;
                     $bundleForHome = $bundle;
                     $bundle['metrics'] = Cache::remember(
-                        'bundle_home_metrics_v3_'.$id,
+                        'bundle_home_metrics_v4_'.$id,
                         $ttl,
                         fn () => $this->homeBundleMetrics->fetch($bundleForHome)
                     );
@@ -105,7 +102,7 @@ class DashboardController extends Controller
                 return 0;
             }
             if (($b['id'] ?? '') === 'home') {
-                return (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0) + (int) ($m['home_hy2_online'] ?? 0);
+                return (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0);
             }
             if (isset($m['panel_online_clients'])) {
                 return (int) $m['panel_online_clients'];

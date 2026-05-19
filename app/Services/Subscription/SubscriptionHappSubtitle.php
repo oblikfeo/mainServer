@@ -6,7 +6,7 @@ namespace App\Services\Subscription;
  * Тексты под именем узла в Happ и в meta.serverDescription JSON-подписки.
  * Длина подписи ограничивается {@see HappServerDescriptionLimiter} (по умолчанию 30 символов, дока Happ).
  *
- * Приоритет: SUB_GRAY_* / HY2_GRAY_SUBTITLE, затем описание ноды, затем общий fallback.
+ * Приоритет: SUB_GRAY_*, затем описание ноды, затем общий fallback.
  */
 final class SubscriptionHappSubtitle
 {
@@ -42,15 +42,17 @@ final class SubscriptionHappSubtitle
         return trim((string) config('xui.vless_server_description', ''));
     }
 
-    /** HY2: HY2_GRAY_SUBTITLE или HY2_SERVER_DESC. */
-    public static function forHy2(): string
+    /** Litnets (home) VLESS: SUB_GRAY_HOME, иначе общий fallback. */
+    public static function forHome(): string
     {
-        $o = trim((string) config('hy2.gray_subtitle', ''));
-        if ($o !== '') {
-            return $o;
+        /** @var array<string, mixed> */
+        $map = config('xui.sub_gray_subtitles', []);
+        $override = is_array($map) ? trim((string) ($map['home'] ?? '')) : '';
+        if ($override !== '') {
+            return $override;
         }
 
-        return trim((string) config('hy2.server_description', ''));
+        return trim((string) config('xui.vless_server_description', ''));
     }
 
     /**

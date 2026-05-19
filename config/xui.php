@@ -18,27 +18,21 @@ return [
     'bundle_order' => ['fi', 'nl'],
 
     /**
-     * Общие узлы в начале подписки (доступы5, 185.121.14.153): VLESS + Hy2, одна ссылка на всех.
-     * Далее FI/NL per-client. Wi‑Fi (Blitz Hostkey) сюда не входит.
+     * Общий узел в начале подписки (Litnets, доступы5, 185.121.14.153): VLESS Reality,
+     * одна ссылка на всех. Далее FI/NL per-client. Hysteria2 снята 2026-05-19.
      *
      * @var array{
      *   enabled: bool,
      *   vless_uri: string,
      *   vless_title: string,
      *   vless_subtitle: string,
-     *   hy2_uri: string,
-     *   hy2_fragment: string,
-     *   hy2_auth_user: string
      * }
      */
     'sub_extra' => [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Домашний интернет 1 ⚡')),
+        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '⚡ Быстрый Wi-Fi')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
-        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
-        'hy2_fragment' => trim((string) env('SUB_EXTRA_HY2_FRAGMENT', '🇺🇸 Домашний интернет 2 ⚡')),
-        'hy2_auth_user' => trim((string) env('SUB_EXTRA_HY2_USER', 'nadezhda')),
     ],
 
     'nodes' => [
@@ -51,8 +45,8 @@ return [
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
             'client_flow' => env('XUI_FI_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 LTE Город 1 🏙️',
-            'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE Финляндия — основной узел'),
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '📶 Мобильная сеть',
+            'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_FI_REALITY_SID', ''),
         ],
@@ -65,8 +59,8 @@ return [
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
             'client_flow' => env('XUI_NL_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 LTE Город 2 🏙️',
-            'vless_server_description' => env('XUI_NL_SERVER_DESC', 'LTE Нидерланды — запасной узел'),
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '📶 Мобильная сеть',
+            'vless_server_description' => env('XUI_NL_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_NL_REALITY_SID', ''),
         ],
@@ -167,6 +161,7 @@ return [
         'fi' => trim((string) env('SUB_GRAY_FI', '')),
         'nl' => trim((string) env('SUB_GRAY_NL', '')),
         'trial' => trim((string) env('SUB_GRAY_TRIAL', '')),
+        'home' => trim((string) env('SUB_GRAY_HOME', '')),
     ],
 
     /**

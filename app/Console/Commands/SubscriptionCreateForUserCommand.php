@@ -14,7 +14,7 @@ class SubscriptionCreateForUserCommand extends Command
                             {email : Email зарегистрированного пользователя (ЛК)}
                             {--devices=1 : Лимит устройств (limitIp в XUI + Happ HWID)}
                             {--days=30 : Срок в днях}
-                            {--quota-gb=100 : Квота трафика, ГБ (на узел в 3x-ui; Hy2 получает те же ГБ)}
+                            {--quota-gb=100 : Квота трафика, ГБ (на узел в 3x-ui)}
                             {--ensure-user : Создать пользователя с этим email, если его ещё нет}
                             {--user-name= : Имя для нового пользователя (--ensure-user)}';
 

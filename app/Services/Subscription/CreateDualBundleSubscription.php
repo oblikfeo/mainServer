@@ -136,8 +136,6 @@ final class CreateDualBundleSubscription
             'token' => $token,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
-            'hy2_username' => null,
-            'hy2_password' => null,
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
@@ -157,7 +155,6 @@ final class CreateDualBundleSubscription
             $subscriptionUrl,
             $decoded['fi'],
             $decoded['nl'],
-            '',
             $decoded['warning'],
         );
     }

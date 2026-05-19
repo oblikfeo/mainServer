@@ -119,7 +119,7 @@ final class HappRoutingSubscriptionLine
             return null;
         }
 
-        // Запросы DoH к Cloudflare (1.1.1.1) иначе уходят в GlobalProxy → в Hy2; при мёртвом реле на ноде DNS не поднимается и «нет интернета» вообще.
+        // Запросы DoH к Cloudflare (1.1.1.1) иначе уходят в GlobalProxy → если узел недоступен, DNS не поднимается и «нет интернета» вообще.
         $doHBootstrapIpv4 = ['1.1.1.1/32', '1.0.0.1/32'];
         $directIpMerged = array_merge($doHBootstrapIpv4, self::defaultDirectIp(), $extraDirectIp);
         $seenIp = [];

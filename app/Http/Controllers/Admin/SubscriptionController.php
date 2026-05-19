@@ -70,7 +70,6 @@ class SubscriptionController extends Controller
                 'subscription_url' => $result->subscriptionUrl,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
-                'hy2_line' => $result->hy2Line,
                 'decode_warning' => $result->decodeWarning,
             ]);
     }
@@ -129,7 +128,6 @@ class SubscriptionController extends Controller
                 'subscription_url' => $result->subscriptionUrl,
                 'fi_vless' => $result->fiVlessLine,
                 'nl_vless' => $result->nlVlessLine,
-                'hy2_line' => $result->hy2Line,
                 'decode_warning' => $result->decodeWarning,
             ])
             ->with('status', 'Создана крутая подписка: безлимитный трафик, без срока, владелец '.$owner->email.'.');
@@ -145,14 +143,12 @@ class SubscriptionController extends Controller
             $subscriptionUrl = $payload['subscription_url'] ?? url('/sub/'.$subscription->token);
             $fiVless = $payload['fi_vless'] ?? '';
             $nlVless = $payload['nl_vless'] ?? '';
-            $hy2Line = $payload['hy2_line'] ?? '';
             $decodeWarning = $payload['decode_warning'] ?? null;
         } else {
             $subscriptionUrl = url('/sub/'.$subscription->token);
             $decoded = $service->decodeLinesForSubscription($subscription);
             $fiVless = $decoded['fi'];
             $nlVless = $decoded['nl'];
-            $hy2Line = $decoded['hy2'];
             $decodeWarning = $decoded['warning'];
         }
 
@@ -161,7 +157,6 @@ class SubscriptionController extends Controller
             'subscriptionUrl' => $subscriptionUrl,
             'fiVless' => $fiVless,
             'nlVless' => $nlVless,
-            'hy2Line' => $hy2Line,
             'decodeWarning' => $decodeWarning,
         ]);
     }

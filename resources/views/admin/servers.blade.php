@@ -64,21 +64,16 @@
 
                 <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-slate-50/80">
                     @if (($bundle['id'] ?? '') === 'home')
-                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
+                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm sm:col-span-2 {{ $tile(null) }}">
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Активно · {{ $bundle['home_vless_label'] ?? 'VLESS' }}</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0) : '—' }}</span>
                             <span class="text-[10px] text-slate-500 mt-1 leading-tight">
                                 @if ($m && (int) ($m['home_vless_ips'] ?? 0) > 0)
                                     IP с трафиком сейчас · {{ (int) ($m['home_vless_ips'] ?? 0) }} IP держат TCP :443 ({{ (int) ($m['home_vless_tcp'] ?? 0) }} сессий)
                                 @else
-                                    IP с трафиком / буферами на TCP :443 (Xray)
+                                    Уникальные IP с трафиком на TCP :443 (Xray Reality)
                                 @endif
                             </span>
-                        </div>
-                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
-                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Подключено · {{ $bundle['home_hy2_label'] ?? 'Hy2' }}</span>
-                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_hy2_online'] ?? 0) : '—' }}</span>
-                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Клиентов Hy2 (QUIC) — API Hysteria /online, не ss</span>
                         </div>
                     @else
                         <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">

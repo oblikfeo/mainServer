@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Process;
 use Throwable;
 
 /**
- * Метрики Litnets (доступы5): CPU/RAM + отдельно онлайн VLESS (TCP :443) и Hy2 (UDP :443).
+ * Метрики Litnets (доступы5, 185.121.14.153): CPU/RAM + активные клиенты VLESS (TCP :443).
+ *
+ * Hysteria снята 2026-05-20 — UDP-метрики больше не считаются.
  */
 final class HomeBundleMetrics
 {
@@ -69,41 +71,15 @@ count_tcp() {
     n_ips=0; n_active=0
     for (i in ips) n_ips++
     for (i in active) n_active++
-    print n_ips, sessions, n_active
+    print n_ips, sessions+0, n_active
   }'
 }
 read -r home_vless_ips home_vless_tcp home_vless_active <<< "$(count_tcp)"
 home_vless_ips=${home_vless_ips:-0}
 home_vless_tcp=${home_vless_tcp:-0}
 home_vless_active=${home_vless_active:-0}
-count_hy2() {
-  cfg=/etc/hysteria/config.yaml
-  if [ ! -f "$cfg" ] || ! grep -q '^trafficStats:' "$cfg" 2>/dev/null; then
-    echo 0
-    return
-  fi
-  listen=$(awk '/^trafficStats:/{f=1;next} f&&/^[^ ]/{exit} f&&/listen:/{print $2; exit}' "$cfg")
-  secret=$(awk '/^trafficStats:/{f=1;next} f&&/^[^ ]/{exit} f&&/secret:/{gsub(/"/,"",$2); print $2; exit}' "$cfg")
-  case "$listen" in
-    :*) host="127.0.0.1${listen}" ;;
-    "") host="127.0.0.1:9999" ;;
-    *) host="$listen" ;;
-  esac
-  auth=()
-  if [ -n "$secret" ]; then auth=(-H "Authorization: $secret"); fi
-  resp=$(curl -fsS "${auth[@]}" --connect-timeout 3 --max-time 5 "http://${host}/online" 2>/dev/null) || { echo 0; return; }
-  echo "$resp" | python3 -c 'import json,sys
-try:
-  d=json.load(sys.stdin)
-  print(sum(int(v) for v in d.values()))
-except Exception:
-  print(0)'
-}
-home_hy2_online=$(count_hy2)
-home_vless_online=${home_vless_active:-0}
-home_hy2_online=${home_hy2_online:-0}
-printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nhome_vless_online:%s\nhome_vless_ips:%s\nhome_vless_tcp:%s\nhome_vless_active:%s\nhome_hy2_online:%s\n' \
-  "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$home_vless_online" "$home_vless_ips" "$home_vless_tcp" "$home_vless_active" "$home_hy2_online"
+printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nhome_vless_ips:%s\nhome_vless_tcp:%s\nhome_vless_active:%s\n' \
+  "$load1" "$cpus" "$mem_total" "$mem_avail" "$rx" "$tx" "$ct_used" "$ct_max" "$home_vless_ips" "$home_vless_tcp" "$home_vless_active"
 BASH;
 
         try {
@@ -143,7 +119,7 @@ BASH;
             $data[trim($k)] = trim($v);
         }
 
-        if (! isset($data['load1'], $data['cpus'], $data['mem_total_kb'], $data['home_vless_online'], $data['home_hy2_online'])) {
+        if (! isset($data['load1'], $data['cpus'], $data['mem_total_kb'])) {
             return null;
         }
 
@@ -162,10 +138,9 @@ BASH;
         $cpuUtilPct = (int) min(100, max(0, round($loadPerCpu * 100)));
         $memUsedPct = (int) min(100, max(0, round(100 * $memUsedKb / $memTotalKb)));
 
-        $vlessActive = (int) ($data['home_vless_active'] ?? $data['home_vless_online'] ?? 0);
+        $vlessActive = (int) ($data['home_vless_active'] ?? 0);
         $vlessIps = (int) ($data['home_vless_ips'] ?? $vlessActive);
         $vlessTcp = (int) ($data['home_vless_tcp'] ?? 0);
-        $hy2Online = (int) $data['home_hy2_online'];
 
         return [
             'load1' => $load1,
@@ -188,12 +163,11 @@ BASH;
             'conntrack_level' => $ctMax > 0 && $ctPct !== null ? $this->conntrackLevel($ctPct) : null,
             'cpu_level' => $this->loadLevel($loadPerCpu),
             'ram_level' => $this->ramLevel($memUsedPct),
+            'home_vless_active' => $vlessActive,
             'home_vless_online' => $vlessActive,
             'home_vless_ips' => $vlessIps,
             'home_vless_tcp' => $vlessTcp,
-            'home_vless_active' => $vlessActive,
-            'home_hy2_online' => $hy2Online,
-            'unique_remote_ips' => $vlessActive + $hy2Online,
+            'unique_remote_ips' => $vlessActive,
         ];
     }
 
