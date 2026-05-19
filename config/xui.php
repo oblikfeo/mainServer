@@ -227,6 +227,18 @@ return [
     'feed_require_hwid' => filter_var(env('SUBSCRIPTION_FEED_REQUIRE_HWID', true), FILTER_VALIDATE_BOOL),
 
     /**
+     * IP, с которых не сохранять привязку HWID (hub, панели, curl с сервера).
+     * Дополнительно подтягиваются pub_host из xui.nodes. CSV в SUB_FEED_HWID_IGNORE_IPS.
+     */
+    'feed_hwid_ignore_ips' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env(
+            'SUB_FEED_HWID_IGNORE_IPS',
+            '127.0.0.1,::1,158.160.252.139,185.121.14.153,158.160.241.36,158.160.208.31'
+        ))
+    ))),
+
+    /**
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
      * По умолчанию выключено: в подписку уходит happ://routing/off (см. dev-docs/routing), без загрузки geo-профилей.
      *

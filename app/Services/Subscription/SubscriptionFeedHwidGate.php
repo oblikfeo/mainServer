@@ -53,6 +53,10 @@ final class SubscriptionFeedHwidGate
             return SubscriptionFeedHwidVerdict::MissingHwid;
         }
 
+        if (! self::shouldPersistHwidBinding($request)) {
+            return SubscriptionFeedHwidVerdict::Allowed;
+        }
+
         $hash = hash('sha256', $hwid);
         $meta = $this->buildDeviceMeta($request);
 
@@ -107,6 +111,10 @@ final class SubscriptionFeedHwidGate
             return SubscriptionFeedHwidVerdict::MissingHwid;
         }
 
+        if (! self::shouldPersistHwidBinding($request)) {
+            return SubscriptionFeedHwidVerdict::Allowed;
+        }
+
         $hash = hash('sha256', $hwid);
         $meta = $this->buildDeviceMeta($request);
 
@@ -153,6 +161,79 @@ final class SubscriptionFeedHwidGate
             403,
             ['Content-Type' => 'text/plain; charset=utf-8']
         );
+    }
+
+    /**
+     * Не занимать слот устройства запросами с наших серверов / без UA Happ (диагностика, curl).
+     */
+    public static function shouldPersistHwidBinding(Request $request): bool
+    {
+        if (! self::looksLikeHappClient($request)) {
+            return false;
+        }
+
+        return ! self::isInfrastructureClientIp($request);
+    }
+
+    private static function looksLikeHappClient(Request $request): bool
+    {
+        $ua = trim((string) $request->userAgent());
+
+        return $ua !== '' && preg_match('/^Happ\//i', $ua) === 1;
+    }
+
+    private static function isInfrastructureClientIp(Request $request): bool
+    {
+        $ip = trim((string) $request->ip());
+        if ($ip === '') {
+            return false;
+        }
+
+        return in_array($ip, self::infrastructureIps(), true);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function infrastructureIps(): array
+    {
+        static $cache = null;
+        if (is_array($cache)) {
+            return $cache;
+        }
+
+        $ips = config('xui.feed_hwid_ignore_ips', []);
+        if (! is_array($ips)) {
+            $ips = [];
+        }
+
+        $nodes = config('xui.nodes', []);
+        if (is_array($nodes)) {
+            foreach ($nodes as $node) {
+                if (! is_array($node)) {
+                    continue;
+                }
+                foreach (['pub_host', 'panel_base', 'sub_origin'] as $key) {
+                    $raw = (string) ($node[$key] ?? '');
+                    if ($raw === '') {
+                        continue;
+                    }
+                    $host = parse_url($raw, PHP_URL_HOST);
+                    if (is_string($host) && $host !== '' && filter_var($host, FILTER_VALIDATE_IP)) {
+                        $ips[] = $host;
+                    }
+                }
+            }
+        }
+
+        $homeIp = trim((string) config('xui.sub_extra.home_ip', config('link.home_ip', '')));
+        if ($homeIp !== '' && filter_var($homeIp, FILTER_VALIDATE_IP)) {
+            $ips[] = $homeIp;
+        }
+
+        $cache = array_values(array_unique(array_filter(array_map('trim', $ips))));
+
+        return $cache;
     }
 
     /**
