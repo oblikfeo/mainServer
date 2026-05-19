@@ -16,41 +16,16 @@ class SubscriptionSettingsController extends Controller
     public function editRouting(): View
     {
         $routingRaw = AppSetting::getValue('happ_routing_rules') ?? '';
-        $routingPreview = HappRoutingRulesParser::parse((string) $routingRaw);
-        $configSites = config('xui.happ_routing.direct_sites', []);
-        $configIp = config('xui.happ_routing.direct_ip', []);
-        $configBlockSites = config('xui.happ_routing.block_sites', []);
         $geoipUrl = trim((string) config('xui.happ_routing.geoip_url', ''));
         $geositeUrl = trim((string) config('xui.happ_routing.geosite_url', ''));
 
-        $configSites = is_array($configSites) ? $configSites : [];
-        $configIp = is_array($configIp) ? $configIp : [];
-        $configBlockSites = is_array($configBlockSites) ? $configBlockSites : [];
-
         $mergedSites = HappRoutingMergedInput::mergedDirectSites();
         $mergedIp = HappRoutingMergedInput::mergedDirectIp();
-        $mergedBlockSites = HappRoutingMergedInput::mergedBlockSites();
-
-        $directIpFromAdmin = array_values(array_filter(array_map('trim', $routingPreview['ips']), fn (string $s): bool => $s !== ''));
-
-        $allowGeosite = $geositeUrl !== '';
-        $allowGeoip = $geoipUrl !== '';
 
         return view('admin.subscription.routing', [
             'routingRules' => (string) $routingRaw,
-            'routingConfigSites' => $configSites,
-            'routingConfigIp' => $configIp,
-            'routingConfigBlockSites' => $configBlockSites,
-            'routingMergedSites' => $mergedSites,
-            'routingMergedIp' => $mergedIp,
-            'routingMergedBlockSites' => $mergedBlockSites,
-            'routingHappProfileSites' => HappRoutingSubscriptionLine::sitesForHappProfile($mergedSites, $allowGeosite),
-            'routingDirectIpFromAdmin' => $directIpFromAdmin,
-            'routingHappProfileIpExtras' => HappRoutingSubscriptionLine::extraDirectIpForHappProfile($mergedIp, $allowGeoip),
-            'happRoutingEnabled' => filter_var(config('xui.happ_routing.enabled', false), FILTER_VALIDATE_BOOL),
-            'happGeoipUrl' => $geoipUrl,
-            'happGeositeUrl' => $geositeUrl,
-            'maxRoutingEntries' => HappRoutingRulesParser::MAX_OUTPUT_ENTRIES,
+            'routingActiveSites' => HappRoutingSubscriptionLine::sitesForHappProfile($mergedSites, $geositeUrl !== ''),
+            'routingActiveIp' => HappRoutingSubscriptionLine::extraDirectIpForHappProfile($mergedIp, $geoipUrl !== ''),
         ]);
     }
 

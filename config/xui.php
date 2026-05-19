@@ -252,7 +252,7 @@ return [
      * @see https://github.com/Loyalsoldier/v2ray-rules-dat
      */
     'happ_routing' => [
-        'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
         /** При enabled=false — первая строка подписки и заголовок routing: happ://routing/off (отключить маршрутизацию в Happ). */
         'send_off_when_disabled' => filter_var(env('HAPP_ROUTING_SEND_OFF_WHEN_DISABLED', true), FILTER_VALIDATE_BOOL),
         /** true = happ://routing/onadd/... (активировать при получении) */
