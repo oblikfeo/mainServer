@@ -177,7 +177,7 @@ BASH;
     }
 
     /**
-     * Домашний VPS: Xray (TCP :443) + Hysteria (UDP :443).
+     * Litnets (доступы5): Xray (TCP :443) + Hysteria (UDP :443).
      *
      * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
      */

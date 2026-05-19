@@ -25,8 +25,8 @@ return [
         ],
         [
             'id' => 'home',
-            'name' => 'Домашний VPS',
-            'subtitle' => '185.121.14.153 · VLESS + Hysteria (доступы5)',
+            'name' => 'Litnets',
+            'subtitle' => '185.121.14.153 · общие «Домашний интернет 1/2» (VLESS + Hy2)',
             'ip' => (string) env('LINK_HOME_IP', '185.121.14.153'),
             'ssh_user' => (string) env('LINK_HOME_SSH_USER', 'root'),
             'ssh_private_key' => (string) env('LINK_HOME_SSH_KEY', ''),

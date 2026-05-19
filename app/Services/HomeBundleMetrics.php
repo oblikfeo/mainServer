@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Process;
 use Throwable;
 
 /**
- * Метрики домашнего VPS (доступы5): CPU/RAM + отдельно онлайн VLESS (TCP :443) и Hy2 (UDP :443).
+ * Метрики Litnets (доступы5): CPU/RAM + отдельно онлайн VLESS (TCP :443) и Hy2 (UDP :443).
  */
 final class HomeBundleMetrics
 {
