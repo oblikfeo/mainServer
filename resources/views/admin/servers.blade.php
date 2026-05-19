@@ -76,9 +76,9 @@
                             </span>
                         </div>
                         <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
-                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн · {{ $bundle['home_hy2_label'] ?? 'Hy2' }}</span>
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Подключено · {{ $bundle['home_hy2_label'] ?? 'Hy2' }}</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_hy2_online'] ?? 0) : '—' }}</span>
-                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные IP на UDP :443 (Hy2), активные QUIC-сессии</span>
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Клиентов Hy2 (QUIC) — API Hysteria /online, не ss</span>
                         </div>
                     @else
                         <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">

@@ -59,7 +59,7 @@ class DashboardController extends Controller
                     $bundle['home_hy2_label'] = $homeHy2Title;
                     $bundleForHome = $bundle;
                     $bundle['metrics'] = Cache::remember(
-                        'bundle_home_metrics_v2_'.$id,
+                        'bundle_home_metrics_v3_'.$id,
                         $ttl,
                         fn () => $this->homeBundleMetrics->fetch($bundleForHome)
                     );

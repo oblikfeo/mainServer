@@ -76,21 +76,30 @@ read -r home_vless_ips home_vless_tcp home_vless_active <<< "$(count_tcp)"
 home_vless_ips=${home_vless_ips:-0}
 home_vless_tcp=${home_vless_tcp:-0}
 home_vless_active=${home_vless_active:-0}
-count_udp() {
-  ss -Hna udp 2>/dev/null | awk -v p="$port" '
-  function local_port_ok(s) { return (s ~ ":" p "$" || s ~ "]:" p "$") }
-  function peer_ip(peer, ip) {
-    if (peer ~ /^\[::ffff:[0-9.]+\]:[0-9]+$/) { ip=peer; sub(/^\[::ffff:/,"",ip); sub(/\]:[0-9]+$/,"",ip); return ip }
-    if (peer ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/) { ip=peer; sub(/:[0-9]+$/,"",ip); return ip }
-    return ""
-  }
-  { loc=""; peer=""; if (NF>=4) { loc=$3; peer=$4 }
-    if (loc=="" && NF>=5) { loc=$4; peer=$5 }
-    if (!local_port_ok(loc)) next
-    ip=peer_ip(peer); if (ip=="" || ip=="127.0.0.1" || ip=="*") next; print ip }
-  ' | sort -u | wc -l | tr -d " "
+count_hy2() {
+  cfg=/etc/hysteria/config.yaml
+  if [ ! -f "$cfg" ] || ! grep -q '^trafficStats:' "$cfg" 2>/dev/null; then
+    echo 0
+    return
+  fi
+  listen=$(awk '/^trafficStats:/{f=1;next} f&&/^[^ ]/{exit} f&&/listen:/{print $2; exit}' "$cfg")
+  secret=$(awk '/^trafficStats:/{f=1;next} f&&/^[^ ]/{exit} f&&/secret:/{gsub(/"/,"",$2); print $2; exit}' "$cfg")
+  case "$listen" in
+    :*) host="127.0.0.1${listen}" ;;
+    "") host="127.0.0.1:9999" ;;
+    *) host="$listen" ;;
+  esac
+  auth=()
+  if [ -n "$secret" ]; then auth=(-H "Authorization: $secret"); fi
+  resp=$(curl -fsS "${auth[@]}" --connect-timeout 3 --max-time 5 "http://${host}/online" 2>/dev/null) || { echo 0; return; }
+  echo "$resp" | python3 -c 'import json,sys
+try:
+  d=json.load(sys.stdin)
+  print(sum(int(v) for v in d.values()))
+except Exception:
+  print(0)'
 }
-home_hy2_online=$(count_udp)
+home_hy2_online=$(count_hy2)
 home_vless_online=${home_vless_active:-0}
 home_hy2_online=${home_hy2_online:-0}
 printf 'load1:%s\ncpus:%s\nmem_total_kb:%s\nmem_avail_kb:%s\nrx_bytes:%s\ntx_bytes:%s\nconntrack_used:%s\nconntrack_max:%s\nhome_vless_online:%s\nhome_vless_ips:%s\nhome_vless_tcp:%s\nhome_vless_active:%s\nhome_hy2_online:%s\n' \
