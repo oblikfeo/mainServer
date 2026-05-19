@@ -241,15 +241,11 @@ return [
 
     /**
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
-     * По умолчанию выключено: в подписку уходит happ://routing/off (см. dev-docs/routing), без загрузки geo-профилей.
      *
-     * Когда HAPP_ROUTING_ENABLED=true — в профиль идут URL на geoip.dat / geosite.dat (по умолчанию Loyalsoldier,
-     * самый популярный набор для российского обхода: geosite:category-ru, geoip:ru, реклама и т.д.).
-     * Чтобы не качать geo-файлы — задайте HAPP_GEOIP_URL='' и HAPP_GEOSITE_URL='' (тогда geosite:/geoip: правила
-     * отбрасываются как раньше).
+     * Geoipurl/Geositeurl по умолчанию ПУСТЫЕ: Loyalsoldier .dat в памяти Happ > 50 МБ → туннель не стартует.
+     * Обход RU-сервисов — только domain: (лёгкий список). geosite:/geoip: правила отбрасываются без URL на .dat.
      *
      * @see https://www.happ.su/main/dev-docs/routing
-     * @see https://github.com/Loyalsoldier/v2ray-rules-dat
      */
     'happ_routing' => [
         'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
@@ -260,61 +256,53 @@ return [
         /** Имя профиля в Happ (короткое) */
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
 
-        /**
-         * URL на geoip.dat / geosite.dat. Пустая строка — клиент Happ не качает .dat,
-         * geosite:/geoip: токены отбрасываются перед отправкой профиля. Loyalsoldier — самый популярный набор.
-         */
-        'geoip_url' => trim((string) env(
-            'HAPP_GEOIP_URL',
-            'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat'
-        )),
-        'geosite_url' => trim((string) env(
-            'HAPP_GEOSITE_URL',
-            'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat'
-        )),
+        /** Пусто = не качать geoip.dat (лимит памяти Happ ~50 МБ). */
+        'geoip_url' => trim((string) env('HAPP_GEOIP_URL', '')),
+        /** Пусто = не качать geosite.dat. */
+        'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', '')),
 
         /**
-         * Список записей для DirectSites (синтаксис как у Xray: full:, domain:, keyword:, geosite: …).
-         * geosite: оставляется в профиле только если задан HAPP_GEOSITE_URL — иначе клиенту нечего матчить.
-         * Дефолт: geosite:category-ru (Loyalsoldier) + поименный список под реальный трафик
-         * (WB: wbbasket.ru не покрывается domain:wildberries.ru, push-уведомления).
+         * DirectSites: только domain:/full:/keyword: — без geosite: (требует тяжёлый .dat).
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
             implode(',', [
-                'geosite:category-ru',
                 'domain:mtalk.google.com',
                 'domain:push.apple.com',
                 'domain:api.push.apple.com',
                 'domain:push-apple.com.akadns.net',
                 'domain:courier.push.apple.com',
                 'domain:mangabuff.ru',
+                'domain:yandex.com',
+                'domain:yandex.net',
+                'domain:yandex.ru',
+                'domain:mail.ru',
+                'domain:vk.com',
+                'domain:vkusvill.ru',
+                'domain:ozon.ru',
+                'domain:wildberries.ru',
                 'domain:wbbasket.ru',
+                'domain:wb.ru',
+                'domain:tinkoff.ru',
+                'domain:gosuslugi.ru',
+                'domain:nalog.gov.ru',
+                'domain:mos.ru',
+                'domain:2gis.com',
+                'domain:2gis.ru',
                 'domain:2ip.ru',
             ])
         ))))),
 
-        /**
-         * DirectIp: CIDR, одиночные IPv4 и geoip:* (последнее требует HAPP_GEOIP_URL).
-         * Дефолт: geoip:ru (Loyalsoldier) + geoip:private — RFC1918 уже добавляется кодом, но явное geoip:private даёт IPv6.
-         */
+        /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_IP',
-            implode(',', [
-                'geoip:ru',
-                'geoip:private',
-            ])
+            ''
         ))))),
 
-        /**
-         * BlockSites/BlockIp в профиле Happ. Дефолт — Loyalsoldier-набор рекламы и трекеров (самый популярный пресет).
-         * Пустая строка в .env — никаких блокировок не отправлять.
-         */
+        /** BlockSites: по умолчанию пусто (geosite:category-ads-all тянет geosite.dat). */
         'block_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_BLOCK_SITES',
-            implode(',', [
-                'geosite:category-ads-all',
-            ])
+            ''
         ))))),
 
         'block_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
