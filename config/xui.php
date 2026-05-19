@@ -31,7 +31,7 @@ return [
     'sub_extra' => [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '⚡ Быстрый Wi-Fi')),
+        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
     ],
 
@@ -45,7 +45,7 @@ return [
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
             'client_flow' => env('XUI_FI_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '📶 Мобильная сеть',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 Мобильная сеть',
             'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_FI_REALITY_SID', ''),
@@ -59,7 +59,7 @@ return [
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
             'client_flow' => env('XUI_NL_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '📶 Мобильная сеть',
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 Мобильная сеть',
             'vless_server_description' => env('XUI_NL_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_NL_REALITY_SID', ''),
