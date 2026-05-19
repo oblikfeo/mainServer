@@ -12,25 +12,117 @@ final class HappRoutingSubscriptionLineTest extends TestCase
         $this->assertSame('happ://routing/off', HappRoutingSubscriptionLine::ROUTING_OFF_DEEPLINK);
     }
 
-    public function test_geosite_is_stripped_and_geo_urls_empty_in_profile(): void
+    public function test_legacy_call_without_geo_urls_strips_geosite_and_geoip(): void
     {
-        $line = HappRoutingSubscriptionLine::buildOnAddLine('direct', [
-            'geosite:category-ru',
-            'domain:vk.com',
-        ], true, ['geoip:ru', '192.168.3.0/24']);
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['geosite:category-ru', 'domain:vk.com'],
+            useOnAdd: true,
+            extraDirectIp: ['geoip:ru', '192.168.3.0/24'],
+        );
 
         $this->assertNotNull($line);
-        $b64 = (string) preg_replace('#^happ://routing/(onadd|add)/#', '', (string) $line);
-        $json = json_decode((string) base64_decode($b64, true), true);
-        $this->assertIsArray($json);
-        $this->assertSame('', $json['Geoipurl'] ?? null);
-        $this->assertSame('', $json['Geositeurl'] ?? null);
-        $this->assertContains('domain:vk.com', $json['DirectSites'] ?? []);
+        $json = $this->decodeRoutingLine((string) $line);
+
+        $this->assertSame('', $json['Geoipurl']);
+        $this->assertSame('', $json['Geositeurl']);
+        $this->assertContains('domain:vk.com', $json['DirectSites']);
+        $this->assertNotContains('geosite:category-ru', $json['DirectSites']);
+        $this->assertContains('192.168.3.0/24', $json['DirectIp']);
+        $this->assertNotContains('geoip:ru', $json['DirectIp']);
     }
 
-    public function test_only_geosite_yields_null_when_no_extra_ip(): void
+    public function test_only_geosite_without_url_yields_null_when_no_extra_ip(): void
     {
-        $line = HappRoutingSubscriptionLine::buildOnAddLine('direct', ['geosite:category-ru'], true, []);
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['geosite:category-ru'],
+            useOnAdd: true,
+            extraDirectIp: [],
+        );
         $this->assertNull($line);
+    }
+
+    public function test_geo_urls_are_forwarded_and_geosite_geoip_kept(): void
+    {
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['geosite:category-ru', 'domain:vk.com'],
+            useOnAdd: true,
+            extraDirectIp: ['geoip:ru'],
+            geoipUrl: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat',
+            geositeUrl: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat',
+        );
+
+        $this->assertNotNull($line);
+        $json = $this->decodeRoutingLine((string) $line);
+
+        $this->assertStringContainsString('Loyalsoldier', (string) $json['Geoipurl']);
+        $this->assertStringContainsString('Loyalsoldier', (string) $json['Geositeurl']);
+        $this->assertContains('geosite:category-ru', $json['DirectSites']);
+        $this->assertContains('domain:vk.com', $json['DirectSites']);
+        $this->assertContains('geoip:ru', $json['DirectIp']);
+    }
+
+    public function test_block_sites_kept_when_geosite_url_set(): void
+    {
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['domain:vk.com'],
+            useOnAdd: true,
+            extraDirectIp: [],
+            geoipUrl: 'https://example.org/geoip.dat',
+            geositeUrl: 'https://example.org/geosite.dat',
+            blockSites: ['geosite:category-ads-all', 'domain:doubleclick.net'],
+            blockIp: ['geoip:cn'],
+        );
+
+        $this->assertNotNull($line);
+        $json = $this->decodeRoutingLine((string) $line);
+
+        $this->assertContains('geosite:category-ads-all', $json['BlockSites']);
+        $this->assertContains('domain:doubleclick.net', $json['BlockSites']);
+        $this->assertContains('geoip:cn', $json['BlockIp']);
+    }
+
+    public function test_block_only_geosite_returns_non_null_with_url(): void
+    {
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: [],
+            useOnAdd: true,
+            extraDirectIp: [],
+            geositeUrl: 'https://example.org/geosite.dat',
+            blockSites: ['geosite:category-ads-all'],
+        );
+
+        $this->assertNotNull($line);
+    }
+
+    public function test_doh_bootstrap_added_to_direct_ip(): void
+    {
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['domain:vk.com'],
+            useOnAdd: true,
+        );
+
+        $json = $this->decodeRoutingLine((string) $line);
+
+        $this->assertContains('1.1.1.1/32', $json['DirectIp']);
+        $this->assertContains('1.0.0.1/32', $json['DirectIp']);
+        $this->assertContains('192.168.0.0/16', $json['DirectIp']);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeRoutingLine(string $line): array
+    {
+        $b64 = (string) preg_replace('#^happ://routing/(onadd|add)/#', '', $line);
+        $json = json_decode((string) base64_decode($b64, true), true);
+        $this->assertIsArray($json);
+
+        return $json;
     }
 }

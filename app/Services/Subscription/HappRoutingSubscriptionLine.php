@@ -8,9 +8,12 @@ namespace App\Services\Subscription;
  * Документация: https://www.happ.su/main/dev-docs/routing — `happ://routing/off` отключает маршрутизацию.
  * При отключённом HAPP_ROUTING_ENABLED по умолчанию в подписку уходит только `happ://routing/off` (без профилей и geo URL).
  *
- * Если HAPP_ROUTING_ENABLED=true — profиль onadd/add с DirectSites (geosite/geoip отсекаются). Пустые Geoipurl/Geositeurl — иначе Happ подставляет Loyalsoldier.
+ * Если HAPP_ROUTING_ENABLED=true — профиль onadd/add с DirectSites/DirectIp/BlockSites. Geoipurl/Geositeurl
+ * подставляются из конфига (по умолчанию Loyalsoldier — самый популярный набор: geosite:category-ru,
+ * geoip:ru, geosite:category-ads-all и т.д.). Пустая строка в .env → geosite:/geoip: токены отбрасываются.
  *
  * @see https://www.happ.su/main/dev-docs/routing
+ * @see https://github.com/Loyalsoldier/v2ray-rules-dat
  */
 final class HappRoutingSubscriptionLine
 {
@@ -37,10 +40,23 @@ final class HappRoutingSubscriptionLine
             $name = 'direct';
         }
 
-        $sites = HappRoutingMergedInput::mergedDirectSites();
+        $directSites = HappRoutingMergedInput::mergedDirectSites();
+        $directIp = HappRoutingMergedInput::mergedDirectIp();
+        $blockSites = HappRoutingMergedInput::mergedBlockSites();
+        $blockIp = HappRoutingMergedInput::mergedBlockIp();
+
         $onAdd = filter_var($cfg['onadd'] ?? true, FILTER_VALIDATE_BOOL);
 
-        return self::buildOnAddLine($name, $sites, $onAdd, HappRoutingMergedInput::adminDirectIpTokens());
+        return self::buildOnAddLine(
+            profileName: $name,
+            directSites: $directSites,
+            useOnAdd: $onAdd,
+            extraDirectIp: $directIp,
+            geoipUrl: trim((string) ($cfg['geoip_url'] ?? '')),
+            geositeUrl: trim((string) ($cfg['geosite_url'] ?? '')),
+            blockSites: $blockSites,
+            blockIp: $blockIp,
+        );
     }
 
     /**
@@ -64,7 +80,7 @@ final class HappRoutingSubscriptionLine
      * @param  list<string>  $directSites
      * @return list<string>
      */
-    public static function sitesForHappProfile(array $directSites): array
+    public static function sitesForHappProfile(array $directSites, bool $allowGeosite): array
     {
         $out = [];
         foreach ($directSites as $s) {
@@ -72,7 +88,7 @@ final class HappRoutingSubscriptionLine
             if ($s === '') {
                 continue;
             }
-            if (str_starts_with(strtolower($s), 'geosite:')) {
+            if (! $allowGeosite && str_starts_with(strtolower($s), 'geosite:')) {
                 continue;
             }
             $out[] = $s;
@@ -85,7 +101,7 @@ final class HappRoutingSubscriptionLine
      * @param  list<string>  $extraDirectIp
      * @return list<string>
      */
-    public static function extraDirectIpForHappProfile(array $extraDirectIp): array
+    public static function extraDirectIpForHappProfile(array $extraDirectIp, bool $allowGeoip): array
     {
         $out = [];
         foreach ($extraDirectIp as $s) {
@@ -93,7 +109,7 @@ final class HappRoutingSubscriptionLine
             if ($s === '') {
                 continue;
             }
-            if (str_starts_with(strtolower($s), 'geoip:')) {
+            if (! $allowGeoip && str_starts_with(strtolower($s), 'geoip:')) {
                 continue;
             }
             $out[] = $s;
@@ -103,19 +119,49 @@ final class HappRoutingSubscriptionLine
     }
 
     /**
-     * @param  list<string>  $directSites
-     * @param  list<string>  $extraDirectIp  Доп. DirectIp (CIDR, одиночный IPv4). geoip: отбрасывается.
+     * Сборка happ://routing/onadd|add/<base64 json>.
+     *
+     * @param  list<string>  $directSites    DirectSites (geosite: оставляется только при geositeUrl !== '')
+     * @param  list<string>  $extraDirectIp  CIDR/IPv4/geoip:* (geoip: оставляется только при geoipUrl !== '')
+     * @param  list<string>  $blockSites     BlockSites (geosite: оставляется только при geositeUrl !== '')
+     * @param  list<string>  $blockIp        BlockIp (geoip: оставляется только при geoipUrl !== '')
      */
     public static function buildOnAddLine(
         string $profileName,
         array $directSites,
         bool $useOnAdd = true,
         array $extraDirectIp = [],
+        string $geoipUrl = '',
+        string $geositeUrl = '',
+        array $blockSites = [],
+        array $blockIp = [],
     ): ?string {
-        $directSites = self::sitesForHappProfile(array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== '')));
-        $extraDirectIp = self::extraDirectIpForHappProfile(array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== '')));
+        $allowGeosite = $geositeUrl !== '';
+        $allowGeoip = $geoipUrl !== '';
 
-        if ($directSites === [] && $extraDirectIp === []) {
+        $directSites = self::sitesForHappProfile(
+            array_values(array_filter(array_map('trim', $directSites), fn (string $s): bool => $s !== '')),
+            $allowGeosite,
+        );
+        $extraDirectIp = self::extraDirectIpForHappProfile(
+            array_values(array_filter(array_map('trim', $extraDirectIp), fn (string $s): bool => $s !== '')),
+            $allowGeoip,
+        );
+        $blockSites = self::sitesForHappProfile(
+            array_values(array_filter(array_map('trim', $blockSites), fn (string $s): bool => $s !== '')),
+            $allowGeosite,
+        );
+        $blockIp = self::extraDirectIpForHappProfile(
+            array_values(array_filter(array_map('trim', $blockIp), fn (string $s): bool => $s !== '')),
+            $allowGeoip,
+        );
+
+        if (
+            $directSites === []
+            && $extraDirectIp === []
+            && $blockSites === []
+            && $blockIp === []
+        ) {
             return null;
         }
 
@@ -135,7 +181,8 @@ final class HappRoutingSubscriptionLine
 
         // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
         // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
-        // Пустые строки обязательны: иначе Happ подставляет дефолтный профиль с URL на .dat (см. dev-docs/routing).
+        // Geoipurl/Geositeurl: либо реальные URL на .dat (по умолчанию Loyalsoldier), либо пустые строки —
+        // последнее блокирует автоподстановку дефолтных URL клиентом (см. dev-docs/routing).
         $profile = [
             'Name' => $profileName,
             'GlobalProxy' => 'true',
@@ -145,8 +192,8 @@ final class HappRoutingSubscriptionLine
             'DomesticDNSType' => 'DoH',
             'DomesticDNSDomain' => 'https://dns.google/dns-query',
             'DomesticDNSIP' => '8.8.8.8',
-            'Geoipurl' => '',
-            'Geositeurl' => '',
+            'Geoipurl' => $geoipUrl,
+            'Geositeurl' => $geositeUrl,
             'DnsHosts' => [
                 'cloudflare-dns.com' => '1.1.1.1',
                 'dns.google' => '8.8.8.8',
@@ -155,8 +202,8 @@ final class HappRoutingSubscriptionLine
             'DirectIp' => $directIp,
             'ProxySites' => [],
             'ProxyIp' => [],
-            'BlockSites' => [],
-            'BlockIp' => [],
+            'BlockSites' => $blockSites,
+            'BlockIp' => $blockIp,
             'DomainStrategy' => 'AsIs',
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),

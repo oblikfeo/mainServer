@@ -588,7 +588,11 @@ final class XrayJsonSubscriptionFeedRenderer
     }
 
     /**
-     * Список domain: совпадает с образцом конкурентов (локальный direct).
+     * Самый популярный пресет direct/block для Xray-клиентов (Happ, V2Box, FoXray, NekoBox, sing-box):
+     * — geosite:category-ru / geoip:ru (Loyalsoldier .dat) для российских сайтов и IP;
+     * — geoip:private — RFC1918 + ULA;
+     * — geosite:category-ads-all — блок рекламы (block);
+     * — поименный список push-уведомлений и сервисов, которые в Loyalsoldier помечены неточно (mangabuff и т.п.).
      *
      * @return list<array<string, mixed>>
      */
@@ -596,6 +600,9 @@ final class XrayJsonSubscriptionFeedRenderer
     {
         return [
             ['outboundTag' => 'direct', 'protocol' => ['bittorrent']],
+            ['outboundTag' => 'block', 'domain' => ['geosite:category-ads-all']],
+            ['outboundTag' => 'direct', 'ip' => ['geoip:private', 'geoip:ru']],
+            ['outboundTag' => 'direct', 'domain' => ['geosite:category-ru']],
             [
                 'outboundTag' => 'direct',
                 'domain' => [
@@ -605,22 +612,7 @@ final class XrayJsonSubscriptionFeedRenderer
                     'domain:push-apple.com.akadns.net',
                     'domain:courier.push.apple.com',
                     'domain:mangabuff.ru',
-                    'domain:yandex.com',
-                    'domain:yandex.net',
-                    'domain:yandex.ru',
-                    'domain:mail.ru',
-                    'domain:vk.com',
-                    'domain:vkusvill.ru',
-                    'domain:ozon.ru',
-                    'domain:wildberries.ru',
                     'domain:wbbasket.ru',
-                    'domain:wb.ru',
-                    'domain:tinkoff.ru',
-                    'domain:gosuslugi.ru',
-                    'domain:nalog.gov.ru',
-                    'domain:mos.ru',
-                    'domain:2gis.com',
-                    'domain:2gis.ru',
                     'domain:2ip.ru',
                 ],
             ],

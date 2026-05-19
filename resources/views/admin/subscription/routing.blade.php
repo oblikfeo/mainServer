@@ -41,38 +41,91 @@
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Как это устроено</h2>
             <ol class="list-decimal list-inside space-y-2 leading-relaxed">
                 <li>
-                    <strong>База из сервера</strong> — список в <code class="rounded bg-white px-1 border border-slate-200">.env</code> как
-                    <code class="rounded bg-white px-1 border border-slate-200">HAPP_DIRECT_SITES</code> (через запятую). Рекомендуется список
-                    <code class="rounded bg-white px-1 border border-slate-200">domain:...</code> без <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> —
-                    иначе Happ снова потребует скачивание geo-файлов.
+                    <strong>Geo-файлы</strong> — URL на <code class="rounded bg-white px-1 border border-slate-200">geoip.dat</code>/<code class="rounded bg-white px-1 border border-slate-200">geosite.dat</code> задаются в
+                    <code class="rounded bg-white px-1 border border-slate-200">.env</code> (<code class="rounded bg-white px-1 border border-slate-200">HAPP_GEOIP_URL</code>/<code class="rounded bg-white px-1 border border-slate-200">HAPP_GEOSITE_URL</code>).
+                    По умолчанию — самый популярный набор Loyalsoldier
+                    (<a class="underline underline-offset-2" target="_blank" rel="noopener noreferrer" href="https://github.com/Loyalsoldier/v2ray-rules-dat">v2ray-rules-dat</a>):
+                    <code class="rounded bg-white px-1 border border-slate-200">geosite:category-ru</code>, <code class="rounded bg-white px-1 border border-slate-200">geoip:ru</code>,
+                    <code class="rounded bg-white px-1 border border-slate-200">geosite:category-ads-all</code> и т.д. Пустая строка → Happ не качает <code class="rounded bg-white px-1 border border-slate-200">.dat</code>,
+                    а правила <code class="rounded bg-white px-1 border border-slate-200">geosite:</code>/<code class="rounded bg-white px-1 border border-slate-200">geoip:</code> отбрасываются.
+                </li>
+                <li>
+                    <strong>База из сервера</strong> — списки в <code class="rounded bg-white px-1 border border-slate-200">.env</code>: <code class="rounded bg-white px-1 border border-slate-200">HAPP_DIRECT_SITES</code> (домены/geosite:),
+                    <code class="rounded bg-white px-1 border border-slate-200">HAPP_DIRECT_IP</code> (CIDR/geoip:),
+                    <code class="rounded bg-white px-1 border border-slate-200">HAPP_BLOCK_SITES</code> (что блокировать). Через запятую.
                 </li>
                 <li>
                     <strong>Дополнение из админки</strong> — многострочное поле ниже хранится в базе. Одна строка = одно правило.
-                    Сохранение <strong>заменяет</strong> весь этот список целиком (не «дописывает в конец»).
+                    Сохранение <strong>заменяет</strong> весь этот список целиком. Можно вписывать <code class="rounded bg-white px-1 border border-slate-200">geosite:</code>/<code class="rounded bg-white px-1 border border-slate-200">geoip:</code> —
+                    они попадут в Happ, если соответствующий URL не пуст.
                 </li>
                 <li>
-                    <strong>В подписке</strong> база и дополнение объединяются и уходят в Happ как <code class="rounded bg-white px-1 border border-slate-200">DirectSites</code>
-                    и при необходимости <code class="rounded bg-white px-1 border border-slate-200">DirectIp</code>.
-                    Правила <code class="rounded bg-white px-1 border border-slate-200">geosite:</code> и <code class="rounded bg-white px-1 border border-slate-200">geoip:</code>
-                    при генерации подписки <strong>отбрасываются</strong> — без них Happ не получит URL на .dat и не будет пытаться их качать (см. предпросмотр ниже).
+                    <strong>В подписке</strong> база и дополнение объединяются и уходят в Happ как <code class="rounded bg-white px-1 border border-slate-200">DirectSites</code>,
+                    <code class="rounded bg-white px-1 border border-slate-200">DirectIp</code> и <code class="rounded bg-white px-1 border border-slate-200">BlockSites</code>.
                 </li>
             </ol>
-            <p class="text-xs text-slate-500 pt-1">
-                В самом Happ при отсутствии полей <code class="rounded bg-slate-100 px-1">Geoipurl</code>/<code class="rounded bg-slate-100 px-1">Geositeurl</code> в профиле подставляются дефолтные ссылки на .dat (см. документацию Happ). В подписке эти поля передаются <strong>пустыми строками</strong>, чтобы этого не происходило.
-            </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm ring-1 ring-slate-900/5">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">База из .env (только просмотр)</h2>
-            @if (empty($routingConfigSites))
-                <p class="text-sm text-slate-500">Не задано или пустой массив <code class="rounded bg-slate-50 px-1">HAPP_DIRECT_SITES</code>.</p>
-            @else
-                <ul class="font-mono text-xs sm:text-sm text-slate-800 space-y-1 break-all">
-                    @foreach ($routingConfigSites as $s)
-                        <li>{{ $s }}</li>
-                    @endforeach
-                </ul>
-            @endif
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm ring-1 ring-slate-900/5 space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Geo-файлы из .env</h2>
+            <div class="grid grid-cols-1 gap-3 text-sm">
+                <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">HAPP_GEOIP_URL</div>
+                    @if (! empty($happGeoipUrl))
+                        <a href="{{ $happGeoipUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs sm:text-sm text-slate-800 break-all underline underline-offset-2">{{ $happGeoipUrl }}</a>
+                    @else
+                        <p class="text-sm text-slate-500">Пусто — клиент не скачает <code class="rounded bg-slate-50 px-1">geoip.dat</code>.</p>
+                    @endif
+                </div>
+                <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">HAPP_GEOSITE_URL</div>
+                    @if (! empty($happGeositeUrl))
+                        <a href="{{ $happGeositeUrl }}" target="_blank" rel="noopener noreferrer" class="font-mono text-xs sm:text-sm text-slate-800 break-all underline underline-offset-2">{{ $happGeositeUrl }}</a>
+                    @else
+                        <p class="text-sm text-slate-500">Пусто — клиент не скачает <code class="rounded bg-slate-50 px-1">geosite.dat</code>.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm ring-1 ring-slate-900/5 space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">База из .env (только просмотр)</h2>
+            <div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">HAPP_DIRECT_SITES</div>
+                @if (empty($routingConfigSites))
+                    <p class="text-sm text-slate-500">Не задано.</p>
+                @else
+                    <ul class="font-mono text-xs sm:text-sm text-slate-800 space-y-1 break-all">
+                        @foreach ($routingConfigSites as $s)
+                            <li>{{ $s }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+            <div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">HAPP_DIRECT_IP</div>
+                @if (empty($routingConfigIp))
+                    <p class="text-sm text-slate-500">Не задано.</p>
+                @else
+                    <ul class="font-mono text-xs sm:text-sm text-slate-800 space-y-1 break-all">
+                        @foreach ($routingConfigIp as $s)
+                            <li>{{ $s }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+            <div>
+                <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">HAPP_BLOCK_SITES</div>
+                @if (empty($routingConfigBlockSites))
+                    <p class="text-sm text-slate-500">Не задано — ничего не блокируется.</p>
+                @else
+                    <ul class="font-mono text-xs sm:text-sm text-slate-800 space-y-1 break-all">
+                        @foreach ($routingConfigBlockSites as $s)
+                            <li>{{ $s }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
         </div>
 
         <form
@@ -104,9 +157,10 @@
                     <p>full:api.example.com</p>
                     <p><span class="text-slate-500"># можно вставить URL — возьмём только хост</span></p>
                     <p>https://www.ozon.ru/path</p>
-                    <p><span class="text-slate-500"># geosite: — будет отброшено (не попадёт в Happ-профиль)</span></p>
-                    <p># geosite:google</p>
-                    <p><span class="text-slate-500"># geoip: — будет отброшено; для обхода используйте CIDR или domain:</span></p>
+                    <p><span class="text-slate-500"># geosite/geoip из geosite.dat/geoip.dat (работают, если задан URL в .env)</span></p>
+                    <p>geosite:category-ru</p>
+                    <p>geoip:ru</p>
+                    <p><span class="text-slate-500"># обычный CIDR или одиночный IPv4</span></p>
                     <p>192.168.1.0/24</p>
                 </div>
             </details>
@@ -114,25 +168,14 @@
             <div class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Предпросмотр итога для подписки</h3>
                 <p class="text-xs text-slate-600">
-                    Сначала — объединение <strong>базы из .env</strong> и правил из поля. Ниже — то, что реально уйдёт в Happ (без <code class="rounded bg-white px-1 border">geosite:</code>/<code class="rounded bg-white px-1 border">geoip:</code>).
-                    В URI-подписке список доменов не показывается как отдельный конфиг: он внутри строки <code class="rounded bg-white px-1 border">happ://routing/…</code> (base64).
+                    Объединение <strong>базы из .env</strong> и правил из поля. В URI-подписке этот список не показывается отдельным конфигом: он внутри строки
+                    <code class="rounded bg-white px-1 border">happ://routing/…</code> (base64).
+                    <strong>geosite:/geoip:</strong> оставляются в профиле, только когда заданы <code class="rounded bg-white px-1 border">HAPP_GEOSITE_URL</code>/<code class="rounded bg-white px-1 border">HAPP_GEOIP_URL</code>.
                 </p>
                 <div>
-                    <div class="text-xs font-semibold text-slate-600 mb-1">Сводное объединение (как на сервере)</div>
-                    @if (empty($routingMergedSites))
-                        <p class="text-xs text-slate-500">Пока пусто (проверьте .env и поле выше).</p>
-                    @else
-                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all max-h-40 overflow-y-auto">
-                            @foreach ($routingMergedSites as $s)
-                                <li>{{ $s }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-                </div>
-                <div>
-                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectSites в Happ-профиле</div>
+                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectSites (домены / geosite:) — как уйдёт в Happ</div>
                     @if (empty($routingHappProfileSites))
-                        <p class="text-xs text-slate-500">Нет ни одного правила с доменом после отсечения geosite (или всё только geosite).</p>
+                        <p class="text-xs text-slate-500">Пусто.</p>
                     @else
                         <ul class="font-mono text-xs text-slate-800 space-y-1 break-all max-h-48 overflow-y-auto">
                             @foreach ($routingHappProfileSites as $s)
@@ -140,32 +183,44 @@
                             @endforeach
                         </ul>
                     @endif
+                    @if (! empty($routingMergedSites) && count($routingHappProfileSites) !== count($routingMergedSites))
+                        <p class="text-[11px] text-amber-800 mt-2">
+                            Часть правил отброшена (например <code class="rounded bg-amber-100 px-1">geosite:</code> без HAPP_GEOSITE_URL).
+                            В сводном объединении было {{ count($routingMergedSites) }} строк.
+                        </p>
+                    @endif
                 </div>
                 <div>
-                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectIp из админки (IPv4, CIDR) — в профиль плюс служебные сети</div>
-                    @if (empty($routingDirectIpFromAdmin))
-                        <p class="text-xs text-slate-500">Из админки не задано.</p>
+                    <div class="text-xs font-semibold text-slate-600 mb-1">DirectIp (CIDR/geoip:) — как уйдёт в Happ</div>
+                    @if (empty($routingHappProfileIpExtras))
+                        <p class="text-xs text-slate-500">Пусто (только служебные частные сети ниже).</p>
                     @else
                         <ul class="font-mono text-xs text-slate-800 space-y-1 break-all">
-                            @foreach ($routingDirectIpFromAdmin as $s)
-                                <li>{{ $s }}</li>
-                            @endforeach
-                        </ul>
-                    @endif
-                    @if (! empty($routingDirectIpFromAdmin) && (count($routingHappProfileIpExtras) !== count($routingDirectIpFromAdmin)))
-                        <p class="text-[11px] text-amber-800 mt-2">
-                            Часть строк отброшена (например <code class="rounded bg-amber-100 px-1">geoip:</code>) — в Happ попадут только:
-                        </p>
-                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all mt-1">
                             @foreach ($routingHappProfileIpExtras as $s)
                                 <li>{{ $s }}</li>
                             @endforeach
                         </ul>
                     @endif
+                    @if (! empty($routingMergedIp) && count($routingHappProfileIpExtras) !== count($routingMergedIp))
+                        <p class="text-[11px] text-amber-800 mt-2">
+                            Часть строк отброшена (например <code class="rounded bg-amber-100 px-1">geoip:</code> без HAPP_GEOIP_URL).
+                            В сводном объединении было {{ count($routingMergedIp) }} строк.
+                        </p>
+                    @endif
                     <p class="text-[11px] text-slate-500 mt-2">
-                        К ним в клиенте добавляются служебные частные сети (RFC1918 и т.д.) — это делает генератор подписки, в поле указывать не нужно.
+                        К ним в клиенте добавляются служебные частные сети (RFC1918 и т.д.) и DoH-bootstrap <code class="rounded bg-white px-1 border">1.1.1.1/32</code> — это делает генератор подписки.
                     </p>
                 </div>
+                @if (! empty($routingMergedBlockSites))
+                    <div>
+                        <div class="text-xs font-semibold text-slate-600 mb-1">BlockSites (что блокируется)</div>
+                        <ul class="font-mono text-xs text-slate-800 space-y-1 break-all">
+                            @foreach ($routingMergedBlockSites as $s)
+                                <li>{{ $s }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3 pt-2">
