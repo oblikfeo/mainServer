@@ -3,12 +3,11 @@
 namespace App\Services\Subscription;
 
 use App\Models\Subscription;
-use App\Services\Hy2\BlitzClient;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Снимает с панелей текущие vless-линки по подписке (fi/nl/…) и опционально hy2:// — общая база URI и JSON-рендереров.
+ * Снимает с панелей текущие vless-линки по подписке (fi/nl/…) — общая база URI и JSON-рендереров.
  */
 final class SubscriptionBundleCollector
 {
@@ -16,22 +15,12 @@ final class SubscriptionBundleCollector
      * @param  array<string, array<string, mixed>>  $nodes
      * @param  list<string>  $bundleOrder
      * @return array{
-     *   hy2_uri: ?string,
      *   vless_entries: list<array{key: string, line: string, userinfo: array<string, int>}>
      * }
      */
     public function collect(array $nodes, array $bundleOrder, Subscription $sub): array
     {
         $responses = $this->fetchPanelSubsParallel($nodes, $bundleOrder, $sub);
-
-        $hy2Uri = null;
-        if (config('hy2.enabled')) {
-            $hy2User = (string) ($sub->hy2_username ?? '');
-            $hy2Pass = (string) ($sub->hy2_password ?? '');
-            if ($hy2User !== '' && $hy2Pass !== '') {
-                $hy2Uri = BlitzClient::buildUri($hy2User, $hy2Pass);
-            }
-        }
 
         $entries = [];
 
@@ -42,7 +31,7 @@ final class SubscriptionBundleCollector
                 continue;
             }
 
-                $line = $this->extractProcessedVlessLine($resp, $node, strtoupper((string) $key), (string) $key);
+            $line = $this->extractProcessedVlessLine($resp, $node, strtoupper((string) $key), (string) $key);
             if ($line !== '') {
                 $entries[] = [
                     'key' => $key,
@@ -53,7 +42,6 @@ final class SubscriptionBundleCollector
         }
 
         return [
-            'hy2_uri' => $hy2Uri,
             'vless_entries' => $entries,
         ];
     }

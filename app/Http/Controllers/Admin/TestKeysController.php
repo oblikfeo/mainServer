@@ -85,7 +85,7 @@ class TestKeysController extends Controller
             return back()
                 ->withInput()
                 ->withErrors([
-                    'email' => 'Не удалось выдать тестовую подписку. Проверьте узлы XUI/HY2 и конфигурацию.',
+                    'email' => 'Не удалось выдать тестовую подписку. Проверьте узлы XUI и конфигурацию.',
                 ]);
         }
 

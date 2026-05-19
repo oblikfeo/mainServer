@@ -143,17 +143,8 @@ final class XrayJsonSubscriptionFeedRenderer
                 $jsonBlob = '';
             }
 
-            $bodySuffix = '';
-            if (
-                filter_var(config('xui.sub_json_append_hy2_uri', true), FILTER_VALIDATE_BOOL)
-                && (! $prependUris)
-                && $bundle['hy2_uri'] !== null && $bundle['hy2_uri'] !== ''
-            ) {
-                $bodySuffix = "\n".trim((string) $bundle['hy2_uri'])."\n";
-            }
-
             $middle = $uriBlock !== '' ? $uriBlock."\n" : '';
-            $coreBody = $meta."\n".$middle.$jsonBlob.$bodySuffix;
+            $coreBody = $meta."\n".$middle.$jsonBlob;
 
             if (config('xui.sub_output_b64', false)) {
                 $encoded = base64_encode($coreBody)."\n";

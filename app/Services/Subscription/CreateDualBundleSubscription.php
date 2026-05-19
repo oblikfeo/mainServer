@@ -4,8 +4,6 @@ namespace App\Services\Subscription;
 
 use App\Models\IssuedKey;
 use App\Models\Subscription;
-use App\Services\Hy2\BlitzClient;
-use App\Services\Hy2\BlitzException;
 use App\Services\Xui\XuiPanelClient;
 use App\Services\Xui\XuiPanelException;
 use Illuminate\Support\Facades\Http;
@@ -19,8 +17,6 @@ final class CreateDualBundleSubscription
 
     /**
      * @param  ?int  $expiryMsOverride  Явный срок окончания (мс с эпохи) для XUI; перекрывает расчёт из $days, если задан и не безлимит по времени.
-     * @param  ?int  $hy2ExpirationDays  Дней для Blitz addUser; по умолчанию равно $days.
-     *
      * @throws XuiPanelException
      */
     public function create(
@@ -32,7 +28,6 @@ final class CreateDualBundleSubscription
         bool $unlimitedTime = false,
         bool $isTrial = false,
         ?int $expiryMsOverride = null,
-        ?int $hy2ExpirationDays = null,
     ): CreatedSubscriptionResult {
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
@@ -44,8 +39,6 @@ final class CreateDualBundleSubscription
         } else {
             $expiryMs = (int) ((time() + $days * 86400) * 1000);
         }
-
-        $hy2Days = $hy2ExpirationDays ?? max(0, $days);
 
         if (count($order) < 1) {
             throw new XuiPanelException('Пустой список узлов в config/xui.php (bundle_order)');
@@ -136,28 +129,6 @@ final class CreateDualBundleSubscription
             throw new XuiPanelException('Внутренняя ошибка: не все subId созданы');
         }
 
-        $hy2Username = null;
-        $hy2Password = null;
-
-        if (config('hy2.enabled')) {
-            $hy2Username = 'hy2_'.bin2hex(random_bytes(5));
-            $hy2Password = bin2hex(random_bytes(16));
-            $hy2TrafficGb = $unlimitedTraffic ? 0 : $quotaGb;
-
-            try {
-                $blitz = new BlitzClient();
-                $blitz->addUser($hy2Username, $hy2Password, $hy2TrafficGb, max(1, $hy2Days));
-            } catch (BlitzException $e) {
-                Log::warning('hy2.create_user_failed', ['error' => $e->getMessage()]);
-                $rollbackMsg = $this->rollbackClients($createdClients);
-                $msg = "Hysteria2: {$e->getMessage()}";
-                if ($rollbackMsg !== '') {
-                    $msg .= " | Откат XUI: {$rollbackMsg}";
-                }
-                throw new XuiPanelException($msg, previous: $e);
-            }
-        }
-
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
 
         $subscription = Subscription::query()->create([
@@ -165,8 +136,8 @@ final class CreateDualBundleSubscription
             'token' => $token,
             'fi_sub_id' => $fiSubId,
             'nl_sub_id' => $nlSubId,
-            'hy2_username' => $hy2Username,
-            'hy2_password' => $hy2Password,
+            'hy2_username' => null,
+            'hy2_password' => null,
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
@@ -175,9 +146,6 @@ final class CreateDualBundleSubscription
 
         IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
         IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
-        if ($hy2Username !== null) {
-            IssuedKey::query()->create(['bundle_id' => 'hy2', 'subscription_id' => $subscription->id]);
-        }
 
         $publicBase = rtrim((string) config('app.url'), '/');
         $subscriptionUrl = $publicBase.'/sub/'.$token;
@@ -189,13 +157,13 @@ final class CreateDualBundleSubscription
             $subscriptionUrl,
             $decoded['fi'],
             $decoded['nl'],
-            $decoded['hy2'],
+            '',
             $decoded['warning'],
         );
     }
 
     /**
-     * @return array{fi: string, nl: string, hy2: string, warning: ?string}
+     * @return array{fi: string, nl: string, warning: ?string}
      */
     public function decodeLinesForSubscription(Subscription $subscription): array
     {
@@ -203,11 +171,11 @@ final class CreateDualBundleSubscription
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $subFmt = (string) config('xui.vless_server_description_format', 'dual');
 
-        $out = ['fi' => '', 'nl' => '', 'hy2' => '', 'warning' => null];
+        $out = ['fi' => '', 'nl' => '', 'warning' => null];
         $missing = [];
 
         foreach ($order as $key) {
-            if (! array_key_exists($key, $out) || $key === 'warning' || $key === 'hy2') {
+            if (! array_key_exists($key, $out) || $key === 'warning') {
                 continue;
             }
             $node = $nodes[$key] ?? [];
@@ -240,14 +208,6 @@ final class CreateDualBundleSubscription
                 );
             } catch (Throwable $e) {
                 $missing[] = strtoupper($key).' ('.$e->getMessage().')';
-            }
-        }
-
-        if (config('hy2.enabled')) {
-            $hy2User = (string) ($subscription->hy2_username ?? '');
-            $hy2Pass = (string) ($subscription->hy2_password ?? '');
-            if ($hy2User !== '' && $hy2Pass !== '') {
-                $out['hy2'] = BlitzClient::buildUri($hy2User, $hy2Pass);
             }
         }
 

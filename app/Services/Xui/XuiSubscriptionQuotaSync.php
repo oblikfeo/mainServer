@@ -3,7 +3,6 @@
 namespace App\Services\Xui;
 
 use App\Models\Subscription;
-use App\Services\Hy2\BlitzClient;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -59,19 +58,6 @@ final class XuiSubscriptionQuotaSync
             }
         }
 
-        $hy2Username = (string) ($sub->hy2_username ?? '');
-        if ($hy2Username !== '' && config('hy2.enabled')) {
-            $quotaGb = (int) $sub->quota_gb;
-            try {
-                (new BlitzClient())->editUser($hy2Username, trafficGb: $quotaGb > 0 ? $quotaGb : 0);
-            } catch (Throwable $e) {
-                Log::warning('hy2.quota_sync_failed', [
-                    'subscription_id' => $sub->id,
-                    'username' => $hy2Username,
-                    'message' => $e->getMessage(),
-                ]);
-            }
-        }
     }
 
     /**

@@ -57,8 +57,6 @@ final class TrialSubscriptionIssuer
     {
         $devices = max(0, (int) config('trial_subscription.devices', 1));
         $quotaGb = max(1, (int) config('trial_subscription.quota_gb', 5));
-        $hy2Days = max(1, (int) config('trial_subscription.hy2_expiration_days', 1));
-
         $expiryMs = (int) (now()->addHours($hours)->getTimestamp() * 1000);
 
         return $this->createDual->create(
@@ -70,7 +68,6 @@ final class TrialSubscriptionIssuer
             unlimitedTime: false,
             isTrial: true,
             expiryMsOverride: $expiryMs,
-            hy2ExpirationDays: $hy2Days,
         );
     }
 }

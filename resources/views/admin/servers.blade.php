@@ -68,10 +68,6 @@
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (legacy trial)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['trial_online_clients'] ?? 0) : '—' }}</span>
                             <span class="text-[10px] text-slate-500 mt-1 leading-tight">Старая панель TEST_KEYS, если настроена. Новые триалы — на FI/NL.</span>
-                        @elseif (($bundle['id'] ?? '') === 'hy2')
-                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (Blitz)</span>
-                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
-                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Сумма online_count по Blitz (Hysteria2)</span>
                         @else
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (panel)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>

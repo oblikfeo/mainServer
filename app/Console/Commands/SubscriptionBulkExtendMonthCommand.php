@@ -4,8 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\Subscription;
 use App\Models\User;
-use App\Services\Hy2\BlitzClient;
-use App\Services\Hy2\BlitzException;
 use App\Services\Subscription\SubscriptionCalendarExtension;
 use App\Services\Xui\XuiPanelClient;
 use App\Services\Xui\XuiPanelException;
@@ -14,9 +12,9 @@ use Throwable;
 
 /**
  * Массовое продление подписок: добавляет N календарных дней и сбрасывает счётчики
- * фактически потраченного трафика на 3x-ui (FI/NL) и в Hy2 (Blitz reset-user).
+ * фактически потраченного трафика на 3x-ui (FI/NL).
  *
- * Существующие vless:// и hy2:// ссылки остаются прежними — у клиентов после команды
+ * Существующие vless:// ссылки остаются прежними — у клиентов после команды
  * «как новый месяц»: дата истечения = текущая+30, использовано 0 ГБ.
  */
 class SubscriptionBulkExtendMonthCommand extends Command
@@ -27,7 +25,7 @@ class SubscriptionBulkExtendMonthCommand extends Command
         {--no-extend : Пропустить продление, сделать только сброс счётчиков (idempotent)}
         {--dry-run : Только показать действия, ничего не менять}';
 
-    protected $description = 'Продлить подписки указанных email на N дней и обнулить счётчики трафика на 3x-ui (FI/NL) и Hy2 (Blitz)';
+    protected $description = 'Продлить подписки указанных email на N дней и обнулить счётчики трафика на 3x-ui (FI/NL)';
 
     public function handle(SubscriptionCalendarExtension $extender): int
     {
@@ -118,17 +116,16 @@ class SubscriptionBulkExtendMonthCommand extends Command
             : '∞';
 
         $this->line(sprintf(
-            '  sub #%d  expiry=%s  fi=%s  nl=%s  hy2=%s  quota=%dGB',
+            '  sub #%d  expiry=%s  fi=%s  nl=%s  quota=%dGB',
             $sub->id,
             $oldExpiryHuman,
             $sub->fi_sub_id ?: '-',
             $sub->nl_sub_id ?: '-',
-            $sub->hy2_username ?: '-',
             (int) $sub->quota_gb,
         ));
 
         if ($dry) {
-            $this->line('    [dry-run] '.($noExtend ? 'reset-only' : ('+'.$days.' дн.')).'; reset traffic FI/NL/Hy2');
+            $this->line('    [dry-run] '.($noExtend ? 'reset-only' : ('+'.$days.' дн.')).'; reset traffic FI/NL');
 
             return true;
         }
@@ -152,7 +149,6 @@ class SubscriptionBulkExtendMonthCommand extends Command
         }
 
         $ok = $this->resetXuiTraffic($sub) && $ok;
-        $ok = $this->resetHy2Traffic($sub) && $ok;
 
         return $ok;
     }
@@ -203,25 +199,6 @@ class SubscriptionBulkExtendMonthCommand extends Command
         }
 
         return $allOk;
-    }
-
-    private function resetHy2Traffic(Subscription $sub): bool
-    {
-        $username = (string) ($sub->hy2_username ?? '');
-        if ($username === '' || ! config('hy2.enabled')) {
-            return true;
-        }
-
-        try {
-            (new BlitzClient())->resetUser($username);
-            $this->info("    hy2: traffic reset для {$username}");
-
-            return true;
-        } catch (BlitzException|Throwable $e) {
-            $this->error('    hy2: '.$e->getMessage());
-
-            return false;
-        }
     }
 
     /**

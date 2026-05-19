@@ -18,31 +18,16 @@ return [
     'bundle_order' => ['fi', 'nl'],
 
     /**
-     * Общие узлы в начале каждой подписки Happ (п. 1–2), одинаковые для всех клиентов:
-     *   1) VLESS — один inbound, одна ссылка;
-     *   2) Hysteria2 — тот же сервер, одна ссылка.
-     * Далее в SubscriptionExtraShareLines::orderedWithBundle: FI/NL (п. 3–4, per-client в 3x-ui), Blitz HY2 Hostkey (п. 5).
-     * Задаётся только через .env (SUB_EXTRA_*); в репозитории секретов и URI нет.
+     * Общий VLESS в начале каждой подписки Happ (одинаковый для всех клиентов).
+     * Далее FI/NL per-client из 3x-ui. Задаётся через .env (SUB_EXTRA_*).
      *
-     * @var array{
-     *   enabled: bool,
-     *   vless_uri: string,
-     *   vless_title: string,
-     *   vless_subtitle: string,
-     *   hy2_uri: string,
-     *   hy2_fragment: string,
-     *   hy2_auth_user: string
-     * }
+     * @var array{enabled: bool, vless_uri: string, vless_title: string, vless_subtitle: string}
      */
     'sub_extra' => [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
         'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Домашний интернет 1 ⚡')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
-        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
-        'hy2_fragment' => trim((string) env('SUB_EXTRA_HY2_FRAGMENT', '🇺🇸 Домашний интернет 2 ⚡')),
-        /** Если в URI только пароль (hy2://:pass@host), Happ/Xray ждут логин — подставляется это имя. */
-        'hy2_auth_user' => trim((string) env('SUB_EXTRA_HY2_USER', 'nadezhda')),
     ],
 
     'nodes' => [
@@ -142,16 +127,13 @@ return [
     'sub_output_b64' => env('SUB_OUTPUT_B64', '0') === '1',
 
     /**
-     * Формат GET /sub/{token}: uri — hy2+vless строки (боевой). xray_json — тело с Xray JSON (см. SUB_JSON_* в .env).
+     * Формат GET /sub/{token}: uri — vless строки (боевой). xray_json — тело с Xray JSON (см. SUB_JSON_* в .env).
      * По умолчанию в config: uri, если переменную не задали.
      */
     'sub_feed_format' => strtolower(trim((string) env('SUB_FEED_FORMAT', 'uri'))),
 
     /** Непустое значение фиксирует meta.serverDescription в JSON-подписке (перекрывает авто-сборку по узлам). */
     'sub_json_meta_server_description' => trim((string) env('SUB_JSON_META_SERVER_DESCRIPTION', '')),
-
-    /** После JSON на новой строке добавить hy2:// при наличии HY2 в подписке. */
-    'sub_json_append_hy2_uri' => filter_var(env('SUB_JSON_APPEND_HY2', true), FILTER_VALIDATE_BOOL),
 
     /**
      * Переопределение пресета routing.rules до основного outbound. null — список «русские сервисы direct» как в образце конкурентов.
@@ -193,11 +175,11 @@ return [
         return 30;
     })(),
 
-    /** По умолчанию true: перед JSON добавить hy2+vless строки как в URI-режиме (мобильный Happ часто не парсит JSON из тела URL-подписки). */
+    /** По умолчанию true: перед JSON добавить vless строки как в URI-режиме (мобильный Happ часто не парсит JSON из тела URL-подписки). */
     'sub_json_prepend_share_lines' => filter_var(env('SUB_JSON_PREPEND_SHARE_LINES', true), FILTER_VALIDATE_BOOL),
 
     /**
-     * Добавлять в префикс строки vless:// (по умолчанию да). Если false — только hy2 и JSON-профили: часть мобильных клиентов не увидит LTE; на ПК Happ часто добавляет пометку JSON.
+     * Добавлять в префикс строки vless:// (по умолчанию да). Если false — только JSON-профили.
      */
     'sub_json_prepend_vless_uris' => filter_var(env('SUB_JSON_PREPEND_VLESS', true), FILTER_VALIDATE_BOOL),
 
