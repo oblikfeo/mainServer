@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
+use App\Services\HomeBundleMetrics;
 use App\Services\Xui\XuiPanelClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -16,6 +17,7 @@ class DashboardController extends Controller
     public function __construct(
         protected BundleHealthChecker $bundleHealth,
         protected BundleSshMetrics $bundleSshMetrics,
+        protected HomeBundleMetrics $homeBundleMetrics,
     ) {}
 
     public function index(): View
@@ -35,11 +37,14 @@ class DashboardController extends Controller
         $panelSnapshots = [
             'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
             'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
-            'trial' => Cache::remember('bundle_panel_snapshot_v4_trial', $ttl, fn (): ?array => $this->buildPanelSnapshotForTrialBundle()),
         ];
 
+        $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Домашний интернет 1'));
+        $homeHy2Title = trim((string) config('xui.sub_extra.hy2_fragment', 'Домашний интернет 2'));
+        $homeHy2Title = preg_replace('/^#/', '', $homeHy2Title) ?? $homeHy2Title;
+
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $homeHy2Title) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -49,12 +54,23 @@ class DashboardController extends Controller
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
 
-                $bundleForSsh = $bundle;
-                $bundle['metrics'] = Cache::remember(
-                    'bundle_ssh_metrics_v8_'.$id,
-                    $ttl,
-                    fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
-                );
+                if ($id === 'home') {
+                    $bundle['home_vless_label'] = $homeVlessTitle;
+                    $bundle['home_hy2_label'] = $homeHy2Title;
+                    $bundleForHome = $bundle;
+                    $bundle['metrics'] = Cache::remember(
+                        'bundle_home_metrics_v1_'.$id,
+                        $ttl,
+                        fn () => $this->homeBundleMetrics->fetch($bundleForHome)
+                    );
+                } else {
+                    $bundleForSsh = $bundle;
+                    $bundle['metrics'] = Cache::remember(
+                        'bundle_ssh_metrics_v8_'.$id,
+                        $ttl,
+                        fn () => $this->bundleSshMetrics->fetch($bundleForSsh)
+                    );
+                }
 
                 if (isset($panelSnapshots[$id]) && is_array($panelSnapshots[$id])) {
                     $snapshot = $panelSnapshots[$id];
@@ -64,11 +80,7 @@ class DashboardController extends Controller
                         $id,
                         (int) ($snapshot['traffic_total_bytes'] ?? 0)
                     );
-                    if ($id === 'trial') {
-                        $m['trial_online_clients'] = (int) ($snapshot['online_clients'] ?? 0);
-                    } else {
-                        $m['unique_remote_ips'] = (int) ($snapshot['online_clients'] ?? 0);
-                    }
+                    $m['unique_remote_ips'] = (int) ($snapshot['online_clients'] ?? 0);
                     $bundle['metrics'] = $m;
                 }
 
@@ -92,11 +104,11 @@ class DashboardController extends Controller
             if (! is_array($m)) {
                 return 0;
             }
+            if (($b['id'] ?? '') === 'home') {
+                return (int) ($m['home_vless_online'] ?? 0) + (int) ($m['home_hy2_online'] ?? 0);
+            }
             if (isset($m['panel_online_clients'])) {
                 return (int) $m['panel_online_clients'];
-            }
-            if (($b['id'] ?? '') === 'trial') {
-                return (int) ($m['trial_online_clients'] ?? 0);
             }
 
             return (int) ($m['unique_remote_ips'] ?? 0);

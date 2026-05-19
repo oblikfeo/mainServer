@@ -59,9 +59,11 @@ class BundleHealthChecker
         }
 
         $profile = (string) ($bundle['health_profile'] ?? 'vless');
-        $remote = $profile === 'hysteria'
-            ? $this->fetchHysteriaHealthFlags($bundle, $clientPort)
-            : $this->fetchVlessHealthFlags($bundle, $clientPort);
+        $remote = match ($profile) {
+            'hysteria' => $this->fetchHysteriaHealthFlags($bundle, $clientPort),
+            'home' => $this->fetchHomeHealthFlags($bundle, $clientPort),
+            default => $this->fetchVlessHealthFlags($bundle, $clientPort),
+        };
         if ($remote === null) {
             $base['ssh_ok'] = false;
             $base['online'] = false;
@@ -168,6 +170,43 @@ egress_https=0
 if command -v curl >/dev/null 2>&1; then
   if curl -fsS --connect-timeout 4 --max-time 12 "https://www.cloudflare.com/cdn-cgi/trace" -o /dev/null 2>/dev/null; then egress_https=1; fi
 fi
+printf 'default_route:%s\nlisten_443:%s\nxray:%s\negress_https:%s\n' "$default_route" "$listen_443" "$xray" "$egress_https"
+BASH;
+
+        return $this->runHealthSshScript($bundle, $script, (string) $clientPort);
+    }
+
+    /**
+     * Домашний VPS: Xray (TCP :443) + Hysteria (UDP :443).
+     *
+     * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
+     */
+    private function fetchHomeHealthFlags(array $bundle, int $clientPort): ?array
+    {
+        $script = <<<'BASH'
+p="${1:-443}"
+default_route=0
+if ip route get 1.1.1.1 >/dev/null 2>&1; then default_route=1; fi
+tcp_listen=0
+udp_listen=0
+if command -v ss >/dev/null 2>&1; then
+  if ss -tln 2>/dev/null | grep -qE ":$p[[:space:]]"; then tcp_listen=1; fi
+  if ss -uln 2>/dev/null | grep -qE ":$p[[:space:]]"; then udp_listen=1; fi
+fi
+xray_proc=0
+if systemctl is-active --quiet xray 2>/dev/null; then xray_proc=1; fi
+if [ "$xray_proc" = 0 ] && pgrep -x xray >/dev/null 2>&1; then xray_proc=1; fi
+hy2_proc=0
+if systemctl is-active --quiet hysteria 2>/dev/null; then hy2_proc=1; fi
+if [ "$hy2_proc" = 0 ] && pgrep -f '[h]ysteria' >/dev/null 2>&1; then hy2_proc=1; fi
+egress_https=0
+if command -v curl >/dev/null 2>&1; then
+  if curl -fsS --connect-timeout 4 --max-time 12 "https://www.cloudflare.com/cdn-cgi/trace" -o /dev/null 2>/dev/null; then egress_https=1; fi
+fi
+listen_443=0
+if [ "$tcp_listen" = 1 ] && [ "$udp_listen" = 1 ]; then listen_443=1; fi
+xray=0
+if [ "$xray_proc" = 1 ] && [ "$hy2_proc" = 1 ]; then xray=1; fi
 printf 'default_route:%s\nlisten_443:%s\nxray:%s\negress_https:%s\n' "$default_route" "$listen_443" "$xray" "$egress_https"
 BASH;
 

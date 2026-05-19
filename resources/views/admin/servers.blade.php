@@ -63,17 +63,24 @@
                 </header>
 
                 <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-slate-50/80">
-                    <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
-                        @if (($bundle['id'] ?? '') === 'trial')
-                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (legacy trial)</span>
-                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['trial_online_clients'] ?? 0) : '—' }}</span>
-                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Старая панель TEST_KEYS, если настроена. Новые триалы — на FI/NL.</span>
-                        @else
+                    @if (($bundle['id'] ?? '') === 'home')
+                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн · {{ $bundle['home_vless_label'] ?? 'VLESS' }}</span>
+                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_vless_online'] ?? 0) : '—' }}</span>
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные IP на TCP :443 (Xray)</span>
+                        </div>
+                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
+                            <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн · {{ $bundle['home_hy2_label'] ?? 'Hy2' }}</span>
+                            <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_hy2_online'] ?? 0) : '—' }}</span>
+                            <span class="text-[10px] text-slate-500 mt-1 leading-tight">Уникальные IP на UDP :443 (Hysteria)</span>
+                        </div>
+                    @else
+                        <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $tile(null) }}">
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Онлайн (panel)</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['unique_remote_ips'] ?? 0) : '—' }}</span>
                             <span class="text-[10px] text-slate-500 mt-1 leading-tight">Онлайн-клиенты по активным подпискам (3x-ui)</span>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m ? $tile($m['cpu_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">CPU</span>
                         <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (($m['cpu_util_pct'] ?? '—').(($m['cpu_util_pct'] ?? null) !== null ? '%' : '')) : '—' }}</span>
@@ -92,6 +99,7 @@
                             @endif
                         </span>
                     </div>
+                    @if (($bundle['id'] ?? '') !== 'home')
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">NAT</span>
                         <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">
@@ -102,6 +110,7 @@
                             @endif
                         </span>
                     </div>
+                    @endif
                 </div>
             </article>
         @endforeach
