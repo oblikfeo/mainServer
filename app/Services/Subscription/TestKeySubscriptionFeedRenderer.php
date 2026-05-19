@@ -11,6 +11,44 @@ final class TestKeySubscriptionFeedRenderer
 {
     private const BYTES_PER_GB = 1_073_741_824;
 
+    public function renderDeviceLimitStubFeed(TestKey $key): Response
+    {
+        $lines = DeviceLimitSubscriptionVlessStubs::lines();
+        $body = implode("\n", array_filter($lines))."\n";
+
+        $total = max(1, (int) $key->quota_gb) * self::BYTES_PER_GB;
+        $expireSec = (int) ($key->expires_at?->getTimestamp() ?? 0);
+        $userinfo = $this->formatUserinfoValue(0, 0, $total, $expireSec);
+
+        $profileTitle = $this->profileTitleForHapp();
+        $extras = HappSubscriptionAppManagementExtras::forResponses($key, 0, 0);
+        $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($key->token);
+        $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
+        $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
+
+        if (config('xui.sub_output_b64', false)) {
+            $encoded = base64_encode($meta.$body)."\n";
+            $body = ($routingLine !== null ? $routingLine."\n" : '').$encoded;
+        } else {
+            $body = ($routingLine !== null ? $routingLine."\n" : '').$meta.$body;
+        }
+
+        $hours = (string) config('test_keys.default_hours', '8');
+        $headers = array_merge([
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'subscription-userinfo' => $userinfo,
+            'profile-update-interval' => $hours,
+        ], $extras['headers'], $providerExtras['headers']);
+        if (config('xui.feed_require_hwid', true)) {
+            $headers['subscription-always-hwid-enable'] = '1';
+        }
+        if ($routingLine !== null) {
+            $headers['routing'] = $routingLine;
+        }
+
+        return new Response($body, 200, $headers);
+    }
+
     public function render(TestKey $key): Response
     {
         $line = '';

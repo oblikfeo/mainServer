@@ -37,37 +37,29 @@ final class SubscriptionFeedHwidGate
         return null;
     }
 
-    /**
-     * null — можно отдавать подписку; иначе ответ с ошибкой.
-     */
-    public function assertAllowed(Request $request, Subscription $subscription): ?Response
+    public function checkSubscription(Request $request, Subscription $subscription): SubscriptionFeedHwidVerdict
     {
         if (! config('xui.feed_require_hwid', true)) {
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         }
 
         $max = max(0, (int) $subscription->devices);
         if ($max < 1) {
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         }
 
         $hwid = self::peekHwidFromRequest($request);
         if ($hwid === null) {
-            return new Response(
-                "Подписка защищена привязкой к устройству.\n"
-                ."Добавьте ссылку в приложение Happ — обновление из браузера без идентификатора устройства недоступно.\n",
-                403,
-                ['Content-Type' => 'text/plain; charset=utf-8']
-            );
+            return SubscriptionFeedHwidVerdict::MissingHwid;
         }
 
         $hash = hash('sha256', $hwid);
         $meta = $this->buildDeviceMeta($request);
 
-        return DB::transaction(function () use ($subscription, $hash, $max, $meta): ?Response {
+        return DB::transaction(function () use ($subscription, $hash, $max, $meta): SubscriptionFeedHwidVerdict {
             $row = Subscription::query()->whereKey($subscription->id)->lockForUpdate()->first();
             if ($row === null) {
-                return new Response('Подписка не найдена.', 404, ['Content-Type' => 'text/plain; charset=utf-8']);
+                return SubscriptionFeedHwidVerdict::MissingHwid;
             }
 
             $hashes = $row->bound_hwid_hashes;
@@ -82,15 +74,11 @@ final class SubscriptionFeedHwidGate
                 $row->bound_hwid_meta = $metaMap;
                 $row->save();
 
-                return null;
+                return SubscriptionFeedHwidVerdict::Allowed;
             }
 
             if (count($hashes) >= $max) {
-                return new Response(
-                    "Превышено число соединений\n",
-                    403,
-                    ['Content-Type' => 'text/plain; charset=utf-8']
-                );
+                return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
             }
 
             $hashes[] = $hash;
@@ -99,41 +87,33 @@ final class SubscriptionFeedHwidGate
             $row->bound_hwid_meta = $metaMap;
             $row->save();
 
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         });
     }
 
-    /**
-     * null — можно отдавать тестовую подписку; иначе ответ с ошибкой.
-     */
-    public function assertAllowedForTestKey(Request $request, TestKey $testKey): ?Response
+    public function checkTestKey(Request $request, TestKey $testKey): SubscriptionFeedHwidVerdict
     {
         if (! config('xui.feed_require_hwid', true)) {
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         }
 
         $max = max(0, (int) $testKey->limit_ip);
         if ($max < 1) {
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         }
 
         $hwid = self::peekHwidFromRequest($request);
         if ($hwid === null) {
-            return new Response(
-                "Подписка защищена привязкой к устройству.\n"
-                ."Добавьте ссылку в приложение Happ — обновление из браузера без идентификатора устройства недоступно.\n",
-                403,
-                ['Content-Type' => 'text/plain; charset=utf-8']
-            );
+            return SubscriptionFeedHwidVerdict::MissingHwid;
         }
 
         $hash = hash('sha256', $hwid);
         $meta = $this->buildDeviceMeta($request);
 
-        return DB::transaction(function () use ($testKey, $hash, $max, $meta): ?Response {
+        return DB::transaction(function () use ($testKey, $hash, $max, $meta): SubscriptionFeedHwidVerdict {
             $row = TestKey::query()->whereKey($testKey->id)->lockForUpdate()->first();
             if ($row === null) {
-                return new Response('Тестовая подписка не найдена.', 404, ['Content-Type' => 'text/plain; charset=utf-8']);
+                return SubscriptionFeedHwidVerdict::MissingHwid;
             }
 
             $hashes = $row->bound_hwid_hashes;
@@ -148,15 +128,11 @@ final class SubscriptionFeedHwidGate
                 $row->bound_hwid_meta = $metaMap;
                 $row->save();
 
-                return null;
+                return SubscriptionFeedHwidVerdict::Allowed;
             }
 
             if (count($hashes) >= $max) {
-                return new Response(
-                    "Превышено число соединений\n",
-                    403,
-                    ['Content-Type' => 'text/plain; charset=utf-8']
-                );
+                return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
             }
 
             $hashes[] = $hash;
@@ -165,8 +141,18 @@ final class SubscriptionFeedHwidGate
             $row->bound_hwid_meta = $metaMap;
             $row->save();
 
-            return null;
+            return SubscriptionFeedHwidVerdict::Allowed;
         });
+    }
+
+    public function missingHwidResponse(): Response
+    {
+        return new Response(
+            "Подписка защищена привязкой к устройству.\n"
+            ."Добавьте ссылку в приложение Happ — обновление из браузера без идентификатора устройства недоступно.\n",
+            403,
+            ['Content-Type' => 'text/plain; charset=utf-8']
+        );
     }
 
     /**

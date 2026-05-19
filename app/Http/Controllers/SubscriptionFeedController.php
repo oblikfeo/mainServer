@@ -6,6 +6,7 @@ use App\Models\Subscription;
 use App\Models\TestKey;
 use App\Services\Subscription\MergedSubscriptionFeedRenderer;
 use App\Services\Subscription\SubscriptionFeedHwidGate;
+use App\Services\Subscription\SubscriptionFeedHwidVerdict;
 use App\Services\Subscription\TestKeySubscriptionFeedRenderer;
 use App\Services\Subscription\XrayJsonSubscriptionFeedRenderer;
 use Illuminate\Http\Request;
@@ -23,9 +24,14 @@ class SubscriptionFeedController extends Controller
     ): Response {
         $subscription = Subscription::query()->where('token', $token)->first();
         if ($subscription !== null) {
-            $deny = $hwidGate->assertAllowed($request, $subscription);
-            if ($deny !== null) {
-                return $deny;
+            $verdict = $hwidGate->checkSubscription($request, $subscription);
+            $blocked = $this->responseForHwidVerdict(
+                $verdict,
+                $hwidGate,
+                fn () => $uriFeedRenderer->renderDeviceLimitStubFeed($subscription),
+            );
+            if ($blocked !== null) {
+                return $blocked;
             }
 
             return $this->subFeedFormat() === 'xray_json'
@@ -43,9 +49,14 @@ class SubscriptionFeedController extends Controller
             abort(404);
         }
 
-        $deny = $hwidGate->assertAllowedForTestKey($request, $testKey);
-        if ($deny !== null) {
-            return $deny;
+        $verdict = $hwidGate->checkTestKey($request, $testKey);
+        $blocked = $this->responseForHwidVerdict(
+            $verdict,
+            $hwidGate,
+            fn () => $testKeyRenderer->renderDeviceLimitStubFeed($testKey),
+        );
+        if ($blocked !== null) {
+            return $blocked;
         }
 
         return $this->subFeedFormat() === 'xray_json'
@@ -56,5 +67,20 @@ class SubscriptionFeedController extends Controller
     private function subFeedFormat(): string
     {
         return strtolower(trim((string) config('xui.sub_feed_format', 'uri')));
+    }
+
+    /**
+     * @param  callable(): Response  $deviceLimitStub
+     */
+    private function responseForHwidVerdict(
+        SubscriptionFeedHwidVerdict $verdict,
+        SubscriptionFeedHwidGate $hwidGate,
+        callable $deviceLimitStub,
+    ): ?Response {
+        return match ($verdict) {
+            SubscriptionFeedHwidVerdict::Allowed => null,
+            SubscriptionFeedHwidVerdict::MissingHwid => $hwidGate->missingHwidResponse(),
+            SubscriptionFeedHwidVerdict::DeviceLimitExceeded => $deviceLimitStub(),
+        };
     }
 }

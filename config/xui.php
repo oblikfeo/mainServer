@@ -125,6 +125,24 @@ return [
         'line2_subtitle' => trim((string) env('SUB_EXPIRED_STUB_LINE2_SUBTITLE', '')),
     ],
 
+    /**
+     * Лимит устройств Happ исчерпан: HTTP 200 + заглушки (iOS на 403 показывает «ошибку сервера»).
+     *
+     * @var array{line1_title: string, line1_subtitle: string, line2_title: string, line2_subtitle: string}
+     */
+    'sub_device_limit_stub' => [
+        'line1_title' => trim((string) env('SUB_DEVICE_LIMIT_STUB_LINE1_TITLE', 'Слишком много устройств')),
+        'line1_subtitle' => trim((string) env(
+            'SUB_DEVICE_LIMIT_STUB_LINE1_SUBTITLE',
+            'Лимит привязок исчерпан'
+        )),
+        'line2_title' => trim((string) env('SUB_DEVICE_LIMIT_STUB_LINE2_TITLE', 'Сброс в личном кабинете')),
+        'line2_subtitle' => trim((string) env(
+            'SUB_DEVICE_LIMIT_STUB_LINE2_SUBTITLE',
+            'Настройки → устройства → отвязать'
+        )),
+    ],
+
     /** Публичная ссылка подписки: {app_url}/sub/{token} */
     /** Имя профиля в Happ (до 25 символов): заголовок и #profile-title в теле */
     'sub_profile_title' => env('SUB_PROFILE_TITLE', 'Nadezhda 🧭 VPN'),

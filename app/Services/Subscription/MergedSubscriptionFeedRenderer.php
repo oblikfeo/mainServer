@@ -93,9 +93,22 @@ final class MergedSubscriptionFeedRenderer
         return new Response($body, 200, $headers);
     }
 
+    public function renderDeviceLimitStubFeed(Subscription $sub): Response
+    {
+        return $this->renderStubFeed($sub, DeviceLimitSubscriptionVlessStubs::lines());
+    }
+
     private function renderExpiredStubFeed(Subscription $sub): Response
     {
-        $lines = ExpiredSubscriptionVlessStubs::lines();
+        return $this->renderStubFeed($sub, ExpiredSubscriptionVlessStubs::lines());
+    }
+
+    /**
+     * @param  list<string>  $stubLines
+     */
+    private function renderStubFeed(Subscription $sub, array $stubLines): Response
+    {
+        $lines = $stubLines;
         $body = implode("\n", array_filter($lines))."\n";
 
         $quotaGb = (int) $sub->quota_gb;
