@@ -81,6 +81,13 @@ final class SubscriptionFeedHwidGate
                 return SubscriptionFeedHwidVerdict::Allowed;
             }
 
+            [$hashes, $metaMap] = SubscriptionHwidBindingStore::dropSameIpAndType(
+                $hashes,
+                $metaMap,
+                $meta['ip'],
+                $meta['type'],
+            );
+
             if (count($hashes) >= $max) {
                 return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
             }
@@ -139,6 +146,13 @@ final class SubscriptionFeedHwidGate
                 return SubscriptionFeedHwidVerdict::Allowed;
             }
 
+            [$hashes, $metaMap] = SubscriptionHwidBindingStore::dropSameIpAndType(
+                $hashes,
+                $metaMap,
+                $meta['ip'],
+                $meta['type'],
+            );
+
             if (count($hashes) >= $max) {
                 return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
             }
@@ -178,8 +192,16 @@ final class SubscriptionFeedHwidGate
     private static function looksLikeHappClient(Request $request): bool
     {
         $ua = trim((string) $request->userAgent());
+        if ($ua === '' || preg_match('/^Happ\//i', $ua) !== 1) {
+            return false;
+        }
 
-        return $ua !== '' && preg_match('/^Happ\//i', $ua) === 1;
+        // Диагностика с ПК/сервера: Happ/4.9.0/ios/test — не устройство пользователя.
+        if (preg_match('#/(?:ios|android|windows|macos|linux)/test(?:\s|$)#i', $ua)) {
+            return false;
+        }
+
+        return true;
     }
 
     private static function isInfrastructureClientIp(Request $request): bool
@@ -284,7 +306,10 @@ final class SubscriptionFeedHwidGate
         $uaRaw = (string) $request->userAgent();
         $uaLower = strtolower(trim($uaRaw));
         $type = 'Неизвестно';
-        if ($uaLower !== '') {
+        $happPlatformLabel = self::parseHappUserAgentPlatform($uaRaw);
+        if ($happPlatformLabel !== null) {
+            $type = $happPlatformLabel;
+        } elseif ($uaLower !== '') {
             if (str_contains($uaLower, 'ipad')) {
                 $type = 'iPad';
             } elseif (str_contains($uaLower, 'iphone')) {
@@ -297,8 +322,6 @@ final class SubscriptionFeedHwidGate
                 $type = 'macOS';
             } elseif (str_contains($uaLower, 'linux')) {
                 $type = 'Linux';
-            } elseif (str_contains($uaLower, 'ios')) {
-                $type = 'iOS';
             }
         }
 
@@ -328,6 +351,25 @@ final class SubscriptionFeedHwidGate
             'ip' => $ip,
             'seen_at' => now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * Happ/4.9.0/ios/2605051739663 → iOS (не путать с подстрокой «ios» в путях вроде /ios/test).
+     */
+    private static function parseHappUserAgentPlatform(string $ua): ?string
+    {
+        if (preg_match('#^Happ/[\d.]+/(ios|android|windows|macos|linux)/#i', trim($ua), $m)) {
+            return match (strtolower($m[1])) {
+                'ios' => 'iOS',
+                'android' => 'Android',
+                'windows' => 'Windows',
+                'macos' => 'macOS',
+                'linux' => 'Linux',
+                default => null,
+            };
+        }
+
+        return null;
     }
 
     /**
