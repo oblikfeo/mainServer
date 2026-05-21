@@ -12,12 +12,14 @@ final class HappRoutingMergedInputTest extends TestCase
         config([
             'xui.happ_routing.direct_sites' => [
                 'domain:vk.com',
+                'domain:yandex.ru',
                 'domain:ozon.ru',
                 'domain:wildberries.ru',
+                'domain:push.apple.com',
             ],
-            'xui.happ_routing.direct_sites_exclude_when_ruvds' => [
-                'domain:ozon.ru',
-                'domain:wildberries.ru',
+            'xui.happ_routing.direct_sites_push_only_when_ruvds' => [
+                'domain:push.apple.com',
+                'domain:mtalk.google.com',
             ],
             'xui.sub_extra_ruvds' => [
                 'enabled' => false,
@@ -27,15 +29,15 @@ final class HappRoutingMergedInputTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_keeps_shopping_in_direct_when_ruvds_disabled(): void
+    public function test_keeps_full_direct_list_when_ruvds_disabled(): void
     {
         $sites = HappRoutingMergedInput::mergedDirectSites();
 
         $this->assertContains('domain:ozon.ru', $sites);
-        $this->assertContains('domain:wildberries.ru', $sites);
+        $this->assertContains('domain:yandex.ru', $sites);
     }
 
-    public function test_excludes_shopping_from_direct_when_ruvds_enabled(): void
+    public function test_push_only_direct_when_ruvds_enabled(): void
     {
         config([
             'xui.sub_extra_ruvds' => [
@@ -46,8 +48,8 @@ final class HappRoutingMergedInputTest extends TestCase
 
         $sites = HappRoutingMergedInput::mergedDirectSites();
 
-        $this->assertContains('domain:vk.com', $sites);
+        $this->assertSame(['domain:push.apple.com', 'domain:mtalk.google.com'], $sites);
         $this->assertNotContains('domain:ozon.ru', $sites);
-        $this->assertNotContains('domain:wildberries.ru', $sites);
+        $this->assertNotContains('domain:yandex.ru', $sites);
     }
 }

@@ -305,15 +305,15 @@ return [
         ))))),
 
         /**
-         * При включённом RUVDS (SUB_RUVDS_*) эти домены убираются из DirectSites —
-         * иначе на мобильной Ozon/WB идут мимо VPN (direct) и не открываются.
+         * При включённом RUVDS (SUB_RUVDS_*): в DirectSites остаются только push-уведомления.
+         * Yandex/VK/Ozon и т.д. идут через VPN — иначе на LTE direct = «ничего не грузится».
          */
-        'direct_sites_exclude_when_ruvds' => [
-            'domain:ozon.ru',
-            'domain:wildberries.ru',
-            'domain:wbbasket.ru',
-            'domain:wb.ru',
-            'domain:vkusvill.ru',
+        'direct_sites_push_only_when_ruvds' => [
+            'domain:mtalk.google.com',
+            'domain:push.apple.com',
+            'domain:api.push.apple.com',
+            'domain:push-apple.com.akadns.net',
+            'domain:courier.push.apple.com',
         ],
 
         /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
