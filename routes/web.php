@@ -21,6 +21,7 @@ use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\SubscriptionFeedController;
 use App\Http\Controllers\TelegramLinkController;
 use App\Http\Controllers\TestSubscriptionController;
+use App\Http\Controllers\TestSubscriptionFeedController;
 use App\Http\Controllers\WataWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,10 @@ Route::post('/payments/wata/webhook', WataWebhookController::class)->name('payme
 
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');
+
+Route::get('/test-sub/{token}', [TestSubscriptionFeedController::class, 'show'])
+    ->where('token', '[A-Za-z0-9_-]{8,80}')
+    ->name('test-subscription.feed');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
