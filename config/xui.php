@@ -35,6 +35,17 @@ return [
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
     ],
 
+    /**
+     * RUVDS (доступыRUVDS, 195.133.198.100): общая VLESS Reality, одна ссылка на всех.
+     * В Happ: 🇭🇰 Мобильная сеть [1]; FI/NL ниже — [2] и [3].
+     */
+    'sub_extra_ruvds' => [
+        'enabled' => filter_var(env('SUB_RUVDS_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_RUVDS_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_RUVDS_VLESS_TITLE', '🇭🇰 Мобильная сеть [1]')),
+        'vless_subtitle' => trim((string) env('SUB_RUVDS_VLESS_SUBTITLE', '')),
+    ],
+
     'nodes' => [
         'fi' => [
             'panel_base' => rtrim((string) env('XUI_FI_BASE', ''), '/'),
@@ -45,7 +56,7 @@ return [
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
             'client_flow' => env('XUI_FI_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 Мобильная сеть',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 Мобильная сеть [2]',
             'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_FI_REALITY_SID', ''),
@@ -59,7 +70,7 @@ return [
             'inbound_id' => (int) env('XUI_NL_INBOUND_ID', 2),
             'client_email_prefix' => env('XUI_NL_EMAIL_PREFIX', 'nl'),
             'client_flow' => env('XUI_NL_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 Мобильная сеть',
+            'vless_display_name' => env('XUI_NL_VLESS_NAME') ?: '🇳🇱 Мобильная сеть [3]',
             'vless_server_description' => env('XUI_NL_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_NL_REALITY_SID', ''),
@@ -235,7 +246,7 @@ return [
         'trim',
         explode(',', (string) env(
             'SUB_FEED_HWID_IGNORE_IPS',
-            '127.0.0.1,::1,158.160.252.139,185.121.14.153,158.160.241.36,158.160.208.31'
+            '127.0.0.1,::1,158.160.252.139,185.121.14.153,195.133.198.100,158.160.241.36,158.160.208.31'
         ))
     ))),
 

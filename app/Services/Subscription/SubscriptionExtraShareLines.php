@@ -3,11 +3,10 @@
 namespace App\Services\Subscription;
 
 /**
- * Общие share-строки: VLESS Reality на Litnets (доступы5).
+ * Общие share-строки: Litnets (доступы5), RUVDS (доступыRUVDS) и т.д.
  *
- * Hysteria2 снят (2026-05-19) — Litnets теперь только VLESS на TCP:443.
- * Перед FI/NL подставляется одна общая ссылка на всех — заголовок и подпись
- * берутся из SUB_EXTRA_VLESS_TITLE / SUB_EXTRA_VLESS_SUBTITLE.
+ * Перед FI/NL подставляются hardcoded vless:// на всех — заголовки из .env.
+ * Порядок: Litnets → RUVDS → панельные FI/NL.
  */
 final class SubscriptionExtraShareLines
 {
@@ -16,16 +15,15 @@ final class SubscriptionExtraShareLines
      */
     public static function lines(): array
     {
-        $extra = config('xui.sub_extra', []);
-        if (! is_array($extra) || ! self::isConfigured($extra)) {
-            return [];
-        }
-
         $out = [];
         $fmt = (string) config('xui.vless_server_description_format', 'b64');
 
-        $v = trim((string) ($extra['vless_uri'] ?? ''));
-        if ($v !== '' && str_starts_with($v, 'vless://')) {
+        foreach (self::extraBlocks() as $extra) {
+            $v = trim((string) ($extra['vless_uri'] ?? ''));
+            if ($v === '' || ! str_starts_with($v, 'vless://')) {
+                continue;
+            }
+
             $title = trim((string) ($extra['vless_title'] ?? ''));
             $sub = trim((string) ($extra['vless_subtitle'] ?? ''));
             if ($title !== '') {
@@ -38,7 +36,7 @@ final class SubscriptionExtraShareLines
     }
 
     /**
-     * Порядок: Litnets VLESS → LTE (FI/NL).
+     * Порядок: shared (Litnets, RUVDS) → LTE (FI/NL).
      *
      * @param  array{vless_entries: list<array{line?: string}>}  $bundle
      * @return list<string>
@@ -57,6 +55,26 @@ final class SubscriptionExtraShareLines
         }
 
         return $lines;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function extraBlocks(): array
+    {
+        $blocks = [];
+
+        $home = config('xui.sub_extra', []);
+        if (is_array($home) && self::isConfigured($home)) {
+            $blocks[] = $home;
+        }
+
+        $ruvds = config('xui.sub_extra_ruvds', []);
+        if (is_array($ruvds) && self::isConfigured($ruvds)) {
+            $blocks[] = $ruvds;
+        }
+
+        return $blocks;
     }
 
     /**
