@@ -304,6 +304,18 @@ return [
             ])
         ))))),
 
+        /**
+         * При включённом RUVDS (SUB_RUVDS_*) эти домены убираются из DirectSites —
+         * иначе на мобильной Ozon/WB идут мимо VPN (direct) и не открываются.
+         */
+        'direct_sites_exclude_when_ruvds' => [
+            'domain:ozon.ru',
+            'domain:wildberries.ru',
+            'domain:wbbasket.ru',
+            'domain:wb.ru',
+            'domain:vkusvill.ru',
+        ],
+
         /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_IP',
