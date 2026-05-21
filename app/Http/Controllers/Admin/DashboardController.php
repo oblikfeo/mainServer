@@ -14,6 +14,9 @@ use Throwable;
 
 class DashboardController extends Controller
 {
+    /** @var list<string> */
+    private const SHARED_VLESS_BUNDLE_IDS = ['home', 'ruvds'];
+
     public function __construct(
         protected BundleHealthChecker $bundleHealth,
         protected BundleSshMetrics $bundleSshMetrics,
@@ -40,9 +43,10 @@ class DashboardController extends Controller
         ];
 
         $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Быстрый Wi-Fi'));
+        $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 Мобильная сеть [1]'));
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $ruvdsVlessTitle) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -52,8 +56,12 @@ class DashboardController extends Controller
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
 
-                if ($id === 'home') {
-                    $bundle['home_vless_label'] = $homeVlessTitle;
+                if (in_array($id, self::SHARED_VLESS_BUNDLE_IDS, true)) {
+                    $bundle['home_vless_label'] = match ($id) {
+                        'home' => $homeVlessTitle,
+                        'ruvds' => $ruvdsVlessTitle,
+                        default => 'VLESS',
+                    };
                     $bundleForHome = $bundle;
                     $bundle['metrics'] = Cache::remember(
                         'bundle_home_metrics_v4_'.$id,
@@ -101,7 +109,7 @@ class DashboardController extends Controller
             if (! is_array($m)) {
                 return 0;
             }
-            if (($b['id'] ?? '') === 'home') {
+            if (in_array($b['id'] ?? '', self::SHARED_VLESS_BUNDLE_IDS, true)) {
                 return (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0);
             }
             if (isset($m['panel_online_clients'])) {
