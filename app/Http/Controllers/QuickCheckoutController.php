@@ -2,18 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\QuickBuySubscriptionMail;
 use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use RuntimeException;
@@ -35,6 +32,7 @@ final class QuickCheckoutController extends Controller
         $data = $request->validate([
             'plan' => ['required', 'string', 'max:32'],
             'period' => ['required', 'string', 'max:32'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'deviceData' => ['required', 'array'],
             'deviceData.browserAcceptHeader' => ['required', 'string', 'max:512'],
             'deviceData.browserLanguage' => ['required', 'string', 'max:32'],
@@ -70,7 +68,7 @@ final class QuickCheckoutController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $wata, $userCreator, $plan, $period, $devices, $days, $quotaGb, $amountRub, $data): JsonResponse {
-                [$user, $plainPassword] = $userCreator->create();
+                [$user, $plainPassword] = $userCreator->create((string) $data['email']);
 
                 $orderId = 'ord_'.(string) Str::ulid();
                 $claimToken = Str::random(48);
@@ -158,6 +156,8 @@ final class QuickCheckoutController extends Controller
                     ]);
                 }
             });
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             report($e);
 
@@ -222,7 +222,7 @@ final class QuickCheckoutController extends Controller
         ]);
     }
 
-    public function done(Request $request, string $claimToken): View|RedirectResponse
+    public function done(Request $request, string $claimToken): View
     {
         if (strlen($claimToken) > 64) {
             throw new NotFoundHttpException;
@@ -264,56 +264,7 @@ final class QuickCheckoutController extends Controller
             'plainPassword' => is_string($plainPassword) ? $plainPassword : null,
             'cabinetLoginUrl' => $cabinetLoginUrl,
             'claimToken' => $claimToken,
-            'canSetEmail' => $buyer !== null && QuickCheckoutUserCreator::isAutogenEmail((string) $buyer->email),
             'shouldPoll' => $order->status !== 'paid' || ($order->status === 'paid' && $subscription === null),
         ]);
-    }
-
-    public function saveEmail(Request $request, string $claimToken): RedirectResponse
-    {
-        if (strlen($claimToken) > 64) {
-            throw new NotFoundHttpException;
-        }
-
-        /** @var PaymentOrder|null $order */
-        $order = PaymentOrder::query()
-            ->where('claim_token', $claimToken)
-            ->where('status', 'paid')
-            ->with(['user', 'subscription'])
-            ->first();
-        if ($order === null || $order->user === null) {
-            throw new NotFoundHttpException;
-        }
-
-        $data = $request->validate([
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$order->user_id],
-        ]);
-
-        $user = $order->user;
-        if (! QuickCheckoutUserCreator::isAutogenEmail((string) $user->email)) {
-            return back()->with('status', 'email-already-set');
-        }
-
-        $email = (string) $data['email'];
-        $user->email = $email;
-        $user->email_verified_at = null;
-        $user->save();
-
-        $subscription = $order->subscription;
-        if ($subscription !== null) {
-            $brand = (string) config('marketing.brand_name', 'Надежда');
-            $fromAddress = (string) (config('marketing.support_email') ?: config('mail.from.address', 'support@nadezhda.space'));
-            $fromName = $brand.' · поддержка';
-
-            Mail::to($email)->send(new QuickBuySubscriptionMail(
-                brand: $brand,
-                supportFromAddress: $fromAddress,
-                supportFromName: $fromName,
-                subscriptionUrl: $subscription->shareableSubUrl(),
-                cabinetLoginUrl: route('auth.via_token', ['token' => $subscription->token], absolute: true),
-            ));
-        }
-
-        return back()->with('status', 'email-saved');
     }
 }

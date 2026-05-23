@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\QuickBuySubscriptionMail;
 use App\Models\PaymentOrder;
 use App\Models\Purchase;
 use App\Models\User;
@@ -13,6 +14,7 @@ use App\Services\Wata\WataH2hClient;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -176,6 +178,22 @@ class WataWebhookController extends Controller
                         'amount' => (string) (int) $locked->amount_rub,
                         'new_date' => $newDate,
                     ]);
+                }
+
+                if (filled($locked->claim_token) && $buyer !== null) {
+                    try {
+                        $brand = (string) config('marketing.brand_name', 'Надежда');
+                        $fromAddress = (string) (config('marketing.support_email') ?: config('mail.from.address', 'support@nadezhda.space'));
+                        Mail::to($buyer->email)->send(new QuickBuySubscriptionMail(
+                            brand: $brand,
+                            supportFromAddress: $fromAddress,
+                            supportFromName: $brand.' · поддержка',
+                            subscriptionUrl: $renewed->shareableSubUrl(),
+                            cabinetLoginUrl: route('auth.via_token', ['token' => $renewed->token], absolute: true),
+                        ));
+                    } catch (\Throwable $e) {
+                        Log::warning('WATA webhook: quick buy email failed: '.$e->getMessage());
+                    }
                 }
 
                 return response('', 200);

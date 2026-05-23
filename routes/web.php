@@ -63,10 +63,6 @@ Route::get('/buy/status/{orderId}', [QuickCheckoutController::class, 'status'])
 Route::get('/buy/done/{claimToken}', [QuickCheckoutController::class, 'done'])
     ->where('claimToken', '[A-Za-z0-9]{32,64}')
     ->name('quick_buy.done');
-Route::post('/buy/done/{claimToken}/email', [QuickCheckoutController::class, 'saveEmail'])
-    ->middleware('throttle:10,1')
-    ->where('claimToken', '[A-Za-z0-9]{32,64}')
-    ->name('quick_buy.save_email');
 
 Route::post('/payments/wata/webhook', WataWebhookController::class)->name('payments.wata.webhook');
 

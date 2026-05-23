@@ -11,16 +11,15 @@ final class QuickCheckoutUserCreator
     /**
      * @return array{0: User, 1: string}
      */
-    public function create(): array
+    public function create(string $email): array
     {
         $suffix = random_int(1000, 9999);
         $name = 'User'.$suffix;
-        $email = 'auto+'.Str::lower((string) Str::ulid()).'@'.$this->autogenEmailDomain();
         $password = Str::password(12, symbols: false);
 
         $user = User::query()->create([
             'name' => $name,
-            'email' => $email,
+            'email' => strtolower(trim($email)),
             'password' => Hash::make($password),
         ]);
 

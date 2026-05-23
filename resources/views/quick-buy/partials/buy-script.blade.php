@@ -2,6 +2,13 @@
 <script>
 (function () {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const emailModal = document.getElementById('lp-buy-email-modal');
+    const emailClose = document.getElementById('lp-buy-email-close');
+    const emailForm = document.getElementById('lp-buy-email-form');
+    const emailInput = document.getElementById('lp-buy-email-input');
+    const emailError = document.getElementById('lp-buy-email-error');
+    const emailAmount = document.getElementById('lp-buy-email-amount');
+    const emailSubmit = document.getElementById('lp-buy-email-submit');
     const modal = document.getElementById('lp-buy-modal');
     const modalClose = document.getElementById('lp-buy-modal-close');
     const modalDesc = document.getElementById('lp-buy-modal-desc');
@@ -10,7 +17,7 @@
     const modalStatus = document.getElementById('lp-buy-modal-status');
 
     let pollTimer = null;
-    let activeOrder = null;
+    let pendingTariff = null;
 
     function collectDeviceData() {
         const tzOffsetHours = -Math.round(new Date().getTimezoneOffset() / 60);
@@ -31,19 +38,43 @@
         };
     }
 
-    function openModal() {
+    function openEmailModal(plan, period, amount) {
+        pendingTariff = { plan, period, amount };
+        if (emailAmount) {
+            emailAmount.textContent = amount ? amount + ' ₽' : '';
+        }
+        if (emailInput) {
+            emailInput.value = '';
+        }
+        if (emailError) {
+            emailError.hidden = true;
+            emailError.textContent = '';
+        }
+        emailModal.classList.add('lp-buy-modal--open');
+        emailModal.setAttribute('aria-hidden', 'false');
+        if (emailInput) {
+            emailInput.focus();
+        }
+    }
+
+    function closeEmailModal() {
+        emailModal.classList.remove('lp-buy-modal--open');
+        emailModal.setAttribute('aria-hidden', 'true');
+        pendingTariff = null;
+    }
+
+    function openPayModal() {
         modal.classList.add('lp-buy-modal--open');
         modal.setAttribute('aria-hidden', 'false');
     }
 
-    function closeModal() {
+    function closePayModal() {
         modal.classList.remove('lp-buy-modal--open');
         modal.setAttribute('aria-hidden', 'true');
         if (pollTimer) {
             clearInterval(pollTimer);
             pollTimer = null;
         }
-        activeOrder = null;
         modalQr.innerHTML = '';
         modalStatus.textContent = 'Ожидаем оплату…';
         modalStatus.classList.remove('lp-buy-modal__status--error');
@@ -73,7 +104,7 @@
         modalQr.appendChild(img);
     }
 
-    async function createPayment(plan, period) {
+    async function createPayment(plan, period, email) {
         const r = await fetch(@json(route('quick_buy.pay')), {
             method: 'POST',
             headers: {
@@ -84,12 +115,16 @@
             body: JSON.stringify({
                 plan,
                 period,
+                email,
                 deviceData: collectDeviceData(),
             }),
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok || !data) {
-            throw new Error(data?.error || 'create_payment_failed');
+            const err = new Error(data?.error || 'create_payment_failed');
+            err.payload = data;
+            err.status = r.status;
+            throw err;
         }
         if (data.mode === 'redirect' && data.url) {
             return data;
@@ -126,59 +161,100 @@
                     modalStatus.textContent = 'Оплата не прошла. Попробуйте ещё раз.';
                     modalStatus.classList.add('lp-buy-modal__status--error');
                 }
-            } catch (_) {
-                // временная ошибка сети — продолжаем поллинг
-            }
+            } catch (_) {}
         }, 2500);
     }
 
-    document.addEventListener('click', async (e) => {
+    async function startPayment(plan, period, amount, email) {
+        const data = await createPayment(plan, period, email);
+        closeEmailModal();
+
+        if (data.mode === 'redirect' && data.url) {
+            window.location.href = data.url;
+            return;
+        }
+
+        modalDesc.textContent = data.description || ('Подписка · ' + period);
+        modalAmount.textContent = (data.amountRub || amount) + ' ₽';
+        renderQr(data.sbpLink);
+        modalStatus.textContent = 'Ожидаем оплату…';
+        modalStatus.classList.remove('lp-buy-modal__status--error');
+        openPayModal();
+        startPolling(data.orderId, data.claimToken, data.doneUrl);
+    }
+
+    document.addEventListener('click', (e) => {
         const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn') : null;
-        if (!btn || btn.disabled) return;
+        if (!btn || btn.disabled || btn.id === 'lp-buy-email-submit') return;
 
         const plan = btn.getAttribute('data-tariff-plan') || '';
         const period = btn.getAttribute('data-tariff-period') || '';
         const amount = btn.getAttribute('data-tariff-amount') || '';
         if (!plan || !period) return;
 
-        btn.disabled = true;
-        const oldText = btn.textContent;
-        btn.textContent = '…';
-
-        try {
-            const data = await createPayment(plan, period);
-            if (data.mode === 'redirect' && data.url) {
-                window.location.href = data.url;
-                return;
-            }
-            activeOrder = data;
-            modalDesc.textContent = data.description || ('Подписка · ' + period);
-            modalAmount.textContent = (data.amountRub || amount) + ' ₽';
-            renderQr(data.sbpLink);
-            modalStatus.textContent = 'Ожидаем оплату…';
-            modalStatus.classList.remove('lp-buy-modal__status--error');
-            openModal();
-            startPolling(data.orderId, data.claimToken, data.doneUrl);
-        } catch (err) {
-            alert('Не удалось создать оплату. Попробуйте ещё раз или напишите в поддержку.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = oldText || 'Оплатить';
-        }
+        openEmailModal(plan, period, amount);
     }, { passive: true });
 
+    if (emailForm) {
+        emailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!pendingTariff || !emailInput) return;
+
+            const email = (emailInput.value || '').trim();
+            if (!email) return;
+
+            if (emailError) {
+                emailError.hidden = true;
+                emailError.textContent = '';
+            }
+
+            emailSubmit.disabled = true;
+            const oldText = emailSubmit.textContent;
+            emailSubmit.textContent = '…';
+
+            try {
+                await startPayment(
+                    pendingTariff.plan,
+                    pendingTariff.period,
+                    pendingTariff.amount,
+                    email
+                );
+            } catch (err) {
+                if (err.status === 422 && err.payload && err.payload.errors && err.payload.errors.email) {
+                    if (emailError) {
+                        emailError.textContent = err.payload.errors.email[0] || 'Этот email уже занят.';
+                        emailError.hidden = false;
+                    }
+                } else {
+                    alert('Не удалось создать оплату. Попробуйте ещё раз или напишите в поддержку.');
+                }
+            } finally {
+                emailSubmit.disabled = false;
+                emailSubmit.textContent = oldText || 'Перейти к оплате';
+            }
+        });
+    }
+
+    if (emailClose) {
+        emailClose.addEventListener('click', closeEmailModal);
+    }
+    if (emailModal) {
+        emailModal.addEventListener('click', (e) => {
+            if (e.target === emailModal) closeEmailModal();
+        });
+    }
     if (modalClose) {
-        modalClose.addEventListener('click', closeModal);
+        modalClose.addEventListener('click', closePayModal);
     }
     if (modal) {
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
+            if (e.target === modal) closePayModal();
         });
     }
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('lp-buy-modal--open')) {
-            closeModal();
-        }
+        if (e.key !== 'Escape') return;
+        if (emailModal.classList.contains('lp-buy-modal--open')) closeEmailModal();
+        if (modal.classList.contains('lp-buy-modal--open')) closePayModal();
     });
 })();
 </script>

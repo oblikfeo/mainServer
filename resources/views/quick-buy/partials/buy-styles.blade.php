@@ -189,6 +189,23 @@
         font-size: 15px;
         margin-bottom: 10px;
     }
+    .lp-buy-email-form--modal {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+    .lp-buy-email-modal-form input[type="email"] {
+        width: 100%;
+        padding: 12px 14px;
+        border: var(--mock-border);
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+    .lp-buy-email-modal-form .lp-buy-pay-btn {
+        width: 100%;
+        margin-top: 4px;
+    }
     .lp-buy-wait {
         text-align: center;
         padding: 40px 20px;

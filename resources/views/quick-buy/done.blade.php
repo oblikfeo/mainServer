@@ -47,7 +47,7 @@
                     Подписка <span class="lp-nice-hero__title-em">готова</span>
                 </h1>
                 <p class="lp-nice-hero__lead">
-                    Скопируйте ссылку ниже и добавьте её в Happ. В приложении по кнопке ⓘ можно войти в личный кабинет без пароля.
+                    Скопируйте ссылку ниже и добавьте её в Happ. Мы также отправили её на {{ $buyer?->email }}. В Happ по кнопке ⓘ можно войти в личный кабинет без пароля.
                 </p>
             @elseif ($isPaid)
                 <span class="lp-nice-hero__kicker">
@@ -114,25 +114,6 @@
                 </div>
             </div>
 
-            @if ($canSetEmail)
-                <div class="lp-buy-done-box lp-buy-email-form">
-                    <div class="lp-buy-done-box__label">Продублировать на почту</div>
-                    <p class="lp-nice-hero__lead" style="margin-bottom:12px;">
-                        Укажите email — отправим ссылку подписки и вход в кабинет. Потом сможете сменить пароль в профиле.
-                    </p>
-                    @if (session('status') === 'email-saved')
-                        <p class="lp-buy-modal__status" style="text-align:left;margin-bottom:12px;">Письмо отправлено на указанный адрес.</p>
-                    @endif
-                    <form method="post" action="{{ route('quick_buy.save_email', ['claimToken' => $claimToken]) }}">
-                        @csrf
-                        <input type="email" name="email" required autocomplete="email" placeholder="your@email.com" value="{{ old('email') }}">
-                        @error('email')
-                            <p class="lp-buy-modal__status lp-buy-modal__status--error" style="text-align:left;margin-bottom:10px;">{{ $message }}</p>
-                        @enderror
-                        <button type="submit" class="lp-buy-done-btn">Отправить на почту</button>
-                    </form>
-                </div>
-            @endif
         @elseif ($isPaid)
             <div class="lp-buy-wait" id="lp-buy-done-wait">
                 Подготавливаем подписку…

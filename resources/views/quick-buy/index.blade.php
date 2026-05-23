@@ -75,18 +75,29 @@
         </section>
 
         <footer class="lp-footer-mock">
-            <div class="footer-intro">
-                <div class="footer-logo">{{ mb_strtoupper($brand, 'UTF-8') }}</div>
-                <p class="footer-description">
-                    Оплачивая подписку, вы соглашаетесь с
-                    <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">публичной офертой</a>.
-                </p>
-            </div>
             <div class="footer-bottom">
                 <span>&copy; {{ date('Y') }} {{ mb_strtoupper($brand, 'UTF-8') }}</span>
-                <span><a href="{{ url('/') }}" class="text-inherit underline underline-offset-2">На главную</a></span>
+                <span>
+                    Оплачивая подписку, вы соглашаетесь с
+                    <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">публичной офертой</a>.
+                </span>
             </div>
         </footer>
+    </div>
+</div>
+
+<div class="lp-buy-modal" id="lp-buy-email-modal" role="dialog" aria-modal="true" aria-labelledby="lp-buy-email-title" aria-hidden="true">
+    <div class="lp-buy-modal__panel">
+        <button type="button" class="lp-buy-modal__close" id="lp-buy-email-close" aria-label="Закрыть">&times;</button>
+        <h2 class="lp-buy-modal__title" id="lp-buy-email-title">Почта для подписки</h2>
+        <p class="lp-buy-modal__sub" id="lp-buy-email-desc">Укажите email — отправим ссылку подписки после оплаты.</p>
+        <p class="lp-buy-modal__amount" id="lp-buy-email-amount"></p>
+        <form id="lp-buy-email-form" class="lp-buy-email-modal-form">
+            <input type="email" id="lp-buy-email-input" name="email" required autocomplete="email" placeholder="your@email.com">
+            <p class="lp-buy-modal__status lp-buy-modal__status--error" id="lp-buy-email-error" hidden></p>
+            <button type="submit" class="lp-buy-pay-btn" id="lp-buy-email-submit">Перейти к оплате</button>
+        </form>
+        <p class="lp-buy-modal__hint">Нажимая «Перейти к оплате», вы соглашаетесь с <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">публичной офертой</a>.</p>
     </div>
 </div>
 
