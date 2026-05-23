@@ -533,7 +533,7 @@ final class XrayJsonSubscriptionFeedRenderer
      */
     private function routingWithBalancer(array $proxyTags): array
     {
-        $rules = $this->commonDirectRules();
+        $rules = array_merge($this->proxyEgressRules(), $this->commonDirectRules());
         $rules[] = [
             'type' => 'field',
             'network' => 'tcp,udp',
@@ -560,7 +560,7 @@ final class XrayJsonSubscriptionFeedRenderer
      */
     private function routingSingle(string $proxyTag): array
     {
-        $rules = $this->commonDirectRules();
+        $rules = array_merge($this->proxyEgressRules(), $this->commonDirectRules());
         $rules[] = [
             'type' => 'field',
             'network' => 'tcp,udp',
@@ -584,7 +584,65 @@ final class XrayJsonSubscriptionFeedRenderer
             return array_values($domainsConfig);
         }
 
+        if ($this->ruvdsSharedNodeEnabled()) {
+            return $this->pushOnlyDirectDomainsPreset();
+        }
+
         return $this->defaultDirectDomainsPreset();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function proxyEgressRules(): array
+    {
+        if (! $this->ruvdsSharedNodeEnabled()) {
+            return [];
+        }
+
+        return [
+            ['type' => 'field', 'network' => 'udp', 'port' => '443', 'outboundTag' => 'block'],
+        ];
+    }
+
+    private function ruvdsSharedNodeEnabled(): bool
+    {
+        $ruvds = config('xui.sub_extra_ruvds', []);
+
+        return is_array($ruvds) && SubscriptionExtraShareLines::isConfigured($ruvds);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function pushOnlyDirectDomainsPreset(): array
+    {
+        $sites = HappRoutingMergedInput::mergedDirectSites();
+        $domains = [];
+        foreach ($sites as $site) {
+            $site = trim($site);
+            if ($site === '') {
+                continue;
+            }
+            if (str_starts_with($site, 'domain:')) {
+                $domains[] = $site;
+                continue;
+            }
+            if (str_starts_with($site, 'full:') || str_starts_with($site, 'keyword:') || str_starts_with($site, 'regexp:')) {
+                $domains[] = $site;
+            }
+        }
+
+        return [
+            ['outboundTag' => 'direct', 'protocol' => ['bittorrent']],
+            [
+                'outboundTag' => 'direct',
+                'domain' => $domains !== [] ? $domains : [
+                    'domain:push.apple.com',
+                    'domain:mtalk.google.com',
+                ],
+            ],
+        ];
     }
 
     /**

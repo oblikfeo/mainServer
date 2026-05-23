@@ -21,16 +21,13 @@ final class HappRoutingMergedInput
      */
     public static function mergedDirectSites(): array
     {
-        if (self::ruvdsSharedNodeEnabled()) {
-            return self::mergeUniqueTokens(
-                self::configList('direct_sites_push_only_when_ruvds'),
-                []
-            );
-        }
-
         $parsed = HappRoutingRulesParser::parse(self::adminRoutingRulesRaw());
 
-        return self::mergeUniqueTokens(self::configList('direct_sites'), $parsed['sites']);
+        $base = self::ruvdsSharedNodeEnabled()
+            ? self::configList('direct_sites_push_only_when_ruvds')
+            : self::configList('direct_sites');
+
+        return self::mergeUniqueTokens($base, $parsed['sites']);
     }
 
     /**
