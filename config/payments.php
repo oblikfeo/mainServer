@@ -6,6 +6,13 @@
  * чтобы не доверять данным из браузера.
  */
 return [
+    /**
+     * Быстрая покупка без регистрации (/buy).
+     */
+    'quick_buy' => [
+        'autogen_email_domain' => env('QUICK_BUY_AUTOGEN_EMAIL_DOMAIN', 'buy.nadezhda.local'),
+    ],
+
     'products' => [
         // solo: 2 устройства
         'solo' => [

@@ -54,6 +54,54 @@ final class WataH2hClient
     }
 
     /**
+     * @return array{transactionId: string, transactionStatus: string, sbpLink: string}
+     */
+    public function createSbpTransaction(array $payload): array
+    {
+        $r = $this->http()->post('payments/sbp', $payload);
+        if (! $r->successful()) {
+            throw new RuntimeException('WATA payments/sbp: HTTP '.$r->status().' '.$r->body());
+        }
+        $j = $r->json();
+        if (! is_array($j)) {
+            throw new RuntimeException('WATA payments/sbp: некорректный JSON');
+        }
+        $transactionId = (string) ($j['transactionId'] ?? '');
+        $sbpLink = trim((string) ($j['sbpLink'] ?? ''));
+        if ($transactionId === '' || $sbpLink === '') {
+            throw new RuntimeException('WATA payments/sbp: в ответе нет transactionId/sbpLink');
+        }
+
+        return [
+            'transactionId' => $transactionId,
+            'transactionStatus' => (string) ($j['transactionStatus'] ?? 'Pending'),
+            'sbpLink' => $sbpLink,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getTransaction(string $transactionUuid): array
+    {
+        $id = trim($transactionUuid);
+        if ($id === '') {
+            throw new RuntimeException('WATA transactions: пустой UUID');
+        }
+
+        $r = $this->http()->get('transactions/'.$id);
+        if (! $r->successful()) {
+            throw new RuntimeException('WATA transactions: HTTP '.$r->status().' '.$r->body());
+        }
+        $j = $r->json();
+        if (! is_array($j)) {
+            throw new RuntimeException('WATA transactions: некорректный JSON');
+        }
+
+        return $j;
+    }
+
+    /**
      * Публичный ключ для проверки подписи webhook (PKCS1/PEM).
      * В доке WATA запрос к public-key без Authorization — делаем так же, при 401 пробуем с токеном.
      */

@@ -18,6 +18,7 @@ use App\Http\Controllers\CabinetTestKeysController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
+use App\Http\Controllers\QuickCheckoutController;
 use App\Http\Controllers\SubscriptionFeedController;
 use App\Http\Controllers\TelegramLinkController;
 use App\Http\Controllers\TestSubscriptionController;
@@ -50,6 +51,22 @@ Route::get('/privacy-policy', function () {
 
 Route::view('/spasibo', 'spasibo')->name('payment.success');
 Route::view('/oshibka', 'oshibka')->name('payment.failure');
+
+Route::get('/buy', [QuickCheckoutController::class, 'show'])->name('quick_buy.show');
+Route::post('/buy/pay', [QuickCheckoutController::class, 'pay'])
+    ->middleware('throttle:15,1')
+    ->name('quick_buy.pay');
+Route::get('/buy/status/{orderId}', [QuickCheckoutController::class, 'status'])
+    ->middleware('throttle:60,1')
+    ->where('orderId', 'ord_[A-Za-z0-9_-]+')
+    ->name('quick_buy.status');
+Route::get('/buy/done/{claimToken}', [QuickCheckoutController::class, 'done'])
+    ->where('claimToken', '[A-Za-z0-9]{32,64}')
+    ->name('quick_buy.done');
+Route::post('/buy/done/{claimToken}/email', [QuickCheckoutController::class, 'saveEmail'])
+    ->middleware('throttle:10,1')
+    ->where('claimToken', '[A-Za-z0-9]{32,64}')
+    ->name('quick_buy.save_email');
 
 Route::post('/payments/wata/webhook', WataWebhookController::class)->name('payments.wata.webhook');
 

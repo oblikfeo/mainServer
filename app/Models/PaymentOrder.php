@@ -9,6 +9,7 @@ class PaymentOrder extends Model
 {
     protected $fillable = [
         'order_id',
+        'claim_token',
         'user_id',
         'subscription_id',
         'purpose',
