@@ -88,7 +88,13 @@
             }),
         });
         const data = await r.json().catch(() => ({}));
-        if (!r.ok || !data || !data.sbpLink) {
+        if (!r.ok || !data) {
+            throw new Error(data?.error || 'create_payment_failed');
+        }
+        if (data.mode === 'redirect' && data.url) {
+            return data;
+        }
+        if (!data.sbpLink) {
             throw new Error(data?.error || 'create_payment_failed');
         }
         return data;
@@ -141,6 +147,10 @@
 
         try {
             const data = await createPayment(plan, period);
+            if (data.mode === 'redirect' && data.url) {
+                window.location.href = data.url;
+                return;
+            }
             activeOrder = data;
             modalDesc.textContent = data.description || ('Подписка · ' + period);
             modalAmount.textContent = (data.amountRub || amount) + ' ₽';
