@@ -147,4 +147,9 @@ final class HappRoutingMergedInput
 
         return is_array($ruvds) && SubscriptionExtraShareLines::isConfigured($ruvds);
     }
+
+    public static function isRuvdsMobileProfile(): bool
+    {
+        return self::ruvdsSharedNodeEnabled();
+    }
 }

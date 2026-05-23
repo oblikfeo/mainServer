@@ -58,6 +58,7 @@ final class HappRoutingSubscriptionLine
             blockSites: $blockSites,
             blockIp: $blockIp,
             proxySites: $proxySites,
+            domainStrategy: HappRoutingMergedInput::isRuvdsMobileProfile() ? 'IPIfNonMatch' : 'AsIs',
         );
     }
 
@@ -139,6 +140,7 @@ final class HappRoutingSubscriptionLine
         array $blockSites = [],
         array $blockIp = [],
         array $proxySites = [],
+        string $domainStrategy = 'AsIs',
     ): ?string {
         $allowGeosite = $geositeUrl !== '';
         $allowGeoip = $geoipUrl !== '';
@@ -213,7 +215,7 @@ final class HappRoutingSubscriptionLine
             'ProxyIp' => [],
             'BlockSites' => $blockSites,
             'BlockIp' => $blockIp,
-            'DomainStrategy' => 'AsIs',
+            'DomainStrategy' => $domainStrategy,
             'FakeDNS' => 'false',
             'LastUpdated' => (string) time(),
         ];
