@@ -31,6 +31,20 @@ final class HappRoutingMergedInput
     }
 
     /**
+     * ProxySites для Happ (uri-подписка): явно через VPN на LTE.
+     *
+     * @return list<string>
+     */
+    public static function mergedProxySites(): array
+    {
+        if (! self::ruvdsSharedNodeEnabled()) {
+            return [];
+        }
+
+        return self::configList('proxy_sites_when_ruvds');
+    }
+
+    /**
      * DirectIp: CIDR, IPv4, geoip:* (последнее работает только при HAPP_GEOIP_URL !== '').
      *
      * @return list<string>

@@ -42,6 +42,7 @@ final class HappRoutingSubscriptionLine
 
         $directSites = HappRoutingMergedInput::mergedDirectSites();
         $directIp = HappRoutingMergedInput::mergedDirectIp();
+        $proxySites = HappRoutingMergedInput::mergedProxySites();
         $blockSites = HappRoutingMergedInput::mergedBlockSites();
         $blockIp = HappRoutingMergedInput::mergedBlockIp();
 
@@ -56,6 +57,7 @@ final class HappRoutingSubscriptionLine
             geositeUrl: trim((string) ($cfg['geosite_url'] ?? '')),
             blockSites: $blockSites,
             blockIp: $blockIp,
+            proxySites: $proxySites,
         );
     }
 
@@ -125,6 +127,7 @@ final class HappRoutingSubscriptionLine
      * @param  list<string>  $extraDirectIp  CIDR/IPv4/geoip:* (geoip: оставляется только при geoipUrl !== '')
      * @param  list<string>  $blockSites     BlockSites (geosite: оставляется только при geositeUrl !== '')
      * @param  list<string>  $blockIp        BlockIp (geoip: оставляется только при geoipUrl !== '')
+     * @param  list<string>  $proxySites     ProxySites — явно через VPN
      */
     public static function buildOnAddLine(
         string $profileName,
@@ -135,6 +138,7 @@ final class HappRoutingSubscriptionLine
         string $geositeUrl = '',
         array $blockSites = [],
         array $blockIp = [],
+        array $proxySites = [],
     ): ?string {
         $allowGeosite = $geositeUrl !== '';
         $allowGeoip = $geoipUrl !== '';
@@ -155,12 +159,17 @@ final class HappRoutingSubscriptionLine
             array_values(array_filter(array_map('trim', $blockIp), fn (string $s): bool => $s !== '')),
             $allowGeoip,
         );
+        $proxySites = self::sitesForHappProfile(
+            array_values(array_filter(array_map('trim', $proxySites), fn (string $s): bool => $s !== '')),
+            $allowGeosite,
+        );
 
         if (
             $directSites === []
             && $extraDirectIp === []
             && $blockSites === []
             && $blockIp === []
+            && $proxySites === []
         ) {
             return null;
         }
@@ -200,7 +209,7 @@ final class HappRoutingSubscriptionLine
             ],
             'DirectSites' => $directSites,
             'DirectIp' => $directIp,
-            'ProxySites' => [],
+            'ProxySites' => $proxySites,
             'ProxyIp' => [],
             'BlockSites' => $blockSites,
             'BlockIp' => $blockIp,

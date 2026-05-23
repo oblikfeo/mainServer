@@ -316,6 +316,19 @@ return [
             'domain:courier.push.apple.com',
         ],
 
+        /** При RUVDS: явно гнать Google/YouTube в прокси (uri-подписка без JSON-профиля). */
+        'proxy_sites_when_ruvds' => [
+            'domain:youtube.com',
+            'domain:googlevideo.com',
+            'domain:ytimg.com',
+            'domain:ggpht.com',
+            'domain:gstatic.com',
+            'domain:google.com',
+            'domain:googleapis.com',
+            'domain:gvt1.com',
+            'domain:googleusercontent.com',
+        ],
+
         /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_IP',
