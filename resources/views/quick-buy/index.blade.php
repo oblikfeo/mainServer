@@ -89,27 +89,46 @@
 <div class="lp-buy-modal" id="lp-buy-email-modal" role="dialog" aria-modal="true" aria-labelledby="lp-buy-email-title" aria-hidden="true">
     <div class="lp-buy-modal__panel">
         <button type="button" class="lp-buy-modal__close" id="lp-buy-email-close" aria-label="Закрыть">&times;</button>
-        <h2 class="lp-buy-modal__title" id="lp-buy-email-title">Почта для подписки</h2>
-        <p class="lp-buy-modal__sub" id="lp-buy-email-desc">Укажите email — отправим ссылку подписки после оплаты.</p>
-        <p class="lp-buy-modal__amount" id="lp-buy-email-amount"></p>
+        <span class="lp-buy-modal__kicker">
+            <span class="lp-buy-modal__kicker-dot" aria-hidden="true"></span>
+            Перед оплатой
+        </span>
+        <h2 class="lp-buy-modal__title" id="lp-buy-email-title">
+            Укажите <span class="lp-buy-modal__title-em">почту</span>
+        </h2>
+        <p class="lp-buy-modal__sub" id="lp-buy-email-desc">Отправим ссылку подписки после оплаты — можно сразу добавить в Happ.</p>
+        <div class="lp-buy-modal__amount-wrap">
+            <span class="lp-buy-modal__amount-label">К оплате</span>
+            <p class="lp-buy-modal__amount" id="lp-buy-email-amount"></p>
+        </div>
         <form id="lp-buy-email-form" class="lp-buy-email-modal-form">
+            <label class="lp-buy-modal__field-label" for="lp-buy-email-input">Email</label>
             <input type="email" id="lp-buy-email-input" name="email" required autocomplete="email" placeholder="your@email.com">
             <p class="lp-buy-modal__status lp-buy-modal__status--error" id="lp-buy-email-error" hidden></p>
             <button type="submit" class="lp-buy-pay-btn" id="lp-buy-email-submit">Перейти к оплате</button>
         </form>
-        <p class="lp-buy-modal__hint">Нажимая «Перейти к оплате», вы соглашаетесь с <a href="{{ route('agreement') }}" class="text-inherit underline underline-offset-2">публичной офертой</a>.</p>
+        <p class="lp-buy-modal__hint">Нажимая «Перейти к оплате», вы соглашаетесь с <a href="{{ route('agreement') }}">публичной офертой</a>.</p>
     </div>
 </div>
 
 <div class="lp-buy-modal" id="lp-buy-modal" role="dialog" aria-modal="true" aria-labelledby="lp-buy-modal-title" aria-hidden="true">
     <div class="lp-buy-modal__panel">
         <button type="button" class="lp-buy-modal__close" id="lp-buy-modal-close" aria-label="Закрыть">&times;</button>
-        <h2 class="lp-buy-modal__title" id="lp-buy-modal-title">Оплата через СБП</h2>
-        <p class="lp-buy-modal__sub" id="lp-buy-modal-desc">Отсканируйте QR-код в приложении банка</p>
-        <p class="lp-buy-modal__amount" id="lp-buy-modal-amount"></p>
+        <span class="lp-buy-modal__kicker">
+            <span class="lp-buy-modal__kicker-dot" aria-hidden="true"></span>
+            Оплата СБП
+        </span>
+        <h2 class="lp-buy-modal__title" id="lp-buy-modal-title">
+            Сканируйте <span class="lp-buy-modal__title-em">QR</span>
+        </h2>
+        <p class="lp-buy-modal__sub" id="lp-buy-modal-desc">Откройте приложение банка и отсканируйте код</p>
+        <div class="lp-buy-modal__amount-wrap">
+            <span class="lp-buy-modal__amount-label">Сумма</span>
+            <p class="lp-buy-modal__amount" id="lp-buy-modal-amount"></p>
+        </div>
         <div class="lp-buy-modal__qr-wrap" id="lp-buy-modal-qr" aria-hidden="true"></div>
         <p class="lp-buy-modal__status" id="lp-buy-modal-status">Ожидаем оплату…</p>
-        <p class="lp-buy-modal__hint">После оплаты страница обновится автоматически. Обычно это занимает до минуты.</p>
+        <p class="lp-buy-modal__hint">После оплаты откроется страница с подпиской. Обычно это занимает до минуты.</p>
     </div>
 </div>
 @endsection
