@@ -35,6 +35,13 @@ final class HappRoutingSubscriptionLine
                 : null;
         }
 
+        if (
+            filter_var($cfg['routing_off_when_ruvds'] ?? true, FILTER_VALIDATE_BOOL)
+            && HappRoutingMergedInput::isRuvdsMobileProfile()
+        ) {
+            return self::ROUTING_OFF_DEEPLINK;
+        }
+
         $name = trim((string) ($cfg['profile_name'] ?? 'direct'));
         if ($name === '') {
             $name = 'direct';

@@ -260,6 +260,11 @@ return [
      */
     'happ_routing' => [
         'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
+        /**
+         * При SUB_RUVDS_*: в подписку уходит happ://routing/off (весь трафик в туннель).
+         * Профиль DirectSites на LTE ломает сайты; пользователь подтвердил — routing/off работает.
+         */
+        'routing_off_when_ruvds' => filter_var(env('HAPP_ROUTING_OFF_WHEN_RUVDS', true), FILTER_VALIDATE_BOOL),
         /** При enabled=false — первая строка подписки и заголовок routing: happ://routing/off (отключить маршрутизацию в Happ). */
         'send_off_when_disabled' => filter_var(env('HAPP_ROUTING_SEND_OFF_WHEN_DISABLED', true), FILTER_VALIDATE_BOOL),
         /** true = happ://routing/onadd/... (активировать при получении) */

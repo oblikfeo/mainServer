@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\Subscription\HappRoutingMergedInput;
+use App\Services\Subscription\HappRoutingSubscriptionLine;
 use Tests\TestCase;
 
 final class HappRoutingMergedInputTest extends TestCase
@@ -51,5 +52,22 @@ final class HappRoutingMergedInputTest extends TestCase
         $this->assertSame(['domain:push.apple.com', 'domain:mtalk.google.com'], $sites);
         $this->assertNotContains('domain:ozon.ru', $sites);
         $this->assertNotContains('domain:yandex.ru', $sites);
+    }
+
+    public function test_routing_off_in_subscription_when_ruvds_enabled(): void
+    {
+        config([
+            'xui.happ_routing.enabled' => true,
+            'xui.happ_routing.routing_off_when_ruvds' => true,
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => 'vless://test@1.2.3.4:443',
+            ],
+        ]);
+
+        $this->assertSame(
+            HappRoutingSubscriptionLine::ROUTING_OFF_DEEPLINK,
+            HappRoutingSubscriptionLine::feedRoutingLine(),
+        );
     }
 }
