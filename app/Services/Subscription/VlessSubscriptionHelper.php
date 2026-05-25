@@ -39,7 +39,15 @@ final class VlessSubscriptionHelper
      */
     public static function setVlessFragment(string $url, string $title, string $serverDescription = '', string $format = 'dual'): string
     {
-        if ($url === '' || ! str_starts_with($url, 'vless://')) {
+        return self::setShareFragment($url, $title, $serverDescription, $format);
+    }
+
+    /**
+     * Фрагмент share-ссылки (vless://, hy2://) для Happ — см. setVlessFragment.
+     */
+    public static function setShareFragment(string $url, string $title, string $serverDescription = '', string $format = 'dual'): string
+    {
+        if ($url === '' || (! str_starts_with($url, 'vless://') && ! str_starts_with($url, 'hy2://'))) {
             return $url;
         }
         $base = explode('#', $url, 2)[0];

@@ -18,11 +18,12 @@ return [
     'bundle_order' => ['fi', 'nl'],
 
     /**
-     * Общий узел в начале подписки (Litnets, доступы5, 185.121.14.153): VLESS Reality,
-     * одна ссылка на всех. Далее FI/NL per-client. Hysteria2 снята 2026-05-19.
+     * Общий узел в начале подписки (Litnets, доступы5, 185.121.14.153): hy2:// или vless://
+     * одна ссылка на всех. При непустом SUB_EXTRA_HY2_URI он имеет приоритет над VLESS.
      *
      * @var array{
      *   enabled: bool,
+     *   hy2_uri: string,
      *   vless_uri: string,
      *   vless_title: string,
      *   vless_subtitle: string,
@@ -30,6 +31,7 @@ return [
      */
     'sub_extra' => [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
         'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),

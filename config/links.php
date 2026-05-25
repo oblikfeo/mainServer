@@ -26,7 +26,7 @@ return [
         [
             'id' => 'home',
             'name' => 'Litnets',
-            'subtitle' => '185.121.14.153 · общий VLESS (Быстрый Wi-Fi)',
+            'subtitle' => '185.121.14.153 · Hy2 (Быстрый Wi-Fi)',
             'ip' => (string) env('LINK_HOME_IP', '185.121.14.153'),
             'ssh_user' => (string) env('LINK_HOME_SSH_USER', 'root'),
             'ssh_private_key' => (string) env('LINK_HOME_SSH_KEY', ''),
