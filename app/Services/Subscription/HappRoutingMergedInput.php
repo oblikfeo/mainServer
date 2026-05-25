@@ -23,25 +23,7 @@ final class HappRoutingMergedInput
     {
         $parsed = HappRoutingRulesParser::parse(self::adminRoutingRulesRaw());
 
-        $base = self::ruvdsSharedNodeEnabled()
-            ? self::configList('direct_sites_push_only_when_ruvds')
-            : self::configList('direct_sites');
-
-        return self::mergeUniqueTokens($base, $parsed['sites']);
-    }
-
-    /**
-     * ProxySites для Happ (uri-подписка): явно через VPN на LTE.
-     *
-     * @return list<string>
-     */
-    public static function mergedProxySites(): array
-    {
-        if (! self::ruvdsSharedNodeEnabled()) {
-            return [];
-        }
-
-        return self::configList('proxy_sites_when_ruvds');
+        return self::mergeUniqueTokens(self::configList('direct_sites'), $parsed['sites']);
     }
 
     /**

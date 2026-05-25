@@ -18,10 +18,6 @@ final class HappRoutingMergedInputTest extends TestCase
                 'domain:wildberries.ru',
                 'domain:push.apple.com',
             ],
-            'xui.happ_routing.direct_sites_push_only_when_ruvds' => [
-                'domain:push.apple.com',
-                'domain:mtalk.google.com',
-            ],
             'xui.sub_extra_ruvds' => [
                 'enabled' => false,
                 'vless_uri' => '',
@@ -38,7 +34,7 @@ final class HappRoutingMergedInputTest extends TestCase
         $this->assertContains('domain:yandex.ru', $sites);
     }
 
-    public function test_push_only_direct_when_ruvds_enabled(): void
+    public function test_keeps_full_direct_list_when_ruvds_enabled(): void
     {
         config([
             'xui.sub_extra_ruvds' => [
@@ -49,9 +45,8 @@ final class HappRoutingMergedInputTest extends TestCase
 
         $sites = HappRoutingMergedInput::mergedDirectSites();
 
-        $this->assertSame(['domain:push.apple.com', 'domain:mtalk.google.com'], $sites);
-        $this->assertNotContains('domain:ozon.ru', $sites);
-        $this->assertNotContains('domain:yandex.ru', $sites);
+        $this->assertContains('domain:ozon.ru', $sites);
+        $this->assertContains('domain:yandex.ru', $sites);
     }
 
     public function test_routing_off_in_subscription_when_ruvds_enabled(): void
@@ -69,5 +64,22 @@ final class HappRoutingMergedInputTest extends TestCase
             HappRoutingSubscriptionLine::ROUTING_OFF_DEEPLINK,
             HappRoutingSubscriptionLine::feedRoutingLine(),
         );
+    }
+
+    public function test_normal_routing_profile_when_ruvds_and_routing_off_disabled(): void
+    {
+        config([
+            'xui.happ_routing.enabled' => true,
+            'xui.happ_routing.routing_off_when_ruvds' => false,
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => 'vless://test@1.2.3.4:443',
+            ],
+        ]);
+
+        $line = HappRoutingSubscriptionLine::feedRoutingLine();
+        $this->assertNotNull($line);
+        $this->assertStringStartsWith('happ://routing/', (string) $line);
+        $this->assertNotSame(HappRoutingSubscriptionLine::ROUTING_OFF_DEEPLINK, $line);
     }
 }

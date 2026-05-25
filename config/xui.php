@@ -260,11 +260,8 @@ return [
      */
     'happ_routing' => [
         'enabled' => filter_var(env('HAPP_ROUTING_ENABLED', true), FILTER_VALIDATE_BOOL),
-        /**
-         * При SUB_RUVDS_*: в подписку уходит happ://routing/off (весь трафик в туннель).
-         * Профиль DirectSites на LTE ломает сайты; пользователь подтвердил — routing/off работает.
-         */
-        'routing_off_when_ruvds' => filter_var(env('HAPP_ROUTING_OFF_WHEN_RUVDS', true), FILTER_VALIDATE_BOOL),
+        /** true + SUB_RUVDS_* → happ://routing/off (аварийный обход; по умолчанию false). */
+        'routing_off_when_ruvds' => filter_var(env('HAPP_ROUTING_OFF_WHEN_RUVDS', false), FILTER_VALIDATE_BOOL),
         /** При enabled=false — первая строка подписки и заголовок routing: happ://routing/off (отключить маршрутизацию в Happ). */
         'send_off_when_disabled' => filter_var(env('HAPP_ROUTING_SEND_OFF_WHEN_DISABLED', true), FILTER_VALIDATE_BOOL),
         /** true = happ://routing/onadd/... (активировать при получении) */
@@ -308,31 +305,6 @@ return [
                 'domain:2ip.ru',
             ])
         ))))),
-
-        /**
-         * При включённом RUVDS (SUB_RUVDS_*): в DirectSites остаются только push-уведомления.
-         * Yandex/VK/Ozon и т.д. идут через VPN — иначе на LTE direct = «ничего не грузится».
-         */
-        'direct_sites_push_only_when_ruvds' => [
-            'domain:mtalk.google.com',
-            'domain:push.apple.com',
-            'domain:api.push.apple.com',
-            'domain:push-apple.com.akadns.net',
-            'domain:courier.push.apple.com',
-        ],
-
-        /** При RUVDS: явно гнать Google/YouTube в прокси (uri-подписка без JSON-профиля). */
-        'proxy_sites_when_ruvds' => [
-            'domain:youtube.com',
-            'domain:googlevideo.com',
-            'domain:ytimg.com',
-            'domain:ggpht.com',
-            'domain:gstatic.com',
-            'domain:google.com',
-            'domain:googleapis.com',
-            'domain:gvt1.com',
-            'domain:googleusercontent.com',
-        ],
 
         /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(

@@ -36,7 +36,7 @@ final class HappRoutingSubscriptionLine
         }
 
         if (
-            filter_var($cfg['routing_off_when_ruvds'] ?? true, FILTER_VALIDATE_BOOL)
+            filter_var($cfg['routing_off_when_ruvds'] ?? false, FILTER_VALIDATE_BOOL)
             && HappRoutingMergedInput::isRuvdsMobileProfile()
         ) {
             return self::ROUTING_OFF_DEEPLINK;
@@ -49,7 +49,6 @@ final class HappRoutingSubscriptionLine
 
         $directSites = HappRoutingMergedInput::mergedDirectSites();
         $directIp = HappRoutingMergedInput::mergedDirectIp();
-        $proxySites = HappRoutingMergedInput::mergedProxySites();
         $blockSites = HappRoutingMergedInput::mergedBlockSites();
         $blockIp = HappRoutingMergedInput::mergedBlockIp();
 
@@ -64,8 +63,8 @@ final class HappRoutingSubscriptionLine
             geositeUrl: trim((string) ($cfg['geosite_url'] ?? '')),
             blockSites: $blockSites,
             blockIp: $blockIp,
-            proxySites: $proxySites,
-            domainStrategy: HappRoutingMergedInput::isRuvdsMobileProfile() ? 'IPIfNonMatch' : 'AsIs',
+            proxySites: [],
+            domainStrategy: 'AsIs',
         );
     }
 
