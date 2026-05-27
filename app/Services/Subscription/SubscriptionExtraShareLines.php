@@ -11,9 +11,10 @@ namespace App\Services\Subscription;
 final class SubscriptionExtraShareLines
 {
     /**
+     * @param  bool  $includeVlessShareUris  false — только hy2:// в префиксе (VLESS уйдут в JSON meta)
      * @return list<string>
      */
-    public static function lines(): array
+    public static function lines(bool $includeVlessShareUris = true): array
     {
         $out = [];
         $fmt = (string) config('xui.vless_server_description_format', 'b64');
@@ -21,6 +22,9 @@ final class SubscriptionExtraShareLines
         foreach (self::extraBlocks() as $extra) {
             $v = self::resolveShareUri($extra);
             if ($v === '') {
+                continue;
+            }
+            if (! $includeVlessShareUris && str_starts_with($v, 'vless://')) {
                 continue;
             }
 
@@ -43,7 +47,7 @@ final class SubscriptionExtraShareLines
      */
     public static function orderedWithBundle(array $bundle, bool $includePanelVless = true): array
     {
-        $lines = self::lines();
+        $lines = self::lines($includePanelVless);
 
         if ($includePanelVless) {
             foreach ($bundle['vless_entries'] ?? [] as $entry) {
@@ -55,6 +59,31 @@ final class SubscriptionExtraShareLines
         }
 
         return $lines;
+    }
+
+    /**
+     * Общие vless:// (RUVDS и т.д.) для JSON с meta.serverDescription, когда vless не в URI-префиксе.
+     *
+     * @return list<array{uri: string, remarks: string, server_description: string}>
+     */
+    public static function sharedVlessProfilesForJson(): array
+    {
+        $out = [];
+
+        foreach (self::extraBlocks() as $extra) {
+            $v = trim((string) ($extra['vless_uri'] ?? ''));
+            if ($v === '' || ! str_starts_with($v, 'vless://')) {
+                continue;
+            }
+
+            $out[] = [
+                'uri' => $v,
+                'remarks' => trim((string) ($extra['vless_title'] ?? '')),
+                'server_description' => trim((string) ($extra['vless_subtitle'] ?? '')),
+            ];
+        }
+
+        return $out;
     }
 
     /**

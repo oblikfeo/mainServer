@@ -109,4 +109,71 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertSame('vless://fi@1.2.3.4:443#fi', $lines[1]);
         $this->assertSame('vless://nl@5.6.7.8:443#nl', $lines[2]);
     }
+
+    public function test_lines_without_vless_share_uris_keeps_hy2_only(): void
+    {
+        config([
+            'xui.sub_extra' => [
+                'enabled' => true,
+                'hy2_uri' => self::HY2_HOME,
+                'vless_uri' => self::VLESS_HOME,
+                'vless_title' => '🇩🇪 Wi-Fi',
+                'vless_subtitle' => 'Hy2',
+            ],
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_RUVDS,
+                'vless_title' => '🇭🇰 [1]',
+                'vless_subtitle' => 'Yota',
+            ],
+        ]);
+
+        $lines = SubscriptionExtraShareLines::lines(false);
+
+        $this->assertCount(1, $lines);
+        $this->assertStringStartsWith('hy2://', $lines[0]);
+    }
+
+    public function test_shared_vless_profiles_for_json(): void
+    {
+        config([
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_RUVDS,
+                'vless_title' => '🇭🇰 [1]',
+                'vless_subtitle' => 'Yota, Tele2',
+            ],
+        ]);
+
+        $profiles = SubscriptionExtraShareLines::sharedVlessProfilesForJson();
+
+        $this->assertCount(1, $profiles);
+        $this->assertSame(self::VLESS_RUVDS, $profiles[0]['uri']);
+        $this->assertSame('🇭🇰 [1]', $profiles[0]['remarks']);
+        $this->assertSame('Yota, Tele2', $profiles[0]['server_description']);
+    }
+
+    public function test_ordered_with_bundle_without_panel_vless(): void
+    {
+        config([
+            'xui.sub_extra' => [
+                'enabled' => true,
+                'hy2_uri' => self::HY2_HOME,
+                'vless_uri' => '',
+                'vless_title' => 'Wi-Fi',
+                'vless_subtitle' => '',
+            ],
+        ]);
+
+        $bundle = [
+            'vless_entries' => [
+                ['key' => 'fi', 'line' => 'vless://fi@1.2.3.4:443#fi'],
+            ],
+        ];
+
+        $lines = SubscriptionExtraShareLines::orderedWithBundle($bundle, false);
+
+        $this->assertCount(1, $lines);
+        $this->assertStringStartsWith('hy2://', $lines[0]);
+    }
 }
