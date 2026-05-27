@@ -12,12 +12,12 @@ final class HappRoutingMergedInputTest extends TestCase
     {
         config([
             'xui.happ_routing.direct_sites' => [
-                'domain:vk.com',
-                'domain:yandex.ru',
-                'domain:ozon.ru',
-                'domain:wildberries.ru',
+                'geosite:category-ru',
                 'domain:push.apple.com',
             ],
+            'xui.happ_routing.geoip_url' => 'http://195.133.198.100/geo/geoip.dat',
+            'xui.happ_routing.geosite_url' => 'http://195.133.198.100/geo/geosite.dat',
+            'xui.happ_routing.direct_ip' => ['geoip:ru'],
             'xui.sub_extra_ruvds' => [
                 'enabled' => false,
                 'vless_uri' => '',
@@ -30,8 +30,8 @@ final class HappRoutingMergedInputTest extends TestCase
     {
         $sites = HappRoutingMergedInput::mergedDirectSites();
 
-        $this->assertContains('domain:ozon.ru', $sites);
-        $this->assertContains('domain:yandex.ru', $sites);
+        $this->assertContains('geosite:category-ru', $sites);
+        $this->assertContains('domain:push.apple.com', $sites);
     }
 
     public function test_keeps_full_direct_list_when_ruvds_enabled(): void
@@ -45,8 +45,8 @@ final class HappRoutingMergedInputTest extends TestCase
 
         $sites = HappRoutingMergedInput::mergedDirectSites();
 
-        $this->assertContains('domain:ozon.ru', $sites);
-        $this->assertContains('domain:yandex.ru', $sites);
+        $this->assertContains('geosite:category-ru', $sites);
+        $this->assertContains('domain:push.apple.com', $sites);
     }
 
     public function test_routing_off_in_subscription_when_ruvds_enabled(): void

@@ -255,8 +255,9 @@ return [
     /**
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
      *
-     * Geoipurl/Geositeurl по умолчанию ПУСТЫЕ: Loyalsoldier .dat в памяти Happ > 50 МБ → туннель не стартует.
-     * Обход RU-сервисов — только domain: (лёгкий список). geosite:/geoip: правила отбрасываются без URL на .dat.
+     * Geo .dat — зеркало на RUVDS (HAPP_GEOIP_URL / HAPP_GEOSITE_URL), не GitHub.
+     * DirectSites: geosite:category-ru + push; DirectIp: geoip:ru. Без URL geosite:/geoip: отбрасываются.
+     * Loyalsoldier .dat > ~50 МБ RAM в Happ — на слабых телефонах туннель может не стартовать.
      *
      * @see https://www.happ.su/main/dev-docs/routing
      */
@@ -271,47 +272,30 @@ return [
         /** Имя профиля в Happ (короткое) */
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
 
-        /** Пусто = не качать geoip.dat (лимит памяти Happ ~50 МБ). */
-        'geoip_url' => trim((string) env('HAPP_GEOIP_URL', '')),
-        /** Пусто = не качать geosite.dat. */
-        'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', '')),
+        /** geoip.dat — зеркало RUVDS (переопределить: HAPP_GEOIP_URL=). */
+        'geoip_url' => trim((string) env('HAPP_GEOIP_URL', 'http://195.133.198.100/geo/geoip.dat')),
+        /** geosite.dat — зеркало RUVDS. */
+        'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', 'http://195.133.198.100/geo/geosite.dat')),
 
         /**
-         * DirectSites: только domain:/full:/keyword: — без geosite: (требует тяжёлый .dat).
+         * DirectSites: geosite: + push (без длинного domain:-списка RU-сервисов).
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
             implode(',', [
+                'geosite:category-ru',
                 'domain:mtalk.google.com',
                 'domain:push.apple.com',
                 'domain:api.push.apple.com',
                 'domain:push-apple.com.akadns.net',
                 'domain:courier.push.apple.com',
-                'domain:mangabuff.ru',
-                'domain:yandex.com',
-                'domain:yandex.net',
-                'domain:yandex.ru',
-                'domain:mail.ru',
-                'domain:vk.com',
-                'domain:vkusvill.ru',
-                'domain:ozon.ru',
-                'domain:wildberries.ru',
-                'domain:wbbasket.ru',
-                'domain:wb.ru',
-                'domain:tinkoff.ru',
-                'domain:gosuslugi.ru',
-                'domain:nalog.gov.ru',
-                'domain:mos.ru',
-                'domain:2gis.com',
-                'domain:2gis.ru',
-                'domain:2ip.ru',
             ])
         ))))),
 
-        /** DirectIp: CIDR/IPv4. geoip:* не используем — нужен .dat. Частные сети добавляет код. */
+        /** DirectIp: geoip:ru при включённом geoip_url. */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_IP',
-            ''
+            'geoip:ru'
         ))))),
 
         /** BlockSites: по умолчанию пусто (geosite:category-ads-all тянет geosite.dat). */

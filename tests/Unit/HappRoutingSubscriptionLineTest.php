@@ -47,20 +47,20 @@ final class HappRoutingSubscriptionLineTest extends TestCase
     {
         $line = HappRoutingSubscriptionLine::buildOnAddLine(
             profileName: 'direct',
-            directSites: ['geosite:category-ru', 'domain:vk.com'],
+            directSites: ['geosite:category-ru', 'domain:push.apple.com'],
             useOnAdd: true,
             extraDirectIp: ['geoip:ru'],
-            geoipUrl: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat',
-            geositeUrl: 'https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat',
+            geoipUrl: 'http://195.133.198.100/geo/geoip.dat',
+            geositeUrl: 'http://195.133.198.100/geo/geosite.dat',
         );
 
         $this->assertNotNull($line);
         $json = $this->decodeRoutingLine((string) $line);
 
-        $this->assertStringContainsString('Loyalsoldier', (string) $json['Geoipurl']);
-        $this->assertStringContainsString('Loyalsoldier', (string) $json['Geositeurl']);
+        $this->assertSame('http://195.133.198.100/geo/geoip.dat', $json['Geoipurl']);
+        $this->assertSame('http://195.133.198.100/geo/geosite.dat', $json['Geositeurl']);
         $this->assertContains('geosite:category-ru', $json['DirectSites']);
-        $this->assertContains('domain:vk.com', $json['DirectSites']);
+        $this->assertContains('domain:push.apple.com', $json['DirectSites']);
         $this->assertContains('geoip:ru', $json['DirectIp']);
     }
 
