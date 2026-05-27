@@ -101,7 +101,7 @@ final class XrayJsonSubscriptionFeedRenderer
                     filter_var(config('xui.sub_json_pretty_print', false), FILTER_VALIDATE_BOOL),
                 );
             } else {
-                $jsonPieces = $this->buildSharedVlessJsonPieces();
+                $jsonPieces = [];
                 foreach ($convertedRows as $row) {
                     /** @var array{key:string,line:string,userinfo:array<string,int>} $entry */
                     $entry = $row['entry'];
@@ -426,41 +426,6 @@ final class XrayJsonSubscriptionFeedRenderer
             ),
             'userinfo' => $userinfo,
         ];
-    }
-
-    /**
-     * RUVDS и другие shared vless:// → отдельные JSON-профили (meta.serverDescription для серой строки на мобильных).
-     *
-     * @return list<string>
-     */
-    private function buildSharedVlessJsonPieces(): array
-    {
-        if (filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL)) {
-            return [];
-        }
-
-        $pieces = [];
-        foreach (SubscriptionExtraShareLines::sharedVlessProfilesForJson() as $profile) {
-            $stripped = explode('#', (string) $profile['uri'], 2)[0];
-            $ob = VlessUriToXrayOutbound::convert($stripped, 'proxy');
-            if ($ob === null) {
-                continue;
-            }
-
-            $remarks = $this->shortenHappLabel(trim((string) ($profile['remarks'] ?? '')), 64);
-            if ($remarks === '') {
-                $remarks = 'Shared';
-            }
-
-            $doc = $this->buildXrayDoc(
-                [$ob],
-                $remarks,
-                trim((string) ($profile['server_description'] ?? '')),
-            );
-            $pieces[] = $this->encodeJsonDocument($doc, false);
-        }
-
-        return $pieces;
     }
 
     private function encodeJsonDocument(array $doc, bool $pretty): string
