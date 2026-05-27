@@ -19,6 +19,15 @@ final class HappRoutingSubscriptionLine
 {
     public const ROUTING_OFF_DEEPLINK = 'happ://routing/off';
 
+    /** Yandex Public DNS (DoH) — Remote и Domestic, без Cloudflare/Google. */
+    private const YANDEX_DOH_URL = 'https://common.dot.dns.yandex.net/dns-query';
+
+    private const YANDEX_DOH_HOST = 'common.dot.dns.yandex.net';
+
+    private const YANDEX_DNS_PRIMARY = '77.88.8.8';
+
+    private const YANDEX_DNS_SECONDARY = '77.88.8.1';
+
     /**
      * Строка для подписки: отключение маршрутизации, либо happ://routing/onadd/… с правилами.
      */
@@ -182,8 +191,11 @@ final class HappRoutingSubscriptionLine
             return null;
         }
 
-        // Запросы DoH к Cloudflare (1.1.1.1) иначе уходят в GlobalProxy → если узел недоступен, DNS не поднимается и «нет интернета» вообще.
-        $doHBootstrapIpv4 = ['1.1.1.1/32', '1.0.0.1/32'];
+        // IP Yandex DoH в DirectIp — иначе запросы к резолверу уходят в GlobalProxy и DNS не поднимается.
+        $doHBootstrapIpv4 = [
+            self::YANDEX_DNS_PRIMARY.'/32',
+            self::YANDEX_DNS_SECONDARY.'/32',
+        ];
         $directIpMerged = array_merge($doHBootstrapIpv4, self::defaultDirectIp(), $extraDirectIp);
         $seenIp = [];
         $directIp = [];
@@ -204,16 +216,15 @@ final class HappRoutingSubscriptionLine
             'Name' => $profileName,
             'GlobalProxy' => 'true',
             'RemoteDNSType' => 'DoH',
-            'RemoteDNSDomain' => 'https://cloudflare-dns.com/dns-query',
-            'RemoteDNSIP' => '1.1.1.1',
+            'RemoteDNSDomain' => self::YANDEX_DOH_URL,
+            'RemoteDNSIP' => self::YANDEX_DNS_PRIMARY,
             'DomesticDNSType' => 'DoH',
-            'DomesticDNSDomain' => 'https://dns.google/dns-query',
-            'DomesticDNSIP' => '8.8.8.8',
+            'DomesticDNSDomain' => self::YANDEX_DOH_URL,
+            'DomesticDNSIP' => self::YANDEX_DNS_PRIMARY,
             'Geoipurl' => $geoipUrl,
             'Geositeurl' => $geositeUrl,
             'DnsHosts' => [
-                'cloudflare-dns.com' => '1.1.1.1',
-                'dns.google' => '8.8.8.8',
+                self::YANDEX_DOH_HOST => self::YANDEX_DNS_PRIMARY,
             ],
             'DirectSites' => $directSites,
             'DirectIp' => $directIp,

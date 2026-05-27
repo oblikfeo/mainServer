@@ -109,9 +109,26 @@ final class HappRoutingSubscriptionLineTest extends TestCase
 
         $json = $this->decodeRoutingLine((string) $line);
 
-        $this->assertContains('1.1.1.1/32', $json['DirectIp']);
-        $this->assertContains('1.0.0.1/32', $json['DirectIp']);
+        $this->assertContains('77.88.8.8/32', $json['DirectIp']);
+        $this->assertContains('77.88.8.1/32', $json['DirectIp']);
         $this->assertContains('192.168.0.0/16', $json['DirectIp']);
+    }
+
+    public function test_uses_yandex_doh_for_remote_and_domestic(): void
+    {
+        $line = HappRoutingSubscriptionLine::buildOnAddLine(
+            profileName: 'direct',
+            directSites: ['domain:vk.com'],
+            useOnAdd: true,
+        );
+
+        $json = $this->decodeRoutingLine((string) $line);
+
+        $this->assertSame('https://common.dot.dns.yandex.net/dns-query', $json['RemoteDNSDomain']);
+        $this->assertSame('https://common.dot.dns.yandex.net/dns-query', $json['DomesticDNSDomain']);
+        $this->assertSame('77.88.8.8', $json['RemoteDNSIP']);
+        $this->assertSame('77.88.8.8', $json['DomesticDNSIP']);
+        $this->assertSame(['common.dot.dns.yandex.net' => '77.88.8.8'], $json['DnsHosts']);
     }
 
     /**
