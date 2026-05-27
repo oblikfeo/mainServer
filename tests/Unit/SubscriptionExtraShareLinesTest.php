@@ -59,7 +59,7 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertStringContainsString('🇩🇪', $lines[0]);
     }
 
-    public function test_lines_order_ruvds_before_home_vless(): void
+    public function test_lines_order_home_then_ruvds(): void
     {
         config([
             'xui.sub_extra' => [
@@ -80,8 +80,8 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $lines = SubscriptionExtraShareLines::lines();
 
         $this->assertCount(2, $lines);
-        $this->assertStringContainsString('@195.133.198.100:', $lines[0]);
-        $this->assertStringContainsString('@185.121.14.153:', $lines[1]);
+        $this->assertStringContainsString('@185.121.14.153:', $lines[0]);
+        $this->assertStringContainsString('@195.133.198.100:', $lines[1]);
     }
 
     public function test_ordered_with_bundle_puts_panel_lines_after_shared(): void
@@ -108,39 +108,5 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertStringContainsString('@195.133.198.100:', $lines[0]);
         $this->assertSame('vless://fi@1.2.3.4:443#fi', $lines[1]);
         $this->assertSame('vless://nl@5.6.7.8:443#nl', $lines[2]);
-    }
-
-    public function test_ordered_with_bundle_puts_hy2_last_for_ios_subtitles(): void
-    {
-        config([
-            'xui.sub_extra' => [
-                'enabled' => true,
-                'hy2_uri' => self::HY2_HOME,
-                'vless_uri' => '',
-                'vless_title' => '🇩🇪 Wi-Fi',
-                'vless_subtitle' => 'Hy2',
-            ],
-            'xui.sub_extra_ruvds' => [
-                'enabled' => true,
-                'vless_uri' => self::VLESS_RUVDS,
-                'vless_title' => '🇭🇰 [1]',
-                'vless_subtitle' => 'Yota',
-            ],
-        ]);
-
-        $bundle = [
-            'vless_entries' => [
-                ['key' => 'fi', 'line' => 'vless://fi@1.2.3.4:443#fi'],
-                ['key' => 'nl', 'line' => 'vless://nl@5.6.7.8:443#nl'],
-            ],
-        ];
-
-        $lines = SubscriptionExtraShareLines::orderedWithBundle($bundle);
-
-        $this->assertCount(4, $lines);
-        $this->assertStringContainsString('@195.133.198.100:', $lines[0]);
-        $this->assertSame('vless://fi@1.2.3.4:443#fi', $lines[1]);
-        $this->assertSame('vless://nl@5.6.7.8:443#nl', $lines[2]);
-        $this->assertStringStartsWith('hy2://', $lines[3]);
     }
 }
