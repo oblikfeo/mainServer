@@ -177,7 +177,7 @@ BASH;
     }
 
     /**
-     * Litnets (доступы5): Xray VLESS Reality (TCP :443). Hysteria снята 2026-05-20.
+     * Shared VLESS (health_profile=home): TCP :443, процесс Xray.
      *
      * @return array{default_route: bool, listen_443: bool, xray: bool, egress_https: bool}|null
      */

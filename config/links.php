@@ -32,7 +32,8 @@ return [
             'ssh_user' => (string) env('LINK_HOME_SSH_USER', 'root'),
             'ssh_private_key' => (string) env('LINK_HOME_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_HOME_CLIENT_TCP_PORT', 443),
-            'health_profile' => 'home',
+            'health_profile' => 'hysteria',
+            'require_tcp' => false,
         ],
         [
             'id' => 'ruvds',
