@@ -187,6 +187,10 @@
     }
 
     .lp-f1 .lp-pricing.lp-pricing-mock .lp-pricing-cta-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
         text-align: center;
         margin-bottom: 30px;
     }

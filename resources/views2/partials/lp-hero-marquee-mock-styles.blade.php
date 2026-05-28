@@ -145,14 +145,8 @@
     .lp-f1 .hero-buttons {
         display: flex;
         flex-direction: column;
+        align-items: flex-start;
         gap: 15px;
-    }
-
-    @media (min-width: 640px) {
-        .lp-f1 .hero-buttons {
-            flex-direction: row;
-            gap: 20px;
-        }
     }
 
     .lp-f1 .btn-cta {
