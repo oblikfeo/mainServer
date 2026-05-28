@@ -11,10 +11,10 @@
 
     let pendingTariff = null;
 
-    function openEmailModal(plan, period, amount, testCheckout) {
-        pendingTariff = { plan, period, amount, testCheckout: !!testCheckout };
+    function openEmailModal(plan, period, amount) {
+        pendingTariff = { plan, period, amount };
         if (emailAmount) {
-            emailAmount.textContent = amount ? amount + ' ₽' + (testCheckout ? ' · тест' : '') : '';
+            emailAmount.textContent = amount ? amount + ' ₽' : '';
         }
         if (emailInput) {
             emailInput.value = '';
@@ -36,11 +36,8 @@
         pendingTariff = null;
     }
 
-    async function createPayment(plan, period, email, testCheckout) {
+    async function createPayment(plan, period, email) {
         const body = { plan, period, email };
-        if (testCheckout) {
-            body.test_checkout = true;
-        }
 
         const r = await fetch(@json(route('quick_buy.pay')), {
             method: 'POST',
@@ -62,16 +59,15 @@
     }
 
     document.addEventListener('click', (e) => {
-        const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn, .lp-buy-test-btn') : null;
+        const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn') : null;
         if (!btn || btn.disabled || btn.id === 'lp-buy-email-submit') return;
 
         const plan = btn.getAttribute('data-tariff-plan') || '';
         const period = btn.getAttribute('data-tariff-period') || '';
         const amount = btn.getAttribute('data-tariff-amount') || '';
-        const testCheckout = btn.getAttribute('data-test-checkout') === '1';
         if (!plan || !period) return;
 
-        openEmailModal(plan, period, amount, testCheckout);
+        openEmailModal(plan, period, amount);
     }, { passive: true });
 
     if (emailForm) {
@@ -95,8 +91,7 @@
                 const data = await createPayment(
                     pendingTariff.plan,
                     pendingTariff.period,
-                    email,
-                    pendingTariff.testCheckout
+                    email
                 );
                 window.location.href = data.url;
             } catch (err) {

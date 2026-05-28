@@ -63,8 +63,8 @@
                     <a href="{{ auth()->check() ? route('dashboard') : route('register') }}" class="btn-cta btn-cta--primary">
                         Попробовать бесплатно (8ч)
                     </a>
-                    <a href="{{ route('quick_buy.show') }}" class="btn-cta btn-cta--primary">
-                        Купить в 2 клика
+                    <a href="{{ route('quick_buy.show') }}" class="btn-cta">
+                        Купить в 3 клика
                     </a>
                 </div>
                 <p class="hero-note">Без привязки карты. Никаких скрытых платежей.</p>
@@ -128,7 +128,7 @@
             </div>
             <div class="lp-pricing-cta-wrap">
                 <a href="{{ route('cabinet.payment') }}" class="btn-cta btn-cta--primary">Подключиться</a>
-                <a href="{{ route('quick_buy.show') }}" class="btn-cta btn-cta--primary">Купить без регистрации</a>
+                <a href="{{ route('quick_buy.show') }}" class="btn-cta">Купить без регистрации</a>
             </div>
             <div class="lp-pricing-guarantees">
                 @include('views2::partials.pricing-payment-notes')

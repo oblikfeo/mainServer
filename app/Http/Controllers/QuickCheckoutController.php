@@ -20,14 +20,7 @@ final class QuickCheckoutController extends Controller
 {
     public function show(): View
     {
-        $testPayment = config('payments.quick_buy.test_payment', []);
-
-        return view('quick-buy.index', [
-            'testPaymentEnabled' => (bool) ($testPayment['enabled'] ?? false),
-            'testPaymentAmount' => (int) ($testPayment['amount_rub'] ?? 10),
-            'testPaymentPlan' => (string) ($testPayment['plan'] ?? 'solo'),
-            'testPaymentPeriod' => (string) ($testPayment['period'] ?? '1 месяц'),
-        ]);
+        return view('quick-buy.index');
     }
 
     public function pay(Request $request, WataH2hClient $wata, QuickCheckoutUserCreator $userCreator): JsonResponse
@@ -40,21 +33,10 @@ final class QuickCheckoutController extends Controller
             'plan' => ['required', 'string', 'max:32'],
             'period' => ['required', 'string', 'max:32'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'test_checkout' => ['sometimes', 'boolean'],
         ]);
 
         $plan = (string) $data['plan'];
         $period = (string) $data['period'];
-        $testCheckout = (bool) ($data['test_checkout'] ?? false);
-        $testCfg = config('payments.quick_buy.test_payment', []);
-
-        if ($testCheckout) {
-            if (! (bool) ($testCfg['enabled'] ?? false)) {
-                return response()->json(['error' => 'test_payment_disabled'], 403);
-            }
-            $plan = (string) ($testCfg['plan'] ?? 'solo');
-            $period = (string) ($testCfg['period'] ?? '1 месяц');
-        }
         $products = config('payments.products', []);
         $planCfg = is_array($products) ? ($products[$plan] ?? null) : null;
         $rows = is_array($planCfg) ? ($planCfg['rows'] ?? null) : null;
@@ -67,20 +49,17 @@ final class QuickCheckoutController extends Controller
         $days = (int) ($row['days'] ?? 0);
         $quotaGb = (int) ($row['quota_gb'] ?? 0);
         $amountRub = (int) ($row['amount_rub'] ?? 0);
-        if ($testCheckout) {
-            $amountRub = max(1, (int) ($testCfg['amount_rub'] ?? 10));
-        }
         if ($devices < 1 || $days < 1 || $quotaGb < 1 || $amountRub < 1) {
             throw new RuntimeException('Неверная конфигурация payments.products для '.$plan.' / '.$period);
         }
 
         try {
-            return DB::transaction(function () use ($request, $wata, $userCreator, $plan, $period, $devices, $days, $quotaGb, $amountRub, $data, $testCheckout): JsonResponse {
+            return DB::transaction(function () use ($request, $wata, $userCreator, $plan, $period, $devices, $days, $quotaGb, $amountRub, $data): JsonResponse {
                 [$user, $plainPassword] = $userCreator->create((string) $data['email']);
 
                 $orderId = 'ord_'.(string) Str::ulid();
                 $claimToken = Str::random(48);
-                $desc = 'Подписка '.$plan.' · '.$period.($testCheckout ? ' · тест' : '');
+                $desc = 'Подписка '.$plan.' · '.$period;
 
                 $order = PaymentOrder::query()->create([
                     'order_id' => $orderId,

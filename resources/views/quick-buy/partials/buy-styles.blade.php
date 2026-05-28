@@ -322,25 +322,4 @@
         font-size: 16px;
         color: #475569;
     }
-
-    .lp-buy-test-btn {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        background: none;
-        font: inherit;
-        font-size: 11px;
-        line-height: 1;
-        color: inherit;
-        opacity: 0.22;
-        cursor: pointer;
-        transition: opacity 0.15s;
-    }
-    .lp-buy-test-btn:hover:not(:disabled) {
-        opacity: 0.45;
-    }
-    .lp-buy-test-btn:disabled {
-        opacity: 0.15;
-        cursor: wait;
-    }
 </style>
