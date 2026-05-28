@@ -3,10 +3,10 @@
 namespace App\Services\Subscription;
 
 /**
- * Общие share-строки: Litnets (доступы5), RUVDS (доступыRUVDS) и т.д.
+ * Общие share-строки: Litnets (доступы5), RUVDS (доступыRUVDS), NL shared (доступы11) и т.д.
  *
  * Перед FI/NL подставляются общие share-строки (hy2:// или vless://) — заголовки из .env.
- * Порядок: Litnets → RUVDS → панельные FI/NL.
+ * Порядок: Litnets → RUVDS → FI (панель) → NL shared (если включён) или NL (панель).
  */
 final class SubscriptionExtraShareLines
 {
@@ -18,7 +18,7 @@ final class SubscriptionExtraShareLines
         $out = [];
         $fmt = (string) config('xui.vless_server_description_format', 'b64');
 
-        foreach (self::extraBlocks() as $extra) {
+        foreach (self::leadingExtraBlocks() as $extra) {
             $v = self::resolveShareUri($extra);
             if ($v === '') {
                 continue;
@@ -36,9 +36,9 @@ final class SubscriptionExtraShareLines
     }
 
     /**
-     * Порядок: shared (Litnets, RUVDS) → LTE (FI/NL).
+     * Порядок: shared (Litnets, RUVDS) → FI (панель) → NL shared или NL (панель).
      *
-     * @param  array{vless_entries: list<array{line?: string}>}  $bundle
+     * @param  array{vless_entries: list<array{key?: string, line?: string}>}  $bundle
      * @return list<string>
      */
     public static function orderedWithBundle(array $bundle, bool $includePanelVless = true): array
@@ -47,6 +47,11 @@ final class SubscriptionExtraShareLines
 
         if ($includePanelVless) {
             foreach ($bundle['vless_entries'] ?? [] as $entry) {
+                $key = (string) ($entry['key'] ?? '');
+                if ($key === 'nl' && self::nlSharedConfigured()) {
+                    continue;
+                }
+
                 $line = trim((string) ($entry['line'] ?? ''));
                 if ($line !== '') {
                     $lines[] = $line;
@@ -54,13 +59,47 @@ final class SubscriptionExtraShareLines
             }
         }
 
+        $nlShared = self::nlSharedLine();
+        if ($nlShared !== '') {
+            $lines[] = $nlShared;
+        }
+
         return $lines;
+    }
+
+    public static function nlSharedConfigured(): bool
+    {
+        $nl = config('xui.sub_extra_nl', []);
+
+        return is_array($nl) && self::isConfigured($nl);
+    }
+
+    /**
+     * Узлы 3x-ui, с которых снимаем per-client VLESS для /sub/{token}.
+     *
+     * @return list<string>
+     */
+    public static function panelBundleOrder(): array
+    {
+        $order = config('xui.bundle_order', ['fi', 'nl']);
+        if (! is_array($order)) {
+            return ['fi', 'nl'];
+        }
+
+        if (! self::nlSharedConfigured()) {
+            return array_values(array_map('strval', $order));
+        }
+
+        return array_values(array_filter(
+            array_map('strval', $order),
+            static fn (string $key): bool => $key !== 'nl',
+        ));
     }
 
     /**
      * @return list<array<string, mixed>>
      */
-    private static function extraBlocks(): array
+    private static function leadingExtraBlocks(): array
     {
         $blocks = [];
 
@@ -105,5 +144,32 @@ final class SubscriptionExtraShareLines
         }
 
         return '';
+    }
+
+    private static function nlSharedLine(): string
+    {
+        if (! self::nlSharedConfigured()) {
+            return '';
+        }
+
+        $extra = config('xui.sub_extra_nl', []);
+        if (! is_array($extra)) {
+            return '';
+        }
+
+        $v = self::resolveShareUri($extra);
+        if ($v === '') {
+            return '';
+        }
+
+        $fmt = (string) config('xui.vless_server_description_format', 'b64');
+        $title = trim((string) ($extra['vless_title'] ?? ''));
+        $sub = trim((string) ($extra['vless_subtitle'] ?? ''));
+
+        if ($title !== '') {
+            $v = VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
+        }
+
+        return $v;
     }
 }

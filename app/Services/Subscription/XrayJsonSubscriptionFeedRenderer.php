@@ -31,7 +31,7 @@ final class XrayJsonSubscriptionFeedRenderer
         }
 
         $nodes = config('xui.nodes', []);
-        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
+        $bundleOrder = SubscriptionExtraShareLines::panelBundleOrder();
 
         try {
             $bundleMode = strtolower(trim((string) config('xui.sub_json_bundle_mode', 'per_node')));

@@ -22,7 +22,7 @@ final class MergedSubscriptionFeedRenderer
         }
 
         $nodes = config('xui.nodes', []);
-        $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
+        $bundleOrder = SubscriptionExtraShareLines::panelBundleOrder();
 
         $userinfos = [];
 
