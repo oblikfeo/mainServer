@@ -7,12 +7,13 @@ return [
     'bundles' => [
         [
             'id' => 'nl',
-            'name' => 'Связка NL',
-            'subtitle' => 'Нидерланды · egress',
-            'ip' => '158.160.208.31',
-            'ssh_user' => 'ubuntu',
+            'name' => 'Тестирование',
+            'subtitle' => (string) env('LINK_NL_SUBTITLE', '158.160.136.187 · 🇷🇺 Тестирование · shared VLESS'),
+            'ip' => (string) env('LINK_NL_IP', '158.160.136.187'),
+            'ssh_user' => (string) env('LINK_NL_SSH_USER', 'ubuntu'),
             'ssh_private_key' => env('LINK_NL_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_NL_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
         ],
         [
             'id' => 'fi',

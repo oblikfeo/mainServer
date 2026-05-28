@@ -3,6 +3,7 @@
 @section('title', '')
 
 @php
+    $sharedVlessIds = $sharedVlessBundleIds ?? ['home', 'ruvds'];
     $tile = static function (?string $level): string {
         return match ($level) {
             'ok' => 'from-emerald-50 to-emerald-100 border-emerald-200/80 shadow-sm',
@@ -63,7 +64,7 @@
                 </header>
 
                 <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 bg-slate-50/80">
-                    @if (in_array($bundle['id'] ?? '', ['home', 'ruvds'], true))
+                    @if (in_array($bundle['id'] ?? '', $sharedVlessIds, true))
                         <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm sm:col-span-2 {{ $tile(null) }}">
                             <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">Активно · {{ $bundle['home_vless_label'] ?? 'VLESS' }}</span>
                             <span class="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900 mt-2">{{ $m ? (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0) : '—' }}</span>
@@ -100,7 +101,7 @@
                             @endif
                         </span>
                     </div>
-                    @if (! in_array($bundle['id'] ?? '', ['home', 'ruvds'], true))
+                    @if (! in_array($bundle['id'] ?? '', $sharedVlessIds, true))
                     <div class="rounded-2xl border bg-gradient-to-br p-4 flex flex-col justify-between min-h-[6.75rem] ring-1 ring-inset ring-white/70 shadow-sm {{ $m && $ctMax > 0 ? $tile($m['conntrack_level'] ?? null) : $tile(null) }}">
                         <span class="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600">NAT</span>
                         <span class="text-base sm:text-lg font-bold tabular-nums text-slate-900 mt-2 leading-tight break-words">

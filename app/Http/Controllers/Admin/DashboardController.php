@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
 use App\Services\HomeBundleMetrics;
+use App\Services\Subscription\SubscriptionExtraShareLines;
 use App\Services\Xui\XuiPanelClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -16,6 +17,32 @@ class DashboardController extends Controller
 {
     /** @var list<string> */
     private const SHARED_VLESS_BUNDLE_IDS = ['home', 'ruvds'];
+
+    /**
+     * @return list<string>
+     */
+    private function sharedVlessBundleIds(): array
+    {
+        $ids = self::SHARED_VLESS_BUNDLE_IDS;
+        if (SubscriptionExtraShareLines::nlSharedConfigured()) {
+            $ids[] = 'nl';
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function panelSnapshotBundleKeys(): array
+    {
+        $keys = ['fi'];
+        if (! SubscriptionExtraShareLines::nlSharedConfigured()) {
+            $keys[] = 'nl';
+        }
+
+        return $keys;
+    }
 
     public function __construct(
         protected BundleHealthChecker $bundleHealth,
@@ -37,16 +64,22 @@ class DashboardController extends Controller
 
         // Онлайн и трафик для карточек берем из 3x-ui по активным подпискам/ключам,
         // чтобы не считать сканеры/шум через SSH на 443.
-        $panelSnapshots = [
-            'fi' => Cache::remember('bundle_panel_snapshot_v4_fi', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('fi')),
-            'nl' => Cache::remember('bundle_panel_snapshot_v4_nl', $ttl, fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle('nl')),
-        ];
+        $panelSnapshots = [];
+        foreach ($this->panelSnapshotBundleKeys() as $bundleKey) {
+            $panelSnapshots[$bundleKey] = Cache::remember(
+                'bundle_panel_snapshot_v4_'.$bundleKey,
+                $ttl,
+                fn (): ?array => $this->buildPanelSnapshotForSubscriptionBundle($bundleKey)
+            );
+        }
 
         $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Быстрый Wi-Fi'));
         $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 Мобильная сеть [1]'));
+        $nlVlessTitle = trim((string) config('xui.sub_extra_nl.vless_title', '🇷🇺 Тестирование'));
+        $sharedVlessIds = $this->sharedVlessBundleIds();
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $ruvdsVlessTitle) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $ruvdsVlessTitle, $nlVlessTitle, $sharedVlessIds) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -56,10 +89,11 @@ class DashboardController extends Controller
                     fn () => $this->bundleHealth->evaluateBundle($bundleForHealth)['online']
                 );
 
-                if (in_array($id, self::SHARED_VLESS_BUNDLE_IDS, true)) {
+                if (in_array($id, $sharedVlessIds, true)) {
                     $bundle['home_vless_label'] = match ($id) {
                         'home' => $homeVlessTitle,
                         'ruvds' => $ruvdsVlessTitle,
+                        'nl' => $nlVlessTitle,
                         default => 'VLESS',
                     };
                     $bundleForHome = $bundle;
@@ -104,12 +138,14 @@ class DashboardController extends Controller
             })
             ->count();
 
-        $totalConnections = (int) collect($bundles)->sum(function (array $b) {
+        $sharedVlessIds = $this->sharedVlessBundleIds();
+
+        $totalConnections = (int) collect($bundles)->sum(function (array $b) use ($sharedVlessIds) {
             $m = $b['metrics'] ?? null;
             if (! is_array($m)) {
                 return 0;
             }
-            if (in_array($b['id'] ?? '', self::SHARED_VLESS_BUNDLE_IDS, true)) {
+            if (in_array($b['id'] ?? '', $sharedVlessIds, true)) {
                 return (int) ($m['home_vless_active'] ?? $m['home_vless_online'] ?? 0);
             }
             if (isset($m['panel_online_clients'])) {
@@ -121,6 +157,7 @@ class DashboardController extends Controller
 
         return view('admin.servers', [
             'bundles' => $bundles,
+            'sharedVlessBundleIds' => $sharedVlessIds,
             'onlineCount' => $onlineCount,
             'totalBundles' => $totalBundles,
             'totalActiveSubs' => $totalActiveSubs,
