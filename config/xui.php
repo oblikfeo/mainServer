@@ -50,12 +50,12 @@ return [
 
     /**
      * NL (доступы11, 158.160.136.187): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇳🇱 Мобильная сеть [3] — вместо per-client строки с панели 208.31.
+     * В Happ: 🇷🇺 Тестирование — shared VLESS на 158.160.136.187 (доступы11).
      */
     'sub_extra_nl' => [
         'enabled' => filter_var(env('SUB_NL_SHARED_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_NL_SHARED_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_NL_SHARED_VLESS_TITLE', env('XUI_NL_VLESS_NAME', '🇳🇱 Мобильная сеть [3]'))),
+        'vless_title' => trim((string) env('SUB_NL_SHARED_VLESS_TITLE', '🇷🇺 Тестирование')),
         'vless_subtitle' => trim((string) env('SUB_NL_SHARED_VLESS_SUBTITLE', env('XUI_NL_SERVER_DESC', 'LTE — стабильное соединение'))),
     ],
 
