@@ -11,10 +11,10 @@
 
     let pendingTariff = null;
 
-    function openEmailModal(plan, period, amount) {
-        pendingTariff = { plan, period, amount };
+    function openEmailModal(plan, period, amount, testCheckout) {
+        pendingTariff = { plan, period, amount, testCheckout: !!testCheckout };
         if (emailAmount) {
-            emailAmount.textContent = amount ? amount + ' ₽' : '';
+            emailAmount.textContent = amount ? amount + ' ₽' + (testCheckout ? ' · тест' : '') : '';
         }
         if (emailInput) {
             emailInput.value = '';
@@ -36,7 +36,12 @@
         pendingTariff = null;
     }
 
-    async function createPayment(plan, period, email) {
+    async function createPayment(plan, period, email, testCheckout) {
+        const body = { plan, period, email };
+        if (testCheckout) {
+            body.test_checkout = true;
+        }
+
         const r = await fetch(@json(route('quick_buy.pay')), {
             method: 'POST',
             headers: {
@@ -44,7 +49,7 @@
                 'X-CSRF-TOKEN': csrf,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ plan, period, email }),
+            body: JSON.stringify(body),
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok || !data || !data.url) {
@@ -57,15 +62,16 @@
     }
 
     document.addEventListener('click', (e) => {
-        const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn') : null;
+        const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn, .lp-buy-test-btn') : null;
         if (!btn || btn.disabled || btn.id === 'lp-buy-email-submit') return;
 
         const plan = btn.getAttribute('data-tariff-plan') || '';
         const period = btn.getAttribute('data-tariff-period') || '';
         const amount = btn.getAttribute('data-tariff-amount') || '';
+        const testCheckout = btn.getAttribute('data-test-checkout') === '1';
         if (!plan || !period) return;
 
-        openEmailModal(plan, period, amount);
+        openEmailModal(plan, period, amount, testCheckout);
     }, { passive: true });
 
     if (emailForm) {
@@ -89,7 +95,8 @@
                 const data = await createPayment(
                     pendingTariff.plan,
                     pendingTariff.period,
-                    email
+                    email,
+                    pendingTariff.testCheckout
                 );
                 window.location.href = data.url;
             } catch (err) {

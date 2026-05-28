@@ -75,6 +75,21 @@
         </section>
 
         <footer class="lp-footer-mock">
+            @if (!empty($testPaymentEnabled))
+                <div class="lp-buy-test-wrap">
+                    <button
+                        type="button"
+                        class="lp-buy-test-btn"
+                        data-tariff-plan="{{ $testPaymentPlan }}"
+                        data-tariff-period="{{ $testPaymentPeriod }}"
+                        data-tariff-amount="{{ $testPaymentAmount }}"
+                        data-test-checkout="1"
+                    >
+                        {{ $testPaymentLabel }}
+                    </button>
+                    <p class="lp-buy-test-note">Временная проверка оплаты: тариф solo 1 мес, к WATA уходит {{ $testPaymentAmount }}&nbsp;₽. Подписка выдаётся как при обычной покупке.</p>
+                </div>
+            @endif
             <div class="footer-bottom">
                 <span>&copy; {{ date('Y') }} {{ mb_strtoupper($brand, 'UTF-8') }}</span>
                 <span>

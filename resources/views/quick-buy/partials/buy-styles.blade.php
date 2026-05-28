@@ -322,4 +322,46 @@
         font-size: 16px;
         color: #475569;
     }
+
+    .lp-buy-test-wrap {
+        margin: 0 0 24px;
+        padding: 20px;
+        border: var(--mock-border, 3px solid #1a1a1a);
+        background: var(--mock-accent, #bff000);
+        box-shadow: var(--mock-shadow, 8px 8px 0 #1a1a1a);
+        text-align: center;
+    }
+    .lp-buy-test-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 420px;
+        padding: 16px 20px;
+        border: var(--mock-border, 3px solid #1a1a1a);
+        background: var(--mock-primary, #ff4d00);
+        color: #fff;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .lp-buy-test-btn:hover:not(:disabled) {
+        transform: translate(-2px, -2px);
+        box-shadow: var(--mock-shadow, 8px 8px 0 #1a1a1a);
+    }
+    .lp-buy-test-btn:disabled {
+        opacity: 0.65;
+        cursor: wait;
+    }
+    .lp-buy-test-note {
+        margin: 12px 0 0;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--mock-dark, #1a1a1a);
+    }
 </style>
