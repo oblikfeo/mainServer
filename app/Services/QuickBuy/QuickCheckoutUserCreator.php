@@ -13,8 +13,7 @@ final class QuickCheckoutUserCreator
      */
     public function create(string $email): array
     {
-        $suffix = random_int(1000, 9999);
-        $name = 'User'.$suffix;
+        $name = $this->generateDisplayName();
         $password = Str::password(12, symbols: false);
 
         $user = User::query()->create([
@@ -24,6 +23,19 @@ final class QuickCheckoutUserCreator
         ]);
 
         return [$user, $password];
+    }
+
+    /** Формат User1234 — пример; каждый раз свой случайный суффикс. */
+    private function generateDisplayName(): string
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $name = 'User'.random_int(1000, 999999);
+            if (! User::query()->where('name', $name)->exists()) {
+                return $name;
+            }
+        }
+
+        return 'User'.Str::lower(Str::random(8));
     }
 
     public static function isAutogenEmail(string $email): bool
