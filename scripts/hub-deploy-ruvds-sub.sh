@@ -20,9 +20,9 @@ upsert_env() {
 
 upsert_env SUB_RUVDS_ENABLED true
 upsert_env SUB_RUVDS_VLESS_URI "$RUVDS_URI"
-upsert_env 'SUB_RUVDS_VLESS_TITLE' '"Megafon, Tele2, Yota"'
+upsert_env 'SUB_RUVDS_VLESS_TITLE' '"🇭🇰 Megafon, Tele2, Yota"'
 upsert_env SUB_RUVDS_VLESS_SUBTITLE ''
-upsert_env 'XUI_FI_VLESS_NAME' '"Beeline, MTC"'
+upsert_env 'XUI_FI_VLESS_NAME' '"🇫🇮 Beeline, MTC"'
 upsert_env 'XUI_NL_VLESS_NAME' '"🇳🇱 Мобильная сеть [3]"'
 
 php artisan config:clear

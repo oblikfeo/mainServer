@@ -44,7 +44,7 @@ return [
     'sub_extra_ruvds' => [
         'enabled' => filter_var(env('SUB_RUVDS_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_RUVDS_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_RUVDS_VLESS_TITLE', 'Megafon, Tele2, Yota')),
+        'vless_title' => trim((string) env('SUB_RUVDS_VLESS_TITLE', '🇭🇰 Megafon, Tele2, Yota')),
         'vless_subtitle' => trim((string) env('SUB_RUVDS_VLESS_SUBTITLE', '')),
     ],
 
@@ -69,7 +69,7 @@ return [
             'inbound_id' => (int) env('XUI_FI_INBOUND_ID', 1),
             'client_email_prefix' => env('XUI_FI_EMAIL_PREFIX', 'fi'),
             'client_flow' => env('XUI_FI_FLOW', 'xtls-rprx-vision'),
-            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: 'Beeline, MTC',
+            'vless_display_name' => env('XUI_FI_VLESS_NAME') ?: '🇫🇮 Beeline, MTC',
             'vless_server_description' => env('XUI_FI_SERVER_DESC', 'LTE — стабильное соединение'),
 
             'reality_sid' => env('XUI_FI_REALITY_SID', ''),
