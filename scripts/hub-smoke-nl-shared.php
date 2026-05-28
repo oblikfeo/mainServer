@@ -13,7 +13,7 @@ echo 'leading_shared_count='.count($lines)."\n";
 
 $token = $argv[1] ?? '';
 if ($token === '') {
-    $row = App\Models\Subscription::query()->whereNull('revoked_at')->orderByDesc('id')->first();
+    $row = App\Models\Subscription::query()->orderByDesc('id')->first();
     $token = $row?->token ?? '';
 }
 if ($token === '') {
