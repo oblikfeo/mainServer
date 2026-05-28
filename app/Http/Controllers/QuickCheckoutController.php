@@ -24,7 +24,6 @@ final class QuickCheckoutController extends Controller
 
         return view('quick-buy.index', [
             'testPaymentEnabled' => (bool) ($testPayment['enabled'] ?? false),
-            'testPaymentLabel' => (string) ($testPayment['label'] ?? 'Тест: 1 месяц · 10 ₽'),
             'testPaymentAmount' => (int) ($testPayment['amount_rub'] ?? 10),
             'testPaymentPlan' => (string) ($testPayment['plan'] ?? 'solo'),
             'testPaymentPeriod' => (string) ($testPayment['period'] ?? '1 месяц'),
