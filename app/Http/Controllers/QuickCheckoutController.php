@@ -33,19 +33,6 @@ final class QuickCheckoutController extends Controller
             'plan' => ['required', 'string', 'max:32'],
             'period' => ['required', 'string', 'max:32'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'deviceData' => ['required', 'array'],
-            'deviceData.browserAcceptHeader' => ['required', 'string', 'max:512'],
-            'deviceData.browserLanguage' => ['required', 'string', 'max:32'],
-            'deviceData.browserJavaEnabled' => ['required', 'boolean'],
-            'deviceData.browserJavaScriptEnabled' => ['required', 'boolean'],
-            'deviceData.browserColorDepth' => ['required', 'integer', 'min:1', 'max:64'],
-            'deviceData.browserScreenHeight' => ['required', 'integer', 'min:1', 'max:10000'],
-            'deviceData.browserScreenWidth' => ['required', 'integer', 'min:1', 'max:10000'],
-            'deviceData.challengeWindowWidth' => ['required', 'integer', 'min:1', 'max:10000'],
-            'deviceData.challengeWindowHeight' => ['required', 'integer', 'min:1', 'max:10000'],
-            'deviceData.browserTZ' => ['required', 'integer', 'min:-12', 'max:14'],
-            'deviceData.browserTZName' => ['required', 'string', 'max:32'],
-            'deviceData.browserUserAgent' => ['required', 'string', 'max:512'],
         ]);
 
         $plan = (string) $data['plan'];
@@ -98,63 +85,25 @@ final class QuickCheckoutController extends Controller
                 $request->session()->put('quick_buy_pw:'.$claimToken, $plainPassword);
                 $request->session()->put('quick_buy_login:'.$claimToken, (int) $user->id);
 
-                try {
-                    $payload = [
-                        'amount' => (float) number_format($amountRub, 2, '.', ''),
-                        'currency' => 'RUB',
-                        'description' => $desc,
-                        'orderId' => $orderId,
-                        'deviceData' => $data['deviceData'],
-                        'ip' => (string) $request->ip(),
-                        'returnUrl' => $returnUrl,
-                    ];
+                $link = $wata->createPaymentLink([
+                    'type' => 'OneTime',
+                    'amount' => (float) number_format($amountRub, 2, '.', ''),
+                    'currency' => 'RUB',
+                    'description' => $desc,
+                    'orderId' => $orderId,
+                    'successRedirectUrl' => $returnUrl,
+                    'failRedirectUrl' => $failUrl,
+                ]);
 
-                    $tx = $wata->createSbpTransaction($payload);
+                $order->provider_link_id = $link['id'];
+                $order->status = 'pending';
+                $order->provider_payload = $link;
+                $order->save();
 
-                    $order->provider_transaction_id = $tx['transactionId'];
-                    $order->status = 'pending';
-                    $order->provider_payload = $tx;
-                    $order->save();
-
-                    return response()->json([
-                        'mode' => 'sbp',
-                        'orderId' => $orderId,
-                        'claimToken' => $claimToken,
-                        'amountRub' => $amountRub,
-                        'description' => $desc,
-                        'sbpLink' => $tx['sbpLink'],
-                        'doneUrl' => $returnUrl,
-                    ]);
-                } catch (RuntimeException $e) {
-                    if (! $this->shouldFallbackFromSbpToPaymentLink($e)) {
-                        throw $e;
-                    }
-
-                    $link = $wata->createPaymentLink([
-                        'type' => 'OneTime',
-                        'amount' => (float) number_format($amountRub, 2, '.', ''),
-                        'currency' => 'RUB',
-                        'description' => $desc,
-                        'orderId' => $orderId,
-                        'successRedirectUrl' => $returnUrl,
-                        'failRedirectUrl' => $failUrl,
-                    ]);
-
-                    $order->provider_link_id = $link['id'];
-                    $order->status = 'pending';
-                    $order->provider_payload = $link;
-                    $order->save();
-
-                    return response()->json([
-                        'mode' => 'redirect',
-                        'orderId' => $orderId,
-                        'claimToken' => $claimToken,
-                        'amountRub' => $amountRub,
-                        'description' => $desc,
-                        'url' => $link['url'],
-                        'doneUrl' => $returnUrl,
-                    ]);
-                }
+                return response()->json([
+                    'url' => $link['url'],
+                    'doneUrl' => $returnUrl,
+                ]);
             });
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
@@ -163,15 +112,6 @@ final class QuickCheckoutController extends Controller
 
             return response()->json(['error' => 'payment_create_failed'], 502);
         }
-    }
-
-    private function shouldFallbackFromSbpToPaymentLink(RuntimeException $e): bool
-    {
-        $message = $e->getMessage();
-
-        return str_contains($message, 'TER_3007')
-            || str_contains($message, 'HTTP 403')
-            || str_contains($message, 'HTTP 404');
     }
 
     public function status(Request $request, string $orderId, WataH2hClient $wata): JsonResponse

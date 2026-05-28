@@ -6,7 +6,7 @@
 @endphp
 
 @section('title', $brand.' — быстрая оплата')
-@section('meta_description', 'Выберите тариф и оплатите подписку за пару кликов — без регистрации. Оплата через СБП прямо на сайте.')
+@section('meta_description', 'Выберите тариф и оплатите подписку за пару кликов — без регистрации. Оплата картой или СБП на защищённой странице платёжной системы.')
 
 @push('styles')
     @include('views2::partials.lp-f1-styles')
@@ -58,7 +58,7 @@
                 Оплата в <span class="lp-nice-hero__title-em">2 клика</span>
             </h1>
             <p class="lp-nice-hero__lead">
-                Выберите тариф и оплатите через СБП — QR-код появится прямо здесь. Аккаунт создадим автоматически, подписку можно сразу добавить в Happ.
+                Выберите тариф, укажите почту и перейдите к оплате. Аккаунт создадим автоматически — подписку можно сразу добавить в Happ.
             </p>
         </section>
 
@@ -107,28 +107,7 @@
             <p class="lp-buy-modal__status lp-buy-modal__status--error" id="lp-buy-email-error" hidden></p>
             <button type="submit" class="lp-buy-pay-btn" id="lp-buy-email-submit">Перейти к оплате</button>
         </form>
-        <p class="lp-buy-modal__hint">Нажимая «Перейти к оплате», вы соглашаетесь с <a href="{{ route('agreement') }}">публичной офертой</a>.</p>
-    </div>
-</div>
-
-<div class="lp-buy-modal" id="lp-buy-modal" role="dialog" aria-modal="true" aria-labelledby="lp-buy-modal-title" aria-hidden="true">
-    <div class="lp-buy-modal__panel">
-        <button type="button" class="lp-buy-modal__close" id="lp-buy-modal-close" aria-label="Закрыть">&times;</button>
-        <span class="lp-buy-modal__kicker">
-            <span class="lp-buy-modal__kicker-dot" aria-hidden="true"></span>
-            Оплата СБП
-        </span>
-        <h2 class="lp-buy-modal__title" id="lp-buy-modal-title">
-            Сканируйте <span class="lp-buy-modal__title-em">QR</span>
-        </h2>
-        <p class="lp-buy-modal__sub" id="lp-buy-modal-desc">Откройте приложение банка и отсканируйте код</p>
-        <div class="lp-buy-modal__amount-wrap">
-            <span class="lp-buy-modal__amount-label">Сумма</span>
-            <p class="lp-buy-modal__amount" id="lp-buy-modal-amount"></p>
-        </div>
-        <div class="lp-buy-modal__qr-wrap" id="lp-buy-modal-qr" aria-hidden="true"></div>
-        <p class="lp-buy-modal__status" id="lp-buy-modal-status">Ожидаем оплату…</p>
-        <p class="lp-buy-modal__hint">После оплаты откроется страница с подпиской. Обычно это занимает до минуты.</p>
+        <p class="lp-buy-modal__hint">После оплаты вы вернётесь на наш сайт — там будет ссылка подписки. Дубликат отправим на указанный email.</p>
     </div>
 </div>
 @endsection
