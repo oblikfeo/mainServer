@@ -38,7 +38,7 @@ return [
         [
             'id' => '777',
             'name' => '777',
-            'subtitle' => '169.40.15.141 · 🇧🇬 Быстрый Wi-Fi · shared VLESS',
+            'subtitle' => '169.40.15.141 · 🇧🇬 Быстрый Wi--Fi · shared VLESS',
             'ip' => (string) env('LINK_777_IP', '169.40.15.141'),
             'ssh_user' => (string) env('LINK_777_SSH_USER', 'root'),
             'ssh_private_key' => (string) env('LINK_777_SSH_KEY', ''),

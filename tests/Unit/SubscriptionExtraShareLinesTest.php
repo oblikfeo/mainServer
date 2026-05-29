@@ -88,7 +88,7 @@ final class SubscriptionExtraShareLinesTest extends TestCase
             'xui.sub_extra_777' => [
                 'enabled' => true,
                 'vless_uri' => self::VLESS_777,
-                'vless_title' => '🇧🇬 Быстрый Wi-Fi [2]',
+                'vless_title' => '🇧🇬 Быстрый Wi--Fi',
                 'vless_subtitle' => '',
             ],
             'xui.sub_extra_ruvds' => [
@@ -104,8 +104,7 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertCount(3, $lines);
         $this->assertStringContainsString('@185.121.14.153:', $lines[0]);
         $this->assertStringContainsString('@169.40.15.141:', $lines[1]);
-        $this->assertStringContainsString('🇧🇬', $lines[1]);
-        $this->assertStringContainsString('[2]', $lines[1]);
+        $this->assertStringContainsString('Wi--Fi', $lines[1]);
         $this->assertStringContainsString('@195.133.198.100:', $lines[2]);
     }
 

@@ -3,7 +3,7 @@ $envFile = '/var/www/vpn-hub/.env';
 $env = is_file($envFile) ? file_get_contents($envFile) : '';
 
 $key = 'SUB_EXTRA_VLESS_TITLE';
-$value = '"🇩🇪 Быстрый Wi-Fi [1]"';
+$value = '"🇩🇪 Быстрый Wi-Fi"';
 $pattern = '/^'.preg_quote($key, '/').'=.*$/m';
 $line = $key.'='.$value;
 if (preg_match($pattern, $env)) {

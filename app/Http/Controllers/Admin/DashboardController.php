@@ -74,7 +74,7 @@ class DashboardController extends Controller
         }
 
         $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Быстрый Wi-Fi'));
-        $node777VlessTitle = trim((string) config('xui.sub_extra_777.vless_title', '🇧🇬 Быстрый Wi-Fi [2]'));
+        $node777VlessTitle = trim((string) config('xui.sub_extra_777.vless_title', '🇧🇬 Быстрый Wi--Fi'));
         $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 Мобильная сеть [1]'));
         $nlVlessTitle = trim((string) config('xui.sub_extra_nl.vless_title', '🇷🇺 Тестирование'));
         $sharedVlessIds = $this->sharedVlessBundleIds();

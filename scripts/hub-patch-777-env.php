@@ -5,7 +5,7 @@ $env = is_file($envFile) ? file_get_contents($envFile) : '';
 $updates = [
     'SUB_777_ENABLED' => 'true',
     'SUB_777_VLESS_URI' => 'vless://8514d862-4b38-4c67-9d81-036919822285@169.40.15.141:443?type=tcp&security=reality&sni=www.microsoft.com&fp=chrome&pbk=gmRh1p7ByPBKYm4baCj9Oh7vTKbmbbssuJ7LCGHQTVg&sid=a1b2c3d4&spx=%2F&flow=xtls-rprx-vision',
-    'SUB_777_VLESS_TITLE' => '"🇧🇬 Быстрый Wi-Fi [2]"',
+    'SUB_777_VLESS_TITLE' => '"🇧🇬 Быстрый Wi--Fi"',
     'SUB_777_VLESS_SUBTITLE' => '',
 ];
 

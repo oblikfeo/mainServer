@@ -3,8 +3,8 @@ $envFile = '/var/www/vpn-hub/.env';
 $env = is_file($envFile) ? file_get_contents($envFile) : '';
 
 $updates = [
-    'SUB_EXTRA_VLESS_TITLE' => '"🇩🇪 Быстрый Wi-Fi [1]"',
-    'SUB_777_VLESS_TITLE' => '"🇧🇬 Быстрый Wi-Fi [2]"',
+    'SUB_EXTRA_VLESS_TITLE' => '"🇩🇪 Быстрый Wi-Fi"',
+    'SUB_777_VLESS_TITLE' => '"🇧🇬 Быстрый Wi--Fi"',
 ];
 
 foreach ($updates as $key => $value) {
