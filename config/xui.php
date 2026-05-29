@@ -33,7 +33,7 @@ return [
         'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
         'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
         'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
+        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi [1]')),
         'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
     ],
 
