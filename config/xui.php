@@ -55,7 +55,7 @@ return [
     'sub_extra_777' => [
         'enabled' => filter_var(env('SUB_777_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_777_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_777_VLESS_TITLE', '🇧🇬 Быстрый Wi-Fi')),
+        'vless_title' => trim((string) env('SUB_777_VLESS_TITLE', '🇧🇬 Быстрый Wi-Fi [2]')),
         'vless_subtitle' => trim((string) env('SUB_777_VLESS_SUBTITLE', '')),
     ],
 
