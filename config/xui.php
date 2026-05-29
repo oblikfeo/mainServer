@@ -49,6 +49,17 @@ return [
     ],
 
     /**
+     * 777 (доступы777, 169.40.15.141): общая VLESS Reality, одна ссылка на всех.
+     * В Happ: 🇧🇬 Быстрый Wi-Fi — второй узел после Litnets.
+     */
+    'sub_extra_777' => [
+        'enabled' => filter_var(env('SUB_777_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_777_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_777_VLESS_TITLE', '🇧🇬 Быстрый Wi-Fi')),
+        'vless_subtitle' => trim((string) env('SUB_777_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * NL (доступы11, 158.160.136.187): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇷🇺 Тестирование — shared VLESS на 158.160.136.187 (доступы11).
      */

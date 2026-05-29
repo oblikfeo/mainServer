@@ -36,6 +36,16 @@ return [
             'require_tcp' => false,
         ],
         [
+            'id' => '777',
+            'name' => '777',
+            'subtitle' => '169.40.15.141 · 🇧🇬 Быстрый Wi-Fi · shared VLESS',
+            'ip' => (string) env('LINK_777_IP', '169.40.15.141'),
+            'ssh_user' => (string) env('LINK_777_SSH_USER', 'root'),
+            'ssh_private_key' => (string) env('LINK_777_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_777_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => 'ruvds',
             'name' => 'RUVDS',
             'subtitle' => '195.133.198.100 · 🇭🇰 Мобильная сеть [1] · общая VLESS',

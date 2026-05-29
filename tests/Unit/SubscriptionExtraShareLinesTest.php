@@ -13,6 +13,8 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
     private const VLESS_RUVDS = 'vless://22222222-2222-2222-2222-222222222222@195.133.198.100:443?security=reality&encryption=none&type=tcp#ruvds';
 
+    private const VLESS_777 = 'vless://44444444-4444-4444-4444-444444444444@169.40.15.141:443?security=reality&encryption=none&type=tcp#777';
+
     private const VLESS_NL_SHARED = 'vless://33333333-3333-3333-3333-333333333333@158.160.136.187:443?security=reality&encryption=none&type=tcp#nl-shared';
 
     protected function tearDown(): void
@@ -26,6 +28,12 @@ final class SubscriptionExtraShareLinesTest extends TestCase
                 'vless_subtitle' => '',
             ],
             'xui.sub_extra_ruvds' => [
+                'enabled' => false,
+                'vless_uri' => '',
+                'vless_title' => '',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_777' => [
                 'enabled' => false,
                 'vless_uri' => '',
                 'vless_title' => '',
@@ -65,6 +73,39 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertStringStartsWith('hy2://', $lines[0]);
         $this->assertStringContainsString('@185.121.14.153:', $lines[0]);
         $this->assertStringContainsString('🇩🇪', $lines[0]);
+    }
+
+    public function test_lines_order_home_then_777_then_ruvds(): void
+    {
+        config([
+            'xui.sub_extra' => [
+                'enabled' => true,
+                'hy2_uri' => '',
+                'vless_uri' => self::VLESS_HOME,
+                'vless_title' => '🇩🇪 Wi-Fi',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_777' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_777,
+                'vless_title' => '🇧🇬 Быстрый Wi-Fi',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_RUVDS,
+                'vless_title' => '🇭🇰 Мобильная сеть [1]',
+                'vless_subtitle' => '',
+            ],
+        ]);
+
+        $lines = SubscriptionExtraShareLines::lines();
+
+        $this->assertCount(3, $lines);
+        $this->assertStringContainsString('@185.121.14.153:', $lines[0]);
+        $this->assertStringContainsString('@169.40.15.141:', $lines[1]);
+        $this->assertStringContainsString('🇧🇬', $lines[1]);
+        $this->assertStringContainsString('@195.133.198.100:', $lines[2]);
     }
 
     public function test_lines_order_home_then_ruvds(): void
