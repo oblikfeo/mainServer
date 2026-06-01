@@ -218,13 +218,21 @@ final class VlessUriToXrayOutbound
             $out['security'] = 'tls';
 
             $sni = trim((string) ($q['sni'] ?? ''));
-            $allowInsecure = filter_var((string) ($q['allowInsecure'] ?? '0'), FILTER_VALIDATE_BOOL);
+            $pinSha256 = trim((string) ($q['pinSHA256'] ?? $q['pcs'] ?? ''));
+            $verifyName = trim((string) ($q['vcn'] ?? ''));
 
             $tlsSettings = [];
 
             if ($sni !== '') {
                 $tlsSettings['serverName'] = $sni;
-                $tlsSettings['allowInsecure'] = $allowInsecure ? true : false;
+            }
+
+            if ($pinSha256 !== '') {
+                $tlsSettings['pinnedPeerCertSha256'] = $pinSha256;
+            }
+
+            if ($verifyName !== '') {
+                $tlsSettings['verifyPeerCertByName'] = $verifyName;
             }
 
             $out['tlsSettings'] = $tlsSettings !== [] ? $tlsSettings : new \stdClass;

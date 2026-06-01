@@ -117,9 +117,7 @@ final class SubscriptionBundleCollector
             $line = VlessSubscriptionHelper::replaceVlessHost($line, $pubHost);
         }
 
-        if ($pubHost !== '' && str_contains($line, 'security=tls')) {
-            $line = VlessSubscriptionHelper::ensureTlsInsecure($line, $pubHost);
-        }
+        $line = VlessSubscriptionHelper::normalizePanelTlsVlessUri($line, $pubHost);
 
         $line = VlessSubscriptionHelper::ensureRealitySid(
             $line,

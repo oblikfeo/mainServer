@@ -50,6 +50,9 @@ final class VlessSubscriptionHelper
         if ($url === '' || (! str_starts_with($url, 'vless://') && ! str_starts_with($url, 'hy2://'))) {
             return $url;
         }
+        if (str_starts_with($url, 'vless://')) {
+            $url = self::stripDeprecatedAllowInsecure($url);
+        }
         $base = explode('#', $url, 2)[0];
         $title = trim($title);
         if ($title === '') {
@@ -163,31 +166,67 @@ final class VlessSubscriptionHelper
     }
 
     /**
-     * Добавляет параметр allowInsecure=1 для TLS-соединений с самоподписанным сертификатом.
-     * Также устанавливает sni=host если sni пустой.
+     * Xray ≥26.2.6 / Happ (с 2026-06-01): allowInsecure=1 в share-ссылках deprecated.
+     * Убираем из query; вместо него клиент ожидает pinSHA256/pcs при самоподписанном TLS.
      */
-    public static function ensureTlsInsecure(string $url, string $host): string
+    public static function stripDeprecatedAllowInsecure(string $url): string
     {
         if ($url === '' || ! str_starts_with($url, 'vless://')) {
             return $url;
         }
 
-        // Только для security=tls
-        if (! str_contains($url, 'security=tls')) {
+        $hashPos = strpos($url, '#');
+        $base = $hashPos === false ? $url : substr($url, 0, $hashPos);
+        $fragment = $hashPos === false ? '' : substr($url, $hashPos + 1);
+
+        $qPos = strpos($base, '?');
+        if ($qPos === false) {
             return $url;
         }
 
-        // Разбиваем URL на части
+        $query = substr($base, $qPos + 1);
+        $params = [];
+        parse_str(str_replace('+', '%2B', $query), $params);
+
+        if (! array_key_exists('allowInsecure', $params)) {
+            return $url;
+        }
+
+        unset($params['allowInsecure']);
+
+        $prefix = substr($base, 0, $qPos);
+        if ($params === []) {
+            $newBase = $prefix;
+        } else {
+            $newBase = $prefix.'?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        }
+
+        return $fragment !== '' ? $newBase.'#'.$fragment : $newBase;
+    }
+
+    /**
+     * Подготовка TLS-VLESS с панели: без allowInsecure; пустой sni → pub_host.
+     */
+    public static function normalizePanelTlsVlessUri(string $url, string $host): string
+    {
+        if ($url === '' || ! str_starts_with($url, 'vless://')) {
+            return $url;
+        }
+
+        if (! str_contains($url, 'security=tls')) {
+            return self::stripDeprecatedAllowInsecure($url);
+        }
+
+        $url = self::stripDeprecatedAllowInsecure($url);
+
+        if ($host === '') {
+            return $url;
+        }
+
         $parts = explode('#', $url, 2);
         $base = $parts[0];
         $fragment = $parts[1] ?? '';
 
-        // Добавляем allowInsecure=1 если его нет
-        if (! str_contains($base, 'allowInsecure=')) {
-            $base .= '&allowInsecure=1';
-        }
-
-        // Если sni пустой (sni=&) — заменяем на sni=host
         if (preg_match('/[?&]sni=(&|$)/', $base)) {
             $base = preg_replace('/([?&])sni=(&|$)/', '$1sni='.rawurlencode($host).'$2', $base);
         }
