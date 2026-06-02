@@ -92,6 +92,11 @@ final class HappSubscriptionAppManagementExtras
             }
         }
 
+        foreach (self::happPingSettings() as $key => $value) {
+            $body .= "#{$key}: {$value}\n";
+            $headers[$key] = $value;
+        }
+
         return [
             'body_meta_suffix' => $body,
             'headers' => $headers,
@@ -318,6 +323,35 @@ final class HappSubscriptionAppManagementExtras
         $url = trim($url);
 
         return $url === '' ? '' : rtrim($url, '/');
+    }
+
+    /**
+     * @return array<string, string> Happ app-management: ping-result, subscription-ping-onopen-enabled, …
+     */
+    private static function happPingSettings(): array
+    {
+        $out = [];
+
+        $pingResult = strtolower(trim((string) config('marketing.happ_ping_result', '')));
+        if (in_array($pingResult, ['icon', 'time'], true)) {
+            $out['ping-result'] = $pingResult;
+        }
+
+        if (filter_var(config('marketing.happ_subscription_ping_onopen_enabled', false), FILTER_VALIDATE_BOOLEAN)) {
+            $out['subscription-ping-onopen-enabled'] = '1';
+        }
+
+        $pingType = strtolower(trim((string) config('marketing.happ_ping_type', '')));
+        if (in_array($pingType, ['proxy', 'proxy-head', 'tcp', 'icmp'], true)) {
+            $out['ping-type'] = $pingType;
+        }
+
+        $checkUrl = trim((string) config('marketing.happ_check_url_via_proxy', ''));
+        if ($checkUrl !== '' && filter_var($checkUrl, FILTER_VALIDATE_URL)) {
+            $out['check-url-via-proxy'] = $checkUrl;
+        }
+
+        return $out;
     }
 
     private static function contextNeedsRenewal(

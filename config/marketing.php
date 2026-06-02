@@ -97,6 +97,26 @@ return [
      */
     'subscription_profile_web_icon_color' => env('MARKETING_SUBSCRIPTION_PROFILE_WEB_ICON_COLOR', '#FF4D00FF'),
 
+    /**
+     * Happ: режим отображения пинга серверов в подписке.
+     * icon — галочка/крестик; time — миллисекунды. Пустой HAPP_PING_RESULT — не передавать.
+     *
+     * @see https://www.happ.su/main/dev-docs/app-management
+     */
+    'happ_ping_result' => strtolower(trim((string) env('HAPP_PING_RESULT', 'icon'))),
+
+    /** Happ: автопинг списка серверов при открытии приложения (после обновления подписки). */
+    'happ_subscription_ping_onopen_enabled' => filter_var(
+        env('HAPP_SUBSCRIPTION_PING_ONOPEN_ENABLED', true),
+        FILTER_VALIDATE_BOOLEAN
+    ),
+
+    /** Опционально: ping-type (proxy, proxy-head, tcp, icmp). Пусто — не передавать. */
+    'happ_ping_type' => strtolower(trim((string) env('HAPP_PING_TYPE', ''))),
+
+    /** URL для проверки в режиме via Proxy (check-url-via-proxy). */
+    'happ_check_url_via_proxy' => trim((string) env('HAPP_CHECK_URL_VIA_PROXY', '')),
+
     /** Опционально: общая почта поддержки (футер). Персональные данные не подставляйте в репозиторий. */
     'support_email' => env('MARKETING_SUPPORT_EMAIL', ''),
     /** Дата публикации оферты (строка, напр. 07.04.2026). Пусто — текущая дата на сервере. */
