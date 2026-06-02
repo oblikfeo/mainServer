@@ -3,10 +3,10 @@
 namespace App\Services\Subscription;
 
 /**
- * Общие share-строки: Litnets (доступы5), 777 (доступы777), RUVDS (доступыRUVDS), NL shared (доступы11) и т.д.
+ * Общие share-строки: 777 (доступы777), RUVDS (доступыRUVDS), NL shared (доступы11, опционально).
  *
- * Перед FI/NL подставляются общие share-строки (hy2:// или vless://) — заголовки из .env.
- * Порядок: Litnets → 777 → RUVDS → FI (панель) → NL shared (если включён) или NL (панель).
+ * Перед FI подставляются общие vless:// — заголовки из .env.
+ * Порядок: 777 → RUVDS → FI (панель) → NL shared (если включён) или NL (панель).
  */
 final class SubscriptionExtraShareLines
 {
@@ -36,7 +36,7 @@ final class SubscriptionExtraShareLines
     }
 
     /**
-     * Порядок: shared (Litnets, 777, RUVDS) → FI (панель) → NL shared или NL (панель).
+     * Порядок: shared (777, RUVDS) → FI (панель) → NL shared или NL (панель).
      *
      * @param  array{vless_entries: list<array{key?: string, line?: string}>}  $bundle
      * @return list<string>
@@ -102,11 +102,6 @@ final class SubscriptionExtraShareLines
     private static function leadingExtraBlocks(): array
     {
         $blocks = [];
-
-        $home = config('xui.sub_extra', []);
-        if (is_array($home) && self::isConfigured($home)) {
-            $blocks[] = $home;
-        }
 
         $node777 = config('xui.sub_extra_777', []);
         if (is_array($node777) && self::isConfigured($node777)) {

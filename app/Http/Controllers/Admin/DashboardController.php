@@ -7,7 +7,6 @@ use App\Models\Subscription;
 use App\Services\BundleHealthChecker;
 use App\Services\BundleSshMetrics;
 use App\Services\HomeBundleMetrics;
-use App\Services\Subscription\SubscriptionExtraShareLines;
 use App\Services\Xui\XuiPanelClient;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -16,19 +15,14 @@ use Throwable;
 class DashboardController extends Controller
 {
     /** @var list<string> */
-    private const SHARED_VLESS_BUNDLE_IDS = ['home', '777', 'ruvds'];
+    private const SHARED_VLESS_BUNDLE_IDS = ['777', 'ruvds'];
 
     /**
      * @return list<string>
      */
     private function sharedVlessBundleIds(): array
     {
-        $ids = self::SHARED_VLESS_BUNDLE_IDS;
-        if (SubscriptionExtraShareLines::nlSharedConfigured()) {
-            $ids[] = 'nl';
-        }
-
-        return $ids;
+        return self::SHARED_VLESS_BUNDLE_IDS;
     }
 
     /**
@@ -36,12 +30,7 @@ class DashboardController extends Controller
      */
     private function panelSnapshotBundleKeys(): array
     {
-        $keys = ['fi'];
-        if (! SubscriptionExtraShareLines::nlSharedConfigured()) {
-            $keys[] = 'nl';
-        }
-
-        return $keys;
+        return ['fi'];
     }
 
     public function __construct(
@@ -73,14 +62,12 @@ class DashboardController extends Controller
             );
         }
 
-        $homeVlessTitle = trim((string) config('xui.sub_extra.vless_title', 'Быстрый Wi-Fi'));
         $node777VlessTitle = trim((string) config('xui.sub_extra_777.vless_title', '🇧🇬 Быстрый Wi--Fi'));
-        $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 Мобильная сеть [1]'));
-        $nlVlessTitle = trim((string) config('xui.sub_extra_nl.vless_title', '🇷🇺 Тестирование'));
+        $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 МегаФон, Теле2, Йота'));
         $sharedVlessIds = $this->sharedVlessBundleIds();
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $homeVlessTitle, $node777VlessTitle, $ruvdsVlessTitle, $nlVlessTitle, $sharedVlessIds) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $node777VlessTitle, $ruvdsVlessTitle, $sharedVlessIds) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -92,10 +79,8 @@ class DashboardController extends Controller
 
                 if (in_array($id, $sharedVlessIds, true)) {
                     $bundle['home_vless_label'] = match ($id) {
-                        'home' => $homeVlessTitle,
                         '777' => $node777VlessTitle,
                         'ruvds' => $ruvdsVlessTitle,
-                        'nl' => $nlVlessTitle,
                         default => 'VLESS',
                     };
                     $bundleForHome = $bundle;

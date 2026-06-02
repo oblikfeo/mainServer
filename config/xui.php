@@ -15,31 +15,11 @@ return [
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
-    'bundle_order' => ['fi', 'nl'],
-
-    /**
-     * Общий узел в начале подписки (Litnets, доступы5, 185.121.14.153): hy2:// или vless://
-     * одна ссылка на всех. При непустом SUB_EXTRA_HY2_URI он имеет приоритет над VLESS.
-     *
-     * @var array{
-     *   enabled: bool,
-     *   hy2_uri: string,
-     *   vless_uri: string,
-     *   vless_title: string,
-     *   vless_subtitle: string,
-     * }
-     */
-    'sub_extra' => [
-        'enabled' => filter_var(env('SUB_EXTRA_ENABLED', false), FILTER_VALIDATE_BOOL),
-        'hy2_uri' => trim((string) env('SUB_EXTRA_HY2_URI', '')),
-        'vless_uri' => trim((string) env('SUB_EXTRA_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_EXTRA_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
-        'vless_subtitle' => trim((string) env('SUB_EXTRA_VLESS_SUBTITLE', '')),
-    ],
+    'bundle_order' => ['fi'],
 
     /**
      * RUVDS (доступыRUVDS, 195.133.198.100): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇭🇰 Мобильная сеть [1]; FI/NL ниже — [2] и [3].
+     * В Happ: 🇭🇰 МегаФон, Теле2, Йота — второй узел после 777.
      */
     'sub_extra_ruvds' => [
         'enabled' => filter_var(env('SUB_RUVDS_ENABLED', false), FILTER_VALIDATE_BOOL),
@@ -50,7 +30,7 @@ return [
 
     /**
      * 777 (доступы777, 169.40.15.141): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇧🇬 Быстрый Wi-Fi — второй узел после Litnets.
+     * В Happ: 🇧🇬 Быстрый Wi-Fi — первый узел.
      */
     'sub_extra_777' => [
         'enabled' => filter_var(env('SUB_777_ENABLED', false), FILTER_VALIDATE_BOOL),
@@ -270,7 +250,7 @@ return [
         'trim',
         explode(',', (string) env(
             'SUB_FEED_HWID_IGNORE_IPS',
-            '127.0.0.1,::1,158.160.252.139,185.121.14.153,195.133.198.100,158.160.241.36,158.160.208.31'
+            '127.0.0.1,::1,158.160.200.205,195.133.198.100,158.160.158.78,169.40.15.141'
         ))
     ))),
 

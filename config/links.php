@@ -6,54 +6,33 @@ $trafficCritTb = (float) env('LINK_TRAFFIC_CRIT_TB', 3);
 return [
     'bundles' => [
         [
-            'id' => 'nl',
-            'name' => 'Тестирование',
-            'subtitle' => (string) env('LINK_NL_SUBTITLE', '158.160.136.187 · 🇷🇺 Тестирование · shared VLESS'),
-            'ip' => (string) env('LINK_NL_IP', '158.160.136.187'),
-            'ssh_user' => (string) env('LINK_NL_SSH_USER', 'ubuntu'),
-            'ssh_private_key' => env('LINK_NL_SSH_KEY', ''),
-            'client_tcp_port' => (int) env('LINK_NL_CLIENT_TCP_PORT', 443),
-            'health_profile' => 'home',
-        ],
-        [
-            'id' => 'fi',
-            'name' => 'Связка FI',
-            'subtitle' => 'Финляндия · egress',
-            'ip' => '158.160.241.36',
-            'ssh_user' => 'oblik',
-            'ssh_private_key' => env('LINK_FI_SSH_KEY', ''),
-            'client_tcp_port' => (int) env('LINK_FI_CLIENT_TCP_PORT', 443),
-        ],
-        [
-            'id' => 'home',
-            'name' => 'Litnets',
-            'subtitle' => '185.121.14.153 · Hy2 (Быстрый Wi-Fi)',
-            'ip' => (string) env('LINK_HOME_IP', '185.121.14.153'),
-            'ssh_user' => (string) env('LINK_HOME_SSH_USER', 'root'),
-            'ssh_private_key' => (string) env('LINK_HOME_SSH_KEY', ''),
-            'client_tcp_port' => (int) env('LINK_HOME_CLIENT_TCP_PORT', 443),
-            'health_profile' => 'hysteria',
-            'require_tcp' => false,
-        ],
-        [
             'id' => '777',
             'name' => '777',
             'subtitle' => '169.40.15.141 · 🇧🇬 Быстрый Wi--Fi · shared VLESS',
             'ip' => (string) env('LINK_777_IP', '169.40.15.141'),
             'ssh_user' => (string) env('LINK_777_SSH_USER', 'root'),
-            'ssh_private_key' => (string) env('LINK_777_SSH_KEY', ''),
+            'ssh_private_key' => env('LINK_777_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_777_CLIENT_TCP_PORT', 443),
             'health_profile' => 'home',
         ],
         [
             'id' => 'ruvds',
             'name' => 'RUVDS',
-            'subtitle' => '195.133.198.100 · 🇭🇰 Мобильная сеть [1] · общая VLESS',
+            'subtitle' => '195.133.198.100 · 🇭🇰 МегаФон, Теле2, Йота · общая VLESS',
             'ip' => (string) env('LINK_RUVDS_IP', '195.133.198.100'),
             'ssh_user' => (string) env('LINK_RUVDS_SSH_USER', 'root'),
-            'ssh_private_key' => (string) env('LINK_RUVDS_SSH_KEY', ''),
+            'ssh_private_key' => env('LINK_RUVDS_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_RUVDS_CLIENT_TCP_PORT', 443),
             'health_profile' => 'home',
+        ],
+        [
+            'id' => 'fi',
+            'name' => 'Связка FI',
+            'subtitle' => 'Yandex FI · egress Hostkey',
+            'ip' => (string) env('LINK_FI_IP', '158.160.158.78'),
+            'ssh_user' => (string) env('LINK_FI_SSH_USER', 'oblik'),
+            'ssh_private_key' => env('LINK_FI_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_FI_CLIENT_TCP_PORT', 443),
         ],
     ],
 
@@ -82,12 +61,6 @@ return [
             'display_bytes' => (int) env('LINK_TRAFFIC_BASE_FI_BYTES', 264_420_000_000),
             // Текущее значение panel bytes в момент фиксации базы
             'panel_base_bytes' => (int) env('LINK_TRAFFIC_BASE_FI_PANEL_BYTES', 118_689_275_167),
-        ],
-        'nl' => [
-            // 88.34 ГБ (данные Hostkey)
-            'display_bytes' => (int) env('LINK_TRAFFIC_BASE_NL_BYTES', 88_340_000_000),
-            // Текущее значение panel bytes в момент фиксации базы
-            'panel_base_bytes' => (int) env('LINK_TRAFFIC_BASE_NL_PANEL_BYTES', 9_798_275_650),
         ],
     ],
 
