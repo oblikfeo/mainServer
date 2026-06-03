@@ -31,12 +31,19 @@ class ReportController extends Controller
         $ttl = max(15, (int) config('xui.report_traffic_cache_ttl', 60));
         $payload = Cache::remember('admin_report_xui_traffic_v1', $ttl, fn () => $trafficMaps->fetch());
 
-        $connTtl = max(15, (int) config('xui.report_connection_cache_ttl', 60));
-        $connectionPayload = Cache::remember(
-            'admin_report_subscription_connections_v1',
-            $connTtl,
-            fn () => $connectionInspector->inspectAllActive()
-        );
+        if (filter_var(config('xui.report_light'), FILTER_VALIDATE_BOOL)) {
+            $connectionPayload = [
+                'by_subscription_id' => [],
+                'errors' => ['Проверка IP отключена (XUI_REPORT_LIGHT).'],
+            ];
+        } else {
+            $connTtl = max(15, (int) config('xui.report_connection_cache_ttl', 60));
+            $connectionPayload = Cache::remember(
+                'admin_report_subscription_connections_v1',
+                $connTtl,
+                fn () => $connectionInspector->inspectAllActive()
+            );
+        }
 
         return view('admin.report', [
             'subscriptions' => $subscriptions,

@@ -236,6 +236,9 @@ return [
     /** Кэш блока «уникальные IP по подписке» на отчёте (секунды). */
     'report_connection_cache_ttl' => (int) env('XUI_REPORT_CONNECTION_CACHE_TTL', 60),
 
+    /** Без SSH-inspect IP на /admin/report (если панели недоступны с хоста hub). */
+    'report_light' => filter_var(env('XUI_REPORT_LIGHT', false), FILTER_VALIDATE_BOOL),
+
     /**
      * GET /sub/{token}: требовать заголовок HWID от Happ и хранить до devices уникальных отпечатков.
      * Отключите (false), если тестируете curl без X-Hwid.

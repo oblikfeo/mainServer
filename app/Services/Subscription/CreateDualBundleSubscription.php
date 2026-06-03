@@ -58,20 +58,20 @@ final class CreateDualBundleSubscription
 
             $base = (string) ($node['panel_base'] ?? '');
             if ($base === '') {
-                throw new XuiPanelException("Пустой panel_base для {$bundleKey} (XUI_*_BASE)");
+                throw new XuiPanelException("Пустой panel_base для {$bundleKey} (XUI_*_BASE в .env)");
             }
 
             $user = (string) ($node['panel_username'] ?? '');
             $pass = (string) ($node['panel_password'] ?? '');
             if ($user === '' || $pass === '') {
                 throw new XuiPanelException(
-                    "Не заданы креды для узла «{$bundleKey}» (XUI_".strtoupper($bundleKey)."_USER/PASSWORD либо XUI_PANEL_USER/PASSWORD)"
+                    "Не заданы креды для узла «{$bundleKey}» (XUI_".strtoupper($bundleKey).'_USER/PASSWORD или XUI_PANEL_USER/PASSWORD)'
                 );
             }
 
             $inboundId = (int) ($node['inbound_id'] ?? 0);
             if ($inboundId < 1) {
-                throw new XuiPanelException("Неверный inbound для {$bundleKey}");
+                throw new XuiPanelException("Неверный inbound для {$bundleKey} (XUI_*_INBOUND_ID)");
             }
 
             $prefix = (string) ($node['client_email_prefix'] ?? $bundleKey);
@@ -123,10 +123,11 @@ final class CreateDualBundleSubscription
             $subIds[$bundleKey] = $subId;
         }
 
-        $fiSubId = (string) ($subIds['fi'] ?? '');
-        $nlSubId = (string) ($subIds['nl'] ?? '');
-        if ($fiSubId === '' || $nlSubId === '') {
-            throw new XuiPanelException('Внутренняя ошибка: не все subId созданы');
+        foreach ($order as $bundleKey) {
+            $bundleKey = (string) $bundleKey;
+            if (($subIds[$bundleKey] ?? '') === '') {
+                throw new XuiPanelException("Внутренняя ошибка: не создан subId для «{$bundleKey}»");
+            }
         }
 
         $token = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
@@ -134,16 +135,20 @@ final class CreateDualBundleSubscription
         $subscription = Subscription::query()->create([
             'user_id' => $userId,
             'token' => $token,
-            'fi_sub_id' => $fiSubId,
-            'nl_sub_id' => $nlSubId,
+            'fi_sub_id' => (string) ($subIds['fi'] ?? ''),
+            'nl_sub_id' => (string) ($subIds['nl'] ?? ''),
             'quota_gb' => $unlimitedTraffic ? 0 : $quotaGb,
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
             'is_trial' => $isTrial,
         ]);
 
-        IssuedKey::query()->create(['bundle_id' => 'fi', 'subscription_id' => $subscription->id]);
-        IssuedKey::query()->create(['bundle_id' => 'nl', 'subscription_id' => $subscription->id]);
+        foreach ($order as $bundleKey) {
+            IssuedKey::query()->create([
+                'bundle_id' => (string) $bundleKey,
+                'subscription_id' => $subscription->id,
+            ]);
+        }
 
         $publicBase = rtrim((string) config('app.url'), '/');
         $subscriptionUrl = $publicBase.'/sub/'.$token;

@@ -21,12 +21,18 @@ php artisan view:cache
 
 ## Почта (Resend)
 
-В проекте уже настроен транспорт `resend` (Laravel). На сервере в `.env`:
+Используем **HTTP API Resend**, не SMTP. В `.env` на проде:
 
 - `MAIL_MAILER=resend`
-- `RESEND_API_KEY=...`
-- `MAIL_FROM_ADDRESS=no-reply@nadezhda.space` (или другой адрес на домене, который Verified в Resend)
+- `RESEND_API_KEY=re_...` (ключ из панели Resend; **не** класть только в `MAIL_PASSWORD`)
+- `MAIL_FROM_ADDRESS=support@nadezhda.space` (адрес на verified-домене в Resend)
 - `MAIL_FROM_NAME="Nadezhda"` (опционально)
+
+Пакет обязателен: `composer require resend/resend-php` (уже в `composer.json`; после `git pull` — `composer install`).
+
+**Не ставить** `MAIL_MAILER=smtp` + `smtp.resend.com:465` на hub Hostkey (`82.24.19.230`): исходящий SMTP с VPS часто **таймаутится**, письма quick-buy/WATA падают в лог (`Connection timed out` к `ssl://smtp.resend.com:465`). На старом Yandex SMTP иногда работал — при копировании `.env` на cutover это не заметили.
+
+Строки `MAIL_HOST` / `MAIL_PORT` / `MAIL_PASSWORD` для Resend **не нужны** при `MAIL_MAILER=resend` (можно оставить, Laravel их не использует).
 
 Быстрый тест после деплоя:
 
