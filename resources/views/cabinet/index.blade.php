@@ -18,7 +18,7 @@
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     @endphp
 
-    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: null }" @endif>
+    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: 'paid' }" @endif>
         @if ($showBothTabs)
             <div class="lp-cab-tabbar mb-3" role="tablist" aria-label="Подписки">
                 <button
@@ -44,9 +44,6 @@
                     <span class="lp-cab-tab__sub">Пробный Happ, старые тест-ключи</span>
                 </button>
             </div>
-            <p class="text-sm font-semibold text-slate-600 mb-3" x-show="tab === null" x-cloak>
-                Выберите раздел выше — содержимое появится после клика.
-            </p>
         @endif
 
         {{-- Раздел пробных подписок --}}
@@ -55,7 +52,7 @@
             @unless ($showBothTabs)
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             @endunless
-            <article class="lp-card" style="margin-bottom: 2rem;" x-data="{ open: {{ $showBothTabs ? 'false' : 'true' }} }">
+            <article class="lp-card" style="margin-bottom: 2rem;" x-data="{ open: true }">
                 <button
                     type="button"
                     class="lp-card__head"
@@ -296,7 +293,7 @@
                     $exp = $sub->expiresAt();
                 @endphp
                 <div class="lp-cab-paid-sub-unit">
-                <article class="lp-card" x-data="{ open: false }">
+                <article class="lp-card" x-data="{ open: true }">
                     <button
                         type="button"
                         class="lp-card__head"
