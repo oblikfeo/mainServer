@@ -9,6 +9,8 @@
             $hasActiveTestKeys = $activeTestKeys->isNotEmpty();
             $hasActiveTrials = $activeTrialSubscriptions->isNotEmpty();
             $hasAnyActiveTestAccess = $hasActiveTestKeys || $hasActiveTrials;
+            $canIssueCabinetTrial = $me->canSelfIssueCabinetTrial();
+            $trialUsedUp = $me->hasVerifiedEmail() && ! $hasAnyActiveTestAccess && ! $canIssueCabinetTrial;
             $trialHours = (int) config('trial_subscription.hours', 3);
             $hasPaidSub = ! empty($items);
             $showTrialSection = $hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer();
@@ -63,6 +65,8 @@
                     <div class="flex flex-wrap items-center gap-2">
                         @if ($hasAnyActiveTestAccess)
                             <span class="lp-badge-pill lp-badge-pill--ok">Активна @if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }}) @endif</span>
+                        @elseif ($trialUsedUp)
+                            <span class="lp-badge-pill">Использована</span>
                         @elseif ($me->hasVerifiedEmail())
                             <span class="lp-badge-pill">Не активирована</span>
                         @else
@@ -260,11 +264,15 @@
                                         </div>
                                     </div>
                                 </div>
-                        @else
+                        @elseif ($canIssueCabinetTrial)
                             <form method="POST" action="{{ route('cabinet.test_keys.store') }}">
                                 @csrf
                                 <button type="submit">Получить тестовую подписку</button>
                             </form>
+                        @elseif ($trialUsedUp)
+                            <div class="lp-warn-box">
+                                Пробный период уже использован. Чтобы продолжить пользоваться сервисом, оформите платную подписку ниже.
+                            </div>
                         @endif
                     @endif
                 </div>

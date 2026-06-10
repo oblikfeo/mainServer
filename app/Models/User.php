@@ -109,4 +109,38 @@ class User extends Authenticatable
             ->orderByDesc('id')
             ->first();
     }
+
+    /** Была ли когда-либо самовыдача пробного доступа из ЛК (включая legacy test_keys). */
+    public function hasEverUsedCabinetTrial(): bool
+    {
+        if ($this->subscriptions()->where('is_trial', true)->exists()) {
+            return true;
+        }
+
+        return $this->testKeys()->exists();
+    }
+
+    /**
+     * Можно ли запросить новый пробный доступ из ЛК: один базовый тест на аккаунт,
+     * плюс отдельные слоты referral_invitee_test_issues_remaining для приглашённых.
+     */
+    public function canSelfIssueCabinetTrial(): bool
+    {
+        if ($this->activeTrialSubscription() !== null) {
+            return false;
+        }
+
+        if ($this->testKeys()
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->exists()) {
+            return false;
+        }
+
+        if ((int) $this->referral_invitee_test_issues_remaining > 0) {
+            return true;
+        }
+
+        return ! $this->hasEverUsedCabinetTrial();
+    }
 }

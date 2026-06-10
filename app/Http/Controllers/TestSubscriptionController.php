@@ -38,6 +38,12 @@ class TestSubscriptionController extends Controller
             ]);
         }
 
+        if (! $user->canSelfIssueCabinetTrial()) {
+            return back()->withErrors([
+                'test_subscription' => 'Пробный период уже использован. Оформите платную подписку или дождитесь акции.',
+            ]);
+        }
+
         try {
             $issuer->issueFromCabinet($user, false);
         } catch (XuiPanelException $e) {

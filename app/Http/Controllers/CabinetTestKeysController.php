@@ -40,6 +40,12 @@ class CabinetTestKeysController extends Controller
             return back()->with('status', 'test-key-exists');
         }
 
+        if (! $user->canSelfIssueCabinetTrial()) {
+            return back()->withErrors([
+                'test_key' => 'Пробный период уже использован. Оформите платную подписку или дождитесь акции.',
+            ]);
+        }
+
         $referralSlot = (int) $user->referral_invitee_test_issues_remaining > 0;
 
         try {
