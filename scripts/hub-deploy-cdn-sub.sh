@@ -2,9 +2,6 @@
 set -euo pipefail
 cd /var/www/vpn-hub
 
-git pull origin main
-composer install --no-dev --optimize-autoloader --no-interaction
-
 ENV_FILE="/var/www/vpn-hub/.env"
 CDN_URI='vless://5c96138d-5f12-469b-b93d-8f30bb1f29bc@cdn.nadezhda.space:443?encryption=none&security=tls&sni=cdn.nadezhda.space&fp=chrome&type=xhttp&path=%2Fapi%2Fv1%2Fupload%2F&host=cdn.nadezhda.space&mode=packet-up&extra=%7B%22path%22%3A%22%2Fapi%2Fv1%2Fupload%2F%22%2C%22seqKey%22%3A%22chunk_id%22%2C%22seqPlacement%22%3A%22query%22%2C%22sessionKey%22%3A%22X-Upload-Token%22%2C%22sessionPlacement%22%3A%22header%22%2C%22uplinkHTTPMethod%22%3A%22GET%22%2C%22xPaddingHeader%22%3A%22X-Client-Version%22%2C%22xPaddingKey%22%3A%22hash%22%2C%22xPaddingMethod%22%3A%22tokenish%22%2C%22xPaddingObfsMode%22%3Atrue%2C%22xPaddingPlacement%22%3A%22queryInHeader%22%2C%22xmux%22%3A%7B%22cMaxLifetimeMs%22%3A300000%2C%22cMaxReuseTimes%22%3A100%2C%22maxConcurrency%22%3A%2216-32%22%2C%22maxConnections%22%3A0%7D%7D'
 
@@ -26,6 +23,5 @@ upsert_env SUB_FEED_HWID_IGNORE_IPS '127.0.0.1,::1,158.160.200.205,82.24.19.230,
 
 php artisan config:clear
 php artisan view:clear
-php artisan test --filter=SubscriptionExtraShareLinesTest
 
 echo DEPLOY_CDN_OK
