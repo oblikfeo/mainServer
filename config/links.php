@@ -6,6 +6,16 @@ $trafficCritTb = (float) env('LINK_TRAFFIC_CRIT_TB', 3);
 return [
     'bundles' => [
         [
+            'id' => 'bg31',
+            'name' => 'BG31',
+            'subtitle' => '31.22.10.250 · 🇩🇪 Быстрый Wi-Fi · shared VLESS',
+            'ip' => (string) env('LINK_BG31_IP', '31.22.10.250'),
+            'ssh_user' => (string) env('LINK_BG31_SSH_USER', 'root'),
+            'ssh_private_key' => env('LINK_BG31_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_BG31_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => '777',
             'name' => '777',
             'subtitle' => '169.40.15.141 · 🇧🇬 Быстрый Wi--Fi · shared VLESS',

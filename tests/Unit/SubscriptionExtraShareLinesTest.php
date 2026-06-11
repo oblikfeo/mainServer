@@ -7,17 +7,25 @@ use Tests\TestCase;
 
 final class SubscriptionExtraShareLinesTest extends TestCase
 {
+    private const VLESS_BG31 = 'vless://11111111-1111-1111-1111-111111111111@31.22.10.250:443?security=reality&encryption=none&type=tcp#bg31';
+
     private const VLESS_RUVDS = 'vless://22222222-2222-2222-2222-222222222222@195.133.198.100:443?security=reality&encryption=none&type=tcp#ruvds';
 
     private const VLESS_777 = 'vless://44444444-4444-4444-4444-444444444444@169.40.15.141:443?security=reality&encryption=none&type=tcp#777';
 
-    private const VLESS_CDN = 'vless://11111111-1111-1111-1111-111111111111@cdn.nadezhda.space:443?encryption=none&security=tls&type=xhttp#cdn';
+    private const VLESS_CDN = 'vless://aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa@cdn.nadezhda.space:443?encryption=none&security=tls&type=xhttp#cdn';
 
     private const VLESS_NL_SHARED = 'vless://33333333-3333-3333-3333-333333333333@158.160.136.187:443?security=reality&encryption=none&type=tcp#nl-shared';
 
     protected function tearDown(): void
     {
         config([
+            'xui.sub_extra_bg31' => [
+                'enabled' => false,
+                'vless_uri' => '',
+                'vless_title' => '',
+                'vless_subtitle' => '',
+            ],
             'xui.sub_extra_ruvds' => [
                 'enabled' => false,
                 'vless_uri' => '',
@@ -52,9 +60,15 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertSame([], SubscriptionExtraShareLines::lines());
     }
 
-    public function test_lines_order_777_then_ruvds_then_cdn(): void
+    public function test_lines_order_bg31_then_777_then_ruvds_then_cdn(): void
     {
         config([
+            'xui.sub_extra_bg31' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_BG31,
+                'vless_title' => '🇩🇪 Быстрый Wi-Fi',
+                'vless_subtitle' => '',
+            ],
             'xui.sub_extra_777' => [
                 'enabled' => true,
                 'vless_uri' => self::VLESS_777,
@@ -77,10 +91,13 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
         $lines = SubscriptionExtraShareLines::lines();
 
-        $this->assertCount(3, $lines);
-        $this->assertStringContainsString('@169.40.15.141:', $lines[0]);
-        $this->assertStringContainsString('@195.133.198.100:', $lines[1]);
-        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[2]);
+        $this->assertCount(4, $lines);
+        $this->assertStringContainsString('@31.22.10.250:', $lines[0]);
+        $this->assertStringContainsString('Wi-Fi', $lines[0]);
+        $this->assertStringNotContainsString('Wi--Fi', $lines[0]);
+        $this->assertStringContainsString('@169.40.15.141:', $lines[1]);
+        $this->assertStringContainsString('@195.133.198.100:', $lines[2]);
+        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[3]);
     }
 
     public function test_lines_order_777_then_ruvds(): void
