@@ -57,6 +57,29 @@ final class XrayJsonSubscriptionFeedRenderer
             }
 
             if ($convertedRows === []) {
+                $shareLines = SubscriptionExtraShareLines::orderedWithBundle(
+                    ['vless_entries' => []],
+                    false,
+                );
+                foreach ($shareLines as $idx => $uriLine) {
+                    $stripped = explode('#', (string) $uriLine, 2)[0];
+                    $tag = 'proxy-shared-'.$idx;
+                    $ob = VlessUriToXrayOutbound::convert($stripped, $tag);
+                    if ($ob === null) {
+                        continue;
+                    }
+                    $convertedRows[] = [
+                        'entry' => [
+                            'key' => 'shared-'.$idx,
+                            'line' => $uriLine,
+                            'userinfo' => [],
+                        ],
+                        'ob' => $ob,
+                    ];
+                }
+            }
+
+            if ($convertedRows === []) {
                 throw new \RuntimeException('Не удалось собрать ни одного VLESS outbound в JSON.');
             }
 

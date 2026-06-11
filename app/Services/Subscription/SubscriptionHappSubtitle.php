@@ -23,10 +23,9 @@ final class SubscriptionHappSubtitle
         $nodes = config('xui.nodes', []);
         $node = is_array($nodes[$bundleKey] ?? null) ? $nodes[$bundleKey] : [];
 
-        return self::preferNonEmpty([
-            trim((string) ($node['vless_server_description'] ?? '')),
-            trim((string) config('xui.vless_server_description', '')),
-        ]);
+        // Только описание узла (XUI_FI_* / XUI_NL_*). Общий fallback не подмешиваем — иначе FI/NL
+        // получают serverDescription в URI, а iOS Happ рисует base64 в строке «протокол».
+        return trim((string) ($node['vless_server_description'] ?? ''));
     }
 
     /** Trial / TestKey: SUB_GRAY_TRIAL или общий fallback. */

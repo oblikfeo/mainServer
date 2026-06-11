@@ -7,22 +7,14 @@ use Tests\TestCase;
 
 class CreateDualBundleSubscriptionConfigTest extends TestCase
 {
-    public function test_bundle_order_fi_only_does_not_require_nl_sub_id_in_config(): void
+    public function test_bundle_order_empty_allows_subscription_create(): void
     {
         config([
-            'xui.bundle_order' => ['fi'],
-            'xui.nodes.fi' => [
-                'panel_base' => 'https://example.test/panel',
-                'panel_username' => 'u',
-                'panel_password' => 'p',
-                'inbound_id' => 1,
-                'client_email_prefix' => 'fi',
-            ],
+            'xui.bundle_order' => [],
         ]);
 
         $order = config('xui.bundle_order');
-        $this->assertSame(['fi'], $order);
-        $this->assertNotContains('nl', $order);
+        $this->assertSame([], $order);
 
         $ref = new \ReflectionClass(CreateDualBundleSubscription::class);
         $this->assertTrue($ref->hasMethod('create'));

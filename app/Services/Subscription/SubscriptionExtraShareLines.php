@@ -6,7 +6,7 @@ namespace App\Services\Subscription;
  * Общие share-строки: 777 (доступы777), RUVDS (доступыRUVDS), NL shared (доступы11, опционально).
  *
  * Перед FI подставляются общие vless:// — заголовки из .env.
- * Порядок: 777 → RUVDS → FI (панель) → NL shared (если включён) или NL (панель).
+ * Порядок: 777 → RUVDS → CDN (общая) → FI (панель, если bundle_order) → NL shared (если включён) или NL (панель).
  */
 final class SubscriptionExtraShareLines
 {
@@ -111,6 +111,11 @@ final class SubscriptionExtraShareLines
         $ruvds = config('xui.sub_extra_ruvds', []);
         if (is_array($ruvds) && self::isConfigured($ruvds)) {
             $blocks[] = $ruvds;
+        }
+
+        $cdn = config('xui.sub_extra_cdn', []);
+        if (is_array($cdn) && self::isConfigured($cdn)) {
+            $blocks[] = $cdn;
         }
 
         return $blocks;

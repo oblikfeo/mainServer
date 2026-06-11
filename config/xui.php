@@ -15,7 +15,18 @@ return [
     'panel_username' => env('XUI_PANEL_USER', ''),
     'panel_password' => env('XUI_PANEL_PASSWORD', ''),
 
-    'bundle_order' => ['fi'],
+    'bundle_order' => [],
+
+    /**
+     * CDN xhttp (158.160.200.205 + cdn.nadezhda.space, egress Hostkey FI 82.40.56.223): общая VLESS.
+     * В Happ: 🇫🇮 Обход глушилок LTE — вместо per-client FI на Yandex 158.160.158.78.
+     */
+    'sub_extra_cdn' => [
+        'enabled' => filter_var(env('SUB_CDN_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_CDN_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_CDN_VLESS_TITLE', '🇫🇮 Обход глушилок LTE')),
+        'vless_subtitle' => trim((string) env('SUB_CDN_VLESS_SUBTITLE', '')),
+    ],
 
     /**
      * RUVDS (доступыRUVDS, 195.133.198.100): общая VLESS Reality, одна ссылка на всех.
@@ -253,7 +264,7 @@ return [
         'trim',
         explode(',', (string) env(
             'SUB_FEED_HWID_IGNORE_IPS',
-            '127.0.0.1,::1,158.160.200.205,195.133.198.100,158.160.158.78,169.40.15.141'
+            '127.0.0.1,::1,158.160.200.205,82.24.19.230,195.133.198.100,169.40.15.141'
         ))
     ))),
 

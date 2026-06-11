@@ -15,7 +15,7 @@ use Throwable;
 class DashboardController extends Controller
 {
     /** @var list<string> */
-    private const SHARED_VLESS_BUNDLE_IDS = ['777', 'ruvds'];
+    private const SHARED_VLESS_BUNDLE_IDS = ['777', 'ruvds', 'cdn'];
 
     /**
      * @return list<string>
@@ -30,7 +30,7 @@ class DashboardController extends Controller
      */
     private function panelSnapshotBundleKeys(): array
     {
-        return ['fi'];
+        return [];
     }
 
     public function __construct(
@@ -64,10 +64,11 @@ class DashboardController extends Controller
 
         $node777VlessTitle = trim((string) config('xui.sub_extra_777.vless_title', '🇧🇬 Быстрый Wi--Fi'));
         $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 МегаФон, Теле2, Йота'));
+        $cdnVlessTitle = trim((string) config('xui.sub_extra_cdn.vless_title', '🇫🇮 Обход глушилок LTE'));
         $sharedVlessIds = $this->sharedVlessBundleIds();
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $node777VlessTitle, $ruvdsVlessTitle, $sharedVlessIds) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $node777VlessTitle, $ruvdsVlessTitle, $cdnVlessTitle, $sharedVlessIds) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -81,6 +82,7 @@ class DashboardController extends Controller
                     $bundle['home_vless_label'] = match ($id) {
                         '777' => $node777VlessTitle,
                         'ruvds' => $ruvdsVlessTitle,
+                        'cdn' => $cdnVlessTitle,
                         default => 'VLESS',
                     };
                     $bundleForHome = $bundle;

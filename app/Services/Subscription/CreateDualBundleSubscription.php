@@ -40,9 +40,6 @@ final class CreateDualBundleSubscription
             $expiryMs = (int) ((time() + $days * 86400) * 1000);
         }
 
-        if (count($order) < 1) {
-            throw new XuiPanelException('Пустой список узлов в config/xui.php (bundle_order)');
-        }
         $quotaBytes = $unlimitedTraffic
             ? 0
             : max(1, $quotaGb * self::BYTES_PER_GB);

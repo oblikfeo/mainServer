@@ -75,7 +75,7 @@ final class SubscriptionBundleCollector
         }
 
         if ($requests === []) {
-            throw new \RuntimeException('Нет настроенных узлов с sub_origin в .env');
+            return [];
         }
 
         $responses = Http::pool(function (Pool $pool) use ($requests) {
