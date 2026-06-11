@@ -7,6 +7,6 @@ php scripts/hub-patch-bg31-admin.php
 
 php artisan config:clear
 php artisan view:clear
-php artisan test --filter=SubscriptionExtraShareLinesTest
+php scripts/hub-smoke-bg31.php
 
 echo DEPLOY_BG31_OK
