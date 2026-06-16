@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
 use App\Models\Subscription;
+use App\Services\Payments\BonusExtraDevicePricing;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use RuntimeException;
 
 class CabinetCreatePaymentLinkController extends Controller
 {
-    public function __invoke(Request $request, WataH2hClient $wata): JsonResponse
+    public function __invoke(Request $request, WataH2hClient $wata, BonusExtraDevicePricing $bonusPricing): JsonResponse
     {
         if (trim((string) config('wata.access_token')) === '') {
             return response()->json(['error' => 'payments_not_configured'], 503);
@@ -32,7 +33,7 @@ class CabinetCreatePaymentLinkController extends Controller
         $purpose = (string) ($data['purpose'] ?? 'new');
 
         if ($purpose === 'extra_device') {
-            return $this->createExtraDeviceOrder($wata, $user, $data);
+            return $this->createExtraDeviceOrder($wata, $user, $data, $bonusPricing);
         }
 
         if ($purpose === 'renew') {
@@ -191,11 +192,19 @@ class CabinetCreatePaymentLinkController extends Controller
     /**
      * @param  array{subscription_id?: int|null}  $data
      */
-    private function createExtraDeviceOrder(WataH2hClient $wata, $user, array $data): JsonResponse
-    {
+    private function createExtraDeviceOrder(
+        WataH2hClient $wata,
+        $user,
+        array $data,
+        BonusExtraDevicePricing $bonusPricing,
+    ): JsonResponse {
         $subscriptionId = isset($data['subscription_id']) ? (int) $data['subscription_id'] : 0;
         if ($subscriptionId < 1) {
             return response()->json(['error' => 'subscription_required'], 422);
+        }
+
+        if (! $bonusPricing->isConfigured()) {
+            return response()->json(['error' => 'invalid_configuration'], 500);
         }
 
         /** @var Subscription|null $subscription */
@@ -211,15 +220,20 @@ class CabinetCreatePaymentLinkController extends Controller
             return response()->json(['error' => 'subscription_expired'], 422);
         }
 
-        $bonusCfg = config('payments.bonus_extra_device', []);
-        $amountRub = (int) ($bonusCfg['amount_rub'] ?? 0);
-        $addDevices = (int) ($bonusCfg['add_devices'] ?? 0);
-        if ($amountRub < 1 || $addDevices < 1 || $addDevices > 100) {
+        $addDevices = $bonusPricing->addDevices();
+        if ($addDevices < 1 || $addDevices > 100) {
             return response()->json(['error' => 'invalid_configuration'], 500);
         }
 
+        $remainingDays = $bonusPricing->remainingActiveDays($subscription);
+        $amountRub = $bonusPricing->amountRubForSubscription($subscription);
+        if ($amountRub < 1) {
+            return response()->json(['error' => 'subscription_expired'], 422);
+        }
+
         $orderId = 'ord_'.(string) Str::ulid();
-        $desc = 'Бонус +'.$addDevices.' устр. · подписка №'.$subscription->public_code;
+        $tierRange = $bonusPricing->tierRangeLabel($remainingDays);
+        $desc = 'Бонус +'.$addDevices.' устр. · №'.$subscription->public_code.' · '.$tierRange.' · '.$amountRub.' ₽';
 
         $order = PaymentOrder::query()->create([
             'order_id' => $orderId,
@@ -233,7 +247,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'description' => $desc,
             'tariff_plan' => 'bonus',
             'tariff_period' => 'extra_device',
-            'days' => 0,
+            'days' => $remainingDays ?? 0,
             'devices' => $addDevices,
             'quota_gb' => 0,
         ]);
