@@ -96,38 +96,4 @@ final class BonusExtraDevicePricing
 
         return $from.'–'.$to.' дн.';
     }
-
-    /**
-     * @return list<array{range: string, amount_rub: int, highlight: bool}>
-     */
-    public function displayTiers(?int $remainingDays = null, int $maxTiers = 4): array
-    {
-        $bucket = $this->dayBucket();
-        $step = $this->stepRub();
-        $activeSteps = $remainingDays === null ? null : $this->pricingSteps($remainingDays);
-        $rows = [];
-
-        for ($i = 1; $i <= $maxTiers; $i++) {
-            $from = ($i - 1) * $bucket + 1;
-            $to = $i * $bucket;
-            $range = $i === 1
-                ? '1–'.$bucket.' дн.'
-                : $from.'–'.$to.' дн.';
-
-            $rows[] = [
-                'range' => $range,
-                'amount_rub' => $i * $step,
-                'highlight' => $activeSteps !== null && $activeSteps === $i,
-            ];
-        }
-
-        $rows[] = [
-            'range' => 'дальше — +'.$step.' ₽ за каждые '.$bucket.' дн.',
-            'amount_rub' => ($maxTiers + 1) * $step,
-            'highlight' => $activeSteps !== null && $activeSteps > $maxTiers,
-            'is_note' => true,
-        ];
-
-        return $rows;
-    }
 }

@@ -21,13 +21,9 @@ class CabinetBonusesController extends Controller
                 ->get()
                 ->filter(fn (Subscription $sub) => ! $sub->isExpired())
                 ->map(function (Subscription $sub) use ($pricing): array {
-                    $remainingDays = $pricing->remainingActiveDays($sub);
-
                     return [
                         'subscription' => $sub,
-                        'remaining_days' => $remainingDays,
                         'amount_rub' => $pricing->amountRubForSubscription($sub),
-                        'tier_range' => $pricing->tierRangeLabel($remainingDays),
                     ];
                 })
                 ->filter(fn (array $row) => (int) $row['amount_rub'] > 0)
@@ -38,9 +34,6 @@ class CabinetBonusesController extends Controller
             'bonusItems' => $bonusItems,
             'bonusAddDevices' => $pricing->addDevices(),
             'bonusConfigured' => $pricing->isConfigured(),
-            'pricingTiers' => $pricing->displayTiers(),
-            'stepRub' => $pricing->stepRub(),
-            'dayBucket' => $pricing->dayBucket(),
         ]);
     }
 }
