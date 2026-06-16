@@ -140,6 +140,21 @@ class WataWebhookController extends Controller
                         (int) $locked->devices,
                     );
                     $expMs = (int) $renewed->expiry_ms;
+                } elseif ($purpose === 'extra_device') {
+                    $targetId = (int) $locked->subscription_id;
+                    if ($targetId < 1) {
+                        Log::error('WATA webhook: extra_device order without subscription_id: '.$locked->order_id);
+
+                        return response('', 500);
+                    }
+                    $addDevices = (int) $locked->devices;
+                    if ($addDevices < 1) {
+                        Log::error('WATA webhook: extra_device order without devices: '.$locked->order_id);
+
+                        return response('', 500);
+                    }
+                    $renewed = $renewals->apply($targetId, 0, 0, $addDevices);
+                    $expMs = (int) $renewed->expiry_ms;
                 } else {
                     $result = $subs->create(
                         (int) $locked->devices,

@@ -21,15 +21,19 @@ class CabinetCreatePaymentLinkController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'plan' => ['required', 'string', 'max:32'],
-            'period' => ['required', 'string', 'max:32'],
-            'purpose' => ['nullable', 'string', 'in:new,renew'],
+            'plan' => ['required_unless:purpose,extra_device', 'nullable', 'string', 'max:32'],
+            'period' => ['required_unless:purpose,extra_device', 'nullable', 'string', 'max:32'],
+            'purpose' => ['nullable', 'string', 'in:new,renew,extra_device'],
             'subscription_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
-        $plan = (string) $data['plan'];
-        $period = (string) $data['period'];
+        $plan = (string) ($data['plan'] ?? '');
+        $period = (string) ($data['period'] ?? '');
         $purpose = (string) ($data['purpose'] ?? 'new');
+
+        if ($purpose === 'extra_device') {
+            return $this->createExtraDeviceOrder($wata, $user, $data);
+        }
 
         if ($purpose === 'renew') {
             return $this->createRenewalOrder($wata, $user, $plan, $period, $data);
@@ -160,6 +164,78 @@ class CabinetCreatePaymentLinkController extends Controller
             'days' => $addDays,
             'devices' => $addDevices,
             'quota_gb' => $addQuotaGb,
+        ]);
+
+        $payload = [
+            'type' => 'OneTime',
+            'amount' => (float) number_format($amountRub, 2, '.', ''),
+            'currency' => 'RUB',
+            'description' => $desc,
+            'orderId' => $orderId,
+            'successRedirectUrl' => (string) config('wata.success_url'),
+            'failRedirectUrl' => (string) config('wata.fail_url'),
+        ];
+
+        $link = $wata->createPaymentLink($payload);
+
+        $order->provider_link_id = $link['id'];
+        $order->status = 'pending';
+        $order->provider_payload = $link;
+        $order->save();
+
+        return response()->json([
+            'url' => $link['url'],
+        ]);
+    }
+
+    /**
+     * @param  array{subscription_id?: int|null}  $data
+     */
+    private function createExtraDeviceOrder(WataH2hClient $wata, $user, array $data): JsonResponse
+    {
+        $subscriptionId = isset($data['subscription_id']) ? (int) $data['subscription_id'] : 0;
+        if ($subscriptionId < 1) {
+            return response()->json(['error' => 'subscription_required'], 422);
+        }
+
+        /** @var Subscription|null $subscription */
+        $subscription = Subscription::query()
+            ->whereKey($subscriptionId)
+            ->where('user_id', $user->id)
+            ->where('is_trial', false)
+            ->first();
+        if ($subscription === null) {
+            return response()->json(['error' => 'subscription_not_found'], 422);
+        }
+        if ($subscription->isExpired()) {
+            return response()->json(['error' => 'subscription_expired'], 422);
+        }
+
+        $bonusCfg = config('payments.bonus_extra_device', []);
+        $amountRub = (int) ($bonusCfg['amount_rub'] ?? 0);
+        $addDevices = (int) ($bonusCfg['add_devices'] ?? 0);
+        if ($amountRub < 1 || $addDevices < 1 || $addDevices > 100) {
+            return response()->json(['error' => 'invalid_configuration'], 500);
+        }
+
+        $orderId = 'ord_'.(string) Str::ulid();
+        $desc = 'Бонус +'.$addDevices.' устр. · подписка №'.$subscription->public_code;
+
+        $order = PaymentOrder::query()->create([
+            'order_id' => $orderId,
+            'user_id' => $user->id,
+            'subscription_id' => $subscription->id,
+            'purpose' => 'extra_device',
+            'provider' => 'wata',
+            'status' => 'created',
+            'amount_rub' => $amountRub,
+            'currency' => 'RUB',
+            'description' => $desc,
+            'tariff_plan' => 'bonus',
+            'tariff_period' => 'extra_device',
+            'days' => 0,
+            'devices' => $addDevices,
+            'quota_gb' => 0,
         ]);
 
         $payload = [

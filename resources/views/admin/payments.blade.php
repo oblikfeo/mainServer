@@ -102,6 +102,11 @@
                                         @if ($o->subscription_id)
                                             · sub #{{ $o->subscription_id }}
                                         @endif
+                                    @elseif (($o->purpose ?? 'new') === 'extra_device')
+                                        Бонус · +устр.
+                                        @if ($o->subscription_id)
+                                            · sub #{{ $o->subscription_id }}
+                                        @endif
                                     @else
                                         Новая подписка
                                     @endif

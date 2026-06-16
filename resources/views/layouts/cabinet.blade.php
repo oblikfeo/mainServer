@@ -39,6 +39,10 @@
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}"
                             >Реферальная программа</a>
                             <a
+                                href="{{ route('cabinet.bonuses') }}"
+                                class="lp-cab-nav__link {{ request()->routeIs('cabinet.bonuses') ? 'lp-cab-nav__link--active' : '' }}"
+                            >Бонусы</a>
+                            <a
                                 href="{{ route('cabinet.settings') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}"
                             >Устройства</a>
@@ -145,6 +149,7 @@
                             <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Мои подписки</a>
                             <a href="{{ route('cabinet.profile') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}">Профиль</a>
                             <a href="{{ route('cabinet.referral') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}">Реферальная программа</a>
+                            <a href="{{ route('cabinet.bonuses') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.bonuses') ? 'lp-cab-nav__link--active' : '' }}">Бонусы</a>
                             <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Устройства</a>
                             <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Тарифы и оплата</a>
                             <a href="{{ route('cabinet.renewal') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.renewal') ? 'lp-cab-nav__link--active' : '' }}">Продление</a>
