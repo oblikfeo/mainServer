@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Боевой .env после cutover на Yandex CDN: canonical www, WATA URLs, Resend API.
+# Боевой .env: canonical apex nadezhda.space (без www).
 set -euo pipefail
 
 ENV="/var/www/vpn-hub/.env"
-BASE="https://www.nadezhda.space"
+BASE="https://nadezhda.space"
 
 upsert_env() {
   local key="$1"
@@ -16,7 +16,7 @@ upsert_env() {
 }
 
 upsert_env APP_URL "${BASE}"
-upsert_env WATA_WEBHOOK_URL "https://nadezhda.space/payments/wata/webhook"
+upsert_env WATA_WEBHOOK_URL "${BASE}/payments/wata/webhook"
 upsert_env WATA_SUCCESS_URL "${BASE}/spasibo"
 upsert_env WATA_FAIL_URL "${BASE}/oshibka"
 upsert_env HUB_ROLE production_cdn
@@ -31,4 +31,4 @@ upsert_env MAIL_MAILER resend
 cd /var/www/vpn-hub
 sudo -u oblik php artisan config:clear
 sudo -u oblik php artisan view:clear
-echo "PROD_WWW_ENV_OK app_url=${BASE}"
+echo "PROD_ENV_OK app_url=${BASE}"

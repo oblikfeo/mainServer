@@ -16,7 +16,7 @@ upsert_env() {
   fi
 }
 
-upsert_env APP_URL "https://www.nadezhda.space"
+upsert_env APP_URL "https://nadezhda.space"
 upsert_env APP_ENV production
 upsert_env APP_DEBUG false
 upsert_env HUB_ROLE yandex_cdn_mirror

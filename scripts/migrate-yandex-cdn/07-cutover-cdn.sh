@@ -36,7 +36,7 @@ cat >"${MOOO_SITE}" <<NGX
 server {
     listen 80;
     listen [::]:80;
-    server_name ${MOOO_DOMAIN} ${CDN_DOMAIN} ${HUB_DOMAIN} www.${HUB_DOMAIN};
+    server_name ${MOOO_DOMAIN} ${CDN_DOMAIN};
 
     location ^~ /.well-known/acme-challenge/ {
         root ${WEBROOT};

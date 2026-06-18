@@ -2,7 +2,7 @@
 # Полный smoke после миграции (запуск на origin или с ПК).
 set -euo pipefail
 
-BASE="${SMOKE_BASE:-https://www.nadezhda.space}"
+BASE="${SMOKE_BASE:-https://nadezhda.space}"
 APEX="${SMOKE_APEX:-https://nadezhda.space}"
 CDN="${SMOKE_CDN:-https://cdn.nadezhda.space}"
 TOKEN="${SMOKE_SUB_TOKEN:-}"
