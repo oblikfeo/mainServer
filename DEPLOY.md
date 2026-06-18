@@ -48,4 +48,19 @@ php artisan view:cache
 
 Тест без Happ: в `.env` временно `SUBSCRIPTION_FEED_REQUIRE_HWID=false` или запрос с заголовком `X-Hwid: test`.
 
+## Hub на Yandex CDN (prod)
+
+| Параметр | Значение |
+|----------|----------|
+| Origin | `158.160.200.205:443`, Host/SNI `nadezhda.mooo.com` |
+| Canonical URL | `https://www.nadezhda.space` (`APP_URL`, WATA_*_URL) |
+| CDN edge | `www.nadezhda.space`, `cdn.nadezhda.space` |
+| Apex `@` | A → Hostkey backup → 301 на www (Resend/`support@` — apex OK) |
+
+После cutover: `bash scripts/migrate-yandex-cdn/11-prod-www-env.sh` и smoke `12-smoke-prod-cdn.sh`.
+
+**Yandex CDN:** в ресурсе включить **POST** (и PUT/PATCH для форм Laravel). По умолчанию только GET/HEAD/OPTIONS → webhook WATA и `/buy/pay` отдают 405 на edge.
+
+В ЛК WATA webhook: `https://www.nadezhda.space/payments/wata/webhook`.
+
 Опционально для ЛК (понятное имя устройства): при запросе подписки можно передать один из заголовков `X-Happ-Device-Name`, `X-Device-Name`, `Happ-Device`, `X-Device-Model` — значение попадёт в карточку «Привязанные устройства». Стандартный Happ обычно шлёт только `X-Hwid`; для Android модель часто выводится из User-Agent (например `SM-S918B`), для iPhone в UA обычно нет «iPhone 14» — без своего заголовка от клиента будет только «iPhone» / «iPad».
