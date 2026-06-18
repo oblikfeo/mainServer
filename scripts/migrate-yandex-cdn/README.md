@@ -23,20 +23,18 @@ sudo bash /var/www/vpn-hub/scripts/hub-deploy-yandex-cdn.sh
 
 ## Cutover (1 щелчок)
 
-1. DNS `www` → CNAME Yandex CDN (как `cdn.nadezhda.space`); apex `@` можно оставить A → Hostkey (301 на www)
-2. В Yandex CDN: cert CM с `www` + `cdn`, origin `158.160.200.205:443`, Host header `nadezhda.mooo.com`
-3. **CDN → HTTP → Allowed methods:** `GET, HEAD, OPTIONS, POST, PUT, PATCH, DELETE` — иначе оплата и webhook WATA получают **405**
-4. Без кеша для `/sub/*`, `/admin/*`, `/payments/*`, `/buy/*`, `/dashboard/*`
+1. DNS:
+   - `@` → **A `158.160.200.205`** (apex на Yandex: webhook WATA, 301 браузеров на www)
+   - **`www` → A `158.160.200.205`** — сайт, логин, админка, POST-формы (**обязательно**, CDN POST не поддерживает Laravel)
+   - **`cdn` → CNAME yccdn** — VPN xhttp через CDN (обход белых списков)
+2. CDN: cert CM с `www` + `cdn`, origin `158.160.200.205:443`, Host header `nadezhda.mooo.com`
+3. Без кеша CDN для `/sub/*`, `/api/*`
 
 ```powershell
 python доступы0/_cutover_cdn_hub.py
-```
-
-После cutover на origin:
-
-```bash
+sudo bash /var/www/vpn-hub/scripts/migrate-yandex-cdn/13-nginx-apex-post.sh
 sudo bash /var/www/vpn-hub/scripts/migrate-yandex-cdn/11-prod-www-env.sh
-bash /var/www/vpn-hub/scripts/migrate-yandex-cdn/12-smoke-prod-cdn.sh
+bash /var/www/vpn-hub/scripts/migrate-yandex-cdn/14-smoke-full.sh
 ```
 
 Откат: DNS A → `82.24.19.230` (Hostkey backup).

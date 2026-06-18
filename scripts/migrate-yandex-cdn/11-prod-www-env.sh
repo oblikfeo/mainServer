@@ -16,7 +16,7 @@ upsert_env() {
 }
 
 upsert_env APP_URL "${BASE}"
-upsert_env WATA_WEBHOOK_URL "${BASE}/payments/wata/webhook"
+upsert_env WATA_WEBHOOK_URL "https://nadezhda.space/payments/wata/webhook"
 upsert_env WATA_SUCCESS_URL "${BASE}/spasibo"
 upsert_env WATA_FAIL_URL "${BASE}/oshibka"
 upsert_env HUB_ROLE production_cdn

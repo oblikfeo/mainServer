@@ -59,8 +59,8 @@ php artisan view:cache
 
 После cutover: `bash scripts/migrate-yandex-cdn/11-prod-www-env.sh` и smoke `12-smoke-prod-cdn.sh`.
 
-**Yandex CDN:** в ресурсе включить **POST** (и PUT/PATCH для форм Laravel). По умолчанию только GET/HEAD/OPTIONS → webhook WATA и `/buy/pay` отдают 405 на edge.
+**Yandex CDN:** Laravel (логин, оплата, webhook) **не работает через CDN** — POST даёт 405. Сайт `www` — **A на origin**, VPN `cdn` — **CNAME на CDN**.
 
-В ЛК WATA webhook: `https://www.nadezhda.space/payments/wata/webhook`.
+WATA webhook: `https://nadezhda.space/payments/wata/webhook` (apex A → Yandex, nginx без редиректа).
 
 Опционально для ЛК (понятное имя устройства): при запросе подписки можно передать один из заголовков `X-Happ-Device-Name`, `X-Device-Name`, `Happ-Device`, `X-Device-Model` — значение попадёт в карточку «Привязанные устройства». Стандартный Happ обычно шлёт только `X-Hwid`; для Android модель часто выводится из User-Agent (например `SM-S918B`), для iPhone в UA обычно нет «iPhone 14» — без своего заголовка от клиента будет только «iPhone» / «iPad».
