@@ -1356,22 +1356,13 @@
         color: var(--lp-ink);
         line-height: 1;
     }
-    .lp-f1 .lp-partner-invite {
-        margin: 0 0 1.5rem;
-        padding: 1.35rem 1rem 1.45rem;
-        border: 4px solid var(--lp-ink);
-        box-shadow: 8px 8px 0 var(--lp-ink);
-        background: #fff;
-        text-align: center;
-    }
-    .lp-f1 .lp-partner-invite__brand {
-        display: flex;
-        justify-content: center;
-    }
     .lp-f1 .lp-partner-invite__name {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto 1.5rem;
         min-width: 9rem;
         padding: 0.65rem 1.35rem 0.75rem;
         font-family: "Playfair Display", Georgia, serif;
@@ -1387,9 +1378,6 @@
         box-shadow: 5px 5px 0 var(--lp-ink);
     }
     @media (min-width: 480px) {
-        .lp-f1 .lp-partner-invite {
-            padding: 1.65rem 1.25rem 1.75rem;
-        }
         .lp-f1 .lp-partner-invite__name {
             font-size: 3.5rem;
             min-width: 10.5rem;
