@@ -114,6 +114,10 @@
                 </div>
             </div>
 
+            @if (! empty($referralLink))
+                @include('partials.referral-share-promo', ['referralLink' => $referralLink])
+            @endif
+
         @elseif ($isPaid)
             <div class="lp-buy-wait" id="lp-buy-done-wait">
                 Подготавливаем подписку…

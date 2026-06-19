@@ -6,6 +6,7 @@ use App\Mail\QuickBuySubscriptionMail;
 use App\Models\PaymentOrder;
 use App\Models\Purchase;
 use App\Models\User;
+use App\Services\Referral\ReferralLinkBuilder;
 use App\Services\Referral\ReferralRewardService;
 use App\Services\Subscription\ApplySubscriptionRenewalPack;
 use App\Services\Subscription\CreateDualBundleSubscription;
@@ -26,6 +27,7 @@ class WataWebhookController extends Controller
         CreateDualBundleSubscription $subs,
         ApplySubscriptionRenewalPack $renewals,
         ReferralRewardService $referralRewards,
+        ReferralLinkBuilder $referralLinks,
         TelegramOutreach $telegramOutreach,
     ): Response {
         $raw = $request->getContent();
@@ -84,6 +86,7 @@ class WataWebhookController extends Controller
                 $subs,
                 $renewals,
                 $referralRewards,
+                $referralLinks,
                 $telegramOutreach,
             ): Response {
                 /** @var PaymentOrder|null $locked */
@@ -205,6 +208,7 @@ class WataWebhookController extends Controller
                             supportFromName: $brand.' · поддержка',
                             subscriptionUrl: $renewed->shareableSubUrl(),
                             cabinetLoginUrl: route('auth.via_token', ['token' => $renewed->token], absolute: true),
+                            referralLink: $referralLinks->forUser($buyer),
                         ));
                     } catch (\Throwable $e) {
                         Log::warning('WATA webhook: quick buy email failed: '.$e->getMessage());

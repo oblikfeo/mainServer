@@ -128,22 +128,22 @@ final class CabinetNiceController extends Controller
                 ],
             ],
             [
-                'key' => 'active10',
+                'key' => 'active5',
                 'num' => 5,
-                'title' => '10 активных оплат',
-                'subtitle' => 'Десять друзей с активной подпиской',
-                'data' => $quests->active10Quest,
-                'reward_you' => null,
+                'title' => '5 активных оплат',
+                'subtitle' => 'Пятеро друзей с активной подпиской',
+                'data' => $quests->active5Quest,
+                'reward_you' => '1 месяц бесплатно',
                 'reward_friend' => null,
                 'feature' => [
-                    'title' => 'Безлимитный трафик',
-                    'sub' => 'навсегда',
+                    'title' => '1 месяц бесплатно',
+                    'sub' => 'к вашей подписке',
                     'tag' => 'эксклюзив',
                 ],
                 'steps' => [
-                    'Приглашайте друзей и помогайте им оставаться с сервисом.',
-                    'Считаются друзья с активной подпиской на момент проверки.',
-                    'По достижении 10 — ваш трафик становится безлимитным навсегда.',
+                    'Приглашайте друзей и помогайте им подключаться.',
+                    'Считаются только друзья с активной подпиской на текущий момент.',
+                    'По достижении 5 — к подписке добавится месяц бесплатно.',
                 ],
                 'cta' => [
                     'label' => 'Пригласить друзей',
@@ -151,7 +151,35 @@ final class CabinetNiceController extends Controller
                     'primary' => true,
                 ],
                 'done_cta' => [
-                    'label' => 'Безлимит открыт',
+                    'label' => 'Месяц начислен',
+                    'href' => null,
+                ],
+            ],
+            [
+                'key' => 'active10',
+                'num' => 6,
+                'title' => '10 активных оплат',
+                'subtitle' => 'Десять друзей с активной подпиской',
+                'data' => $quests->active10Quest,
+                'reward_you' => '3 месяца бесплатно',
+                'reward_friend' => null,
+                'feature' => [
+                    'title' => '3 месяца бесплатно',
+                    'sub' => 'к вашей подписке',
+                    'tag' => 'эксклюзив',
+                ],
+                'steps' => [
+                    'Приглашайте друзей и помогайте им оставаться с сервисом.',
+                    'Считаются друзья с активной подпиской на момент проверки.',
+                    'По достижении 10 — к подписке добавится три месяца бесплатно.',
+                ],
+                'cta' => [
+                    'label' => 'Пригласить друзей',
+                    'href' => route('cabinet.referral'),
+                    'primary' => true,
+                ],
+                'done_cta' => [
+                    'label' => 'Три месяца начислены',
                     'href' => null,
                 ],
             ],
@@ -181,8 +209,11 @@ final class CabinetNiceController extends Controller
         if ($quests->active4Quest['done']) {
             $rewards[] = ['icon' => '★', 'label' => '+1 устройство навсегда', 'sub' => '4 активные оплаты'];
         }
+        if ($quests->active5Quest['done']) {
+            $rewards[] = ['icon' => '30', 'label' => '1 месяц бесплатно', 'sub' => '5 активных оплат'];
+        }
         if ($quests->active10Quest['done']) {
-            $rewards[] = ['icon' => '∞', 'label' => 'Безлимитный трафик', 'sub' => '10 активных оплат'];
+            $rewards[] = ['icon' => '90', 'label' => '3 месяца бесплатно', 'sub' => '10 активных оплат'];
         }
 
         return view('cabinet.nice.index', [

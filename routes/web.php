@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\PaymentsController;
+use App\Http\Controllers\Admin\ReferralController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\CabinetRenewalController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
 use App\Http\Controllers\EmailCodeVerificationController;
+use App\Http\Controllers\PaymentSuccessController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseHistoryController;
 use App\Http\Controllers\QuickCheckoutController;
@@ -50,8 +52,9 @@ Route::get('/privacy-policy', function () {
     return view('privacy');
 });
 
-Route::view('/spasibo', 'spasibo')->name('payment.success');
 Route::view('/oshibka', 'oshibka')->name('payment.failure');
+
+Route::get('/spasibo', PaymentSuccessController::class)->name('payment.success');
 
 Route::get('/buy', [QuickCheckoutController::class, 'show'])->name('quick_buy.show');
 Route::post('/buy/pay', [QuickCheckoutController::class, 'pay'])
@@ -136,7 +139,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::view('referral', 'admin.referral')->name('referral');
+        Route::get('referral', [ReferralController::class, 'index'])->name('referral');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
         Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');

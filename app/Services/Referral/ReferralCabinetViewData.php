@@ -14,6 +14,7 @@ final class ReferralCabinetViewData
         public readonly array $firstRegQuest,
         public readonly array $firstPayQuest,
         public readonly array $active4Quest,
+        public readonly array $active5Quest,
         public readonly array $active10Quest,
     ) {}
 
@@ -29,10 +30,12 @@ final class ReferralCabinetViewData
 
         $m3 = (int) config('referral.first_payment_referees_target', 3);
         $a4 = (int) config('referral.active_paid_milestone_devices', 4);
-        $a10 = (int) config('referral.active_paid_milestone_traffic', 10);
+        $a5 = (int) config('referral.active_paid_milestone_one_month', 5);
+        $a10 = (int) config('referral.active_paid_milestone_three_months', 10);
 
         $fpCurrent = min($m3, $withPay);
         $a4cur = min($a4, $activeN);
+        $a5cur = min($a5, $activeN);
         $a10cur = min($a10, $activeN);
 
         $email = [
@@ -79,6 +82,18 @@ final class ReferralCabinetViewData
                 : 'Активных подписок у приглашённых: '.$activeN.' из '.$a4.' (осталось '.$a4left.')',
         ];
 
+        $a5left = max(0, $a5 - $activeN);
+        $active5 = [
+            'current' => $a5cur,
+            'target' => $a5,
+            'done' => $activeN >= $a5,
+            'ratio' => $a5cur.'/'.$a5,
+            'bar' => $a5 > 0 ? (100.0 * $a5cur / $a5) : 0.0,
+            'status' => $activeN >= $a5
+                ? 'Достаточно активных подписок у приглашённых'
+                : 'Активных подписок у приглашённых: '.$activeN.' из '.$a5.' (осталось '.$a5left.')',
+        ];
+
         $a10left = max(0, $a10 - $activeN);
         $active10 = [
             'current' => $a10cur,
@@ -96,6 +111,7 @@ final class ReferralCabinetViewData
             $fr,
             $firstPay,
             $active4,
+            $active5,
             $active10
         );
     }

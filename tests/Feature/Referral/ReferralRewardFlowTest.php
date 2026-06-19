@@ -67,4 +67,36 @@ class ReferralRewardFlowTest extends TestCase
             'kind' => ReferralGrant::KIND_FIRST_REG_REFEREE_TEST_KEYS,
         ]);
     }
+
+    public function test_milestone_grants_one_month_and_three_months(): void
+    {
+        $referrer = User::factory()->create();
+        $service = app(ReferralRewardService::class);
+
+        for ($i = 0; $i < 10; $i++) {
+            $referee = User::factory()->create(['referred_by' => $referrer->id]);
+            $referee->subscriptions()->create([
+                'token' => 'tok'.$i.str_repeat('a', 8),
+                'devices' => 2,
+                'quota_gb' => 100,
+                'expiry_ms' => (int) (now()->addMonth()->getTimestamp() * 1000),
+                'is_trial' => false,
+            ]);
+        }
+
+        $service->refreshMilestoneGrants((int) $referrer->id);
+
+        $this->assertDatabaseHas('referral_grants', [
+            'grant_key' => ReferralRewardService::grantKeyMilestoneOneMonth((int) $referrer->id),
+            'kind' => ReferralGrant::KIND_MILESTONE_ONE_MONTH,
+        ]);
+        $this->assertDatabaseHas('referral_grants', [
+            'grant_key' => ReferralRewardService::grantKeyMilestoneThreeMonths((int) $referrer->id),
+            'kind' => ReferralGrant::KIND_MILESTONE_THREE_MONTHS,
+        ]);
+        $this->assertDatabaseMissing('referral_grants', [
+            'kind' => ReferralGrant::KIND_MILESTONE_UNLIMITED_TRAFFIC,
+            'beneficiary_user_id' => $referrer->id,
+        ]);
+    }
 }

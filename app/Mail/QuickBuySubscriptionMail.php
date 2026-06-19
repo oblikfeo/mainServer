@@ -18,6 +18,7 @@ class QuickBuySubscriptionMail extends Mailable
         public readonly string $supportFromName,
         public readonly string $subscriptionUrl,
         public readonly string $cabinetLoginUrl,
+        public readonly ?string $referralLink = null,
     ) {}
 
     public function envelope(): Envelope
@@ -36,6 +37,7 @@ class QuickBuySubscriptionMail extends Mailable
                 'brand' => $this->brand,
                 'subscriptionUrl' => $this->subscriptionUrl,
                 'cabinetLoginUrl' => $this->cabinetLoginUrl,
+                'referralLink' => $this->referralLink,
                 'supportEmail' => $this->supportFromAddress,
                 'appUrl' => rtrim((string) config('app.url'), '/'),
             ],

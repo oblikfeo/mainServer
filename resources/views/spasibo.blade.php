@@ -29,6 +29,10 @@
             <div class="mt-6 max-w-xl">
                 <a href="{{ route('dashboard') }}" class="lp-cta-btn">Перейти к моим подпискам</a>
             </div>
+
+            @if (! empty($referralLink))
+                @include('partials.referral-share-promo', ['referralLink' => $referralLink])
+            @endif
         </div>
 
         <div class="lp-footer">

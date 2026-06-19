@@ -19,7 +19,12 @@ class ReferralGrant extends Model
 
     public const KIND_MILESTONE_EXTRA_DEVICE = 'milestone_extra_device';
 
+    /** @deprecated Снято с программы — оставлено для истории в БД. */
     public const KIND_MILESTONE_UNLIMITED_TRAFFIC = 'milestone_unlimited_traffic';
+
+    public const KIND_MILESTONE_ONE_MONTH = 'milestone_one_month';
+
+    public const KIND_MILESTONE_THREE_MONTHS = 'milestone_three_months';
 
     protected $fillable = [
         'grant_key',

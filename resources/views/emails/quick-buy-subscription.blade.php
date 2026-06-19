@@ -41,6 +41,20 @@
                     </a>
                 </div>
 
+                @if (! empty($referralLink))
+                    <div style="margin-top:18px;padding:14px 12px;background:#fff7ed;border:2px solid #000;border-radius:12px;">
+                        <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;margin-bottom:8px;">
+                            Реферальная программа
+                        </div>
+                        <div style="font-size:13px;line-height:1.5;color:#0f172a;margin-bottom:10px;">
+                            Поделитесь ссылкой с друзьями — за каждого приглашённого начисляются бонусы к подписке.
+                        </div>
+                        <p style="margin:0;word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;line-height:1.45;color:#0f172a;">
+                            {{ $referralLink }}
+                        </p>
+                    </div>
+                @endif
+
                 <div style="margin-top:14px;font-size:12px;line-height:1.5;color:#475569;">
                     Сайт: <a href="{{ $appUrl }}/dashboard" style="color:#000000;font-weight:800;text-decoration:underline;">{{ $appUrl }}/dashboard</a>
                 </div>

@@ -9,7 +9,7 @@ use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\Referral\ReferralLinkBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -162,7 +162,7 @@ final class QuickCheckoutController extends Controller
         ]);
     }
 
-    public function done(Request $request, string $claimToken): View
+    public function done(Request $request, string $claimToken, ReferralLinkBuilder $referralLinks): View
     {
         if (strlen($claimToken) > 64) {
             throw new NotFoundHttpException;
@@ -197,6 +197,11 @@ final class QuickCheckoutController extends Controller
             ? route('auth.via_token', ['token' => $subscription->token], absolute: false)
             : null;
 
+        $referralLink = null;
+        if ($buyer !== null) {
+            $referralLink = $referralLinks->forUser($buyer);
+        }
+
         return view('quick-buy.done', [
             'order' => $order,
             'buyer' => $buyer,
@@ -205,6 +210,7 @@ final class QuickCheckoutController extends Controller
             'cabinetLoginUrl' => $cabinetLoginUrl,
             'claimToken' => $claimToken,
             'shouldPoll' => $order->status !== 'paid' || ($order->status === 'paid' && $subscription === null),
+            'referralLink' => $referralLink,
         ]);
     }
 }

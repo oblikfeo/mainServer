@@ -1,6 +1,10 @@
 <x-guest-layout>
     <h1 class="lp-auth-title">Регистрация</h1>
-    @if (! empty($invitedBy))
+    @if (! empty($partnerLabel))
+        <div class="lp-warn-box" style="margin-top:-.2rem; margin-bottom:1rem; background:#fff3cd;">
+            Вы проходите регистрацию по приглашению от <span class="font-semibold">{{ $partnerLabel }}</span>.
+        </div>
+    @elseif (! empty($invitedBy))
         <div class="lp-warn-box" style="margin-top:-.2rem; margin-bottom:1rem; background:#fff3cd;">
             <span class="font-semibold">Вас пригласил:</span> {{ $invitedBy->name }} ({{ $invitedBy->email }})
         </div>

@@ -41,9 +41,14 @@ final class ReferralRewardService
         return 'milestone_devices:'.$referrerId;
     }
 
-    public static function grantKeyMilestoneTraffic(int $referrerId): string
+    public static function grantKeyMilestoneOneMonth(int $referrerId): string
     {
-        return 'milestone_traffic:'.$referrerId;
+        return 'milestone_one_month:'.$referrerId;
+    }
+
+    public static function grantKeyMilestoneThreeMonths(int $referrerId): string
+    {
+        return 'milestone_three_months:'.$referrerId;
     }
 
     /**
@@ -191,14 +196,17 @@ final class ReferralRewardService
     {
         $n = $this->metrics->countReferralsWithActiveSubscription($referrerId);
         $mDev = (int) config('referral.active_paid_milestone_devices', 4);
-        $mTr = (int) config('referral.active_paid_milestone_traffic', 10);
-        $maxDev = (int) config('referral.max_subscription_devices', 5);
+        $mOne = (int) config('referral.active_paid_milestone_one_month', 5);
+        $mThree = (int) config('referral.active_paid_milestone_three_months', 10);
 
         if ($n >= $mDev) {
             $this->grantMilestoneDeviceIfMissing($referrerId);
         }
-        if ($n >= $mTr) {
-            $this->grantMilestoneUnlimitedIfMissing($referrerId);
+        if ($n >= $mOne) {
+            $this->grantMilestoneOneMonthIfMissing($referrerId);
+        }
+        if ($n >= $mThree) {
+            $this->grantMilestoneThreeMonthsIfMissing($referrerId);
         }
     }
 
@@ -239,37 +247,53 @@ final class ReferralRewardService
         ]);
     }
 
-    private function grantMilestoneUnlimitedIfMissing(int $referrerId): void
+    private function grantMilestoneOneMonthIfMissing(int $referrerId): void
     {
-        $k = self::grantKeyMilestoneTraffic($referrerId);
+        $k = self::grantKeyMilestoneOneMonth($referrerId);
         if (ReferralGrant::query()->where('grant_key', $k)->exists()) {
             return;
         }
 
-        $user = User::query()->whereKey($referrerId)->lockForUpdate()->first();
-        if ($user === null) {
+        $days = (float) config('referral.milestone_one_month_days', 30);
+        $referrer = User::query()->whereKey($referrerId)->first();
+        if ($referrer === null) {
             return;
         }
 
-        $sub = $this->primaryActiveSubscription($user);
-        if ($sub === null) {
-            $user->referral_pending_unlimited_traffic = true;
-            $user->save();
-        } else {
-            if ((int) $sub->quota_gb !== 0) {
-                $sub->quota_gb = 0;
-                $sub->save();
-                $this->quotaSync->syncForSubscription($sub);
-            }
-        }
+        $this->addCalendarDaysToUser($referrer, $days);
 
         ReferralGrant::query()->create([
             'grant_key' => $k,
-            'kind' => ReferralGrant::KIND_MILESTONE_UNLIMITED_TRAFFIC,
+            'kind' => ReferralGrant::KIND_MILESTONE_ONE_MONTH,
             'beneficiary_user_id' => $referrerId,
             'referee_user_id' => null,
             'purchase_id' => null,
-            'meta' => null,
+            'meta' => ['days' => $days],
+        ]);
+    }
+
+    private function grantMilestoneThreeMonthsIfMissing(int $referrerId): void
+    {
+        $k = self::grantKeyMilestoneThreeMonths($referrerId);
+        if (ReferralGrant::query()->where('grant_key', $k)->exists()) {
+            return;
+        }
+
+        $days = (float) config('referral.milestone_three_months_days', 90);
+        $referrer = User::query()->whereKey($referrerId)->first();
+        if ($referrer === null) {
+            return;
+        }
+
+        $this->addCalendarDaysToUser($referrer, $days);
+
+        ReferralGrant::query()->create([
+            'grant_key' => $k,
+            'kind' => ReferralGrant::KIND_MILESTONE_THREE_MONTHS,
+            'beneficiary_user_id' => $referrerId,
+            'referee_user_id' => null,
+            'purchase_id' => null,
+            'meta' => ['days' => $days],
         ]);
     }
 
