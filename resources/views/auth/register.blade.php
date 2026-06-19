@@ -1,7 +1,6 @@
 <x-guest-layout>
     @if (! empty($partnerLabel))
         @include('auth.partials.partner-invite-card', ['partnerLabel' => $partnerLabel])
-        <h1 class="lp-auth-title">Создать аккаунт</h1>
     @else
         <h1 class="lp-auth-title">Регистрация</h1>
     @endif
@@ -38,7 +37,7 @@
 
         <div class="lp-auth-actions">
             <a class="lp-auth-secondary" href="{{ route('login') }}">Уже есть аккаунт</a>
-            <x-primary-button class="w-full sm:w-auto justify-center">
+            <x-primary-button class="w-full justify-center">
                 Зарегистрироваться
             </x-primary-button>
         </div>

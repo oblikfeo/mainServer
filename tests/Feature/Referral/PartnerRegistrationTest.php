@@ -20,7 +20,8 @@ class PartnerRegistrationTest extends TestCase
         $response->assertOk();
         $response->assertSee('Reset', false);
         $response->assertSee('lp-partner-invite__name', false);
-        $response->assertSee('приглашению', false);
+        $response->assertDontSee('Партнёрское приглашение', false);
+        $response->assertDontSee('Создать аккаунт', false);
 
         $register = $this->post('/register', [
             'email' => 'invited@example.com',
