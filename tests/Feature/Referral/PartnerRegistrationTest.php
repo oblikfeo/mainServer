@@ -19,7 +19,8 @@ class PartnerRegistrationTest extends TestCase
         $response = $this->get('/Reset');
         $response->assertOk();
         $response->assertSee('Reset', false);
-        $response->assertSee('приглашению от', false);
+        $response->assertSee('lp-partner-invite__name', false);
+        $response->assertSee('приглашению', false);
 
         $register = $this->post('/register', [
             'email' => 'invited@example.com',

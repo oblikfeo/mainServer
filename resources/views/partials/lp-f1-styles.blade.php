@@ -1349,6 +1349,78 @@
         font-weight: 600;
         color: #222;
     }
+    .lp-f1 .lp-logo-heavy {
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: -0.04em;
+        color: var(--lp-ink);
+        line-height: 1;
+    }
+    .lp-f1 .lp-partner-invite {
+        margin: 0 0 1.35rem;
+        padding: 1.1rem 1rem 1.15rem;
+        border: 4px solid var(--lp-ink);
+        box-shadow: 7px 7px 0 var(--lp-ink);
+        background: #fff;
+        text-align: center;
+    }
+    .lp-f1 .lp-partner-invite__kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        margin-bottom: 0.85rem;
+        padding: 0.2rem 0.55rem;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.5625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--lp-ink);
+        background: #f1f5f9;
+        border: 2px solid var(--lp-ink);
+    }
+    .lp-f1 .lp-partner-invite__kicker::before {
+        content: "";
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 999px;
+        background: var(--lp-orange);
+        border: 2px solid var(--lp-ink);
+        flex-shrink: 0;
+    }
+    .lp-f1 .lp-partner-invite__brand {
+        display: flex;
+        justify-content: center;
+    }
+    .lp-f1 .lp-partner-invite__name {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 7.5rem;
+        padding: 0.45rem 1rem 0.55rem;
+        font-size: 2rem;
+        letter-spacing: -0.06em;
+        color: #fff;
+        background: var(--lp-orange);
+        border: 3px solid var(--lp-ink);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-partner-invite__name {
+            font-size: 2.35rem;
+            min-width: 8.5rem;
+            padding: 0.5rem 1.15rem 0.6rem;
+        }
+    }
+    .lp-f1 .lp-partner-invite__lead {
+        margin: 0.85rem 0 0;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        line-height: 1.5;
+        color: #334155;
+    }
     .lp-f1 .lp-table-wrap {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
