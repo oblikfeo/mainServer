@@ -43,6 +43,7 @@ return [
         'reset' => [
             'route' => '/Reset',
             'display_name' => 'Reset',
+            'logo' => 'partners/reset/logo.png',
             'referrer_email' => env('REFERRAL_PARTNER_RESET_EMAIL', 'ivanova97@list.ru'),
         ],
     ],

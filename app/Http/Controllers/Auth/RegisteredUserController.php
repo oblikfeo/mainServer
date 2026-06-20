@@ -55,11 +55,14 @@ class RegisteredUserController extends Controller
         $request->session()->put('pending_referral_code', (string) $referrer->referral_code);
         $request->session()->put('referral_partner_key', 'reset');
 
-        $displayName = (string) config('referral.partners.reset.display_name', 'Reset');
+        $partnerCfg = config('referral.partners.reset', []);
+        $displayName = is_array($partnerCfg) ? (string) ($partnerCfg['display_name'] ?? 'Reset') : 'Reset';
+        $partnerLogo = is_array($partnerCfg) ? (string) ($partnerCfg['logo'] ?? '') : '';
 
         return view('auth.register', [
             'invitedBy' => null,
             'partnerLabel' => $displayName,
+            'partnerLogo' => $partnerLogo,
         ]);
     }
 

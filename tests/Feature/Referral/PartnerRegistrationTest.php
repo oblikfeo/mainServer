@@ -18,8 +18,8 @@ class PartnerRegistrationTest extends TestCase
 
         $response = $this->get('/Reset');
         $response->assertOk();
-        $response->assertSee('Reset', false);
-        $response->assertSee('lp-partner-invite__name', false);
+        $response->assertSee('partners/reset/logo.png', false);
+        $response->assertSee('alt="Reset"', false);
         $response->assertDontSee('Партнёрское приглашение', false);
         $response->assertDontSee('Создать аккаунт', false);
 

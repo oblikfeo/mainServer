@@ -1356,6 +1356,22 @@
         color: var(--lp-ink);
         line-height: 1;
     }
+    .lp-f1 .lp-partner-logo {
+        display: flex;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+    .lp-f1 .lp-partner-logo__img {
+        display: block;
+        width: auto;
+        max-width: min(100%, 300px);
+        height: auto;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-partner-logo__img {
+            max-width: 340px;
+        }
+    }
     .lp-f1 .lp-partner-invite__name {
         display: flex;
         align-items: center;

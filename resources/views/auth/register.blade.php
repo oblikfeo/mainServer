@@ -1,6 +1,9 @@
 <x-guest-layout>
     @if (! empty($partnerLabel))
-        @include('auth.partials.partner-invite-card', ['partnerLabel' => $partnerLabel])
+        @include('auth.partials.partner-invite-card', [
+            'partnerLabel' => $partnerLabel,
+            'partnerLogo' => $partnerLogo ?? null,
+        ])
     @else
         <h1 class="lp-auth-title">Регистрация</h1>
     @endif
