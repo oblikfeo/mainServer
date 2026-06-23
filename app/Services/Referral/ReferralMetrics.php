@@ -4,6 +4,8 @@ namespace App\Services\Referral;
 
 use App\Models\PaymentOrder;
 use App\Models\ReferralGrant;
+use App\Models\Subscription;
+use App\Models\TestKey;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -76,6 +78,29 @@ final class ReferralMetrics
                         });
                 });
         });
+    }
+
+    /** Сколько тестовых ключей/пробных подписок выдали рефералам этого реферера. */
+    public function countReferralTestIssuances(int $referrerId): int
+    {
+        $refereeIds = User::query()
+            ->where('referred_by', $referrerId)
+            ->pluck('id');
+
+        if ($refereeIds->isEmpty()) {
+            return 0;
+        }
+
+        $trialCount = (int) Subscription::query()
+            ->whereIn('user_id', $refereeIds)
+            ->where('is_trial', true)
+            ->count();
+
+        $legacyCount = (int) TestKey::query()
+            ->whereIn('user_id', $refereeIds)
+            ->count();
+
+        return $trialCount + $legacyCount;
     }
 
     /**

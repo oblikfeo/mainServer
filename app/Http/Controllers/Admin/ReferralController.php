@@ -26,6 +26,14 @@ final class ReferralController extends Controller
             ->limit(5)
             ->get();
 
+        foreach ($topReferrers as $referrer) {
+            /** @var User $referrer */
+            $referrer->setAttribute(
+                'referrals_test_count',
+                $metrics->countReferralTestIssuances((int) $referrer->id)
+            );
+        }
+
         $recentQ = User::query()
             ->whereNotNull('referred_by')
             ->with(['referrer:id,name,email'])
@@ -71,6 +79,7 @@ final class ReferralController extends Controller
                 'email' => $email,
                 'user' => $partnerUser,
                 'registered' => $partnerUser !== null ? (int) $partnerUser->referrals()->count() : 0,
+                'test' => $partnerUser !== null ? $metrics->countReferralTestIssuances((int) $partnerUser->id) : 0,
                 'paid' => $partnerUser !== null ? $metrics->countReferralsPaid((int) $partnerUser->id) : 0,
             ];
         }

@@ -59,12 +59,16 @@
                             <div class="mt-1 text-sm text-slate-500 break-all">{{ $p['email'] }}</div>
                         @endif
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-4">
-                        <div class="rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
+                    <div class="mt-4 grid grid-cols-3 gap-3 sm:gap-4">
+                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
                             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Регистрации</div>
                             <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['registered'], 0, ',', ' ') }}</div>
                         </div>
-                        <div class="rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
+                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
+                            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Тест</div>
+                            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['test'], 0, ',', ' ') }}</div>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
                             <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Оплаты</div>
                             <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['paid'], 0, ',', ' ') }}</div>
                         </div>
@@ -86,6 +90,7 @@
                             <tr class="bg-slate-900 text-white">
                                 <th class="px-4 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[12rem]" scope="col">Реферер</th>
                                 <th class="px-4 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Рег.</th>
+                                <th class="px-4 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Тест</th>
                                 <th class="px-4 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Оплат</th>
                             </tr>
                         </thead>
@@ -97,6 +102,7 @@
                                         <div class="text-xs text-slate-600 break-all">{{ $r->email }}</div>
                                     </td>
                                     <td class="px-4 py-3 text-right tabular-nums font-bold text-slate-900">{{ $r->referrals_count }}</td>
+                                    <td class="px-4 py-3 text-right tabular-nums font-bold text-slate-900">{{ $r->referrals_test_count }}</td>
                                     <td class="px-4 py-3 text-right tabular-nums font-bold text-slate-900">{{ $r->referrals_paid_count }}</td>
                                 </tr>
                             @endforeach
