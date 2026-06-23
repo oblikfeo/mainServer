@@ -42,35 +42,37 @@
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
         @foreach ($partners as $p)
-            <article class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden">
-                <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
-                    <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Партнёр · {{ $p['display_name'] }}</div>
+            <article class="rounded-2xl border border-slate-200/90 bg-white shadow-md shadow-slate-200/40 ring-1 ring-slate-900/5 overflow-hidden self-start">
+                <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                        Партнёр · <span class="text-slate-900">{{ $p['display_name'] }}</span>
+                    </div>
                     @if ($p['route'] !== '')
-                        <span class="inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-bold font-mono text-white">{{ $p['route'] }}</span>
+                        <span class="inline-flex items-center rounded-lg bg-slate-900 px-2 py-0.5 text-[11px] font-bold font-mono text-white">{{ $p['route'] }}</span>
                     @endif
                 </div>
-                <div class="p-5 sm:p-6">
-                    <div class="rounded-2xl border border-slate-200/90 bg-slate-50/70 px-4 py-3 ring-1 ring-slate-900/5">
-                        <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Аккаунт-реферер</div>
+                <div class="px-4 py-3">
+                    <div class="text-xs text-slate-500">
+                        Реферер
                         @if ($p['user'])
-                            <div class="mt-1 text-base font-semibold text-slate-900 break-all">{{ $p['email'] }}</div>
+                            <span class="font-semibold text-slate-800 break-all">{{ $p['email'] }}</span>
                         @else
-                            <div class="mt-1 text-base font-semibold text-rose-700">Аккаунт не найден</div>
-                            <div class="mt-1 text-sm text-slate-500 break-all">{{ $p['email'] }}</div>
+                            <span class="font-semibold text-rose-700">не найден</span>
+                            <span class="text-slate-400 break-all">({{ $p['email'] }})</span>
                         @endif
                     </div>
-                    <div class="mt-4 grid grid-cols-3 gap-3 sm:gap-4">
-                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Регистрации</div>
-                            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['registered'], 0, ',', ' ') }}</div>
+                    <div class="mt-3 grid grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200/90 bg-slate-50/80 overflow-hidden">
+                        <div class="px-3 py-2.5 text-center">
+                            <div class="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">Рег.</div>
+                            <div class="mt-0.5 text-xl font-black tabular-nums text-slate-900">{{ number_format($p['registered'], 0, ',', ' ') }}</div>
                         </div>
-                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Тест</div>
-                            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['test'], 0, ',', ' ') }}</div>
+                        <div class="px-3 py-2.5 text-center">
+                            <div class="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">Тест</div>
+                            <div class="mt-0.5 text-xl font-black tabular-nums text-slate-900">{{ number_format($p['test'], 0, ',', ' ') }}</div>
                         </div>
-                        <div class="rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-                            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Оплаты</div>
-                            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($p['paid'], 0, ',', ' ') }}</div>
+                        <div class="px-3 py-2.5 text-center">
+                            <div class="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">Оплат</div>
+                            <div class="mt-0.5 text-xl font-black tabular-nums text-slate-900">{{ number_format($p['paid'], 0, ',', ' ') }}</div>
                         </div>
                     </div>
                 </div>
