@@ -1,79 +1,8 @@
 @extends('layouts.admin')
 
-@section('title', 'Реферальная система')
+@section('title', '')
 
 @section('content')
-    <a
-        href="{{ route('admin.dashboard') }}"
-        class="inline-flex items-center justify-center self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm sm:text-base font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 mb-6 sm:mb-8 min-h-[44px]"
-    >
-        ← В меню
-    </a>
-
-    <div class="mb-6 sm:mb-8">
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Реферальная система</h1>
-        <p class="mt-2 text-sm sm:text-base text-slate-600 max-w-3xl">
-            Кто кого пригласил, сколько зарегистрировалось и оплатило. Партнёрские лендинги привязаны к отдельным аккаунтам-реферерам.
-        </p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div class="rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Рефереров</div>
-            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($stats['referrers'], 0, ',', ' ') }}</div>
-        </div>
-        <div class="rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Приглашённых</div>
-            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($stats['referred'], 0, ',', ' ') }}</div>
-        </div>
-        <div class="rounded-2xl border border-slate-200/90 bg-white px-5 py-4 shadow-sm ring-1 ring-slate-900/5">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">С оплатой</div>
-            <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ number_format($stats['paid'], 0, ',', ' ') }}</div>
-        </div>
-    </div>
-
-    @if ($partners !== [])
-        <div class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden mb-6 sm:mb-8">
-            <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-                <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Партнёрские программы</div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse min-w-[48rem]">
-                    <thead>
-                        <tr class="bg-slate-900 text-white">
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Партнёр</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Лендинг</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[12rem]" scope="col">Аккаунт-реферер</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Рег.</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Оплат</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Актив.</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        @foreach ($partners as $p)
-                            <tr class="{{ $loop->iteration % 2 === 0 ? 'bg-slate-50/50' : 'bg-white' }}">
-                                <td class="px-4 py-3 font-semibold text-slate-900">{{ $p['display_name'] }}</td>
-                                <td class="px-4 py-3 font-mono text-xs text-slate-700">{{ $p['route'] ?: '—' }}</td>
-                                <td class="px-4 py-3 text-slate-800">
-                                    @if ($p['user'])
-                                        <div>{{ $p['email'] }}</div>
-                                        <div class="text-xs text-slate-500 font-mono">{{ $p['user']->referral_code }}</div>
-                                    @else
-                                        <span class="text-rose-700 font-semibold">Аккаунт не найден</span>
-                                        <div class="text-xs text-slate-500">{{ $p['email'] }}</div>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $p['registered'] }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $p['paid'] }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $p['active'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @endif
-
     <form
         method="get"
         action="{{ route('admin.referral') }}"
@@ -86,12 +15,12 @@
                 name="q"
                 id="q"
                 value="{{ $search }}"
-                placeholder="email, имя, код"
+                placeholder="email или имя"
                 class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]"
             >
         </div>
         <div class="w-full sm:flex-1 sm:min-w-[12rem]">
-            <label for="referrer" class="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">Фильтр по рефереру</label>
+            <label for="referrer" class="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">Реферер</label>
             <input
                 type="search"
                 name="referrer"
@@ -111,57 +40,69 @@
         </div>
     </form>
 
-    <div class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden mb-6 sm:mb-8">
-        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Топ рефереров</div>
-        </div>
-        @if ($referrers->isEmpty())
-            <p class="px-6 py-10 text-center text-slate-500 text-sm">Рефереров не найдено.</p>
-        @else
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse min-w-[56rem]">
-                    <thead>
-                        <tr class="bg-slate-900 text-white">
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[12rem]" scope="col">Реферер</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Код</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Рег.</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Оплат</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap text-right" scope="col">Актив.</th>
-                            <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 min-w-[14rem]" scope="col">Ссылка</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        @foreach ($referrers as $r)
-                            <tr class="{{ $loop->iteration % 2 === 0 ? 'bg-slate-50/50' : 'bg-white' }} hover:bg-slate-100/80 transition-colors">
-                                <td class="px-4 py-3 text-slate-900">
-                                    <div class="font-semibold">{{ $r->name }}</div>
-                                    <div class="text-xs text-slate-600">{{ $r->email }}</div>
-                                </td>
-                                <td class="px-4 py-3 font-mono text-xs text-slate-800">{{ $r->referral_code }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $r->referrals_count }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $r->referrals_paid_count }}</td>
-                                <td class="px-4 py-3 text-right tabular-nums font-bold">{{ $r->referrals_active_count }}</td>
-                                <td class="px-4 py-3 font-mono text-xs text-slate-700 break-all">
-                                    <a href="{{ $r->referral_url }}" class="underline underline-offset-2 hover:text-slate-900" target="_blank" rel="noopener noreferrer">{{ $r->referral_url }}</a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        @foreach ($partners as $p)
+            <div class="rounded-2xl border-2 border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+                <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Партнёр</div>
+                <div class="mt-2 text-2xl sm:text-3xl font-black text-slate-900">{{ $p['display_name'] }}</div>
+                <div class="mt-3 text-sm text-slate-600">
+                    <span class="font-semibold text-slate-800">Лендинг:</span>
+                    <span class="font-mono">{{ $p['route'] ?: '—' }}</span>
+                </div>
+                <div class="mt-1 text-sm text-slate-600">
+                    <span class="font-semibold text-slate-800">Реферер:</span>
+                    @if ($p['user'])
+                        {{ $p['email'] }}
+                    @else
+                        <span class="text-rose-700 font-semibold">аккаунт не найден</span>
+                        <span class="text-slate-500">({{ $p['email'] }})</span>
+                    @endif
+                </div>
+                <div class="mt-6 grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Регистрации</div>
+                        <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ $p['registered'] }}</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Оплаты</div>
+                        <div class="mt-1 text-2xl font-black tabular-nums text-slate-900">{{ $p['paid'] }}</div>
+                    </div>
+                </div>
             </div>
-            <div class="px-5 py-4 border-t border-slate-200">{{ $referrers->links() }}</div>
-        @endif
+        @endforeach
+
+        <div class="rounded-2xl border-2 border-slate-200 bg-white p-6 sm:p-8 shadow-sm {{ $partners === [] ? 'lg:col-span-2' : '' }}">
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Топ рефереров</div>
+            @if ($topReferrers->isEmpty())
+                <p class="mt-4 text-sm text-slate-500">Пока никого нет.</p>
+            @else
+                <ul class="mt-4 space-y-4">
+                    @foreach ($topReferrers as $r)
+                        <li class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                            <div class="min-w-0">
+                                <div class="font-bold text-slate-900 truncate">{{ $r->name }}</div>
+                                <div class="text-sm text-slate-600 truncate">{{ $r->email }}</div>
+                            </div>
+                            <div class="flex shrink-0 gap-4 text-sm tabular-nums">
+                                <span><span class="text-slate-500">рег.</span> <span class="font-bold text-slate-900">{{ $r->referrals_count }}</span></span>
+                                <span><span class="text-slate-500">оплат</span> <span class="font-bold text-slate-900">{{ $r->referrals_paid_count }}</span></span>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
     </div>
 
     <div class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Последние приглашённые</div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Приглашённые</div>
         </div>
         @if ($recentReferrals->isEmpty())
-            <p class="px-6 py-10 text-center text-slate-500 text-sm">Приглашённых не найдено.</p>
+            <p class="px-6 py-10 text-center text-slate-500 text-sm">Никого не найдено.</p>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse min-w-[56rem]">
+                <table class="w-full text-sm text-left border-collapse min-w-[48rem]">
                     <thead>
                         <tr class="bg-slate-900 text-white">
                             <th class="px-4 py-4 font-bold text-[11px] uppercase tracking-[0.12em] text-white/90 whitespace-nowrap" scope="col">Регистрация</th>
@@ -173,11 +114,9 @@
                     <tbody class="divide-y divide-slate-200">
                         @foreach ($recentReferrals as $ref)
                             @php
-                                $badge = match ($ref->ref_status_kind) {
-                                    'ok' => 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/80',
-                                    'paid' => 'bg-sky-100 text-sky-800 ring-1 ring-sky-200/80',
-                                    default => 'bg-slate-200/80 text-slate-700',
-                                };
+                                $badge = $ref->ref_status_kind === 'paid'
+                                    ? 'bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/80'
+                                    : 'bg-slate-200/80 text-slate-700';
                             @endphp
                             <tr class="{{ $loop->iteration % 2 === 0 ? 'bg-slate-50/50' : 'bg-white' }} hover:bg-slate-100/80 transition-colors">
                                 <td class="px-4 py-3 text-slate-800 tabular-nums whitespace-nowrap">{{ $ref->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—' }}</td>
