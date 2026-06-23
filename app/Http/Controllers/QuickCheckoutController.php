@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Payments\PaymentDonePage;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Services\Referral\ReferralLinkBuilder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -162,7 +163,7 @@ final class QuickCheckoutController extends Controller
         ]);
     }
 
-    public function done(Request $request, string $claimToken, ReferralLinkBuilder $referralLinks): View
+    public function done(Request $request, string $claimToken, PaymentDonePage $donePage): View
     {
         if (strlen($claimToken) > 64) {
             throw new NotFoundHttpException;
@@ -188,29 +189,9 @@ final class QuickCheckoutController extends Controller
             }
         }
 
-        /** @var User|null $buyer */
-        $buyer = $order->user;
-        /** @var Subscription|null $subscription */
-        $subscription = $order->subscription;
-
-        $cabinetLoginUrl = $subscription !== null
-            ? route('auth.via_token', ['token' => $subscription->token], absolute: false)
-            : null;
-
-        $referralLink = null;
-        if ($buyer !== null) {
-            $referralLink = $referralLinks->forUser($buyer);
-        }
-
-        return view('quick-buy.done', [
-            'order' => $order,
-            'buyer' => $buyer,
-            'subscription' => $subscription,
-            'plainPassword' => is_string($plainPassword) ? $plainPassword : null,
-            'cabinetLoginUrl' => $cabinetLoginUrl,
-            'claimToken' => $claimToken,
-            'shouldPoll' => $order->status !== 'paid' || ($order->status === 'paid' && $subscription === null),
-            'referralLink' => $referralLink,
-        ]);
+        return view('quick-buy.done', $donePage->viewData(
+            $order,
+            is_string($plainPassword) ? $plainPassword : null,
+        ));
     }
 }

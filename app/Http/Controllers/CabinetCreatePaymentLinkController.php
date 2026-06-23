@@ -33,11 +33,11 @@ class CabinetCreatePaymentLinkController extends Controller
         $purpose = (string) ($data['purpose'] ?? 'new');
 
         if ($purpose === 'extra_device') {
-            return $this->createExtraDeviceOrder($wata, $user, $data, $bonusPricing);
+            return $this->createExtraDeviceOrder($request, $wata, $user, $data, $bonusPricing);
         }
 
         if ($purpose === 'renew') {
-            return $this->createRenewalOrder($wata, $user, $plan, $period, $data);
+            return $this->createRenewalOrder($request, $wata, $user, $plan, $period, $data);
         }
 
         $products = config('payments.products', []);
@@ -57,10 +57,12 @@ class CabinetCreatePaymentLinkController extends Controller
         }
 
         $orderId = 'ord_'.(string) Str::ulid();
+        $claimToken = Str::random(48);
         $desc = 'Подписка '.$plan.' · '.$period;
 
         $order = PaymentOrder::query()->create([
             'order_id' => $orderId,
+            'claim_token' => $claimToken,
             'user_id' => $user->id,
             'subscription_id' => null,
             'purpose' => 'new',
@@ -82,7 +84,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'currency' => 'RUB',
             'description' => $desc,
             'orderId' => $orderId,
-            'successRedirectUrl' => (string) config('wata.success_url'),
+            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
             'failRedirectUrl' => (string) config('wata.fail_url'),
         ];
 
@@ -102,6 +104,7 @@ class CabinetCreatePaymentLinkController extends Controller
      * @param  array{subscription_id?: int|null}  $data
      */
     private function createRenewalOrder(
+        Request $request,
         WataH2hClient $wata,
         $user,
         string $plan,
@@ -148,10 +151,12 @@ class CabinetCreatePaymentLinkController extends Controller
         }
 
         $orderId = 'ord_'.(string) Str::ulid();
+        $claimToken = Str::random(48);
         $desc = 'Продление #'.$subscription->public_code.' · '.$plan.' · '.$period;
 
         $order = PaymentOrder::query()->create([
             'order_id' => $orderId,
+            'claim_token' => $claimToken,
             'user_id' => $user->id,
             'subscription_id' => $subscription->id,
             'purpose' => 'renew',
@@ -173,7 +178,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'currency' => 'RUB',
             'description' => $desc,
             'orderId' => $orderId,
-            'successRedirectUrl' => (string) config('wata.success_url'),
+            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
             'failRedirectUrl' => (string) config('wata.fail_url'),
         ];
 
@@ -193,6 +198,7 @@ class CabinetCreatePaymentLinkController extends Controller
      * @param  array{subscription_id?: int|null}  $data
      */
     private function createExtraDeviceOrder(
+        Request $request,
         WataH2hClient $wata,
         $user,
         array $data,
@@ -232,11 +238,13 @@ class CabinetCreatePaymentLinkController extends Controller
         }
 
         $orderId = 'ord_'.(string) Str::ulid();
+        $claimToken = Str::random(48);
         $tierRange = $bonusPricing->tierRangeLabel($remainingDays);
         $desc = 'Бонус +'.$addDevices.' устр. · №'.$subscription->public_code.' · '.$tierRange.' · '.$amountRub.' ₽';
 
         $order = PaymentOrder::query()->create([
             'order_id' => $orderId,
+            'claim_token' => $claimToken,
             'user_id' => $user->id,
             'subscription_id' => $subscription->id,
             'purpose' => 'extra_device',
@@ -258,7 +266,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'currency' => 'RUB',
             'description' => $desc,
             'orderId' => $orderId,
-            'successRedirectUrl' => (string) config('wata.success_url'),
+            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
             'failRedirectUrl' => (string) config('wata.fail_url'),
         ];
 
@@ -273,5 +281,11 @@ class CabinetCreatePaymentLinkController extends Controller
             'url' => $link['url'],
         ]);
     }
-}
 
+    private function paymentDoneUrl(Request $request, string $claimToken): string
+    {
+        $request->session()->put('cabinet_payment_claim', $claimToken);
+
+        return (string) config('wata.success_url');
+    }
+}
