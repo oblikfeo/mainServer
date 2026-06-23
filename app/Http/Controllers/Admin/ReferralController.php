@@ -19,7 +19,7 @@ final class ReferralController extends Controller
             ->whereHas('referrals')
             ->withCount([
                 'referrals',
-                'referrals as referrals_paid_count' => fn ($q) => $q->whereHas('purchases'),
+                'referrals as referrals_paid_count' => fn ($q) => $metrics->applyReferralPaidScope($q),
             ])
             ->orderByDesc('referrals_count')
             ->orderByDesc('id')
@@ -49,7 +49,7 @@ final class ReferralController extends Controller
 
         foreach ($recentReferrals as $referee) {
             /** @var User $referee */
-            $paid = $referee->purchases()->exists();
+            $paid = $metrics->referralIsPaid($referee);
             $referee->setAttribute('ref_status', $paid ? 'Оплатил' : 'Зарегистрировался');
             $referee->setAttribute('ref_status_kind', $paid ? 'paid' : 'registered');
         }
@@ -71,7 +71,7 @@ final class ReferralController extends Controller
                 'email' => $email,
                 'user' => $partnerUser,
                 'registered' => $partnerUser !== null ? (int) $partnerUser->referrals()->count() : 0,
-                'paid' => $partnerUser !== null ? $metrics->countReferralsWithAnyPurchase((int) $partnerUser->id) : 0,
+                'paid' => $partnerUser !== null ? $metrics->countReferralsPaid((int) $partnerUser->id) : 0,
             ];
         }
 

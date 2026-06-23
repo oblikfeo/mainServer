@@ -2,8 +2,10 @@
 
 namespace App\Services\Referral;
 
+use App\Models\PaymentOrder;
 use App\Models\ReferralGrant;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Подсчёты прогресса и списка рефералов для кабинета.
@@ -33,6 +35,47 @@ final class ReferralMetrics
             ->where('referred_by', $referrerId)
             ->whereHas('purchases')
             ->count();
+    }
+
+    /**
+     * Реферал «оплатил» для админки: есть покупка, оплаченный заказ WATA или активная платная подписка (не trial).
+     */
+    public function referralIsPaid(User $referee): bool
+    {
+        if ($referee->purchases()->exists()) {
+            return true;
+        }
+
+        if (PaymentOrder::query()->where('user_id', $referee->id)->where('status', 'paid')->exists()) {
+            return true;
+        }
+
+        return $referee->hasActiveNonTrialSubscription();
+    }
+
+    public function countReferralsPaid(int $referrerId): int
+    {
+        $q = User::query()->where('referred_by', $referrerId);
+        $this->applyReferralPaidScope($q);
+
+        return (int) $q->count();
+    }
+
+    /** @param Builder<User> $query */
+    public function applyReferralPaidScope(Builder $query): void
+    {
+        $nowMs = $this->nowMs();
+        $query->where(function (Builder $q) use ($nowMs) {
+            $q->whereHas('purchases')
+                ->orWhereHas('paymentOrders', fn (Builder $po) => $po->where('status', 'paid'))
+                ->orWhereHas('subscriptions', function (Builder $s) use ($nowMs) {
+                    $s->where('is_trial', false)
+                        ->where(function (Builder $s2) use ($nowMs) {
+                            $s2->where('expiry_ms', '<=', 0)
+                                ->orWhere('expiry_ms', '>', $nowMs);
+                        });
+                });
+        });
     }
 
     /**

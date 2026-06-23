@@ -58,6 +58,12 @@ class User extends Authenticatable
         return $this->hasMany(Purchase::class);
     }
 
+    /** @return HasMany<PaymentOrder, self> */
+    public function paymentOrders(): HasMany
+    {
+        return $this->hasMany(PaymentOrder::class);
+    }
+
     /** @return HasMany<TestKey, self> */
     public function testKeys(): HasMany
     {
