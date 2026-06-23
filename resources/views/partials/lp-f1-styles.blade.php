@@ -2453,6 +2453,57 @@
         font-weight: 900;
         color: var(--lp-orange);
     }
+    .lp-f1 .lp-ref-agreement-link {
+        display: block;
+        margin-top: 0.75rem;
+        padding: 0.65rem 0.75rem;
+        border: 3px solid var(--lp-ink);
+        background: #f8fafc;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        line-height: 1.45;
+        word-break: break-all;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-ref-agreement-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.65rem;
+        margin-top: 0.85rem;
+    }
+    @media (min-width: 480px) {
+        .lp-f1 .lp-ref-agreement-actions {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem 1.25rem;
+        }
+    }
+    .lp-f1 .lp-ref-agreement-copy {
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--lp-ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        cursor: pointer;
+    }
+    .lp-f1 .lp-ref-agreement-copy:hover { color: var(--lp-orange); }
+    .lp-f1 .lp-ref-agreement-more {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: #475569;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .lp-f1 .lp-ref-agreement-more:hover { color: var(--lp-ink); }
     .lp-f1 .lp-agreement-requisites span {
         display: block;
         margin-bottom: 0.35rem;
