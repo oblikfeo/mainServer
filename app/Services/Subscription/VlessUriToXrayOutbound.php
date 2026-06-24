@@ -90,8 +90,54 @@ final class VlessUriToXrayOutbound
             'tcp' => self::streamTcp($q, $security),
             'ws', 'websocket' => self::streamWs($q, $security),
             'grpc' => self::streamGrpc($q, $security),
+            'xhttp' => self::streamXhttp($q, $security),
             default => self::streamTcp($q, $security),
         };
+    }
+
+    /**
+     * @param  array<string, scalar>  $q
+     * @return array<string, mixed>|null
+     */
+    private static function streamXhttp(array $q, string $security): ?array
+    {
+        $path = trim((string) ($q['path'] ?? '/'));
+        if ($path === '') {
+            $path = '/';
+        }
+
+        $xhttpSettings = [
+            'path' => $path,
+            'mode' => trim((string) ($q['mode'] ?? 'auto')) ?: 'auto',
+        ];
+
+        $host = trim((string) ($q['host'] ?? ''));
+        if ($host !== '') {
+            $xhttpSettings['host'] = $host;
+        }
+
+        $extraRaw = trim((string) ($q['extra'] ?? ''));
+        if ($extraRaw !== '') {
+            $extra = json_decode($extraRaw, true);
+            if (is_array($extra)) {
+                $xhttpSettings['extra'] = $extra;
+            }
+        }
+
+        $out = [
+            'network' => 'xhttp',
+            'xhttpSettings' => $xhttpSettings,
+        ];
+
+        self::attachSecurity($out, $q, $security !== '' ? $security : 'tls');
+
+        if (($out['security'] ?? '') === 'tls') {
+            $tls = is_array($out['tlsSettings'] ?? null) ? $out['tlsSettings'] : [];
+            $tls['alpn'] = ['h2', 'http/1.1'];
+            $out['tlsSettings'] = $tls;
+        }
+
+        return $out;
     }
 
     /**

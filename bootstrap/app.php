@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\MailTestCommand::class,
         \App\Console\Commands\MassInviteTestMailCommand::class,
         \App\Console\Commands\MassInviteSendAllCommand::class,
+        \App\Console\Commands\HappPathProbeCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');

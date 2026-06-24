@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
+use App\Http\Controllers\Admin\WhatWorksController;
+use App\Http\Controllers\Admin\WhatWorksController;
 use App\Http\Controllers\CabinetBonusesController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
@@ -141,6 +143,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('referral', [ReferralController::class, 'index'])->name('referral');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
+        Route::get('/what-works', [WhatWorksController::class, 'index'])->name('what_works');
+        Route::post('/what-works/run', [WhatWorksController::class, 'run'])
+            ->middleware('throttle:6,1')
+            ->name('what_works.run');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
         Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');
         Route::get('/test-keys', [TestKeysController::class, 'index'])->name('test_keys');
