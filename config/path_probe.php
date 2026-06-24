@@ -54,10 +54,22 @@ return [
     ],
 
     /**
-     * @var list<array{key: string, label: string, url: string}>
+     * @var list<array{key: string, label: string, url: string, important?: bool}>
      */
     'sites' => [
-        ['key' => 'telegram', 'label' => 'Telegram', 'url' => 'https://api.telegram.org'],
-        ['key' => 'youtube', 'label' => 'YouTube', 'url' => 'https://www.youtube.com'],
+        [
+            'key' => 'main',
+            'label' => 'Основной',
+            'url' => trim((string) env('PATH_PROBE_MAIN_URL', 'https://nadezhda.space')),
+            'important' => true,
+        ],
+        [
+            'key' => 'seo',
+            'label' => 'SEO',
+            'url' => trim((string) env('PATH_PROBE_SEO_URL', 'https://nadezhda.info')),
+            'important' => true,
+        ],
+        ['key' => 'telegram', 'label' => 'TG', 'url' => 'https://api.telegram.org'],
+        ['key' => 'youtube', 'label' => 'YT', 'url' => 'https://www.youtube.com'],
     ],
 ];

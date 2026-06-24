@@ -372,21 +372,28 @@ class HappPathProbeService
 
             $result = Process::timeout(20)->run([
                 'curl',
-                '-fsS',
+                '-sS',
                 '--connect-timeout', '10',
                 '--max-time', '18',
                 '--socks5-hostname', "127.0.0.1:{$socksPort}",
                 '-o', '/dev/null',
-                '-w', '%{time_total}',
+                '-w', '%{http_code} %{time_total}',
                 $url,
             ]);
+
+            $parts = preg_split('/\s+/', trim($result->output()), 2) ?: [];
+            $httpCode = isset($parts[0]) ? (int) $parts[0] : 0;
+            $seconds = isset($parts[1]) ? (float) $parts[1] : 0.0;
+            $httpOk = $httpCode >= 200 && $httpCode < 400;
+            $ok = $result->successful() && $httpOk;
 
             $out[] = [
                 'key' => $key,
                 'label' => $label !== '' ? $label : $key,
-                'ok' => $result->successful(),
-                'ms' => $result->successful() ? (int) round(((float) trim($result->output())) * 1000) : null,
-                'error' => $result->successful() ? null : (trim($result->errorOutput()) ?: 'fail'),
+                'ok' => $ok,
+                'http_code' => $httpCode > 0 ? $httpCode : null,
+                'ms' => $ok ? (int) round($seconds * 1000) : null,
+                'error' => $ok ? null : (trim($result->errorOutput()) ?: ($httpCode > 0 ? 'HTTP '.$httpCode : 'fail')),
             ];
         }
 
