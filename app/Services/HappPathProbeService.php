@@ -13,13 +13,13 @@ use Throwable;
 
 class HappPathProbeService
 {
-    private const CACHE_KEY = 'happ_path_probe_v1';
+    private const CACHE_KEY = 'happ_path_probe_v2';
 
     /**
      * @return array{
      *     checked_at: string|null,
      *     xray_available: bool,
-     *     nodes: list<array<string, mixed>>,
+     *     rows: list<array<string, mixed>>,
      * }
      */
     public function cachedResults(bool $refresh = false): array
@@ -40,7 +40,7 @@ class HappPathProbeService
      * @return array{
      *     checked_at: string|null,
      *     xray_available: bool,
-     *     nodes: list<array<string, mixed>>,
+     *     rows: list<array<string, mixed>>,
      * }
      */
     public function runAll(): array
@@ -48,29 +48,38 @@ class HappPathProbeService
         $xrayBin = $this->xrayBinary();
         $xrayAvailable = $xrayBin !== null;
 
-        $nodes = [];
+        $rows = [];
+
         foreach ($this->configuredTargets() as $target) {
             if (! $xrayAvailable) {
-                $nodes[] = $this->skippedNode($target, 'Xray не найден на hub ('.((string) config('path_probe.xray_binary')).')');
+                $rows[] = $this->skippedVpnRow($target, 'Xray не найден на hub');
 
                 continue;
             }
 
             try {
-                $nodes[] = $this->probeNode($target, $xrayBin);
+                $rows[] = $this->probeVpnNode($target, $xrayBin);
             } catch (Throwable $e) {
                 Log::warning('happ path probe failed', [
                     'node' => $target['id'],
                     'error' => $e->getMessage(),
                 ]);
-                $nodes[] = $this->failedNode($target, $e->getMessage());
+                $rows[] = $this->failedVpnRow($target, $e->getMessage());
             }
+        }
+
+        foreach ((array) config('path_probe.web_pages', []) as $page) {
+            if (! is_array($page)) {
+                continue;
+            }
+
+            $rows[] = $this->probeWebPage($page);
         }
 
         return [
             'checked_at' => now()->toIso8601String(),
             'xray_available' => $xrayAvailable,
-            'nodes' => $nodes,
+            'rows' => $rows,
         ];
     }
 
@@ -116,7 +125,7 @@ class HappPathProbeService
 
     /**
      * @param  array{id: string, title: string, vless_uri: string}  $target
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
     public function buildClientConfig(array $target, int $socksPort): ?array
     {
@@ -161,14 +170,13 @@ class HappPathProbeService
      * @param  array{id: string, title: string, vless_uri: string}  $target
      * @return array<string, mixed>
      */
-    private function probeNode(array $target, string $xrayBin): array
+    private function probeVpnNode(array $target, string $xrayBin): array
     {
-        $started = microtime(true);
         $socksPort = max(1024, (int) config('path_probe.socks_port', 10820));
         $config = $this->buildClientConfig($target, $socksPort);
 
         if ($config === null) {
-            return $this->failedNode($target, 'Не удалось собрать outbound из vless://');
+            return $this->failedVpnRow($target, 'Не удалось собрать outbound из vless://');
         }
 
         $dir = storage_path('app/path-probe');
@@ -183,67 +191,116 @@ class HappPathProbeService
             usleep((int) (max(0.5, (float) config('path_probe.xray_startup_seconds', 2.5)) * 1_000_000));
 
             if (! $process->running()) {
-                return $this->failedNode($target, trim($process->errorOutput()) ?: 'Xray завершился сразу после старта');
+                return $this->failedVpnRow($target, trim($process->errorOutput()) ?: 'Xray завершился сразу после старта');
             }
 
             $trace = $this->curlThroughSocks($socksPort, (string) config('path_probe.trace_url', ''), true);
             if (! ($trace['ok'] ?? false)) {
-                return $this->assembleNodeResult($target, false, $trace, null, [], $started);
+                return $this->assembleVpnRow($target, false, $trace, null);
             }
 
             $speed = $this->measureDownloadSpeed($socksPort);
-            $sites = $this->probeSites($socksPort);
 
-            return $this->assembleNodeResult($target, true, $trace, $speed, $sites, $started);
+            return $this->assembleVpnRow($target, true, $trace, $speed);
         } finally {
             $this->stopProcess($process);
         }
     }
 
     /**
-     * @param  array<string, mixed>  $trace
-     * @param  array<string, mixed>|null  $speed
-     * @param  list<array<string, mixed>>  $sites
+     * @param  array{id?: string, title?: string, url?: string}  $page
      * @return array<string, mixed>
      */
-    private function assembleNodeResult(
-        array $target,
-        bool $tunnelOk,
-        array $trace,
-        ?array $speed,
-        array $sites,
-        float $startedAt,
-    ): array {
+    private function probeWebPage(array $page): array
+    {
+        $id = trim((string) ($page['id'] ?? ''));
+        $title = trim((string) ($page['title'] ?? $id));
+        $url = trim((string) ($page['url'] ?? ''));
+
+        if ($url === '') {
+            return $this->webRow($id, $title, $url, 'skip', null, 'URL не задан');
+        }
+
+        $result = Process::timeout(20)->run([
+            'curl',
+            '-sS',
+            '--connect-timeout', '8',
+            '--max-time', '15',
+            '-o', '/dev/null',
+            '-w', '%{http_code} %{time_total}',
+            $url,
+        ]);
+
+        $parts = preg_split('/\s+/', trim($result->output()), 2) ?: [];
+        $httpCode = isset($parts[0]) ? (int) $parts[0] : 0;
+        $seconds = isset($parts[1]) ? (float) $parts[1] : 0.0;
+        $ok = $result->successful() && $httpCode >= 200 && $httpCode < 400;
+
+        return $this->webRow(
+            $id,
+            $title !== '' ? $title : $id,
+            $url,
+            $ok ? 'ok' : 'fail',
+            $ok ? (int) round($seconds * 1000) : null,
+            $ok ? null : (trim($result->errorOutput()) ?: ($httpCode > 0 ? 'HTTP '.$httpCode : 'не открывается')),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $trace
+     * @param  array<string, mixed>|null  $speed
+     * @return array<string, mixed>
+     */
+    private function assembleVpnRow(array $target, bool $tunnelOk, array $trace, ?array $speed): array
+    {
         $egressIp = isset($trace['egress_ip']) ? (string) $trace['egress_ip'] : null;
         $egressOk = $this->evaluateEgress($target['id'], $egressIp);
-        $sitesOk = $this->sitesHealthy($sites);
 
         $status = 'fail';
         if ($tunnelOk) {
-            $status = ($egressOk !== false && $sitesOk !== false) ? 'ok' : 'warn';
+            $status = $egressOk === false ? 'warn' : 'ok';
         }
 
         return [
+            'kind' => 'vpn',
             'id' => $target['id'],
             'title' => $target['title'],
             'status' => $status,
-            'tunnel_ok' => $tunnelOk,
-            'error' => $tunnelOk ? null : (string) ($trace['error'] ?? 'Туннель не поднялся'),
             'latency_ms' => isset($trace['total_ms']) ? (int) $trace['total_ms'] : null,
-            'connect_ms' => isset($trace['connect_ms']) ? (int) $trace['connect_ms'] : null,
-            'handshake_ms' => isset($trace['appconnect_ms']) ? (int) $trace['appconnect_ms'] : null,
+            'download_mbps' => is_array($speed) ? ($speed['mbps'] ?? null) : null,
             'egress_ip' => $egressIp,
             'egress_colo' => isset($trace['egress_colo']) ? (string) $trace['egress_colo'] : null,
-            'egress_ok' => $egressOk,
-            'download_mbps' => is_array($speed) ? ($speed['mbps'] ?? null) : null,
-            'sites' => $sites,
-            'duration_ms' => (int) round((microtime(true) - $startedAt) * 1000),
-            'checked_at' => now()->toIso8601String(),
+            'error' => $tunnelOk ? null : (string) ($trace['error'] ?? 'канал не поднялся'),
         ];
     }
 
     /**
-     * @return array{ok: bool, error?: string, egress_ip?: string, egress_colo?: string, connect_ms?: int, appconnect_ms?: int, total_ms?: int}
+     * @return array<string, mixed>
+     */
+    private function webRow(
+        string $id,
+        string $title,
+        string $url,
+        string $status,
+        ?int $latencyMs,
+        ?string $error,
+    ): array {
+        return [
+            'kind' => 'web',
+            'id' => $id,
+            'title' => $title,
+            'url' => $url,
+            'status' => $status,
+            'latency_ms' => $latencyMs,
+            'download_mbps' => null,
+            'egress_ip' => null,
+            'egress_colo' => null,
+            'error' => $error,
+        ];
+    }
+
+    /**
+     * @return array{ok: bool, error?: string, egress_ip?: string, egress_colo?: string, total_ms?: int}
      */
     private function curlThroughSocks(int $socksPort, string $url, bool $captureBody): array
     {
@@ -251,14 +308,13 @@ class HappPathProbeService
             return ['ok' => false, 'error' => 'Пустой URL проверки'];
         }
 
-        $writeOut = '\n'.implode('\n', ['%{time_connect}', '%{time_appconnect}', '%{time_total}']);
         $result = Process::timeout(25)->run([
             'curl',
             '-fsS',
             '--connect-timeout', '12',
             '--max-time', '22',
             '--socks5-hostname', "127.0.0.1:{$socksPort}",
-            '-w', $writeOut,
+            '-w', '\n%{time_total}',
             $url,
         ]);
 
@@ -270,19 +326,15 @@ class HappPathProbeService
         }
 
         $lines = preg_split('/\r\n|\r|\n/', trim($result->output())) ?: [];
-        $timing = array_map('floatval', array_slice($lines, -3));
-        $bodyLines = array_slice($lines, 0, max(0, count($lines) - 3));
-        $body = implode("\n", $bodyLines);
-
+        $totalSeconds = (float) ($lines[array_key_last($lines)] ?? 0);
+        $body = implode("\n", array_slice($lines, 0, max(0, count($lines) - 1)));
         $trace = $captureBody ? $this->parseTraceBody($body) : [];
 
         return [
             'ok' => true,
             'egress_ip' => $trace['ip'] ?? null,
             'egress_colo' => $trace['colo'] ?? null,
-            'connect_ms' => isset($timing[0]) ? (int) round($timing[0] * 1000) : null,
-            'appconnect_ms' => isset($timing[1]) ? (int) round($timing[1] * 1000) : null,
-            'total_ms' => isset($timing[2]) ? (int) round($timing[2] * 1000) : null,
+            'total_ms' => (int) round($totalSeconds * 1000),
         ];
     }
 
@@ -307,7 +359,7 @@ class HappPathProbeService
     }
 
     /**
-     * @return array{mbps: float|null, bytes: int|null, seconds: float|null}|null
+     * @return array{mbps: float|null}|null
      */
     private function measureDownloadSpeed(int $socksPort): ?array
     {
@@ -328,76 +380,21 @@ class HappPathProbeService
         ]);
 
         if (! $result->successful()) {
-            return ['mbps' => null, 'bytes' => null, 'seconds' => null];
+            return ['mbps' => null];
         }
 
         $parts = preg_split('/\s+/', trim($result->output())) ?: [];
         if (count($parts) < 2) {
-            return ['mbps' => null, 'bytes' => null, 'seconds' => null];
+            return ['mbps' => null];
         }
 
         $bytes = (int) $parts[0];
         $seconds = (float) $parts[1];
         if ($bytes < 1 || $seconds <= 0) {
-            return ['mbps' => null, 'bytes' => $bytes, 'seconds' => $seconds];
+            return ['mbps' => null];
         }
 
-        $mbps = ($bytes * 8) / ($seconds * 1_000_000);
-
-        return [
-            'mbps' => round($mbps, 1),
-            'bytes' => $bytes,
-            'seconds' => round($seconds, 2),
-        ];
-    }
-
-    /**
-     * @return list<array{key: string, label: string, ok: bool, ms: int|null, error: string|null}>
-     */
-    private function probeSites(int $socksPort): array
-    {
-        $out = [];
-
-        foreach ((array) config('path_probe.sites', []) as $site) {
-            if (! is_array($site)) {
-                continue;
-            }
-
-            $key = trim((string) ($site['key'] ?? ''));
-            $label = trim((string) ($site['label'] ?? $key));
-            $url = trim((string) ($site['url'] ?? ''));
-            if ($key === '' || $url === '') {
-                continue;
-            }
-
-            $result = Process::timeout(20)->run([
-                'curl',
-                '-sS',
-                '--connect-timeout', '10',
-                '--max-time', '18',
-                '--socks5-hostname', "127.0.0.1:{$socksPort}",
-                '-o', '/dev/null',
-                '-w', '%{http_code} %{time_total}',
-                $url,
-            ]);
-
-            $parts = preg_split('/\s+/', trim($result->output()), 2) ?: [];
-            $httpCode = isset($parts[0]) ? (int) $parts[0] : 0;
-            $seconds = isset($parts[1]) ? (float) $parts[1] : 0.0;
-            $httpOk = $httpCode >= 200 && $httpCode < 400;
-            $ok = $result->successful() && $httpOk;
-
-            $out[] = [
-                'key' => $key,
-                'label' => $label !== '' ? $label : $key,
-                'ok' => $ok,
-                'http_code' => $httpCode > 0 ? $httpCode : null,
-                'ms' => $ok ? (int) round($seconds * 1000) : null,
-                'error' => $ok ? null : (trim($result->errorOutput()) ?: ($httpCode > 0 ? 'HTTP '.$httpCode : 'fail')),
-            ];
-        }
-
-        return $out;
+        return ['mbps' => round(($bytes * 8) / ($seconds * 1_000_000), 1)];
     }
 
     private function evaluateEgress(string $nodeId, ?string $egressIp): ?bool
@@ -426,58 +423,34 @@ class HappPathProbeService
     }
 
     /**
-     * @param  list<array<string, mixed>>  $sites
-     */
-    private function sitesHealthy(array $sites): ?bool
-    {
-        if ($sites === []) {
-            return null;
-        }
-
-        foreach ($sites as $site) {
-            if (! ($site['ok'] ?? false)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param  array{id: string, title: string, vless_uri?: string}  $target
+     * @param  array{id: string, title: string}  $target
      * @return array<string, mixed>
      */
-    private function skippedNode(array $target, string $reason): array
+    private function skippedVpnRow(array $target, string $reason): array
     {
         return [
+            'kind' => 'vpn',
             'id' => $target['id'],
             'title' => $target['title'],
             'status' => 'skip',
-            'tunnel_ok' => false,
-            'error' => $reason,
             'latency_ms' => null,
-            'connect_ms' => null,
-            'handshake_ms' => null,
+            'download_mbps' => null,
             'egress_ip' => null,
             'egress_colo' => null,
-            'egress_ok' => null,
-            'download_mbps' => null,
-            'sites' => [],
-            'duration_ms' => null,
-            'checked_at' => now()->toIso8601String(),
+            'error' => $reason,
         ];
     }
 
     /**
-     * @param  array{id: string, title: string, vless_uri?: string}  $target
+     * @param  array{id: string, title: string}  $target
      * @return array<string, mixed>
      */
-    private function failedNode(array $target, string $reason): array
+    private function failedVpnRow(array $target, string $reason): array
     {
-        $node = $this->skippedNode($target, $reason);
-        $node['status'] = 'fail';
+        $row = $this->skippedVpnRow($target, $reason);
+        $row['status'] = 'fail';
 
-        return $node;
+        return $row;
     }
 
     private function xrayBinary(): ?string

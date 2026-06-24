@@ -18,8 +18,6 @@ return [
         'https://speed.cloudflare.com/__down?bytes=5000000'
     )),
 
-    'speed_bytes' => (int) env('PATH_PROBE_SPEED_BYTES', 5_000_000),
-
     /**
      * @var list<array{id: string, extra_key: string, title_key: string}>
      */
@@ -31,9 +29,6 @@ return [
     ],
 
     /**
-     * expected_egress — точное совпадение ip= из trace.
-     * must_not_egress — цепочка сломана, если вышли с IP входного узла (WG/sendThrough не сработали).
-     *
      * @var array<string, array{expected_egress?: string, must_not_egress?: string}>
      */
     'egress_rules' => [
@@ -54,22 +49,20 @@ return [
     ],
 
     /**
-     * @var list<array{key: string, label: string, url: string, important?: bool}>
+     * Прямая проверка с hub: страница открывается, сайт в сети.
+     *
+     * @var list<array{id: string, title: string, url: string}>
      */
-    'sites' => [
+    'web_pages' => [
         [
-            'key' => 'main',
-            'label' => 'Основной',
-            'url' => trim((string) env('PATH_PROBE_MAIN_URL', 'https://nadezhda.space')),
-            'important' => true,
+            'id' => 'site',
+            'title' => 'nadezhda.space',
+            'url' => trim((string) env('PATH_PROBE_SITE_URL', 'https://nadezhda.space')),
         ],
         [
-            'key' => 'seo',
-            'label' => 'SEO',
+            'id' => 'seo',
+            'title' => 'nadezhda.info',
             'url' => trim((string) env('PATH_PROBE_SEO_URL', 'https://nadezhda.info')),
-            'important' => true,
         ],
-        ['key' => 'telegram', 'label' => 'TG', 'url' => 'https://api.telegram.org'],
-        ['key' => 'youtube', 'label' => 'YT', 'url' => 'https://www.youtube.com'],
     ],
 ];

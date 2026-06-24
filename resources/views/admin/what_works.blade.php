@@ -34,33 +34,7 @@
         }
     };
 
-    $siteCell = static function (array $sites, string $key): ?array {
-        foreach ($sites as $site) {
-            if (is_array($site) && ($site['key'] ?? '') === $key) {
-                return $site;
-            }
-        }
-
-        return null;
-    };
-
-    $sitePill = static function (?array $site): string {
-        if ($site === null) {
-            return 'text-slate-400';
-        }
-
-        return ($site['ok'] ?? false)
-            ? 'text-emerald-700 font-semibold'
-            : 'text-rose-700 font-semibold';
-    };
-
-    $nodes = is_array($results['nodes'] ?? null) ? $results['nodes'] : [];
-    $siteColumns = collect(config('path_probe.sites', []))
-        ->filter(fn ($s) => is_array($s) && ($s['key'] ?? '') !== '' && ($s['url'] ?? '') !== '')
-        ->values()
-        ->all();
-    $mainSiteUrl = trim((string) (config('path_probe.sites.0.url') ?? 'https://nadezhda.space'));
-    $seoSiteUrl = trim((string) (config('path_probe.sites.1.url') ?? 'https://nadezhda.info'));
+    $rows = is_array($results['rows'] ?? null) ? $results['rows'] : [];
 @endphp
 
 @section('content')
@@ -90,20 +64,14 @@
     @endif
 
     <div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-600">
-        <span>Hub → Xray → общие VLESS из Happ</span>
-        <span class="hidden sm:inline text-slate-300">·</span>
         <span>Прогон {{ $formatCheckedAt($results['checked_at'] ?? null) }}</span>
-        <span class="hidden sm:inline text-slate-300">·</span>
+        <span class="text-slate-300">·</span>
         <span>кэш {{ (int) $cacheTtl }} с</span>
-        <span class="hidden sm:inline text-slate-300">·</span>
-        <span class="{{ ($results['xray_available'] ?? false) ? 'text-emerald-700' : 'text-rose-700' }}">
-            Xray {{ ($results['xray_available'] ?? false) ? 'OK' : 'нет' }}
-        </span>
     </div>
 
-    @if ($nodes === [])
+    @if ($rows === [])
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            Нет настроенных узлов. Заполните <code class="text-xs bg-white/70 px-1 rounded">SUB_*_VLESS_URI</code>.
+            Нет данных для проверки.
         </div>
     @else
         <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -111,70 +79,60 @@
                 <table class="min-w-full text-sm">
                     <thead>
                         <tr class="border-b border-slate-200 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
-                            <th class="px-3 py-2.5 font-bold min-w-[9rem]">Узел</th>
-                            <th class="px-2 py-2.5 font-bold w-20">Статус</th>
-                            <th class="px-2 py-2.5 font-bold w-16">Тунн.</th>
+                            <th class="px-3 py-2.5 font-bold min-w-[10rem]">Строка</th>
+                            <th class="px-2 py-2.5 font-bold w-24">Статус</th>
                             <th class="px-2 py-2.5 font-bold w-16 tabular-nums">ms</th>
                             <th class="px-2 py-2.5 font-bold w-20 tabular-nums">↓ Mbps</th>
                             <th class="px-2 py-2.5 font-bold min-w-[7rem]">Egress IP</th>
-                            @foreach ($siteColumns as $col)
-                                <th class="px-2 py-2.5 font-bold w-16 text-center" title="{{ $col['url'] ?? '' }}">
-                                    {{ $col['label'] ?? $col['key'] }}
-                                </th>
-                            @endforeach
-                            <th class="px-3 py-2.5 font-bold min-w-[8rem]">Ошибка</th>
+                            <th class="px-3 py-2.5 font-bold min-w-[8rem]">Примечание</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach ($nodes as $node)
+                        @foreach ($rows as $row)
                             @php
-                                $status = (string) ($node['status'] ?? 'fail');
-                                $sites = is_array($node['sites'] ?? null) ? $node['sites'] : [];
+                                $status = (string) ($row['status'] ?? 'fail');
+                                $isWeb = ($row['kind'] ?? '') === 'web';
                             @endphp
-                            <tr class="hover:bg-slate-50/80 align-top">
+                            <tr class="hover:bg-slate-50/80 align-top {{ $isWeb ? 'bg-slate-50/40' : '' }}">
                                 <td class="px-3 py-2.5">
-                                    <div class="font-semibold text-slate-900 leading-tight">{{ $node['title'] ?? $node['id'] }}</div>
-                                    <div class="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">{{ $node['id'] ?? '' }}</div>
+                                    <div class="font-semibold text-slate-900 leading-tight">{{ $row['title'] ?? $row['id'] }}</div>
+                                    @if ($isWeb)
+                                        <div class="text-[10px] text-slate-400 mt-0.5">сайт в сети</div>
+                                    @else
+                                        <div class="text-[10px] uppercase tracking-wider text-slate-400 mt-0.5">VPN · {{ $row['id'] ?? '' }}</div>
+                                    @endif
                                 </td>
                                 <td class="px-2 py-2.5">
                                     <span class="inline-flex rounded-md px-2 py-0.5 text-[11px] font-bold ring-1 {{ $statusBadge($status) }}">
                                         {{ $statusLabel($status) }}
                                     </span>
                                 </td>
-                                <td class="px-2 py-2.5 tabular-nums {{ ($node['tunnel_ok'] ?? false) ? 'text-emerald-700 font-semibold' : 'text-rose-700 font-semibold' }}">
-                                    {{ ($node['tunnel_ok'] ?? false) ? 'OK' : 'FAIL' }}
+                                <td class="px-2 py-2.5 tabular-nums text-slate-800">
+                                    {{ isset($row['latency_ms']) ? (int) $row['latency_ms'] : '—' }}
                                 </td>
                                 <td class="px-2 py-2.5 tabular-nums text-slate-800">
-                                    {{ isset($node['latency_ms']) ? (int) $node['latency_ms'] : '—' }}
-                                </td>
-                                <td class="px-2 py-2.5 tabular-nums text-slate-800">
-                                    {{ isset($node['download_mbps']) ? number_format((float) $node['download_mbps'], 1, '.', '') : '—' }}
-                                </td>
-                                <td class="px-2 py-2.5">
-                                    <div class="font-mono text-xs text-slate-800 break-all">{{ $node['egress_ip'] ?? '—' }}</div>
-                                    @if (($node['egress_ok'] ?? null) === false)
-                                        <div class="text-[10px] text-rose-600 mt-0.5">egress ✗</div>
-                                    @elseif (! empty($node['egress_colo']))
-                                        <div class="text-[10px] text-slate-400 mt-0.5">{{ $node['egress_colo'] }}</div>
+                                    @if ($isWeb)
+                                        —
+                                    @else
+                                        {{ isset($row['download_mbps']) ? number_format((float) $row['download_mbps'], 1, '.', '') : '—' }}
                                     @endif
                                 </td>
-                                @foreach ($siteColumns as $col)
-                                    @php $site = $siteCell($sites, (string) ($col['key'] ?? '')); @endphp
-                                    <td class="px-2 py-2.5 text-center tabular-nums {{ $sitePill($site) }}">
-                                        @if ($site === null)
-                                            —
-                                        @elseif ($site['ok'] ?? false)
-                                            {{ isset($site['ms']) ? (int) $site['ms'] : 'OK' }}
-                                        @else
-                                            FAIL
-                                        @endif
-                                    </td>
-                                @endforeach
-                                <td class="px-3 py-2.5 text-xs text-slate-500 break-words max-w-[14rem]">
-                                    @if (! empty($node['error']))
-                                        {{ $node['error'] }}
+                                <td class="px-2 py-2.5 font-mono text-xs text-slate-800 break-all">
+                                    @if ($isWeb)
+                                        —
                                     @else
-                                        <span class="text-slate-400">{{ $formatCheckedAt($node['checked_at'] ?? null) }}</span>
+                                        {{ $row['egress_ip'] ?? '—' }}
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2.5 text-xs text-slate-500 break-words max-w-[14rem]">
+                                    @if (! empty($row['error']))
+                                        {{ $row['error'] }}
+                                    @elseif ($isWeb && ! empty($row['url']))
+                                        открывается
+                                    @elseif (! empty($row['egress_colo']))
+                                        {{ $row['egress_colo'] }}
+                                    @else
+                                        —
                                     @endif
                                 </td>
                             </tr>
@@ -183,12 +141,5 @@
                 </table>
             </div>
         </div>
-
-        <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">
-            Колонки «Основной» и «SEO» — доступ к
-            <span class="font-mono">{{ $mainSiteUrl }}</span> и
-            <span class="font-mono">{{ $seoSiteUrl }}</span> через туннель (не с hub напрямую).
-            Цифры в колонках сайтов — latency, мс.
-        </p>
     @endif
 @endsection

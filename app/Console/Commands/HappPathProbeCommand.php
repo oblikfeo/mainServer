@@ -18,19 +18,19 @@ class HappPathProbeCommand extends Command
         $this->line('checked_at='.($results['checked_at'] ?? ''));
         $this->line('xray='.(($results['xray_available'] ?? false) ? '1' : '0'));
 
-        foreach ($results['nodes'] ?? [] as $node) {
-            if (! is_array($node)) {
+        foreach ($results['rows'] ?? [] as $row) {
+            if (! is_array($row)) {
                 continue;
             }
 
             $this->line(sprintf(
-                '%s status=%s tunnel=%s ip=%s latency=%s mbps=%s',
-                (string) ($node['id'] ?? '?'),
-                (string) ($node['status'] ?? '?'),
-                ($node['tunnel_ok'] ?? false) ? '1' : '0',
-                (string) ($node['egress_ip'] ?? '-'),
-                (string) ($node['latency_ms'] ?? '-'),
-                (string) ($node['download_mbps'] ?? '-'),
+                '%s kind=%s status=%s ip=%s latency=%s mbps=%s',
+                (string) ($row['id'] ?? '?'),
+                (string) ($row['kind'] ?? '?'),
+                (string) ($row['status'] ?? '?'),
+                (string) ($row['egress_ip'] ?? '-'),
+                (string) ($row['latency_ms'] ?? '-'),
+                (string) ($row['download_mbps'] ?? '-'),
             ));
         }
 
