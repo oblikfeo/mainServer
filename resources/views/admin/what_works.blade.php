@@ -152,7 +152,7 @@
     @else
         @if ($vpnRows !== [])
             <h2 class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-3 sm:mb-4">VPN · Happ</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-8 sm:mb-10">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-8 sm:mb-10">
                 @foreach ($vpnRows as $row)
                     @php
                         $status = (string) ($row['status'] ?? 'fail');
@@ -202,7 +202,7 @@
 
         @if ($webRows !== [])
             <h2 class="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 mb-3 sm:mb-4">Сайты в сети</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
                 @foreach ($webRows as $row)
                     @php
                         $status = (string) ($row['status'] ?? 'fail');
