@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\Admin\WhatWorksController;
-use App\Http\Controllers\Admin\WhatWorksController;
 use App\Http\Controllers\CabinetBonusesController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
