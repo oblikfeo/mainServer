@@ -13,7 +13,9 @@ class HappPathProbeCommand extends Command
 
     public function handle(HappPathProbeService $probes): int
     {
-        $results = $probes->cachedResults(refresh: (bool) $this->option('refresh'));
+        $results = $this->option('refresh')
+            ? $probes->refreshAndCache()
+            : $probes->forPage();
 
         $this->line('checked_at='.($results['checked_at'] ?? ''));
         $this->line('xray='.(($results['xray_available'] ?? false) ? '1' : '0'));

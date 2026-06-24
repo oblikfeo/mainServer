@@ -16,24 +16,49 @@ class HappPathProbeService
     private const CACHE_KEY = 'happ_path_probe_v2';
 
     /**
+     * Только чтение кэша — для GET страницы (без прогона probe).
+     *
+     * @return array{
+     *     checked_at: string|null,
+     *     xray_available: bool|null,
+     *     rows: list<array<string, mixed>>,
+     *     from_cache: bool,
+     * }
+     */
+    public function forPage(): array
+    {
+        $cached = Cache::get(self::CACHE_KEY);
+        if (is_array($cached) && isset($cached['rows'])) {
+            $cached['from_cache'] = true;
+
+            return $cached;
+        }
+
+        return [
+            'checked_at' => null,
+            'xray_available' => null,
+            'rows' => [],
+            'from_cache' => false,
+        ];
+    }
+
+    /**
+     * Полный прогон + запись в кэш (кнопка «Проверить», artisan --refresh).
+     *
      * @return array{
      *     checked_at: string|null,
      *     xray_available: bool,
      *     rows: list<array<string, mixed>>,
+     *     from_cache: bool,
      * }
      */
-    public function cachedResults(bool $refresh = false): array
+    public function refreshAndCache(): array
     {
-        if ($refresh) {
-            $results = $this->runAll();
-            Cache::put(self::CACHE_KEY, $results, max(10, (int) config('path_probe.cache_ttl', 120)));
+        $results = $this->runAll();
+        $results['from_cache'] = true;
+        Cache::put(self::CACHE_KEY, $results, max(10, (int) config('path_probe.cache_ttl', 120)));
 
-            return $results;
-        }
-
-        $ttl = max(10, (int) config('path_probe.cache_ttl', 120));
-
-        return Cache::remember(self::CACHE_KEY, $ttl, fn (): array => $this->runAll());
+        return $results;
     }
 
     /**

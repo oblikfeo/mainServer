@@ -11,7 +11,7 @@ class WhatWorksController extends Controller
 {
     public function index(HappPathProbeService $probes): View
     {
-        $results = $probes->cachedResults();
+        $results = $probes->forPage();
 
         return view('admin.what_works', [
             'results' => $results,
@@ -21,7 +21,7 @@ class WhatWorksController extends Controller
 
     public function run(HappPathProbeService $probes): RedirectResponse
     {
-        $probes->cachedResults(refresh: true);
+        $probes->refreshAndCache();
 
         return redirect()
             ->route('admin.what_works')

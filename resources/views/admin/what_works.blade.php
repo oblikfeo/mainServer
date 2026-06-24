@@ -86,8 +86,12 @@
         @endif
 
         @if ($rows === [])
-            <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-                Нет данных для проверки.
+            <div class="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+                @if (! ($results['from_cache'] ?? false))
+                    Ещё не было проверки или кэш сброшен. Нажмите «Проверить сейчас» — прогон ~20–40 секунд, страница не блокируется при обычном открытии.
+                @else
+                    Нет настроенных узлов. Заполните <code class="text-xs bg-slate-100 px-1 rounded">SUB_*_VLESS_URI</code> в .env.
+                @endif
             </div>
         @else
             <div class="space-y-8 min-w-0">
