@@ -40,8 +40,19 @@ return [
     ],
 
     /**
+     * US194 (доступы194, 194.110.87.115, AlphaVPS Wi-Fi #3): общая VLESS Reality, одна ссылка на всех.
+     * В Happ: 🇺🇸 Быстрый Wi Fi — самый первый узел подписки.
+     */
+    'sub_extra_us194' => [
+        'enabled' => filter_var(env('SUB_US194_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_US194_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_US194_VLESS_TITLE', '🇺🇸 Быстрый Wi Fi')),
+        'vless_subtitle' => trim((string) env('SUB_US194_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * BG31 (доступы31, 31.22.10.250): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇩🇪 Быстрый Wi-Fi — первый узел (одно тире; двойное — у 777).
+     * В Happ: 🇩🇪 Быстрый Wi-Fi — второй узел после US194 (одно тире; двойное — у 777).
      */
     'sub_extra_bg31' => [
         'enabled' => filter_var(env('SUB_BG31_ENABLED', false), FILTER_VALIDATE_BOOL),

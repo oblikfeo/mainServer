@@ -7,6 +7,8 @@ use Tests\TestCase;
 
 final class SubscriptionExtraShareLinesTest extends TestCase
 {
+    private const VLESS_US194 = 'vless://55555555-5555-5555-5555-555555555555@194.110.87.115:443?security=reality&encryption=none&type=tcp#us194';
+
     private const VLESS_BG31 = 'vless://11111111-1111-1111-1111-111111111111@31.22.10.250:443?security=reality&encryption=none&type=tcp#bg31';
 
     private const VLESS_RUVDS = 'vless://22222222-2222-2222-2222-222222222222@195.133.198.100:443?security=reality&encryption=none&type=tcp#ruvds';
@@ -20,6 +22,12 @@ final class SubscriptionExtraShareLinesTest extends TestCase
     protected function tearDown(): void
     {
         config([
+            'xui.sub_extra_us194' => [
+                'enabled' => false,
+                'vless_uri' => '',
+                'vless_title' => '',
+                'vless_subtitle' => '',
+            ],
             'xui.sub_extra_bg31' => [
                 'enabled' => false,
                 'vless_uri' => '',
@@ -60,9 +68,15 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         $this->assertSame([], SubscriptionExtraShareLines::lines());
     }
 
-    public function test_lines_order_bg31_then_777_then_ruvds_then_cdn(): void
+    public function test_lines_order_us194_then_bg31_then_777_then_ruvds_then_cdn(): void
     {
         config([
+            'xui.sub_extra_us194' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_US194,
+                'vless_title' => '🇺🇸 Быстрый Wi Fi',
+                'vless_subtitle' => '',
+            ],
             'xui.sub_extra_bg31' => [
                 'enabled' => true,
                 'vless_uri' => self::VLESS_BG31,
@@ -91,13 +105,14 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
         $lines = SubscriptionExtraShareLines::lines();
 
-        $this->assertCount(4, $lines);
-        $this->assertStringContainsString('@31.22.10.250:', $lines[0]);
-        $this->assertStringContainsString('Wi-Fi', $lines[0]);
-        $this->assertStringNotContainsString('Wi--Fi', $lines[0]);
-        $this->assertStringContainsString('@169.40.15.141:', $lines[1]);
-        $this->assertStringContainsString('@195.133.198.100:', $lines[2]);
-        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[3]);
+        $this->assertCount(5, $lines);
+        $this->assertStringContainsString('@194.110.87.115:', $lines[0]);
+        $this->assertStringContainsString('@31.22.10.250:', $lines[1]);
+        $this->assertStringContainsString('Wi-Fi', $lines[1]);
+        $this->assertStringNotContainsString('Wi--Fi', $lines[1]);
+        $this->assertStringContainsString('@169.40.15.141:', $lines[2]);
+        $this->assertStringContainsString('@195.133.198.100:', $lines[3]);
+        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[4]);
     }
 
     public function test_lines_order_777_then_ruvds(): void
