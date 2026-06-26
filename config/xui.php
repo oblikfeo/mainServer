@@ -29,6 +29,24 @@ return [
     ],
 
     /**
+     * Digital CDN xhttp (nadezhda.digital → Yandex CDN → Hostkey 82.24.19.230): общая VLESS.
+     * В Happ: 🇳🇱 Обход глушилок LTE — последний узел в подписке.
+     */
+    'sub_extra_digital_cdn' => [
+        'enabled' => filter_var(env('SUB_DIGITAL_CDN_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_DIGITAL_CDN_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_DIGITAL_CDN_VLESS_TITLE', '🇳🇱 Обход глушилок LTE')),
+        'vless_subtitle' => trim((string) env('SUB_DIGITAL_CDN_VLESS_SUBTITLE', '')),
+    ],
+
+    'sub_extra_nl75' => [
+        'enabled' => filter_var(env('SUB_NL75_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_NL75_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_NL75_VLESS_TITLE', '🇳🇱 Быстрый Wi~Fi')),
+        'vless_subtitle' => trim((string) env('SUB_NL75_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * RUVDS (доступыRUVDS, 195.133.198.100): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇭🇰 МегаФон, Теле2, Йота — второй узел после 777.
      */
@@ -293,9 +311,8 @@ return [
     /**
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
      *
-     * Geo .dat — зеркало на RUVDS (HAPP_GEOIP_URL / HAPP_GEOSITE_URL), не GitHub.
-     * DirectSites: geosite:category-ru + push; DirectIp: geoip:ru. Без URL geosite:/geoip: отбрасываются.
-     * Loyalsoldier .dat > ~50 МБ RAM в Happ — на слабых телефонах туннель может не стартовать.
+     * Geo URL пустые — без .dat (Loyalsoldier > ~50 МБ RAM в Happ).
+     * DirectSites: минимальный domain:-список (OZON, WB, VK, Яндекс…), без geosite:category-ru и geoip:ru (банки через VPN).
      *
      * @see https://www.happ.su/main/dev-docs/routing
      */
@@ -307,36 +324,49 @@ return [
         'send_off_when_disabled' => filter_var(env('HAPP_ROUTING_SEND_OFF_WHEN_DISABLED', true), FILTER_VALIDATE_BOOL),
         /** true = happ://routing/onadd/... (активировать при получении) */
         'onadd' => filter_var(env('HAPP_ROUTING_ONADD', true), FILTER_VALIDATE_BOOL),
-        /** Имя профиля в Happ (короткое) */
+        /** Имя профиля в Happ */
         'profile_name' => env('HAPP_ROUTING_PROFILE_NAME', 'direct'),
 
-        /** geoip.dat — зеркало RUVDS (переопределить: HAPP_GEOIP_URL=). */
-        'geoip_url' => trim((string) env('HAPP_GEOIP_URL', 'http://195.133.198.100/geo/geoip.dat')),
-        /** geosite.dat — зеркало RUVDS. */
-        'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', 'http://195.133.198.100/geo/geosite.dat')),
+        /** geoip.dat — пусто по умолчанию (без .dat в профиле, иначе перевес RAM в Happ). */
+        'geoip_url' => trim((string) env('HAPP_GEOIP_URL', '')),
+        /** geosite.dat — пусто по умолчанию. */
+        'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', '')),
 
         /**
-         * DirectSites: geosite: + push (без длинного domain:-списка RU-сервисов).
+         * DirectSites: push + маркетплейсы/повседневные приложения. Без geosite:category-ru и без банков.
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
             implode(',', [
-                'geosite:category-ru',
                 'domain:mtalk.google.com',
                 'domain:push.apple.com',
                 'domain:api.push.apple.com',
                 'domain:push-apple.com.akadns.net',
                 'domain:courier.push.apple.com',
+                'domain:ozon.ru',
+                'domain:wildberries.ru',
+                'domain:wbbasket.ru',
+                'domain:wb.ru',
+                'domain:vk.com',
+                'domain:mail.ru',
+                'domain:yandex.ru',
+                'domain:yandex.net',
+                'domain:yandex.com',
+                'domain:vkusvill.ru',
+                'domain:avito.ru',
+                'domain:2gis.ru',
+                'domain:2gis.com',
+                'domain:2ip.ru',
             ])
         ))))),
 
-        /** DirectIp: geoip:ru при включённом geoip_url. */
+        /** DirectIp: без geoip:ru (приватные сети + DoH bootstrap добавляет HappRoutingSubscriptionLine). */
         'direct_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_IP',
-            'geoip:ru'
+            ''
         ))))),
 
-        /** BlockSites: по умолчанию пусто (geosite:category-ads-all тянет geosite.dat). */
+        /** BlockSites: пусто (geosite: требует .dat → перевес в Happ). */
         'block_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_BLOCK_SITES',
             ''

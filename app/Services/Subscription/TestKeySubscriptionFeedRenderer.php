@@ -99,6 +99,13 @@ final class TestKeySubscriptionFeedRenderer
             (string) config('xui.vless_server_description_format', 'dual')
         );
 
+        $lines = SubscriptionExtraShareLines::linesForTestKey($line);
+        if ($lines === []) {
+            return new Response('Error: test key has invalid vless link', 503, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+            ]);
+        }
+
         $up = (int) ($ui['upload'] ?? 0);
         $down = (int) ($ui['download'] ?? 0);
         $total = (int) ($ui['total'] ?? max(1, (int) $key->quota_gb) * self::BYTES_PER_GB);
@@ -111,7 +118,7 @@ final class TestKeySubscriptionFeedRenderer
         $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
         $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
 
-        $body = $meta.$line."\n";
+        $body = $meta.implode("\n", $lines)."\n";
         if (config('xui.sub_output_b64', false)) {
             $encoded = base64_encode($body)."\n";
             $body = ($routingLine !== null ? $routingLine."\n" : '').$encoded;

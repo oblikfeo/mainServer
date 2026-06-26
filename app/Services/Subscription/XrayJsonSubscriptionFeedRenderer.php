@@ -363,7 +363,24 @@ final class XrayJsonSubscriptionFeedRenderer
             $routingLine = HappRoutingSubscriptionLine::feedRoutingLine();
             $providerExtras = HappProviderIdSubscriptionExtras::forSubscriptionToken($key->token);
             $meta = $providerExtras['body_prefix']."#profile-title: {$profileTitle}\n#subscription-userinfo: {$userinfo}\n".$extras['body_meta_suffix'];
-            $coreBody = $meta."\n".$jsonPretty."\n";
+
+            $trialLine = VlessSubscriptionHelper::setVlessFragment(
+                $payload['line'],
+                (string) config('test_keys.vless_display_name', 'Trial'),
+                SubscriptionHappSubtitle::forTestKey(),
+                (string) config('xui.vless_server_description_format', 'dual')
+            );
+            $shareLines = SubscriptionExtraShareLines::linesForTestKey($trialLine);
+            $uriBlock = $shareLines !== [] ? implode("\n", $shareLines)."\n" : '';
+
+            $prependUris = filter_var(config('xui.sub_json_prepend_share_lines', true), FILTER_VALIDATE_BOOL);
+            $prependVless = filter_var(config('xui.sub_json_prepend_vless_uris', true), FILTER_VALIDATE_BOOL);
+            if (! $prependUris || ! $prependVless) {
+                $uriBlock = '';
+            }
+
+            $middle = $uriBlock !== '' ? $uriBlock."\n" : '';
+            $coreBody = $meta."\n".$middle.$jsonPretty."\n";
 
             if (config('xui.sub_output_b64', false)) {
                 $encoded = base64_encode($coreBody)."\n";
@@ -675,37 +692,7 @@ final class XrayJsonSubscriptionFeedRenderer
      */
     private function defaultDirectDomainsPreset(): array
     {
-        return [
-            ['outboundTag' => 'direct', 'protocol' => ['bittorrent']],
-            [
-                'outboundTag' => 'direct',
-                'domain' => [
-                    'domain:mtalk.google.com',
-                    'domain:push.apple.com',
-                    'domain:api.push.apple.com',
-                    'domain:push-apple.com.akadns.net',
-                    'domain:courier.push.apple.com',
-                    'domain:mangabuff.ru',
-                    'domain:yandex.com',
-                    'domain:yandex.net',
-                    'domain:yandex.ru',
-                    'domain:mail.ru',
-                    'domain:vk.com',
-                    'domain:vkusvill.ru',
-                    'domain:ozon.ru',
-                    'domain:wildberries.ru',
-                    'domain:wbbasket.ru',
-                    'domain:wb.ru',
-                    'domain:tinkoff.ru',
-                    'domain:gosuslugi.ru',
-                    'domain:nalog.gov.ru',
-                    'domain:mos.ru',
-                    'domain:2gis.com',
-                    'domain:2gis.ru',
-                    'domain:2ip.ru',
-                ],
-            ],
-        ];
+        return $this->pushOnlyDirectDomainsPreset();
     }
 
     /**

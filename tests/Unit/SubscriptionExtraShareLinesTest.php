@@ -17,6 +17,8 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
     private const VLESS_CDN = 'vless://aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa@cdn.nadezhda.space:443?encryption=none&security=tls&type=xhttp#cdn';
 
+    private const VLESS_DIGITAL_CDN = 'vless://dddddddd-dddd-dddd-dddd-dddddddddddd@nadezhda.digital:443?encryption=none&security=tls&type=xhttp#digital';
+
     private const VLESS_NL_SHARED = 'vless://33333333-3333-3333-3333-333333333333@158.160.136.187:443?security=reality&encryption=none&type=tcp#nl-shared';
 
     protected function tearDown(): void
@@ -47,6 +49,12 @@ final class SubscriptionExtraShareLinesTest extends TestCase
                 'vless_subtitle' => '',
             ],
             'xui.sub_extra_cdn' => [
+                'enabled' => false,
+                'vless_uri' => '',
+                'vless_title' => '',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_digital_cdn' => [
                 'enabled' => false,
                 'vless_uri' => '',
                 'vless_title' => '',
@@ -227,5 +235,54 @@ final class SubscriptionExtraShareLinesTest extends TestCase
         ]);
 
         $this->assertSame(['fi'], SubscriptionExtraShareLines::panelBundleOrder());
+    }
+
+    public function test_ordered_with_bundle_puts_digital_cdn_last_after_nl_shared(): void
+    {
+        config([
+            'xui.sub_extra_ruvds' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_RUVDS,
+                'vless_title' => 'RUVDS',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_nl' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_NL_SHARED,
+                'vless_title' => '🇷🇺 Тестирование',
+                'vless_subtitle' => '',
+            ],
+            'xui.sub_extra_digital_cdn' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_DIGITAL_CDN,
+                'vless_title' => '🇳🇱 Обход глушилок LTE',
+                'vless_subtitle' => '',
+            ],
+        ]);
+
+        $lines = SubscriptionExtraShareLines::orderedWithBundle(['vless_entries' => []]);
+
+        $this->assertCount(3, $lines);
+        $this->assertStringContainsString('@195.133.198.100:', $lines[0]);
+        $this->assertStringContainsString('@158.160.136.187:', $lines[1]);
+        $this->assertStringContainsString('@nadezhda.digital:', $lines[2]);
+    }
+
+    public function test_lines_for_test_key_includes_shared_trial_and_digital_last(): void
+    {
+        config([
+            'xui.sub_extra_digital_cdn' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_DIGITAL_CDN,
+                'vless_title' => '🇳🇱 Обход глушилок LTE',
+                'vless_subtitle' => '',
+            ],
+        ]);
+
+        $lines = SubscriptionExtraShareLines::linesForTestKey('vless://trial@1.2.3.4:443#trial');
+
+        $this->assertCount(2, $lines);
+        $this->assertSame('vless://trial@1.2.3.4:443#trial', $lines[0]);
+        $this->assertStringContainsString('@nadezhda.digital:', $lines[1]);
     }
 }

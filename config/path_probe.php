@@ -25,7 +25,9 @@ return [
         ['id' => 'bg31', 'extra_key' => 'sub_extra_bg31', 'title_key' => 'vless_title'],
         ['id' => '777', 'extra_key' => 'sub_extra_777', 'title_key' => 'vless_title'],
         ['id' => 'ruvds', 'extra_key' => 'sub_extra_ruvds', 'title_key' => 'vless_title'],
+        ['id' => 'nl75', 'extra_key' => 'sub_extra_nl75', 'title_key' => 'vless_title'],
         ['id' => 'cdn', 'extra_key' => 'sub_extra_cdn', 'title_key' => 'vless_title'],
+        ['id' => 'digital_cdn', 'extra_key' => 'sub_extra_digital_cdn', 'title_key' => 'vless_title'],
     ],
 
     /**
@@ -42,9 +44,15 @@ return [
             'must_not_egress' => trim((string) env('PATH_PROBE_RUVDS_MUST_NOT_EGRESS', '195.133.198.100')),
             'expected_egress' => trim((string) env('PATH_PROBE_RUVDS_EGRESS_IP', '')),
         ],
+        'nl75' => [
+            'expected_egress' => trim((string) env('PATH_PROBE_NL75_EGRESS_IP', '222.167.208.75')),
+        ],
         'cdn' => [
             'expected_egress' => trim((string) env('PATH_PROBE_CDN_EGRESS_IP', '82.40.56.223')),
             'must_not_egress' => trim((string) env('PATH_PROBE_CDN_MUST_NOT_EGRESS', '158.160.200.205')),
+        ],
+        'digital_cdn' => [
+            'expected_egress' => trim((string) env('PATH_PROBE_DIGITAL_CDN_EGRESS_IP', '82.24.19.230')),
         ],
     ],
 

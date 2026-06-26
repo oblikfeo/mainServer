@@ -6,7 +6,7 @@ namespace App\Services\Subscription;
  * Общие share-строки: US194 (доступы194), BG31 (доступы31), 777 (доступы777), RUVDS (доступыRUVDS), NL shared (доступы11, опционально).
  *
  * Перед FI подставляются общие vless:// — заголовки из .env.
- * Порядок: US194 → BG31 → 777 → RUVDS → CDN (обход глушилок) → FI (панель, если bundle_order) → NL shared (если включён) или NL (панель).
+ * Порядок: US194 → BG31 → 777 → RUVDS → NL75 → CDN (FI) → FI (панель) → NL shared → Digital CDN (NL, последний).
  */
 final class SubscriptionExtraShareLines
 {
@@ -36,7 +36,7 @@ final class SubscriptionExtraShareLines
     }
 
     /**
-     * Порядок: shared (US194, BG31, 777, RUVDS, CDN) → FI (панель) → NL shared или NL (панель).
+     * Порядок: shared → FI (панель) → NL shared → Digital CDN (последний).
      *
      * @param  array{vless_entries: list<array{key?: string, line?: string}>}  $bundle
      * @return list<string>
@@ -59,9 +59,39 @@ final class SubscriptionExtraShareLines
             }
         }
 
+        return self::appendTrailingExtras($lines);
+    }
+
+    /**
+     * Trial / test key: те же shared-узлы + строка trial + хвост (NL shared, Digital CDN).
+     *
+     * @return list<string>
+     */
+    public static function linesForTestKey(string $trialVlessLine): array
+    {
+        $lines = self::lines();
+        $trial = trim($trialVlessLine);
+        if ($trial !== '' && str_starts_with($trial, 'vless://')) {
+            $lines[] = $trial;
+        }
+
+        return self::appendTrailingExtras($lines);
+    }
+
+    /**
+     * @param  list<string>  $lines
+     * @return list<string>
+     */
+    public static function appendTrailingExtras(array $lines): array
+    {
         $nlShared = self::nlSharedLine();
         if ($nlShared !== '') {
             $lines[] = $nlShared;
+        }
+
+        $digital = self::digitalCdnLine();
+        if ($digital !== '') {
+            $lines[] = $digital;
         }
 
         return $lines;
@@ -123,6 +153,11 @@ final class SubscriptionExtraShareLines
             $blocks[] = $ruvds;
         }
 
+        $nl75 = config('xui.sub_extra_nl75', []);
+        if (is_array($nl75) && self::isConfigured($nl75)) {
+            $blocks[] = $nl75;
+        }
+
         $cdn = config('xui.sub_extra_cdn', []);
         if (is_array($cdn) && self::isConfigured($cdn)) {
             $blocks[] = $cdn;
@@ -169,6 +204,29 @@ final class SubscriptionExtraShareLines
 
         $extra = config('xui.sub_extra_nl', []);
         if (! is_array($extra)) {
+            return '';
+        }
+
+        $v = self::resolveShareUri($extra);
+        if ($v === '') {
+            return '';
+        }
+
+        $fmt = (string) config('xui.vless_server_description_format', 'b64');
+        $title = trim((string) ($extra['vless_title'] ?? ''));
+        $sub = trim((string) ($extra['vless_subtitle'] ?? ''));
+
+        if ($title !== '') {
+            $v = VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
+        }
+
+        return $v;
+    }
+
+    private static function digitalCdnLine(): string
+    {
+        $extra = config('xui.sub_extra_digital_cdn', []);
+        if (! is_array($extra) || ! self::isConfigured($extra)) {
             return '';
         }
 
