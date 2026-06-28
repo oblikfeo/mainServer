@@ -123,6 +123,8 @@ return [
     'offer_published_at' => env('MARKETING_OFFER_PUBLISHED_AT', ''),
     'apps' => [
         'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973'),
+        /** Альтернативный iOS-клиент (RU App Store), дополнительно к Happ. */
+        'ios_alt_url' => env('MARKETING_IOS_ALT_APP_URL', 'https://apps.apple.com/ru/app/incy/id6756943388'),
         'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),
         'desktop_url' => env('MARKETING_DESKTOP_APP_URL', 'https://www.happ.su/main/ru'),
     ],

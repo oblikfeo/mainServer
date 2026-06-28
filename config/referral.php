@@ -7,7 +7,7 @@ return [
     | Пороги заданий «активные оплаты» (рефералы с неистёкшей подпиской)
     |--------------------------------------------------------------------------
     */
-    'active_paid_milestone_devices' => 4,
+    'active_paid_milestone_devices' => 7,
     'active_paid_milestone_one_month' => 5,
     'active_paid_milestone_three_months' => 10,
 
@@ -20,12 +20,6 @@ return [
 
     /** Сколько отдельных тестовых ключей может запросить приглашённый (после подтверждения почты, по одному активному). */
     'first_registration_referee_test_key_issues' => 2,
-
-    /** Сколько разных приглашённых должны совершить первую оплату (этап «Первая оплата»). */
-    'first_payment_referees_target' => 3,
-
-    /** Бонус за первую оплату приглашённого: дни к подписке вам и другу. */
-    'first_payment_pair_days' => 7,
 
     /** Максимум устройств (Happ / limitIp), выше — не поднимаем. */
     'max_subscription_devices' => 5,

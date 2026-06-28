@@ -1,10 +1,10 @@
 @php
     $e = $quests->emailQuest;
     $f1 = $quests->firstRegQuest;
-    $fp = $quests->firstPayQuest;
-    $a4 = $quests->active4Quest;
+    $adev = $quests->activeDevicesQuest;
     $a5 = $quests->active5Quest;
     $a10 = $quests->active10Quest;
+    $mDev = (int) ($adev['target'] ?? config('referral.active_paid_milestone_devices', 7));
 @endphp
 <div class="lp-profile-block lp-profile-accordion lp-ref-section" x-data="{ open: false }">
     <button
@@ -62,57 +62,8 @@
             </div>
         </article>
 
-        <article class="lp-ref-quest @if($fp['done']) lp-ref-quest--done @endif">
-            <span class="lp-ref-quest__badge" aria-hidden="true">@if($fp['done'])✓@else 3 @endif</span>
-            <div class="lp-ref-quest__body">
-                <div class="lp-ref-quest__top">
-                    <h3 class="lp-ref-quest__name">Первая оплата</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">{{ $fp['ratio'] }}</span>
-                </div>
-                <div class="lp-ref-quest__prize-wrap">
-                    <div class="lp-ref-quest__prize-split">
-                        <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Вам</span>
-                            <span class="lp-ref-quest__prize-val">+7 дней к подписке</span>
-                        </div>
-                        <div class="lp-ref-quest__prize-cell">
-                            <span class="lp-ref-quest__prize-who">Другу</span>
-                            <span class="lp-ref-quest__prize-val">+7 дней к подписке</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="lp-ref-bar" role="img" aria-label="{{ $fp['current'] }} из {{ $fp['target'] }}">
-                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $fp['bar']) }}%;"></span>
-                </div>
-                <p class="lp-ref-quest__status">{{ $fp['status'] }}</p>
-            </div>
-        </article>
-
-        <article class="lp-ref-quest @if($a4['done']) lp-ref-quest--done @endif">
-            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a4['done'])✓@else 4 @endif</span>
-            <div class="lp-ref-quest__body">
-                <div class="lp-ref-quest__top">
-                    <h3 class="lp-ref-quest__name">4 активные оплаты</h3>
-                    <span class="lp-ref-quest__ratio tabular-nums">{{ $a4['ratio'] }}</span>
-                </div>
-                <div class="lp-ref-quest__prize-wrap">
-                    <div class="lp-ref-quest__prize-feature">
-                        <div class="lp-ref-quest__prize-feature-main">
-                            <span class="lp-ref-quest__prize-feature-title">+1 устройство</span>
-                            <span class="lp-ref-quest__prize-feature-sub">навсегда</span>
-                        </div>
-                        <span class="lp-ref-quest__tag">эксклюзив</span>
-                    </div>
-                </div>
-                <div class="lp-ref-bar" role="img" aria-label="{{ $a4['current'] }} из {{ $a4['target'] }}">
-                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $a4['bar']) }}%;"></span>
-                </div>
-                <p class="lp-ref-quest__status">{{ $a4['status'] }}</p>
-            </div>
-        </article>
-
         <article class="lp-ref-quest @if($a5['done']) lp-ref-quest--done @endif">
-            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a5['done'])✓@else 5 @endif</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a5['done'])✓@else 3 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">5 активных оплат</h3>
@@ -134,8 +85,31 @@
             </div>
         </article>
 
+        <article class="lp-ref-quest @if($adev['done']) lp-ref-quest--done @endif">
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($adev['done'])✓@else 4 @endif</span>
+            <div class="lp-ref-quest__body">
+                <div class="lp-ref-quest__top">
+                    <h3 class="lp-ref-quest__name">{{ $mDev }} активных оплат</h3>
+                    <span class="lp-ref-quest__ratio tabular-nums">{{ $adev['ratio'] }}</span>
+                </div>
+                <div class="lp-ref-quest__prize-wrap">
+                    <div class="lp-ref-quest__prize-feature">
+                        <div class="lp-ref-quest__prize-feature-main">
+                            <span class="lp-ref-quest__prize-feature-title">+1 устройство</span>
+                            <span class="lp-ref-quest__prize-feature-sub">навсегда</span>
+                        </div>
+                        <span class="lp-ref-quest__tag">эксклюзив</span>
+                    </div>
+                </div>
+                <div class="lp-ref-bar" role="img" aria-label="{{ $adev['current'] }} из {{ $adev['target'] }}">
+                    <span class="lp-ref-bar__fill" style="width:{{ min(100, $adev['bar']) }}%;"></span>
+                </div>
+                <p class="lp-ref-quest__status">{{ $adev['status'] }}</p>
+            </div>
+        </article>
+
         <article class="lp-ref-quest @if($a10['done']) lp-ref-quest--done @endif">
-            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a10['done'])✓@else 6 @endif</span>
+            <span class="lp-ref-quest__badge" aria-hidden="true">@if($a10['done'])✓@else 5 @endif</span>
             <div class="lp-ref-quest__body">
                 <div class="lp-ref-quest__top">
                     <h3 class="lp-ref-quest__name">10 активных оплат</h3>

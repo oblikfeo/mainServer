@@ -87,6 +87,10 @@ class ReferralRewardFlowTest extends TestCase
         $service->refreshMilestoneGrants((int) $referrer->id);
 
         $this->assertDatabaseHas('referral_grants', [
+            'grant_key' => ReferralRewardService::grantKeyMilestoneDevices((int) $referrer->id),
+            'kind' => ReferralGrant::KIND_MILESTONE_EXTRA_DEVICE,
+        ]);
+        $this->assertDatabaseHas('referral_grants', [
             'grant_key' => ReferralRewardService::grantKeyMilestoneOneMonth((int) $referrer->id),
             'kind' => ReferralGrant::KIND_MILESTONE_ONE_MONTH,
         ]);
@@ -97,6 +101,45 @@ class ReferralRewardFlowTest extends TestCase
         $this->assertDatabaseMissing('referral_grants', [
             'kind' => ReferralGrant::KIND_MILESTONE_UNLIMITED_TRAFFIC,
             'beneficiary_user_id' => $referrer->id,
+        ]);
+    }
+
+    public function test_device_milestone_requires_seven_active_referrals(): void
+    {
+        $referrer = User::factory()->create();
+        $service = app(ReferralRewardService::class);
+
+        for ($i = 0; $i < 6; $i++) {
+            $referee = User::factory()->create(['referred_by' => $referrer->id]);
+            $referee->subscriptions()->create([
+                'token' => 'six'.$i.str_repeat('b', 8),
+                'devices' => 2,
+                'quota_gb' => 100,
+                'expiry_ms' => (int) (now()->addMonth()->getTimestamp() * 1000),
+                'is_trial' => false,
+            ]);
+        }
+
+        $service->refreshMilestoneGrants((int) $referrer->id);
+
+        $this->assertDatabaseMissing('referral_grants', [
+            'grant_key' => ReferralRewardService::grantKeyMilestoneDevices((int) $referrer->id),
+        ]);
+
+        $seventh = User::factory()->create(['referred_by' => $referrer->id]);
+        $seventh->subscriptions()->create([
+            'token' => 'sev'.str_repeat('c', 9),
+            'devices' => 2,
+            'quota_gb' => 100,
+            'expiry_ms' => (int) (now()->addMonth()->getTimestamp() * 1000),
+            'is_trial' => false,
+        ]);
+
+        $service->refreshMilestoneGrants((int) $referrer->id);
+
+        $this->assertDatabaseHas('referral_grants', [
+            'grant_key' => ReferralRewardService::grantKeyMilestoneDevices((int) $referrer->id),
+            'kind' => ReferralGrant::KIND_MILESTONE_EXTRA_DEVICE,
         ]);
     }
 }

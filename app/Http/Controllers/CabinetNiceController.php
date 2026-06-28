@@ -20,6 +20,7 @@ final class CabinetNiceController extends Controller
             : url('/register');
 
         $quests = ReferralCabinetViewData::build($referralMetrics, $user);
+        $mDev = (int) config('referral.active_paid_milestone_devices', 7);
 
         $questList = [
             [
@@ -76,60 +77,8 @@ final class CabinetNiceController extends Controller
                 ],
             ],
             [
-                'key' => 'first_pay',
-                'num' => 3,
-                'title' => 'Первая оплата',
-                'subtitle' => 'Трое приглашённых с первой оплатой',
-                'data' => $quests->firstPayQuest,
-                'reward_you' => '+7 дней к подписке',
-                'reward_friend' => '+7 дней к подписке',
-                'feature' => null,
-                'steps' => [
-                    'Приглашайте друзей по своей реферальной ссылке.',
-                    'После первой оплаты каждого — на ваш счёт начислится +7 дней.',
-                    'Другу тоже добавится +7 дней к его подписке.',
-                ],
-                'cta' => [
-                    'label' => 'Пригласить друзей',
-                    'href' => route('cabinet.referral'),
-                    'primary' => true,
-                ],
-                'done_cta' => [
-                    'label' => 'Задание выполнено',
-                    'href' => null,
-                ],
-            ],
-            [
-                'key' => 'active4',
-                'num' => 4,
-                'title' => '4 активные оплаты',
-                'subtitle' => 'Четверо друзей с активной подпиской',
-                'data' => $quests->active4Quest,
-                'reward_you' => null,
-                'reward_friend' => null,
-                'feature' => [
-                    'title' => '+1 устройство',
-                    'sub' => 'навсегда',
-                    'tag' => 'эксклюзив',
-                ],
-                'steps' => [
-                    'Приглашайте друзей и помогайте им подключаться.',
-                    'Считаются только друзья с активной подпиской на текущий момент.',
-                    'По достижении 4 — лимит устройств увеличится навсегда.',
-                ],
-                'cta' => [
-                    'label' => 'Пригласить друзей',
-                    'href' => route('cabinet.referral'),
-                    'primary' => true,
-                ],
-                'done_cta' => [
-                    'label' => 'Лимит устройств увеличен',
-                    'href' => null,
-                ],
-            ],
-            [
                 'key' => 'active5',
-                'num' => 5,
+                'num' => 3,
                 'title' => '5 активных оплат',
                 'subtitle' => 'Пятеро друзей с активной подпиской',
                 'data' => $quests->active5Quest,
@@ -156,8 +105,36 @@ final class CabinetNiceController extends Controller
                 ],
             ],
             [
+                'key' => 'active_devices',
+                'num' => 4,
+                'title' => $mDev.' активных оплат',
+                'subtitle' => $mDev.' друзей с активной подпиской',
+                'data' => $quests->activeDevicesQuest,
+                'reward_you' => null,
+                'reward_friend' => null,
+                'feature' => [
+                    'title' => '+1 устройство',
+                    'sub' => 'навсегда',
+                    'tag' => 'эксклюзив',
+                ],
+                'steps' => [
+                    'Приглашайте друзей и помогайте им подключаться.',
+                    'Считаются только друзья с активной подпиской на текущий момент.',
+                    'По достижении '.$mDev.' — лимит устройств увеличится навсегда.',
+                ],
+                'cta' => [
+                    'label' => 'Пригласить друзей',
+                    'href' => route('cabinet.referral'),
+                    'primary' => true,
+                ],
+                'done_cta' => [
+                    'label' => 'Лимит устройств увеличен',
+                    'href' => null,
+                ],
+            ],
+            [
                 'key' => 'active10',
-                'num' => 6,
+                'num' => 5,
                 'title' => '10 активных оплат',
                 'subtitle' => 'Десять друзей с активной подпиской',
                 'data' => $quests->active10Quest,
@@ -203,14 +180,11 @@ final class CabinetNiceController extends Controller
         if ($quests->firstRegQuest['done']) {
             $rewards[] = ['icon' => '+1', 'label' => '+1 день к подписке', 'sub' => 'первая регистрация'];
         }
-        if ($quests->firstPayQuest['done']) {
-            $rewards[] = ['icon' => '+7', 'label' => '+7 дней к подписке', 'sub' => 'трое с первой оплатой'];
-        }
-        if ($quests->active4Quest['done']) {
-            $rewards[] = ['icon' => '★', 'label' => '+1 устройство навсегда', 'sub' => '4 активные оплаты'];
-        }
         if ($quests->active5Quest['done']) {
             $rewards[] = ['icon' => '30', 'label' => '1 месяц бесплатно', 'sub' => '5 активных оплат'];
+        }
+        if ($quests->activeDevicesQuest['done']) {
+            $rewards[] = ['icon' => '★', 'label' => '+1 устройство навсегда', 'sub' => $mDev.' активных оплат'];
         }
         if ($quests->active10Quest['done']) {
             $rewards[] = ['icon' => '90', 'label' => '3 месяца бесплатно', 'sub' => '10 активных оплат'];

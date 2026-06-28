@@ -12,8 +12,7 @@ final class ReferralCabinetViewData
     public function __construct(
         public readonly array $emailQuest,
         public readonly array $firstRegQuest,
-        public readonly array $firstPayQuest,
-        public readonly array $active4Quest,
+        public readonly array $activeDevicesQuest,
         public readonly array $active5Quest,
         public readonly array $active10Quest,
     ) {}
@@ -24,17 +23,14 @@ final class ReferralCabinetViewData
         $emailOk = $viewer->hasVerifiedEmail();
 
         $refsCount = (int) $viewer->referrals()->count();
-        $withPay = $metrics->countReferralsWithAnyPurchase($id);
         $activeN = $metrics->countReferralsWithActiveSubscription($id);
         $firstRegDone = $refsCount >= 1;
 
-        $m3 = (int) config('referral.first_payment_referees_target', 3);
-        $a4 = (int) config('referral.active_paid_milestone_devices', 4);
+        $mDev = (int) config('referral.active_paid_milestone_devices', 7);
         $a5 = (int) config('referral.active_paid_milestone_one_month', 5);
         $a10 = (int) config('referral.active_paid_milestone_three_months', 10);
 
-        $fpCurrent = min($m3, $withPay);
-        $a4cur = min($a4, $activeN);
+        $devCur = min($mDev, $activeN);
         $a5cur = min($a5, $activeN);
         $a10cur = min($a10, $activeN);
 
@@ -58,28 +54,16 @@ final class ReferralCabinetViewData
                 : 'Ждём первую регистрацию по ссылке',
         ];
 
-        $fpLeft = max(0, $m3 - $withPay);
-        $firstPay = [
-            'current' => $fpCurrent,
-            'target' => $m3,
-            'done' => $withPay >= $m3,
-            'ratio' => $fpCurrent.'/'.$m3,
-            'bar' => $m3 > 0 ? (100.0 * $fpCurrent / $m3) : 0.0,
-            'status' => $withPay >= $m3
-                ? 'Полный набор: у трёх приглашённых была первая оплата'
-                : 'Первая оплата у приглашённых: '.$withPay.' из '.$m3,
-        ];
-
-        $a4left = max(0, $a4 - $activeN);
-        $active4 = [
-            'current' => $a4cur,
-            'target' => $a4,
-            'done' => $activeN >= $a4,
-            'ratio' => $a4cur.'/'.$a4,
-            'bar' => $a4 > 0 ? (100.0 * $a4cur / $a4) : 0.0,
-            'status' => $activeN >= $a4
+        $devLeft = max(0, $mDev - $activeN);
+        $activeDevices = [
+            'current' => $devCur,
+            'target' => $mDev,
+            'done' => $activeN >= $mDev,
+            'ratio' => $devCur.'/'.$mDev,
+            'bar' => $mDev > 0 ? (100.0 * $devCur / $mDev) : 0.0,
+            'status' => $activeN >= $mDev
                 ? 'Достаточно активных подписок у приглашённых'
-                : 'Активных подписок у приглашённых: '.$activeN.' из '.$a4.' (осталось '.$a4left.')',
+                : 'Активных подписок у приглашённых: '.$activeN.' из '.$mDev.' (осталось '.$devLeft.')',
         ];
 
         $a5left = max(0, $a5 - $activeN);
@@ -109,8 +93,7 @@ final class ReferralCabinetViewData
         return new self(
             $email,
             $fr,
-            $firstPay,
-            $active4,
+            $activeDevices,
             $active5,
             $active10
         );

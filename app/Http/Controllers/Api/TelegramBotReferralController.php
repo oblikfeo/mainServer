@@ -38,9 +38,8 @@ final class TelegramBotReferralController extends Controller
             'Реферальная ссылка: '.$referralUrl,
             'Почта: '.$quests->emailQuest['ratio'].' — '.$quests->emailQuest['status'],
             'Первая регистрация: '.$quests->firstRegQuest['ratio'].' — '.$quests->firstRegQuest['status'],
-            'Первые оплаты друзей: '.$quests->firstPayQuest['ratio'].' — '.$quests->firstPayQuest['status'],
-            'Активные подписки (до +устр.): '.$quests->active4Quest['ratio'].' — '.$quests->active4Quest['status'],
             'Активные подписки (1 мес.): '.$quests->active5Quest['ratio'].' — '.$quests->active5Quest['status'],
+            'Активные подписки (до +устр.): '.$quests->activeDevicesQuest['ratio'].' — '.$quests->activeDevicesQuest['status'],
             'Активные подписки (3 мес.): '.$quests->active10Quest['ratio'].' — '.$quests->active10Quest['status'],
         ];
 

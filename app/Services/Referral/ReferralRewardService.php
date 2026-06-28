@@ -142,50 +142,16 @@ final class ReferralRewardService
         }
 
         $referrerId = (int) $buyer->referred_by;
-        $refereeId = (int) $buyer->id;
         if ($referrerId < 1) {
             return;
         }
 
         try {
-            DB::transaction(function () use ($purchase, $referrerId, $refereeId): void {
-                $firstPurchaseId = Purchase::query()
-                    ->where('user_id', $refereeId)
-                    ->orderBy('id')
-                    ->value('id');
-
-                if ((int) $firstPurchaseId !== (int) $purchase->id) {
-                    $this->refreshMilestoneGrants($referrerId);
-
-                    return;
-                }
-
-                $k = self::grantKeyFirstPaymentPair($referrerId, $refereeId);
-                if (! ReferralGrant::query()->where('grant_key', $k)->exists()) {
-                    $pairDays = (float) config('referral.first_payment_pair_days', 7);
-                    $referrer = User::query()->whereKey($referrerId)->first();
-                    if ($referrer !== null) {
-                        $this->addCalendarDaysToUser($referrer, $pairDays);
-                    }
-                    $buyerFresh = User::query()->whereKey($refereeId)->first();
-                    if ($buyerFresh !== null) {
-                        $this->addCalendarDaysToUser($buyerFresh, $pairDays);
-                    }
-
-                    ReferralGrant::query()->create([
-                        'grant_key' => $k,
-                        'kind' => ReferralGrant::KIND_FIRST_PAYMENT_PAIR,
-                        'beneficiary_user_id' => $referrerId,
-                        'referee_user_id' => $refereeId,
-                        'purchase_id' => (int) $purchase->id,
-                        'meta' => ['pair_days' => $pairDays],
-                    ]);
-                }
-
+            DB::transaction(function () use ($referrerId): void {
                 $this->refreshMilestoneGrants($referrerId);
             });
         } catch (\Throwable $e) {
-            Log::error('referral.first_purchase_pair_failed', [
+            Log::error('referral.purchase_milestone_failed', [
                 'message' => $e->getMessage(),
                 'purchase_id' => $purchase->id,
             ]);
@@ -195,7 +161,7 @@ final class ReferralRewardService
     public function refreshMilestoneGrants(int $referrerId): void
     {
         $n = $this->metrics->countReferralsWithActiveSubscription($referrerId);
-        $mDev = (int) config('referral.active_paid_milestone_devices', 4);
+        $mDev = (int) config('referral.active_paid_milestone_devices', 7);
         $mOne = (int) config('referral.active_paid_milestone_one_month', 5);
         $mThree = (int) config('referral.active_paid_milestone_three_months', 10);
 

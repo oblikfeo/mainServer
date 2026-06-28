@@ -29,7 +29,7 @@ final class ReferralMetrics
     }
 
     /**
-     * Рефералы, у которых есть хотя бы одна оплата (для этапа «Первая оплата» N/3).
+     * Рефералы, у которых есть хотя бы одна оплата.
      */
     public function countReferralsWithAnyPurchase(int $referrerId): int
     {
