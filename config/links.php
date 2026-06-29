@@ -6,6 +6,16 @@ $trafficCritTb = (float) env('LINK_TRAFFIC_CRIT_TB', 3);
 return [
     'bundles' => [
         [
+            'id' => 'us194',
+            'name' => 'US194',
+            'subtitle' => '194.110.87.115 · 🇺🇸 Быстрый Wi Fi · shared VLESS',
+            'ip' => (string) env('LINK_US194_IP', '194.110.87.115'),
+            'ssh_user' => (string) env('LINK_US194_SSH_USER', 'root'),
+            'ssh_private_key' => env('LINK_US194_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_US194_CLIENT_TCP_PORT', 8443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => 'bg31',
             'name' => 'BG31',
             'subtitle' => '31.22.10.250 · 🇩🇪 Быстрый Wi-Fi · shared VLESS',
@@ -36,6 +46,16 @@ return [
             'health_profile' => 'home',
         ],
         [
+            'id' => 'nl75',
+            'name' => 'NL75',
+            'subtitle' => '222.167.208.75 · 🇳🇱 Быстрый Wi~Fi · shared VLESS',
+            'ip' => (string) env('LINK_NL75_IP', '222.167.208.75'),
+            'ssh_user' => (string) env('LINK_NL75_SSH_USER', 'root'),
+            'ssh_private_key' => env('LINK_NL75_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_NL75_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => 'cdn',
             'name' => 'CDN xhttp',
             'subtitle' => 'cdn.nadezhda.space · 🇫🇮 Обход глушилок LTE · egress FI Hostkey',
@@ -43,6 +63,16 @@ return [
             'ssh_user' => (string) env('LINK_CDN_SSH_USER', 'oblik'),
             'ssh_private_key' => env('LINK_CDN_SSH_KEY', ''),
             'client_tcp_port' => (int) env('LINK_CDN_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
+            'id' => 'digital_cdn',
+            'name' => 'Digital CDN xhttp',
+            'subtitle' => 'nadezhda.digital · 🇳🇱 Обход глушилок LTE · egress NL Hostkey',
+            'ip' => (string) env('LINK_DIGITAL_CDN_ORIGIN_IP', '158.160.200.205'),
+            'ssh_user' => (string) env('LINK_DIGITAL_CDN_SSH_USER', 'oblik'),
+            'ssh_private_key' => env('LINK_DIGITAL_CDN_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_DIGITAL_CDN_CLIENT_TCP_PORT', 443),
             'health_profile' => 'home',
         ],
         [

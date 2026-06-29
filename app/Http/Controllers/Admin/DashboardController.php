@@ -15,7 +15,7 @@ use Throwable;
 class DashboardController extends Controller
 {
     /** @var list<string> */
-    private const SHARED_VLESS_BUNDLE_IDS = ['bg31', '777', 'ruvds', 'cdn'];
+    private const SHARED_VLESS_BUNDLE_IDS = ['us194', 'bg31', 'cdn', 'digital_cdn', '777', 'ruvds', 'nl75'];
 
     /**
      * @return list<string>
@@ -62,14 +62,17 @@ class DashboardController extends Controller
             );
         }
 
+        $us194VlessTitle = trim((string) config('xui.sub_extra_us194.vless_title', '🇺🇸 Быстрый Wi Fi'));
         $bg31VlessTitle = trim((string) config('xui.sub_extra_bg31.vless_title', '🇩🇪 Быстрый Wi-Fi'));
         $node777VlessTitle = trim((string) config('xui.sub_extra_777.vless_title', '🇧🇬 Быстрый Wi--Fi'));
         $ruvdsVlessTitle = trim((string) config('xui.sub_extra_ruvds.vless_title', '🇭🇰 МегаФон, Теле2, Йота'));
+        $nl75VlessTitle = trim((string) config('xui.sub_extra_nl75.vless_title', '🇳🇱 Быстрый Wi~Fi'));
         $cdnVlessTitle = trim((string) config('xui.sub_extra_cdn.vless_title', '🇫🇮 Обход глушилок LTE'));
+        $digitalCdnVlessTitle = trim((string) config('xui.sub_extra_digital_cdn.vless_title', '🇳🇱 Обход глушилок LTE'));
         $sharedVlessIds = $this->sharedVlessBundleIds();
 
         $bundles = collect(config('links.bundles', []))
-            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $bg31VlessTitle, $node777VlessTitle, $ruvdsVlessTitle, $cdnVlessTitle, $sharedVlessIds) {
+            ->map(function (array $bundle) use ($ttl, $healthTtl, $panelSnapshots, $us194VlessTitle, $bg31VlessTitle, $node777VlessTitle, $ruvdsVlessTitle, $nl75VlessTitle, $cdnVlessTitle, $digitalCdnVlessTitle, $sharedVlessIds) {
                 $id = $bundle['id'];
 
                 $bundleForHealth = $bundle;
@@ -81,10 +84,13 @@ class DashboardController extends Controller
 
                 if (in_array($id, $sharedVlessIds, true)) {
                     $bundle['home_vless_label'] = match ($id) {
+                        'us194' => $us194VlessTitle,
                         'bg31' => $bg31VlessTitle,
                         '777' => $node777VlessTitle,
                         'ruvds' => $ruvdsVlessTitle,
+                        'nl75' => $nl75VlessTitle,
                         'cdn' => $cdnVlessTitle,
+                        'digital_cdn' => $digitalCdnVlessTitle,
                         default => 'VLESS',
                     };
                     $bundleForHome = $bundle;

@@ -22,6 +22,7 @@ return [
      * @var list<array{id: string, extra_key: string, title_key: string}>
      */
     'nodes' => [
+        ['id' => 'us194', 'extra_key' => 'sub_extra_us194', 'title_key' => 'vless_title'],
         ['id' => 'bg31', 'extra_key' => 'sub_extra_bg31', 'title_key' => 'vless_title'],
         ['id' => '777', 'extra_key' => 'sub_extra_777', 'title_key' => 'vless_title'],
         ['id' => 'ruvds', 'extra_key' => 'sub_extra_ruvds', 'title_key' => 'vless_title'],
@@ -34,6 +35,9 @@ return [
      * @var array<string, array{expected_egress?: string, must_not_egress?: string}>
      */
     'egress_rules' => [
+        'us194' => [
+            'expected_egress' => trim((string) env('PATH_PROBE_US194_EGRESS_IP', '194.110.87.115')),
+        ],
         'bg31' => [
             'expected_egress' => trim((string) env('PATH_PROBE_BG31_EGRESS_IP', '31.22.10.250')),
         ],
