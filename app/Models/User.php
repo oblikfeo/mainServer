@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -38,6 +39,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'trial_followup_email_sent_at' => 'datetime',
             'password' => 'hashed',
             'referral_pending_unlimited_traffic' => 'boolean',
             'referral_subscription_credit_days' => 'decimal:2',
@@ -148,5 +150,61 @@ class User extends Authenticatable
         }
 
         return ! $this->hasEverUsedCabinetTrial();
+    }
+
+    /** Есть ли сейчас активный триал (пробная подписка или legacy test_key). */
+    public function hasActiveTrialAccess(): bool
+    {
+        if ($this->activeTrialSubscription() !== null) {
+            return true;
+        }
+
+        return $this->testKeys()
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
+    /** Был ли когда-либо оплаченный заказ или платная подписка. */
+    public function hasEverPaid(): bool
+    {
+        if ($this->paymentOrders()->where('status', 'paid')->exists()) {
+            return true;
+        }
+
+        return $this->subscriptions()->where('is_trial', false)->exists();
+    }
+
+    /** Момент окончания последнего триала (пробная подписка или test_key), если был. */
+    public function latestTrialEndedAt(): ?Carbon
+    {
+        $latest = null;
+
+        foreach ($this->subscriptions()->where('is_trial', true)->get(['expiry_ms']) as $trialSub) {
+            $at = $trialSub->expiresAt();
+            if ($at !== null && ($latest === null || $at->gt($latest))) {
+                $latest = $at;
+            }
+        }
+
+        foreach ($this->testKeys()->get(['expires_at']) as $testKey) {
+            $at = $testKey->expires_at instanceof Carbon
+                ? $testKey->expires_at
+                : ($testKey->expires_at !== null ? Carbon::parse($testKey->expires_at) : null);
+            if ($at !== null && ($latest === null || $at->gt($latest))) {
+                $latest = $at;
+            }
+        }
+
+        return $latest;
+    }
+
+    public function hadAnyTrial(): bool
+    {
+        if ($this->subscriptions()->where('is_trial', true)->exists()) {
+            return true;
+        }
+
+        return $this->testKeys()->exists();
     }
 }

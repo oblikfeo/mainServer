@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,7 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\MassInviteTestMailCommand::class,
         \App\Console\Commands\MassInviteSendAllCommand::class,
         \App\Console\Commands\HappPathProbeCommand::class,
+        \App\Console\Commands\SendTrialFollowupEmailsCommand::class,
+        \App\Console\Commands\SendTrialFollowupTestMailCommand::class,
     ])
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->command('trial-followup:send')->hourly();
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
