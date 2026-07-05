@@ -16,7 +16,6 @@
             $showTrialSection = $hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer();
             $showBothTabs = $showTrialSection && $hasPaidSub;
             $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility/id6783623643');
-            $iosAltAppUrl = config('marketing.apps.ios_alt_url');
             $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     @endphp
@@ -162,7 +161,6 @@
                                                             <span class="lp-store-btn__title">iOS</span>
                                                         </span>
                                                     </a>
-                                                    @include('partials.lp-store-ios-alt-btn')
                                                     <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
                                                         <span class="lp-store-btn__icon" aria-hidden="true">
                                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
@@ -364,7 +362,6 @@
                                                     <span class="lp-store-btn__title">iOS</span>
                                                 </span>
                                             </a>
-                                            @include('partials.lp-store-ios-alt-btn')
                                             <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
                                                 <span class="lp-store-btn__icon" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
