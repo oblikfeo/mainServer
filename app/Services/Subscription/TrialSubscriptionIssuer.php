@@ -22,7 +22,7 @@ final class TrialSubscriptionIssuer
     public function issueFromCabinet(User $user, bool $referralInviteeSlot): CreatedSubscriptionResult
     {
         $cap = max(1, (int) config('trial_subscription.cabinet_hours_cap', 48));
-        $baseHours = max(1, (int) config('trial_subscription.hours', 3));
+        $baseHours = max(1, (int) config('trial_subscription.hours', 8));
 
         if ($referralInviteeSlot) {
             $hours = max(1, min($cap, $baseHours));
@@ -45,7 +45,7 @@ final class TrialSubscriptionIssuer
     public function issueFromAdmin(User $user, ?int $hours = null): CreatedSubscriptionResult
     {
         $max = max(48, (int) config('trial_subscription.admin_hours_max', 8760));
-        $h = $hours ?? max(1, (int) config('trial_subscription.hours', 3));
+        $h = $hours ?? max(1, (int) config('trial_subscription.hours', 8));
 
         return $this->issueWithHours($user, max(1, min($max, $h)));
     }

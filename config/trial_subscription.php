@@ -2,7 +2,7 @@
 
 return [
     /** Длительность пробного доступа на боевых узлах (XUI expiryTime), часов */
-    'hours' => max(1, (int) env('TRIAL_SUBSCRIPTION_HOURS', 3)),
+    'hours' => max(1, (int) env('TRIAL_SUBSCRIPTION_HOURS', 8)),
 
     'quota_gb' => max(1, (int) env('TRIAL_SUBSCRIPTION_QUOTA_GB', 5)),
 
