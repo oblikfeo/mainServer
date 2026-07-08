@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\TelegramBotAdminController;
+use App\Http\Controllers\Api\TelegramBotDevicesController;
 use App\Http\Controllers\Api\TelegramBotMarkBlockedController;
 use App\Http\Controllers\Api\TelegramBotMirrorController;
 use App\Http\Controllers\Api\TelegramBotNetworkController;
@@ -18,7 +19,7 @@ Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->name('api.telegram.start.utm');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
-    ->get('/internal/telegram/bot/mirror', [TelegramBotMirrorController::class, 'show'])
+    ->post('/internal/telegram/bot/mirror', [TelegramBotMirrorController::class, 'show'])
     ->name('api.telegram.bot.mirror');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
@@ -28,6 +29,18 @@ Route::middleware(['telegram.link.internal', 'throttle:120,1'])
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->get('/internal/telegram/bot/network-status', [TelegramBotNetworkController::class, 'show'])
     ->name('api.telegram.bot.network');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/devices', [TelegramBotDevicesController::class, 'list'])
+    ->name('api.telegram.bot.devices.list');
+
+Route::middleware(['telegram.link.internal', 'throttle:60,1'])
+    ->post('/internal/telegram/bot/devices/detach', [TelegramBotDevicesController::class, 'detach'])
+    ->name('api.telegram.bot.devices.detach');
+
+Route::middleware(['telegram.link.internal', 'throttle:60,1'])
+    ->post('/internal/telegram/bot/devices/clear', [TelegramBotDevicesController::class, 'clear'])
+    ->name('api.telegram.bot.devices.clear');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/mark-blocked', [TelegramBotMarkBlockedController::class, 'store'])

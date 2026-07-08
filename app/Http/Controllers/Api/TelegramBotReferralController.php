@@ -4,15 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\Referral\ReferralCabinetViewData;
 use App\Services\Referral\ReferralMetrics;
+use App\Services\Telegram\TelegramCabinetAccessService;
+use App\Services\Telegram\TelegramReferralSummary;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 final class TelegramBotReferralController extends Controller
 {
-    public function show(Request $request, ReferralMetrics $referralMetrics): JsonResponse
-    {
+    public function show(
+        Request $request,
+        ReferralMetrics $referralMetrics,
+        TelegramCabinetAccessService $cabinetAccess,
+    ): JsonResponse {
         $data = $request->validate([
             'telegram_user_id' => ['required', 'integer'],
         ]);
@@ -33,21 +37,13 @@ final class TelegramBotReferralController extends Controller
             ? url('/register?ref='.urlencode($referralCode))
             : url('/register');
 
-        $quests = ReferralCabinetViewData::build($referralMetrics, $user);
-        $lines = [
-            'Реферальная ссылка: '.$referralUrl,
-            'Почта: '.$quests->emailQuest['ratio'].' — '.$quests->emailQuest['status'],
-            'Первая регистрация: '.$quests->firstRegQuest['ratio'].' — '.$quests->firstRegQuest['status'],
-            'Активные подписки (1 мес.): '.$quests->active5Quest['ratio'].' — '.$quests->active5Quest['status'],
-            'Активные подписки (до +устр.): '.$quests->activeDevicesQuest['ratio'].' — '.$quests->activeDevicesQuest['status'],
-            'Активные подписки (3 мес.): '.$quests->active10Quest['ratio'].' — '.$quests->active10Quest['status'],
-        ];
+        $cabinetLoginUrl = $cabinetAccess->loginUrlForUser($user);
 
         return response()->json([
             'ok' => true,
             'referral_url' => $referralUrl,
-            'lines' => $lines,
-            'cabinet_url' => (string) config('telegram.cabinet_mirror_url', ''),
+            'lines' => TelegramReferralSummary::lines($referralMetrics, $user, $referralUrl, $cabinetLoginUrl),
+            'cabinet_url' => $cabinetLoginUrl,
         ]);
     }
 }

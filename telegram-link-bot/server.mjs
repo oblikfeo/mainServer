@@ -60,12 +60,15 @@ function applyVars(text, variables) {
 function mainKeyboard() {
   return Markup.keyboard([
     ['Личный кабинет'],
+    ['Мои устройства'],
     ['Мои бонусы', 'Статус сети'],
     ['Поддержка'],
   ])
     .resize()
     .persistent();
 }
+
+const MENU_BUTTONS_RE = /^(Личный кабинет|Мои устройства|Мои бонусы|Статус сети|Поддержка)$/;
 
 const inSupportMode = new Set();
 const pendingBroadcast = new Set();
@@ -125,6 +128,101 @@ async function sendTemplate(chatId, templateId, variables) {
     };
   }
   await safeSendMessage(chatId, text, extra);
+}
+
+function truncate(value, max) {
+  const str = String(value ?? '');
+  return str.length > max ? `${str.slice(0, max - 1)}…` : str;
+}
+
+async function fetchDevices(uid) {
+  const r = await apiFetch('/internal/telegram/bot/devices', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return { ok: r.ok, data: j };
+}
+
+function buildDevicesView(j) {
+  const items = Array.isArray(j.items) ? j.items : [];
+  if (items.length === 0) {
+    return {
+      text:
+        'У вас пока нет подписок с привязанными устройствами.\n\n' +
+        'Устройство появляется здесь после первого подключения через приложение Happ.',
+      keyboard: [[{ text: '🔄 Обновить', callback_data: 'dv:r' }]],
+    };
+  }
+
+  const parts = ['📱 Управление устройствами'];
+  const keyboard = [];
+
+  for (const it of items) {
+    const scope = it.scope === 't' ? 't' : 's';
+    const id = Number(it.id);
+    const title = String(it.title ?? 'Подписка');
+    const state = it.active ? 'активна' : 'истекла';
+    const slots = Number(it.slots ?? 0);
+    const bound = Number(it.bound ?? 0);
+    const devices = Array.isArray(it.devices) ? it.devices : [];
+
+    let head = `\n${title} · ${state}\nСлотов: ${slots} · привязано: ${bound}`;
+    if (it.expires) {
+      head += ` · до ${it.expires}`;
+    }
+    parts.push(head);
+
+    if (devices.length === 0) {
+      parts.push('Пока ни одно устройство не подключалось.');
+      continue;
+    }
+
+    devices.forEach((d, idx) => {
+      const label = truncate(d.label || 'Устройство', 24);
+      const ip = d.ip || '—';
+      const seen = d.seen || '—';
+      parts.push(`${idx + 1}. ${label} · IP ${ip} · ${seen}`);
+      keyboard.push([
+        {
+          text: `❌ Отвязать: ${truncate(d.label || 'устройство', 20)}`,
+          callback_data: `dv:d:${scope}:${id}:${d.hash_prefix}`,
+        },
+      ]);
+    });
+
+    keyboard.push([
+      { text: `🧹 Сбросить все (${truncate(title, 16)})`, callback_data: `dv:c:${scope}:${id}` },
+    ]);
+  }
+
+  if (j.hwid_enforced === false) {
+    parts.push('\n⚠️ Проверка устройств на сервере сейчас отключена — список может быть неполным.');
+  }
+
+  keyboard.push([{ text: '🔄 Обновить', callback_data: 'dv:r' }]);
+
+  return { text: parts.join('\n'), keyboard };
+}
+
+async function refreshDevicesMessage(ctx, uid) {
+  const { ok, data } = await fetchDevices(uid);
+  if (!ok || !data.ok) {
+    return;
+  }
+  const view = buildDevicesView(data);
+  try {
+    await ctx.editMessageText(view.text, {
+      reply_markup: { inline_keyboard: view.keyboard },
+    });
+  } catch {
+    // Игнорируем "message is not modified" и подобные.
+  }
 }
 
 bot.start(async (ctx) => {
@@ -204,14 +302,29 @@ bot.start(async (ctx) => {
 
 bot.hears('Личный кабинет', async (ctx) => {
   inSupportMode.delete(ctx.chat.id);
-  const r = await apiFetch('/internal/telegram/bot/mirror');
-  let url = '';
-  try {
-    const j = await r.json();
-    url = typeof j.url === 'string' ? j.url : '';
-  } catch {
-    url = '';
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return;
   }
+  const r = await apiFetch('/internal/telegram/bot/mirror', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  if (!r.ok || !j.ok) {
+    const m =
+      typeof j.message === 'string'
+        ? j.message
+        : 'Ссылка на кабинет временно недоступна. Привяжите Telegram в профиле на сайте.';
+    await safeReply(ctx, m, mainKeyboard());
+    return;
+  }
+  const url = typeof j.url === 'string' ? j.url : '';
   if (!url) {
     await safeReply(ctx, 'Ссылка на кабинет временно недоступна.', mainKeyboard());
     return;
@@ -252,9 +365,87 @@ bot.hears('Мои бонусы', async (ctx) => {
     return;
   }
   const lines = Array.isArray(j.lines) ? j.lines : [];
-  const cabinetUrl = typeof j.cabinet_url === 'string' ? j.cabinet_url : '';
-  const body = `${lines.join('\n')}${cabinetUrl ? `\n\nЛичный кабинет: ${cabinetUrl}` : ''}`;
+  const body = lines.length > 0 ? lines.join('\n') : 'Не удалось загрузить данные.';
   await safeReply(ctx, body, mainKeyboard());
+});
+
+bot.hears('Мои устройства', async (ctx) => {
+  inSupportMode.delete(ctx.chat.id);
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return;
+  }
+  const { ok, data } = await fetchDevices(uid);
+  if (!ok || !data.ok) {
+    const m =
+      typeof data.message === 'string'
+        ? data.message
+        : 'Не удалось загрузить устройства. Привяжите Telegram в Личном кабинете на сайте.';
+    await safeReply(ctx, m, mainKeyboard());
+    return;
+  }
+  const view = buildDevicesView(data);
+  await safeSendMessage(ctx.chat.id, view.text, {
+    reply_markup: { inline_keyboard: view.keyboard },
+  });
+});
+
+bot.action('dv:r', async (ctx) => {
+  await ctx.answerCbQuery('Обновлено');
+  await refreshDevicesMessage(ctx, ctx.from?.id);
+});
+
+bot.action(/^dv:d:([st]):(\d+):([0-9a-f]{8,64})$/, async (ctx) => {
+  const uid = ctx.from?.id;
+  const scope = ctx.match[1];
+  const id = Number(ctx.match[2]);
+  const hashPrefix = ctx.match[3];
+  const r = await apiFetch('/internal/telegram/bot/devices/detach', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid, scope, id, hash_prefix: hashPrefix }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  await ctx.answerCbQuery(j.ok ? 'Устройство отвязано' : j.message || 'Не удалось отвязать');
+  await refreshDevicesMessage(ctx, uid);
+});
+
+bot.action(/^dv:c:([st]):(\d+)$/, async (ctx) => {
+  const scope = ctx.match[1];
+  const id = Number(ctx.match[2]);
+  await ctx.answerCbQuery();
+  try {
+    await ctx.editMessageReplyMarkup({
+      inline_keyboard: [
+        [{ text: '⚠️ Да, отвязать все', callback_data: `dv:C:${scope}:${id}` }],
+        [{ text: '← Отмена', callback_data: 'dv:r' }],
+      ],
+    });
+  } catch {
+    // сообщение могло устареть
+  }
+});
+
+bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
+  const uid = ctx.from?.id;
+  const scope = ctx.match[1];
+  const id = Number(ctx.match[2]);
+  const r = await apiFetch('/internal/telegram/bot/devices/clear', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid, scope, id }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  await ctx.answerCbQuery(j.ok ? 'Все привязки сброшены' : j.message || 'Ошибка');
+  await refreshDevicesMessage(ctx, uid);
 });
 
 bot.hears('Статус сети', async (ctx) => {
@@ -283,7 +474,7 @@ bot.on('message', async (ctx, next) => {
     return next();
   }
 
-  if (ctx.message?.text && /^(Личный кабинет|Мои бонусы|Статус сети|Поддержка)$/.test(ctx.message.text.trim())) {
+  if (ctx.message?.text && MENU_BUTTONS_RE.test(ctx.message.text.trim())) {
     return next();
   }
 
