@@ -119,7 +119,7 @@ class TrialFollowupEmailTest extends TestCase
         $this->assertFalse($service->isEligible($user->fresh()));
     }
 
-    public function test_legacy_test_key_expiry_counts(): void
+    public function test_legacy_test_key_alone_is_not_eligible(): void
     {
         $user = $this->verifiedUser();
 
@@ -136,7 +136,37 @@ class TrialFollowupEmailTest extends TestCase
 
         $service = app(TrialFollowupEmailService::class);
 
-        $this->assertTrue($service->isEligible($user->fresh()));
+        $this->assertFalse($service->isEligible($user->fresh()));
+        $this->assertCount(0, $service->findEligibleUsers());
+    }
+
+    public function test_not_eligible_if_trial_ended_before_cutoff(): void
+    {
+        config([
+            'trial_subscription.followup_eligible_trials_ending_after' => now()->subHours(10)->format('Y-m-d H:i:s'),
+        ]);
+
+        $user = $this->verifiedUser();
+        $this->expiredTrial($user, 30);
+
+        $service = app(TrialFollowupEmailService::class);
+
+        $this->assertFalse($service->isEligible($user->fresh()));
+    }
+
+    public function test_not_eligible_if_trial_expired_too_long_ago(): void
+    {
+        config([
+            'trial_subscription.followup_eligible_trials_ending_after' => '2026-01-01 00:00:00',
+            'trial_subscription.followup_max_hours_after_expiry' => 72,
+        ]);
+
+        $user = $this->verifiedUser();
+        $this->expiredTrial($user, 100);
+
+        $service = app(TrialFollowupEmailService::class);
+
+        $this->assertFalse($service->isEligible($user->fresh()));
     }
 
     public function test_command_sends_mail_and_marks_user(): void

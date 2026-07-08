@@ -28,10 +28,7 @@ final class TrialFollowupEmailService
         $candidates = User::query()
             ->whereNotNull('email_verified_at')
             ->whereNull('trial_followup_email_sent_at')
-            ->where(function ($q) {
-                $q->whereHas('subscriptions', fn ($s) => $s->where('is_trial', true))
-                    ->orWhereHas('testKeys');
-            })
+            ->whereHas('subscriptions', fn ($s) => $s->where('is_trial', true))
             ->whereDoesntHave('paymentOrders', fn ($po) => $po->where('status', 'paid'))
             ->whereDoesntHave('subscriptions', fn ($s) => $s->where('is_trial', false))
             ->orderBy('id')
@@ -50,23 +47,51 @@ final class TrialFollowupEmailService
 
     public function isEligible(User $user, ?Carbon $cutoff = null): bool
     {
+        if (! (bool) config('trial_subscription.followup_enabled', true)) {
+            return false;
+        }
+
         if ($user->email_verified_at === null || $user->trial_followup_email_sent_at !== null) {
             return false;
         }
 
-        if (! $user->hadAnyTrial() || $user->hasEverPaid() || $user->hasActiveTrialAccess()) {
+        if (! $user->hadSubscriptionTrial() || $user->hasEverPaid() || $user->hasActiveTrialAccess()) {
             return false;
         }
 
-        $endedAt = $user->latestTrialEndedAt();
+        $endedAt = $user->latestSubscriptionTrialEndedAt();
         if ($endedAt === null) {
+            return false;
+        }
+
+        $eligibleAfter = $this->eligibleTrialsEndingAfter();
+        if ($eligibleAfter !== null && $endedAt->lt($eligibleAfter)) {
             return false;
         }
 
         $delayHours = max(1, (int) config('trial_subscription.followup_after_expiry_hours', 24));
         $cutoff ??= now()->subHours($delayHours);
 
-        return $endedAt->lte($cutoff);
+        if ($endedAt->gt($cutoff)) {
+            return false;
+        }
+
+        $maxHoursAfter = max(25, (int) config('trial_subscription.followup_max_hours_after_expiry', 72));
+        if ($endedAt->lt(now()->subHours($maxHoursAfter))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function eligibleTrialsEndingAfter(): ?Carbon
+    {
+        $raw = config('trial_subscription.followup_eligible_trials_ending_after');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        return Carbon::parse((string) $raw);
     }
 
     public function sendForUser(User $user): bool

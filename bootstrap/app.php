@@ -30,7 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Console\Commands\SendTrialFollowupTestMailCommand::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
-        $schedule->command('trial-followup:send')->hourly();
+        $schedule->command('trial-followup:send')
+            ->hourly()
+            ->when(fn () => (bool) config('trial_subscription.followup_enabled', false));
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');

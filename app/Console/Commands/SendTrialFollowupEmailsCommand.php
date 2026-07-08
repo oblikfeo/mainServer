@@ -28,7 +28,7 @@ class SendTrialFollowupEmailsCommand extends Command
         $failed = 0;
 
         foreach ($eligible as $user) {
-            $endedAt = $user->latestTrialEndedAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—';
+            $endedAt = $user->latestSubscriptionTrialEndedAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i') ?? '—';
 
             if ($dryRun) {
                 $this->line("  [dry-run] #{$user->id} {$user->email} · триал закончился {$endedAt}");

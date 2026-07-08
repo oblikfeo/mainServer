@@ -199,6 +199,21 @@ class User extends Authenticatable
         return $latest;
     }
 
+    /** Окончание последней пробной подписки (subscriptions.is_trial), без legacy test_keys. */
+    public function latestSubscriptionTrialEndedAt(): ?Carbon
+    {
+        $latest = null;
+
+        foreach ($this->subscriptions()->where('is_trial', true)->get(['expiry_ms']) as $trialSub) {
+            $at = $trialSub->expiresAt();
+            if ($at !== null && ($latest === null || $at->gt($latest))) {
+                $latest = $at;
+            }
+        }
+
+        return $latest;
+    }
+
     public function hadAnyTrial(): bool
     {
         if ($this->subscriptions()->where('is_trial', true)->exists()) {
@@ -206,5 +221,11 @@ class User extends Authenticatable
         }
 
         return $this->testKeys()->exists();
+    }
+
+    /** Был ли триал через пробную подписку (не legacy test_key). */
+    public function hadSubscriptionTrial(): bool
+    {
+        return $this->subscriptions()->where('is_trial', true)->exists();
     }
 }
