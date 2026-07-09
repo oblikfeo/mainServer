@@ -56,6 +56,7 @@ final class TelegramBotDevicesController extends Controller
                 'active' => ! $sub->isExpired(),
                 'slots' => $slots,
                 'bound' => count($devices),
+                'created' => $sub->created_at?->timezone(config('app.timezone'))->format('d.m.Y'),
                 'expires' => $sub->expiresAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i'),
                 'devices' => $devices,
             ];
@@ -81,6 +82,7 @@ final class TelegramBotDevicesController extends Controller
                 'active' => true,
                 'slots' => $slots,
                 'bound' => count($devices),
+                'created' => $tk->created_at?->timezone(config('app.timezone'))->format('d.m.Y'),
                 'expires' => $tk->expires_at?->timezone(config('app.timezone'))->format('d.m.Y H:i'),
                 'devices' => $devices,
             ];

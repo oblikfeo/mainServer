@@ -171,12 +171,14 @@ function buildSubscriptionsView(j) {
   const keyboard = items.map((it) => {
     const scope = scopeOf(it);
     const id = Number(it.id);
-    const title = truncate(String(it.title ?? 'Подписка'), 24);
+    const created = String(it.created ?? '').trim();
+    const label = created !== '' ? created : truncate(String(it.title ?? 'Подписка'), 24);
+    const state = it.active ? 'активна' : 'неактивна';
     const bound = Number(it.bound ?? 0);
     const slots = Number(it.slots ?? 0);
     return [
       {
-        text: `${title} · ${bound}/${slots}`,
+        text: `${label} · ${state} · ${bound}/${slots}`,
         callback_data: `dv:o:${scope}:${id}`,
       },
     ];
