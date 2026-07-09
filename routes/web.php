@@ -37,6 +37,10 @@ Route::get('/', function () {
 /** Бывшая тестовая вёрстка: редирект на главную */
 Route::redirect('/test', '/', 301)->name('home.test');
 
+Route::get('/tutorial', function () {
+    return view('views2::tutorial');
+})->name('tutorial');
+
 Route::get('/agreement', function () {
     return view('agreement');
 })->name('agreement');
