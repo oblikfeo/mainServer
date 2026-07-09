@@ -61,14 +61,14 @@ function mainKeyboard() {
   return Markup.keyboard([
     ['Личный кабинет'],
     ['Мои устройства'],
-    ['Мои бонусы', 'Статус сети'],
+    ['Мои бонусы'],
     ['Поддержка'],
   ])
     .resize()
     .persistent();
 }
 
-const MENU_BUTTONS_RE = /^(Личный кабинет|Мои устройства|Мои бонусы|Статус сети|Поддержка)$/;
+const MENU_BUTTONS_RE = /^(Личный кабинет|Мои устройства|Мои бонусы|Поддержка)$/;
 
 const inSupportMode = new Set();
 const pendingBroadcast = new Set();
@@ -149,80 +149,101 @@ async function fetchDevices(uid) {
   return { ok: r.ok, data: j };
 }
 
-function buildDevicesView(j) {
+const scopeOf = (it) => (it?.scope === 't' ? 't' : 's');
+
+function findItem(j, scope, id) {
+  const items = Array.isArray(j.items) ? j.items : [];
+  return items.find((it) => scopeOf(it) === scope && Number(it.id) === id) ?? null;
+}
+
+/** Экран выбора подписки: короткий список кнопок, без «мусора». */
+function buildSubscriptionsView(j) {
   const items = Array.isArray(j.items) ? j.items : [];
   if (items.length === 0) {
     return {
       text:
-        'У вас пока нет подписок с привязанными устройствами.\n\n' +
+        'У вас пока нет подписок с устройствами.\n\n' +
         'Устройство появляется здесь после первого подключения через приложение Happ.',
-      keyboard: [[{ text: '🔄 Обновить', callback_data: 'dv:r' }]],
+      keyboard: [[{ text: '🔄 Обновить', callback_data: 'dv:l' }]],
     };
   }
 
-  const parts = ['📱 Управление устройствами'];
-  const keyboard = [];
-
-  for (const it of items) {
-    const scope = it.scope === 't' ? 't' : 's';
+  const keyboard = items.map((it) => {
+    const scope = scopeOf(it);
     const id = Number(it.id);
-    const title = String(it.title ?? 'Подписка');
-    const state = it.active ? 'активна' : 'истекла';
-    const slots = Number(it.slots ?? 0);
+    const title = truncate(String(it.title ?? 'Подписка'), 24);
     const bound = Number(it.bound ?? 0);
-    const devices = Array.isArray(it.devices) ? it.devices : [];
+    const slots = Number(it.slots ?? 0);
+    return [
+      {
+        text: `${title} · ${bound}/${slots}`,
+        callback_data: `dv:o:${scope}:${id}`,
+      },
+    ];
+  });
+  keyboard.push([{ text: '🔄 Обновить', callback_data: 'dv:l' }]);
 
-    let head = `\n${title} · ${state}\nСлотов: ${slots} · привязано: ${bound}`;
-    if (it.expires) {
-      head += ` · до ${it.expires}`;
-    }
-    parts.push(head);
-
-    if (devices.length === 0) {
-      parts.push('Пока ни одно устройство не подключалось.');
-      continue;
-    }
-
-    devices.forEach((d, idx) => {
-      const label = truncate(d.label || 'Устройство', 24);
-      const ip = d.ip || '—';
-      const seen = d.seen || '—';
-      parts.push(`${idx + 1}. ${label} · IP ${ip} · ${seen}`);
-      keyboard.push([
-        {
-          text: `❌ Отвязать: ${truncate(d.label || 'устройство', 20)}`,
-          callback_data: `dv:d:${scope}:${id}:${d.hash_prefix}`,
-        },
-      ]);
-    });
-
-    keyboard.push([
-      { text: `🧹 Сбросить все (${truncate(title, 16)})`, callback_data: `dv:c:${scope}:${id}` },
-    ]);
-  }
-
-  if (j.hwid_enforced === false) {
-    parts.push('\n⚠️ Проверка устройств на сервере сейчас отключена — список может быть неполным.');
-  }
-
-  keyboard.push([{ text: '🔄 Обновить', callback_data: 'dv:r' }]);
-
-  return { text: parts.join('\n'), keyboard };
+  return {
+    text: '📱 Мои устройства\n\nВыберите подписку, чтобы посмотреть и отвязать устройства.',
+    keyboard,
+  };
 }
 
-async function refreshDevicesMessage(ctx, uid) {
-  const { ok, data } = await fetchDevices(uid);
-  if (!ok || !data.ok) {
-    return;
+/** Экран одной подписки: устройства и кнопки отвязки. */
+function buildDeviceDetailView(it) {
+  const scope = scopeOf(it);
+  const id = Number(it.id);
+  const title = String(it.title ?? 'Подписка');
+  const slots = Number(it.slots ?? 0);
+  const devices = Array.isArray(it.devices) ? it.devices : [];
+
+  if (devices.length === 0) {
+    return {
+      text: `📱 ${title}\n\nНа этой подписке нет привязанных устройств.`,
+      keyboard: [[{ text: '← Назад к подпискам', callback_data: 'dv:l' }]],
+    };
   }
-  const view = buildDevicesView(data);
+
+  const keyboard = devices.map((d) => [
+    {
+      text: `❌ ${truncate(d.label || 'Устройство', 28)}`,
+      callback_data: `dv:d:${scope}:${id}:${d.hash_prefix}`,
+    },
+  ]);
+  keyboard.push([{ text: '🧹 Отвязать все', callback_data: `dv:c:${scope}:${id}` }]);
+  keyboard.push([{ text: '← Назад к подпискам', callback_data: 'dv:l' }]);
+
+  return {
+    text: `📱 ${title}\nУстройств: ${devices.length} из ${slots}`,
+    keyboard,
+  };
+}
+
+async function editView(ctx, view) {
   try {
     await ctx.editMessageText(view.text, {
       reply_markup: { inline_keyboard: view.keyboard },
     });
   } catch {
-    // Игнорируем "message is not modified" и подобные.
+    // Игнорируем "message is not modified" и устаревшие сообщения.
   }
+}
+
+async function renderSubscriptions(ctx, uid) {
+  const { ok, data } = await fetchDevices(uid);
+  if (!ok || !data.ok) {
+    return;
+  }
+  await editView(ctx, buildSubscriptionsView(data));
+}
+
+async function renderDetail(ctx, uid, scope, id) {
+  const { ok, data } = await fetchDevices(uid);
+  if (!ok || !data.ok) {
+    return;
+  }
+  const it = findItem(data, scope, id);
+  await editView(ctx, it ? buildDeviceDetailView(it) : buildSubscriptionsView(data));
 }
 
 bot.start(async (ctx) => {
@@ -384,15 +405,20 @@ bot.hears('Мои устройства', async (ctx) => {
     await safeReply(ctx, m, mainKeyboard());
     return;
   }
-  const view = buildDevicesView(data);
+  const view = buildSubscriptionsView(data);
   await safeSendMessage(ctx.chat.id, view.text, {
     reply_markup: { inline_keyboard: view.keyboard },
   });
 });
 
-bot.action('dv:r', async (ctx) => {
-  await ctx.answerCbQuery('Обновлено');
-  await refreshDevicesMessage(ctx, ctx.from?.id);
+bot.action('dv:l', async (ctx) => {
+  await ctx.answerCbQuery();
+  await renderSubscriptions(ctx, ctx.from?.id);
+});
+
+bot.action(/^dv:o:([st]):(\d+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  await renderDetail(ctx, ctx.from?.id, ctx.match[1], Number(ctx.match[2]));
 });
 
 bot.action(/^dv:d:([st]):(\d+):([0-9a-f]{8,64})$/, async (ctx) => {
@@ -411,7 +437,7 @@ bot.action(/^dv:d:([st]):(\d+):([0-9a-f]{8,64})$/, async (ctx) => {
     j = {};
   }
   await ctx.answerCbQuery(j.ok ? 'Устройство отвязано' : j.message || 'Не удалось отвязать');
-  await refreshDevicesMessage(ctx, uid);
+  await renderDetail(ctx, uid, scope, id);
 });
 
 bot.action(/^dv:c:([st]):(\d+)$/, async (ctx) => {
@@ -422,7 +448,7 @@ bot.action(/^dv:c:([st]):(\d+)$/, async (ctx) => {
     await ctx.editMessageReplyMarkup({
       inline_keyboard: [
         [{ text: '⚠️ Да, отвязать все', callback_data: `dv:C:${scope}:${id}` }],
-        [{ text: '← Отмена', callback_data: 'dv:r' }],
+        [{ text: '← Отмена', callback_data: `dv:o:${scope}:${id}` }],
       ],
     });
   } catch {
@@ -445,22 +471,7 @@ bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
     j = {};
   }
   await ctx.answerCbQuery(j.ok ? 'Все привязки сброшены' : j.message || 'Ошибка');
-  await refreshDevicesMessage(ctx, uid);
-});
-
-bot.hears('Статус сети', async (ctx) => {
-  inSupportMode.delete(ctx.chat.id);
-  const r = await apiFetch('/internal/telegram/bot/network-status');
-  let j = {};
-  try {
-    j = await r.json();
-  } catch {
-    j = {};
-  }
-  const ok = j.all_operational === true;
-  const tid = ok ? 'network_ok' : 'network_down';
-  const text = templates[tid]?.text ?? '';
-  await safeReply(ctx, text, mainKeyboard());
+  await renderDetail(ctx, uid, scope, id);
 });
 
 bot.hears('Поддержка', async (ctx) => {
