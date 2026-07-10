@@ -25,7 +25,12 @@ $failures = [];
 DB::beginTransaction();
 
 try {
-    $user = User::factory()->create(['email' => 'renewal-verify-'.bin2hex(random_bytes(4)).'@verify.local']);
+    $user = User::query()->create([
+        'name' => 'Renewal Verify',
+        'email' => 'renewal-verify-'.bin2hex(random_bytes(4)).'@verify.local',
+        'password' => bcrypt('verify-'.bin2hex(random_bytes(8))),
+        'email_verified_at' => now(),
+    ]);
 
     $trial = Subscription::query()->create([
         'user_id' => $user->id,
