@@ -18,13 +18,18 @@ final class ApplySubscriptionRenewalPack
         private readonly XuiSubscriptionLimitIpSync $limitIpSync,
     ) {}
 
-    public function apply(int $subscriptionId, int $addDays, int $addQuotaGb, int $addDevices): Subscription
-    {
+    public function apply(
+        int $subscriptionId,
+        int $addDays,
+        int $addQuotaGb,
+        int $addDevices,
+        ?string $tariffPlan = null,
+    ): Subscription {
         if ($addDays < 1 && $addQuotaGb < 1 && $addDevices < 1) {
             throw new \InvalidArgumentException('Пустой пакет продления');
         }
 
-        return DB::transaction(function () use ($subscriptionId, $addDays, $addQuotaGb, $addDevices): Subscription {
+        return DB::transaction(function () use ($subscriptionId, $addDays, $addQuotaGb, $addDevices, $tariffPlan): Subscription {
             /** @var Subscription|null $locked */
             $locked = Subscription::query()->whereKey($subscriptionId)->lockForUpdate()->first();
             if ($locked === null) {
@@ -48,10 +53,30 @@ final class ApplySubscriptionRenewalPack
                 $locked->save();
             }
 
+            if ($locked->is_trial) {
+                $locked->is_trial = false;
+                $planDevices = $this->planDeviceFloor($tariffPlan);
+                if ($planDevices > 0) {
+                    $locked->devices = max((int) $locked->devices, $planDevices);
+                }
+                $locked->save();
+            }
+
             $this->quotaSync->syncForSubscription($locked);
             $this->limitIpSync->syncForSubscription($locked);
 
             return $locked->fresh();
         });
+    }
+
+    private function planDeviceFloor(?string $tariffPlan): int
+    {
+        if ($tariffPlan === null || $tariffPlan === '' || $tariffPlan === 'bonus') {
+            return 0;
+        }
+
+        $products = config('payments.products', []);
+
+        return max(0, (int) (is_array($products[$tariffPlan] ?? null) ? ($products[$tariffPlan]['devices'] ?? 0) : 0));
     }
 }

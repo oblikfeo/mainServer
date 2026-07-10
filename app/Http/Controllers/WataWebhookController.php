@@ -141,6 +141,7 @@ class WataWebhookController extends Controller
                         (int) $locked->days,
                         (int) $locked->quota_gb,
                         (int) $locked->devices,
+                        (string) ($locked->tariff_plan ?? ''),
                     );
                     $expMs = (int) $renewed->expiry_ms;
                 } elseif ($purpose === 'extra_device') {
