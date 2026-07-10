@@ -27,6 +27,7 @@ use App\Http\Controllers\SubscriptionFeedController;
 use App\Http\Controllers\TelegramLinkController;
 use App\Http\Controllers\TestSubscriptionController;
 use App\Http\Controllers\TestSubscriptionFeedController;
+use App\Http\Controllers\PlategaWebhookController;
 use App\Http\Controllers\WataWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,7 @@ Route::get('/buy/done/{claimToken}', [QuickCheckoutController::class, 'done'])
     ->name('quick_buy.done');
 
 Route::post('/payments/wata/webhook', WataWebhookController::class)->name('payments.wata.webhook');
+Route::post('/payments/platega/webhook', PlategaWebhookController::class)->name('payments.platega.webhook');
 
 Route::get('/sub/{token}', [SubscriptionFeedController::class, 'show'])
     ->name('subscription.feed');

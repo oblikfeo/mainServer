@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\TelegramBotAdminController;
 use App\Http\Controllers\Api\TelegramBotDevicesController;
+use App\Http\Controllers\Api\TelegramBotPaymentController;
 use App\Http\Controllers\Api\TelegramBotMarkBlockedController;
 use App\Http\Controllers\Api\TelegramBotMirrorController;
 use App\Http\Controllers\Api\TelegramBotNetworkController;
@@ -41,6 +42,22 @@ Route::middleware(['telegram.link.internal', 'throttle:60,1'])
 Route::middleware(['telegram.link.internal', 'throttle:60,1'])
     ->post('/internal/telegram/bot/devices/clear', [TelegramBotDevicesController::class, 'clear'])
     ->name('api.telegram.bot.devices.clear');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->get('/internal/telegram/bot/payment/catalog', [TelegramBotPaymentController::class, 'catalog'])
+    ->name('api.telegram.bot.payment.catalog');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/payment/subscriptions', [TelegramBotPaymentController::class, 'subscriptions'])
+    ->name('api.telegram.bot.payment.subscriptions');
+
+Route::middleware(['telegram.link.internal', 'throttle:60,1'])
+    ->post('/internal/telegram/bot/payment/create', [TelegramBotPaymentController::class, 'create'])
+    ->name('api.telegram.bot.payment.create');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/payment/status', [TelegramBotPaymentController::class, 'status'])
+    ->name('api.telegram.bot.payment.status');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/mark-blocked', [TelegramBotMarkBlockedController::class, 'store'])

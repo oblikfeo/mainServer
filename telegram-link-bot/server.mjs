@@ -60,7 +60,7 @@ function applyVars(text, variables) {
 function mainKeyboard() {
   return Markup.keyboard([
     ['Личный кабинет'],
-    ['Мои устройства'],
+    ['Оплатить', 'Мои устройства'],
     ['Мои бонусы'],
     ['Поддержка'],
   ])
@@ -68,7 +68,7 @@ function mainKeyboard() {
     .persistent();
 }
 
-const MENU_BUTTONS_RE = /^(Личный кабинет|Мои устройства|Мои бонусы|Поддержка)$/;
+const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|Мои бонусы|Поддержка)$/;
 
 const inSupportMode = new Set();
 const pendingBroadcast = new Set();
@@ -133,6 +133,197 @@ async function sendTemplate(chatId, templateId, variables) {
 function truncate(value, max) {
   const str = String(value ?? '');
   return str.length > max ? `${str.slice(0, max - 1)}…` : str;
+}
+
+async function fetchPaymentCatalog() {
+  const r = await apiFetch('/internal/telegram/bot/payment/catalog');
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return { ok: r.ok, data: j };
+}
+
+async function fetchRenewSubscriptions(uid) {
+  const r = await apiFetch('/internal/telegram/bot/payment/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return { ok: r.ok, data: j };
+}
+
+async function createPayment(uid, username, payload) {
+  const r = await apiFetch('/internal/telegram/bot/payment/create', {
+    method: 'POST',
+    body: JSON.stringify({
+      telegram_user_id: uid,
+      telegram_username: username ?? null,
+      ...payload,
+    }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return { ok: r.ok, data: j };
+}
+
+async function checkPaymentStatus(uid, orderId) {
+  const r = await apiFetch('/internal/telegram/bot/payment/status', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid, order_id: orderId }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return { ok: r.ok, data: j };
+}
+
+function findPlan(catalog, planKey) {
+  const plans = Array.isArray(catalog?.plans) ? catalog.plans : [];
+  return plans.find((p) => p.plan === planKey) ?? null;
+}
+
+function buildPaymentMenuView() {
+  return {
+    text: '💳 Оплата подписки\n\nВыберите действие:',
+    keyboard: [
+      [{ text: '✨ Новая подписка', callback_data: 'py:1' }],
+      [{ text: '🔄 Продлить подписку', callback_data: 'py:2' }],
+    ],
+  };
+}
+
+function buildNewPlanView(catalog) {
+  const plans = Array.isArray(catalog?.plans) ? catalog.plans : [];
+  const keyboard = plans.map((p) => [
+    { text: String(p.label ?? p.plan), callback_data: `py:n:${p.plan}` },
+  ]);
+  keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
+  return {
+    text: '✨ Новая подписка\n\nВыберите тариф:',
+    keyboard,
+  };
+}
+
+function buildPeriodView(catalog, planKey, renew, subscriptionId) {
+  const plan = findPlan(catalog, planKey);
+  const periods = renew
+    ? Array.isArray(plan?.renew_periods)
+      ? plan.renew_periods
+      : []
+    : Array.isArray(plan?.periods)
+      ? plan.periods
+      : [];
+  const keyboard = periods.map((row) => [
+    {
+      text: `${row.period} · ${row.amount_rub} ₽`,
+      callback_data: renew
+        ? `py:rt:${subscriptionId}:${planKey}:${row.index}`
+        : `py:nt:${planKey}:${row.index}`,
+    },
+  ]);
+  keyboard.push([
+    {
+      text: '← Назад',
+      callback_data: renew ? `py:2` : 'py:1',
+    },
+  ]);
+  return {
+    text: renew
+      ? `🔄 Продление · ${plan?.label ?? planKey}\n\nВыберите срок:`
+      : `✨ ${plan?.label ?? planKey}\n\nВыберите срок:`,
+    keyboard,
+  };
+}
+
+function buildRenewSubsView(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return {
+      text: 'У вас нет подписок для продления.\n\nОформите новую подписку.',
+      keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]],
+    };
+  }
+  const keyboard = items.map((it) => {
+    const created = String(it.created ?? '').trim() || String(it.public_code ?? '');
+    const state = it.active ? 'активна' : 'неактивна';
+    return [
+      {
+        text: `${created} · ${state}`,
+        callback_data: `py:rs:${it.id}:${it.plan}`,
+      },
+    ];
+  });
+  keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
+  return {
+    text: '🔄 Продление\n\nВыберите подписку:',
+    keyboard,
+  };
+}
+
+function buildPaymentMethodView(purpose, plan, periodIndex, subscriptionId) {
+  const base =
+    purpose === 'r'
+      ? `py:x:r:${plan}:${periodIndex}:${subscriptionId}`
+      : `py:x:n:${plan}:${periodIndex}`;
+  return {
+    text: 'Выберите способ оплаты:',
+    keyboard: [
+      [{ text: '📱 СБП', callback_data: `${base}:sbp` }],
+      [{ text: '💳 Картой', callback_data: `${base}:card` }],
+      [
+        {
+          text: '← Назад',
+          callback_data:
+            purpose === 'r'
+              ? `py:rs:${subscriptionId}:${plan}`
+              : `py:n:${plan}`,
+        },
+      ],
+    ],
+  };
+}
+
+function buildPayLinkView(data) {
+  const url = String(data.pay_url ?? '');
+  const orderId = String(data.order_id ?? '');
+  const methodLabel = data.payment_method === 'card' ? 'Картой' : 'СБП';
+  const keyboard = [
+    [{ text: `💳 Оплатить (${methodLabel})`, url }],
+    [{ text: '🔄 Проверить оплату', callback_data: `py:s:${orderId}` }],
+    [{ text: '← В меню оплаты', callback_data: 'py:0' }],
+  ];
+  return {
+    text:
+      `${data.description ?? 'Оплата'}\n` +
+      `Сумма: ${data.amount_rub ?? '—'} ₽\n\n` +
+      'Нажмите «Оплатить», завершите платёж и вернитесь в бот.\n' +
+      'После оплаты придёт уведомление (или нажмите «Проверить оплату»).',
+    keyboard,
+  };
+}
+
+async function editPayView(ctx, view) {
+  try {
+    await ctx.editMessageText(view.text, {
+      reply_markup: { inline_keyboard: view.keyboard },
+    });
+  } catch {
+    // message may be stale
+  }
 }
 
 async function fetchDevices(uid) {
@@ -474,6 +665,144 @@ bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
   }
   await ctx.answerCbQuery(j.ok ? 'Все привязки сброшены' : j.message || 'Ошибка');
   await renderDetail(ctx, uid, scope, id);
+});
+
+bot.hears('Оплатить', async (ctx) => {
+  inSupportMode.delete(ctx.chat.id);
+  const view = buildPaymentMenuView();
+  await safeSendMessage(ctx.chat.id, view.text, {
+    reply_markup: { inline_keyboard: view.keyboard },
+  });
+});
+
+bot.action('py:0', async (ctx) => {
+  await ctx.answerCbQuery();
+  await editPayView(ctx, buildPaymentMenuView());
+});
+
+bot.action('py:1', async (ctx) => {
+  await ctx.answerCbQuery();
+  const { ok, data } = await fetchPaymentCatalog();
+  if (!ok || !data.ok) {
+    await ctx.answerCbQuery('Не удалось загрузить тарифы', { show_alert: true });
+    return;
+  }
+  await editPayView(ctx, buildNewPlanView(data));
+});
+
+bot.action('py:2', async (ctx) => {
+  const uid = ctx.from?.id;
+  await ctx.answerCbQuery();
+  const { ok, data } = await fetchRenewSubscriptions(uid);
+  if (!ok || !data.ok) {
+    const m =
+      typeof data.message === 'string'
+        ? data.message
+        : 'Привяжите Telegram в Личном кабинете на сайте.';
+    await editPayView(ctx, { text: m, keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]] });
+    return;
+  }
+  await editPayView(ctx, buildRenewSubsView(data.items));
+});
+
+bot.action(/^py:n:(solo|family)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const plan = ctx.match[1];
+  const { ok, data } = await fetchPaymentCatalog();
+  if (!ok || !data.ok) {
+    return;
+  }
+  await editPayView(ctx, buildPeriodView(data, plan, false, null));
+});
+
+bot.action(/^py:nt:(solo|family):(\d+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const plan = ctx.match[1];
+  const periodIndex = Number(ctx.match[2]);
+  await editPayView(ctx, buildPaymentMethodView('n', plan, periodIndex, null));
+});
+
+bot.action(/^py:rs:(\d+):(solo|family)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const subId = Number(ctx.match[1]);
+  const plan = ctx.match[2];
+  const { ok, data } = await fetchPaymentCatalog();
+  if (!ok || !data.ok) {
+    return;
+  }
+  await editPayView(ctx, buildPeriodView(data, plan, true, subId));
+});
+
+bot.action(/^py:rt:(\d+):(solo|family):(\d+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const subId = Number(ctx.match[1]);
+  const plan = ctx.match[2];
+  const periodIndex = Number(ctx.match[3]);
+  await editPayView(ctx, buildPaymentMethodView('r', plan, periodIndex, subId));
+});
+
+bot.action(/^py:x:n:(solo|family):(\d+):(sbp|card)$/, async (ctx) => {
+  const uid = ctx.from?.id;
+  const plan = ctx.match[1];
+  const periodIndex = Number(ctx.match[2]);
+  const method = ctx.match[3];
+  await ctx.answerCbQuery('Создаём платёж…');
+  const { ok, data } = await createPayment(uid, ctx.from?.username, {
+    purpose: 'new',
+    plan,
+    period_index: periodIndex,
+    payment_method: method,
+  });
+  if (!ok || !data.ok) {
+    const m = typeof data.message === 'string' ? data.message : 'Не удалось создать платёж.';
+    await editPayView(ctx, { text: m, keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]] });
+    return;
+  }
+  await editPayView(ctx, buildPayLinkView(data));
+});
+
+bot.action(/^py:x:r:(solo|family):(\d+):(\d+):(sbp|card)$/, async (ctx) => {
+  const uid = ctx.from?.id;
+  const plan = ctx.match[1];
+  const periodIndex = Number(ctx.match[2]);
+  const subId = Number(ctx.match[3]);
+  const method = ctx.match[4];
+  await ctx.answerCbQuery('Создаём платёж…');
+  const { ok, data } = await createPayment(uid, ctx.from?.username, {
+    purpose: 'renew',
+    plan,
+    period_index: periodIndex,
+    subscription_id: subId,
+    payment_method: method,
+  });
+  if (!ok || !data.ok) {
+    const m = typeof data.message === 'string' ? data.message : 'Не удалось создать платёж.';
+    await editPayView(ctx, { text: m, keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]] });
+    return;
+  }
+  await editPayView(ctx, buildPayLinkView(data));
+});
+
+bot.action(/^py:s:(ord_[A-Za-z0-9_-]+)$/, async (ctx) => {
+  const uid = ctx.from?.id;
+  const orderId = ctx.match[1];
+  const { ok, data } = await checkPaymentStatus(uid, orderId);
+  if (!ok || !data.ok) {
+    await ctx.answerCbQuery('Заказ не найден', { show_alert: true });
+    return;
+  }
+  if (data.paid) {
+    await ctx.answerCbQuery('✅ Оплата получена! Подписка обновлена.');
+    return;
+  }
+  const status = String(data.status ?? 'pending');
+  const labels = {
+    pending: 'Ожидаем оплату…',
+    created: 'Ожидаем оплату…',
+    declined: 'Оплата отменена',
+    paid: 'Оплачено',
+  };
+  await ctx.answerCbQuery(labels[status] ?? 'Статус: ' + status, { show_alert: status === 'declined' });
 });
 
 bot.hears('Поддержка', async (ctx) => {

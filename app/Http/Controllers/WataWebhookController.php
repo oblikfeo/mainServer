@@ -2,21 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\QuickBuySubscriptionMail;
 use App\Models\PaymentOrder;
-use App\Models\Purchase;
-use App\Models\User;
-use App\Services\Referral\ReferralLinkBuilder;
-use App\Services\Referral\ReferralRewardService;
-use App\Services\Subscription\ApplySubscriptionRenewalPack;
-use App\Services\Subscription\CreateDualBundleSubscription;
-use App\Services\Telegram\TelegramOutreach;
+use App\Services\Payments\FulfillPaidPaymentOrder;
 use App\Services\Wata\WataH2hClient;
-use Illuminate\Support\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class WataWebhookController extends Controller
@@ -24,11 +15,7 @@ class WataWebhookController extends Controller
     public function __invoke(
         Request $request,
         WataH2hClient $wata,
-        CreateDualBundleSubscription $subs,
-        ApplySubscriptionRenewalPack $renewals,
-        ReferralRewardService $referralRewards,
-        ReferralLinkBuilder $referralLinks,
-        TelegramOutreach $telegramOutreach,
+        FulfillPaidPaymentOrder $fulfill,
     ): Response {
         $raw = $request->getContent();
         $sig = (string) $request->header('X-Signature', '');
@@ -83,11 +70,7 @@ class WataWebhookController extends Controller
                 $transactionId,
                 $isPaid,
                 $isDeclined,
-                $subs,
-                $renewals,
-                $referralRewards,
-                $referralLinks,
-                $telegramOutreach,
+                $fulfill,
             ): Response {
                 /** @var PaymentOrder|null $locked */
                 $locked = PaymentOrder::query()->whereKey($order->id)->lockForUpdate()->first();
@@ -117,109 +100,15 @@ class WataWebhookController extends Controller
                     return response('', 200);
                 }
 
-                // Paid: идемпотентно выполняем выдачу один раз.
                 if ($locked->status === 'paid') {
                     return response('', 200);
                 }
 
-                $locked->status = 'paid';
-                $locked->paid_at = $locked->paid_at ?? now();
-                $locked->save();
-
-                $buyer = User::query()->whereKey((int) $locked->user_id)->first();
-                $purpose = (string) ($locked->purpose ?? 'new');
-
-                if ($purpose === 'renew') {
-                    $targetId = (int) $locked->subscription_id;
-                    if ($targetId < 1) {
-                        Log::error('WATA webhook: renew order without subscription_id: '.$locked->order_id);
-
-                        return response('', 500);
-                    }
-                    $renewed = $renewals->apply(
-                        $targetId,
-                        (int) $locked->days,
-                        (int) $locked->quota_gb,
-                        (int) $locked->devices,
-                        (string) ($locked->tariff_plan ?? ''),
-                    );
-                    $expMs = (int) $renewed->expiry_ms;
-                } elseif ($purpose === 'extra_device') {
-                    $targetId = (int) $locked->subscription_id;
-                    if ($targetId < 1) {
-                        Log::error('WATA webhook: extra_device order without subscription_id: '.$locked->order_id);
-
-                        return response('', 500);
-                    }
-                    $addDevices = (int) $locked->devices;
-                    if ($addDevices < 1) {
-                        Log::error('WATA webhook: extra_device order without devices: '.$locked->order_id);
-
-                        return response('', 500);
-                    }
-                    $renewed = $renewals->apply($targetId, 0, 0, $addDevices);
-                    $expMs = (int) $renewed->expiry_ms;
-                } else {
-                    $result = $subs->create(
-                        (int) $locked->devices,
-                        (int) $locked->days,
-                        (int) $locked->quota_gb,
-                        (int) $locked->user_id
-                    );
-
-                    $locked->subscription_id = $result->subscription->id;
-                    $locked->save();
-
-                    if ($buyer !== null) {
-                        $referralRewards->consumeUserCreditsOnNewSubscription($buyer, $result->subscription);
-                    }
-                    $renewed = $result->subscription;
-                    $expMs = (int) $renewed->expiry_ms;
-                }
-
-                $purchase = Purchase::query()->create([
-                    'user_id' => (int) $locked->user_id,
-                    'amount_rub' => (int) $locked->amount_rub,
-                    'currency' => (string) $locked->currency,
-                    'paid_at' => $locked->paid_at ?? now(),
-                    'description' => (string) ($locked->description ?? 'Оплата'),
-                ]);
-
-                if ($buyer !== null) {
-                    $referralRewards->onPurchaseRecorded($purchase);
-                }
-
-                if ($buyer !== null) {
-                    $newDate = $expMs <= 0
-                        ? 'без ограничения срока'
-                        : Carbon::createFromTimestampMs($expMs)->timezone((string) config('app.timezone'))->format('d.m.Y');
-                    $telegramOutreach->notifyUserIfEligible($buyer, 'billing_paid_ok', [
-                        'amount' => (string) (int) $locked->amount_rub,
-                        'new_date' => $newDate,
-                    ]);
-                }
-
-                if (filled($locked->claim_token) && $buyer !== null) {
-                    try {
-                        $brand = (string) config('marketing.brand_name', 'Надежда');
-                        $fromAddress = (string) (config('marketing.support_email') ?: config('mail.from.address', 'support@nadezhda.space'));
-                        Mail::to($buyer->email)->send(new QuickBuySubscriptionMail(
-                            brand: $brand,
-                            supportFromAddress: $fromAddress,
-                            supportFromName: $brand.' · поддержка',
-                            subscriptionUrl: $renewed->shareableSubUrl(),
-                            cabinetLoginUrl: route('auth.via_token', ['token' => $renewed->token], absolute: true),
-                            referralLink: $referralLinks->forUser($buyer),
-                        ));
-                    } catch (\Throwable $e) {
-                        Log::warning('WATA webhook: quick buy email failed: '.$e->getMessage());
-                    }
-                }
+                $fulfill->fulfill($locked);
 
                 return response('', 200);
             });
         } catch (\Throwable $e) {
-            // Для post-payment вебхука WATA будет ретраить до 32 часов — это полезно, если панель/БД временно упала.
             Log::error('WATA webhook: paid handler failed: '.$e->getMessage());
 
             return response('', 500);
@@ -242,4 +131,3 @@ class WataWebhookController extends Controller
         return $result === 1;
     }
 }
-

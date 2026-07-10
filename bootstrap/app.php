@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
             'payments/wata/webhook',
+            'payments/platega/webhook',
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\CaptureReferralCode::class,
