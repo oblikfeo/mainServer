@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Smoke-проверка ApplySubscriptionRenewalPack на боевом (без XUI, в откатываемой транзакции).
+ * Smoke-проверка ApplySubscriptionRenewalPack на боевом (в откатываемой транзакции).
+ * XUI-синк может писать warning в лог — на результат проверки не влияет.
  *
  * Usage: php scripts/hub-verify-renewal-pack.php
  */
@@ -11,44 +12,14 @@ declare(strict_types=1);
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Subscription\ApplySubscriptionRenewalPack;
-use App\Services\Subscription\SubscriptionCalendarExtension;
-use App\Services\Xui\XuiSubscriptionLimitIpSync;
-use App\Services\Xui\XuiSubscriptionQuotaSync;
 use Illuminate\Support\Facades\DB;
 
 require __DIR__.'/../vendor/autoload.php';
 $app = require __DIR__.'/../bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-$calendar = new class extends SubscriptionCalendarExtension
-{
-    public function __construct() {}
-
-    public function addCalendarDays(Subscription $subscription, float|int $days): void
-    {
-        $addMs = (int) round(((float) $days) * 86_400_000);
-        $nowMs = (int) (now()->getTimestamp() * 1000);
-        $base = max((int) $subscription->expiry_ms, $nowMs);
-        $subscription->expiry_ms = $base + $addMs;
-        $subscription->save();
-    }
-};
-
-$noopQuota = new class extends XuiSubscriptionQuotaSync
-{
-    public function __construct() {}
-
-    public function syncForSubscription(Subscription $sub): void {}
-};
-
-$noopLimit = new class extends XuiSubscriptionLimitIpSync
-{
-    public function __construct() {}
-
-    public function syncForSubscription(Subscription $sub): void {}
-};
-
-$pack = new ApplySubscriptionRenewalPack($calendar, $noopQuota, $noopLimit);
+/** @var ApplySubscriptionRenewalPack $pack */
+$pack = app(ApplySubscriptionRenewalPack::class);
 $failures = [];
 
 DB::beginTransaction();
