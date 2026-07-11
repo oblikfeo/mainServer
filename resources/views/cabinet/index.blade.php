@@ -10,7 +10,7 @@
             $hasActiveTrials = $activeTrialSubscriptions->isNotEmpty();
             $hasAnyActiveTestAccess = $hasActiveTestKeys || $hasActiveTrials;
             $canIssueCabinetTrial = $me->canSelfIssueCabinetTrial();
-            $trialUsedUp = $me->hasVerifiedEmail() && ! $hasAnyActiveTestAccess && ! $canIssueCabinetTrial;
+            $trialUsedUp = $me->hasVerifiedIdentity() && ! $hasAnyActiveTestAccess && ! $canIssueCabinetTrial;
             $trialHours = (int) config('trial_subscription.hours', 3);
             $hasPaidSub = ! empty($items);
             $showTrialSection = $hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer();
@@ -67,10 +67,10 @@
                             <span class="lp-badge-pill lp-badge-pill--ok">Активна @if ($activeTrialSubscriptions->count() + $activeTestKeys->count() > 1) ({{ $activeTrialSubscriptions->count() + $activeTestKeys->count() }}) @endif</span>
                         @elseif ($trialUsedUp)
                             <span class="lp-badge-pill">Использована</span>
-                        @elseif ($me->hasVerifiedEmail())
+                        @elseif ($me->hasVerifiedIdentity())
                             <span class="lp-badge-pill">Не активирована</span>
                         @else
-                            <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение почты</span>
+                            <span class="lp-badge-pill lp-badge-pill--bad">Требуется подтверждение</span>
                         @endif
                         <span class="lp-badge-pill lp-secondary-outline" style="margin-left:auto;">
                             <span x-show="!open">Развернуть</span>
@@ -97,12 +97,13 @@
                         </div>
                     @enderror
 
-                    @if (! $me->hasVerifiedEmail())
+                    @if (! $me->hasVerifiedIdentity())
                         <div class="lp-warn-box">
                             Чтобы получить тестовую подписку, подтвердите почту в
-                            <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>.
+                            <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>
+                            или зарегистрируйтесь в Telegram-боте «Надежда».
                             @if ($me->referred_by && (int) ($me->referral_invitee_test_issues_remaining ?? 0) > 0)
-                                <p class="mt-2 text-slate-700">По приглашению вам начислено {{ (int) $me->referral_invitee_test_issues_remaining }} отдельных тест-периода по {{ $trialHours }} ч — каждый после подтверждения почты и когда предыдущий период истёк.</p>
+                                <p class="mt-2 text-slate-700">По приглашению вам начислено {{ (int) $me->referral_invitee_test_issues_remaining }} отдельных тест-периода по {{ $trialHours }} ч — каждый после подтверждения и когда предыдущий период истёк.</p>
                             @endif
                         </div>
                     @else

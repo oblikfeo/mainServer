@@ -5,6 +5,7 @@ namespace App\Services\Telegram;
 use App\Models\Subscription;
 use App\Models\TestKey;
 use App\Models\User;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Одноразовая ссылка входа в ЛК для Telegram (auth.via_token по токену подписки/ключа).
@@ -31,6 +32,15 @@ final class TelegramCabinetAccessService
         $token = $this->resolveAuthToken($user);
         if ($token !== '') {
             return route('auth.via_token', ['token' => $token], absolute: true);
+        }
+
+        if ($user->telegram_id !== null) {
+            return URL::temporarySignedRoute(
+                'auth.telegram_cabinet',
+                now()->addMinutes(30),
+                ['user' => $user->id],
+                absolute: true,
+            );
         }
 
         return $this->fallbackPublicUrl();

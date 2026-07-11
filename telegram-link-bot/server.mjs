@@ -74,6 +74,8 @@ const inSupportMode = new Set();
 const pendingBroadcast = new Set();
 /** @type {Map<number, number>} forwarded message id in group -> user private chat id */
 const supportReplyMap = new Map();
+/** @type {Map<number, string>} chat id -> referral/utm from /start before registration */
+const pendingReferral = new Map();
 
 const bot = new Telegraf(token);
 
@@ -439,6 +441,54 @@ async function renderDetail(ctx, uid, scope, id) {
   await editView(ctx, it ? buildDeviceDetailView(it) : buildSubscriptionsView(data));
 }
 
+async function fetchBotStatus(uid) {
+  const r = await apiFetch('/internal/telegram/bot/status', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid }),
+  });
+  let data = {};
+  try {
+    data = await r.json();
+  } catch {
+    data = {};
+  }
+  return { ok: r.ok, data };
+}
+
+async function logStartUtm(uid, param) {
+  await apiFetch('/internal/telegram/start/utm', {
+    method: 'POST',
+    body: JSON.stringify({
+      telegram_user_id: uid,
+      utm_param: param,
+    }),
+  }).catch(() => {});
+}
+
+function onboardingKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('У меня уже есть аккаунт', 'onb:existing')],
+    [Markup.button.callback('Новый пользователь', 'onb:new')],
+  ]);
+}
+
+async function showOnboarding(chatId, referralParam) {
+  if (referralParam) {
+    pendingReferral.set(chatId, referralParam);
+  }
+  const text =
+    templates.onboarding_welcome?.text ??
+    'Добро пожаловать в сервис «Надежда»! Выберите, как продолжить:';
+  await safeSendMessage(chatId, text, onboardingKeyboard());
+}
+
+async function welcomeReturningUser(chatId) {
+  const text =
+    templates.welcome_returning?.text ??
+    'С возвращением! Пользуйтесь меню ниже — личный кабинет, устройства, бонусы и поддержка.';
+  await safeSendMessage(chatId, text, mainKeyboard());
+}
+
 bot.start(async (ctx) => {
   const payload = (ctx.startPayload ?? '').trim();
   const uid = ctx.from?.id;
@@ -448,69 +498,128 @@ bot.start(async (ctx) => {
   }
 
   try {
-    if (!payload) {
-      await safeSendMessage(
-        chatId,
-        templates.stub_start_no_token.text,
-        mainKeyboard()
-      );
-      return;
-    }
-
-    const claimRes = await apiFetch('/internal/telegram/link/claim', {
-      method: 'POST',
-      body: JSON.stringify({
-        deeplink_token: payload,
-        telegram_user_id: uid,
-        telegram_chat_id: chatId,
-        telegram_username: ctx.from?.username ?? null,
-      }),
-    });
-
-    let claimData = {};
-    try {
-      claimData = await claimRes.json();
-    } catch {
-      claimData = {};
-    }
-
-    if (claimRes.ok && claimData.ok === true && claimData.message_for_chat) {
-      await safeSendMessage(chatId, claimData.message_for_chat, mainKeyboard());
-      return;
-    }
-
-    const isInvalidOrExpired =
-      claimData.error === 'invalid_or_expired' ||
-      claimData.error === 'invalid_or_expired_token' ||
-      claimData.error === 'session_not_found' ||
-      claimData.error === 'session_expired';
-
-    console.warn('[tg-link/claim]', claimData.error ?? claimRes.status, {
-      deeplinkLen: payload.length,
-    });
-
-    if (isInvalidOrExpired && payload.length < LINK_TOKEN_LEN) {
-      await apiFetch('/internal/telegram/start/utm', {
+    if (payload.length >= LINK_TOKEN_LEN) {
+      const claimRes = await apiFetch('/internal/telegram/link/claim', {
         method: 'POST',
         body: JSON.stringify({
+          deeplink_token: payload,
           telegram_user_id: uid,
-          utm_param: payload,
+          telegram_chat_id: chatId,
+          telegram_username: ctx.from?.username ?? null,
         }),
-      }).catch(() => {});
+      });
+
+      let claimData = {};
+      try {
+        claimData = await claimRes.json();
+      } catch {
+        claimData = {};
+      }
+
+      if (claimRes.ok && claimData.ok === true && claimData.message_for_chat) {
+        await safeSendMessage(chatId, claimData.message_for_chat, mainKeyboard());
+        return;
+      }
+
+      console.warn('[tg-link/claim]', claimData.error ?? claimRes.status, {
+        deeplinkLen: payload.length,
+      });
+
+      const msg =
+        typeof claimData.message === 'string'
+          ? claimData.message
+          : 'Не удалось завершить привязку. Откройте Личный кабинет на сайте и запросите новую ссылку.';
+      await safeSendMessage(chatId, msg, mainKeyboard());
+      return;
     }
 
-    const msg =
-      typeof claimData.message === 'string'
-        ? claimData.message
-        : 'Не удалось завершить привязку. Откройте Личный кабинет на сайте и запросите новую ссылку.';
-    await safeSendMessage(chatId, msg, mainKeyboard());
+    const { ok: statusOk, data: status } = await fetchBotStatus(uid);
+    if (statusOk && status.linked) {
+      if (payload.length > 0 && payload.length < LINK_TOKEN_LEN) {
+        await logStartUtm(uid, payload);
+      }
+      await welcomeReturningUser(chatId);
+      return;
+    }
+
+    if (payload.length > 0 && payload.length < LINK_TOKEN_LEN) {
+      await logStartUtm(uid, payload);
+      await showOnboarding(chatId, payload);
+      return;
+    }
+
+    await showOnboarding(chatId, null);
   } catch (e) {
     console.error('bot.start handler', e);
     await safeSendMessage(
       chatId,
-      'Сервис временно недоступен. Попробуйте через минуту или откройте сайт nadezhda.space и запросите ссылку в профиле снова.',
+      'Сервис временно недоступен. Попробуйте через минуту.',
       mainKeyboard()
     );
+  }
+});
+
+bot.action('onb:existing', async (ctx) => {
+  await ctx.answerCbQuery();
+  const chatId = ctx.chat?.id;
+  if (!chatId) {
+    return;
+  }
+  const text =
+    templates.onboarding_existing?.text ??
+    'Откройте nadezhda.space → Личный кабинет → Профиль → «Привязать Telegram» и перейдите по ссылке в этом боте.';
+  await safeSendMessage(chatId, text, mainKeyboard());
+});
+
+bot.action('onb:new', async (ctx) => {
+  const uid = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+  if (!uid || !chatId) {
+    return;
+  }
+  await ctx.answerCbQuery('Создаём аккаунт…');
+
+  const storedReferral = pendingReferral.get(chatId);
+  const startReferral = (ctx.startPayload ?? '').trim();
+  let referralParam = storedReferral ?? null;
+  if (!referralParam && startReferral && startReferral.length < LINK_TOKEN_LEN) {
+    referralParam = startReferral;
+  }
+  pendingReferral.delete(chatId);
+
+  try {
+    const r = await apiFetch('/internal/telegram/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        telegram_user_id: uid,
+        telegram_chat_id: chatId,
+        telegram_username: ctx.from?.username ?? null,
+        telegram_first_name: ctx.from?.first_name ?? null,
+        referral_param: referralParam,
+        offer_accepted: true,
+      }),
+    });
+
+    let j = {};
+    try {
+      j = await r.json();
+    } catch {
+      j = {};
+    }
+
+    if (r.ok && j.ok && j.message_for_chat) {
+      await safeSendMessage(chatId, j.message_for_chat, mainKeyboard());
+      return;
+    }
+
+    const msg =
+      typeof j.message === 'string'
+        ? j.message
+        : 'Не удалось создать аккаунт. Попробуйте позже или напишите в поддержку.';
+    await safeSendMessage(chatId, msg, mainKeyboard());
+  } catch (e) {
+    console.error('onb:new', e);
+    await safeSendMessage(chatId, 'Сервис временно недоступен. Попробуйте через минуту.', mainKeyboard());
   }
 });
 

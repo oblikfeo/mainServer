@@ -228,4 +228,20 @@ class User extends Authenticatable
     {
         return $this->subscriptions()->where('is_trial', true)->exists();
     }
+
+    /** Подтверждённая почта или привязанный Telegram — достаточно для пробного доступа. */
+    public function hasVerifiedIdentity(): bool
+    {
+        return $this->hasVerifiedEmail() || $this->telegram_id !== null;
+    }
+
+    /** Почта для формы профиля (скрывает служебный адрес TG-only аккаунтов). */
+    public function profileEmailValue(): string
+    {
+        if (\App\Services\Telegram\TelegramBotRegistrationService::isPlaceholderTelegramEmail($this->email)) {
+            return '';
+        }
+
+        return $this->email;
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\SubscriptionTokenCabinetLoginController;
+use App\Http\Controllers\TelegramCabinetLoginController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
@@ -17,6 +18,11 @@ Route::get('/auth/via-token/{token}', SubscriptionTokenCabinetLoginController::c
     ->middleware('throttle:30,1')
     ->where('token', '[A-Za-z0-9_-]{10,120}')
     ->name('auth.via_token');
+
+Route::get('/auth/telegram-cabinet/{user}', TelegramCabinetLoginController::class)
+    ->middleware(['signed', 'throttle:30,1'])
+    ->whereNumber('user')
+    ->name('auth.telegram_cabinet');
 
 Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])

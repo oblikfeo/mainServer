@@ -14,9 +14,9 @@ class TestSubscriptionController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedIdentity()) {
             return back()->withErrors([
-                'test_subscription' => 'Чтобы получить тестовую подписку, подтвердите почту в профиле.',
+                'test_subscription' => 'Чтобы получить тестовую подписку, подтвердите почту в профиле или привяжите Telegram в боте.',
             ]);
         }
 

@@ -14,9 +14,9 @@ class CabinetTestKeysController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedIdentity()) {
             return back()->withErrors([
-                'test_key' => 'Чтобы получить тестовую подписку, подтвердите почту в профиле.',
+                'test_key' => 'Чтобы получить тестовую подписку, подтвердите почту в профиле или привяжите Telegram в боте.',
             ]);
         }
 

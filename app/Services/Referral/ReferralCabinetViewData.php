@@ -20,7 +20,7 @@ final class ReferralCabinetViewData
     public static function build(ReferralMetrics $metrics, User $viewer): self
     {
         $id = (int) $viewer->id;
-        $emailOk = $viewer->hasVerifiedEmail();
+        $emailOk = $viewer->hasVerifiedIdentity();
 
         $refsCount = (int) $viewer->referrals()->count();
         $activeN = $metrics->countReferralsWithActiveSubscription($id);
@@ -40,7 +40,7 @@ final class ReferralCabinetViewData
             'done' => $emailOk,
             'ratio' => $emailOk ? '1/1' : '0/1',
             'bar' => $emailOk ? 100.0 : 0.0,
-            'status' => $emailOk ? 'Почта подтверждена' : 'Подтвердите почту в профиле',
+            'status' => $emailOk ? 'Подтверждение получено' : 'Подтвердите почту в профиле или зарегистрируйтесь в Telegram-боте',
         ];
 
         $fr = [
