@@ -68,7 +68,18 @@ function mainKeyboard() {
     .persistent();
 }
 
+/** Клавиатура до входа / регистрации — без «мёртвых» пунктов главного меню. */
+function guestKeyboard() {
+  return Markup.keyboard([
+    ['У меня уже есть аккаунт', 'Новый пользователь'],
+    ['↩️ Начать сначала', 'Поддержка'],
+  ])
+    .resize()
+    .persistent();
+}
+
 const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|Мои бонусы|Поддержка)$/;
+const GUEST_BUTTONS_RE = /^(У меня уже есть аккаунт|Новый пользователь|↩️ Начать сначала|Поддержка)$/;
 
 const inSupportMode = new Set();
 const pendingBroadcast = new Set();
@@ -455,6 +466,31 @@ async function fetchBotStatus(uid) {
   return { ok: r.ok, data };
 }
 
+async function isUserLinked(uid) {
+  const { ok, data } = await fetchBotStatus(uid);
+  return ok && data.linked === true;
+}
+
+async function replyKeyboardForUser(uid) {
+  return (await isUserLinked(uid)) ? mainKeyboard() : guestKeyboard();
+}
+
+async function ensureLinked(ctx) {
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return false;
+  }
+  if (await isUserLinked(uid)) {
+    return true;
+  }
+  await safeReply(
+    ctx,
+    'Сначала войдите или создайте аккаунт — кнопки выбора ниже.',
+    guestKeyboard()
+  );
+  return false;
+}
+
 async function logStartUtm(uid, param) {
   await apiFetch('/internal/telegram/start/utm', {
     method: 'POST',
@@ -480,6 +516,86 @@ async function showOnboarding(chatId, referralParam) {
     templates.onboarding_welcome?.text ??
     'Добро пожаловать в сервис «Надежда»! Выберите, как продолжить:';
   await safeSendMessage(chatId, text, onboardingKeyboard());
+  await safeSendMessage(
+    chatId,
+    'Кнопки внизу — чтобы вернуться к выбору в любой момент.',
+    guestKeyboard()
+  );
+}
+
+async function showExistingAccountHelp(chatId) {
+  const text =
+    templates.onboarding_existing?.text ??
+    'Откройте nadezhda.space → Личный кабинет → Профиль → «Привязать Telegram» и перейдите по ссылке в этом боте.';
+  await safeSendMessage(
+    chatId,
+    text,
+    Markup.inlineKeyboard([
+      [Markup.button.url('Открыть сайт', `${siteUrl}/login`)],
+      [Markup.button.callback('← Назад к выбору', 'onb:back')],
+    ])
+  );
+  await safeSendMessage(
+    chatId,
+    'После привязки откройте ссылку из профиля — меню обновится. Или нажмите «↩️ Начать сначала».',
+    guestKeyboard()
+  );
+}
+
+async function registerNewUser(ctx) {
+  const uid = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+  if (!uid || !chatId) {
+    return;
+  }
+
+  if (await isUserLinked(uid)) {
+    await welcomeReturningUser(chatId);
+    return;
+  }
+
+  const storedReferral = pendingReferral.get(chatId);
+  const startReferral = (ctx.startPayload ?? '').trim();
+  let referralParam = storedReferral ?? null;
+  if (!referralParam && startReferral && startReferral.length < LINK_TOKEN_LEN) {
+    referralParam = startReferral;
+  }
+  pendingReferral.delete(chatId);
+
+  try {
+    const r = await apiFetch('/internal/telegram/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        telegram_user_id: uid,
+        telegram_chat_id: chatId,
+        telegram_username: ctx.from?.username ?? null,
+        telegram_first_name: ctx.from?.first_name ?? null,
+        referral_param: referralParam,
+        offer_accepted: true,
+      }),
+    });
+
+    let j = {};
+    try {
+      j = await r.json();
+    } catch {
+      j = {};
+    }
+
+    if (r.ok && j.ok && j.message_for_chat) {
+      await safeSendMessage(chatId, j.message_for_chat, mainKeyboard());
+      return;
+    }
+
+    const msg =
+      typeof j.message === 'string'
+        ? j.message
+        : 'Не удалось создать аккаунт. Попробуйте позже или напишите в поддержку.';
+    await safeSendMessage(chatId, msg, guestKeyboard());
+  } catch (e) {
+    console.error('registerNewUser', e);
+    await safeSendMessage(chatId, 'Сервис временно недоступен. Попробуйте через минуту.', guestKeyboard());
+  }
 }
 
 async function welcomeReturningUser(chatId) {
@@ -529,7 +645,12 @@ bot.start(async (ctx) => {
         typeof claimData.message === 'string'
           ? claimData.message
           : 'Не удалось завершить привязку. Откройте Личный кабинет на сайте и запросите новую ссылку.';
-      await safeSendMessage(chatId, msg, mainKeyboard());
+      if (await isUserLinked(uid)) {
+        await safeSendMessage(chatId, msg, mainKeyboard());
+      } else {
+        await safeSendMessage(chatId, msg, guestKeyboard());
+        await showOnboarding(chatId, null);
+      }
       return;
     }
 
@@ -554,9 +675,51 @@ bot.start(async (ctx) => {
     await safeSendMessage(
       chatId,
       'Сервис временно недоступен. Попробуйте через минуту.',
-      mainKeyboard()
+      guestKeyboard()
     );
   }
+});
+
+bot.action('onb:back', async (ctx) => {
+  await ctx.answerCbQuery();
+  const chatId = ctx.chat?.id;
+  if (!chatId) {
+    return;
+  }
+  await showOnboarding(chatId, pendingReferral.get(chatId) ?? null);
+});
+
+bot.hears('↩️ Начать сначала', async (ctx) => {
+  inSupportMode.delete(ctx.chat?.id);
+  const uid = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+  if (!uid || !chatId) {
+    return;
+  }
+  if (await isUserLinked(uid)) {
+    await welcomeReturningUser(chatId);
+    return;
+  }
+  await showOnboarding(chatId, pendingReferral.get(chatId) ?? null);
+});
+
+bot.hears('У меня уже есть аккаунт', async (ctx) => {
+  inSupportMode.delete(ctx.chat?.id);
+  const uid = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+  if (!uid || !chatId) {
+    return;
+  }
+  if (await isUserLinked(uid)) {
+    await safeReply(ctx, 'Telegram уже привязан. Пользуйтесь меню ниже.', mainKeyboard());
+    return;
+  }
+  await showExistingAccountHelp(chatId);
+});
+
+bot.hears('Новый пользователь', async (ctx) => {
+  inSupportMode.delete(ctx.chat?.id);
+  await registerNewUser(ctx);
 });
 
 bot.action('onb:existing', async (ctx) => {
@@ -565,68 +728,21 @@ bot.action('onb:existing', async (ctx) => {
   if (!chatId) {
     return;
   }
-  const text =
-    templates.onboarding_existing?.text ??
-    'Откройте nadezhda.space → Личный кабинет → Профиль → «Привязать Telegram» и перейдите по ссылке в этом боте.';
-  await safeSendMessage(chatId, text, mainKeyboard());
+  await showExistingAccountHelp(chatId);
 });
 
 bot.action('onb:new', async (ctx) => {
-  const uid = ctx.from?.id;
-  const chatId = ctx.chat?.id;
-  if (!uid || !chatId) {
-    return;
-  }
   await ctx.answerCbQuery('Создаём аккаунт…');
-
-  const storedReferral = pendingReferral.get(chatId);
-  const startReferral = (ctx.startPayload ?? '').trim();
-  let referralParam = storedReferral ?? null;
-  if (!referralParam && startReferral && startReferral.length < LINK_TOKEN_LEN) {
-    referralParam = startReferral;
-  }
-  pendingReferral.delete(chatId);
-
-  try {
-    const r = await apiFetch('/internal/telegram/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        telegram_user_id: uid,
-        telegram_chat_id: chatId,
-        telegram_username: ctx.from?.username ?? null,
-        telegram_first_name: ctx.from?.first_name ?? null,
-        referral_param: referralParam,
-        offer_accepted: true,
-      }),
-    });
-
-    let j = {};
-    try {
-      j = await r.json();
-    } catch {
-      j = {};
-    }
-
-    if (r.ok && j.ok && j.message_for_chat) {
-      await safeSendMessage(chatId, j.message_for_chat, mainKeyboard());
-      return;
-    }
-
-    const msg =
-      typeof j.message === 'string'
-        ? j.message
-        : 'Не удалось создать аккаунт. Попробуйте позже или напишите в поддержку.';
-    await safeSendMessage(chatId, msg, mainKeyboard());
-  } catch (e) {
-    console.error('onb:new', e);
-    await safeSendMessage(chatId, 'Сервис временно недоступен. Попробуйте через минуту.', mainKeyboard());
-  }
+  await registerNewUser(ctx);
 });
 
 bot.hears('Личный кабинет', async (ctx) => {
   inSupportMode.delete(ctx.chat.id);
   const uid = ctx.from?.id;
   if (!uid) {
+    return;
+  }
+  if (!(await ensureLinked(ctx))) {
     return;
   }
   const r = await apiFetch('/internal/telegram/bot/mirror', {
@@ -669,6 +785,9 @@ bot.hears('Мои бонусы', async (ctx) => {
   if (!uid) {
     return;
   }
+  if (!(await ensureLinked(ctx))) {
+    return;
+  }
   const r = await apiFetch('/internal/telegram/bot/referral-summary', {
     method: 'POST',
     body: JSON.stringify({ telegram_user_id: uid }),
@@ -696,6 +815,9 @@ bot.hears('Мои устройства', async (ctx) => {
   inSupportMode.delete(ctx.chat.id);
   const uid = ctx.from?.id;
   if (!uid) {
+    return;
+  }
+  if (!(await ensureLinked(ctx))) {
     return;
   }
   const { ok, data } = await fetchDevices(uid);
@@ -778,6 +900,13 @@ bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
 
 bot.hears('Оплатить', async (ctx) => {
   inSupportMode.delete(ctx.chat.id);
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return;
+  }
+  if (!(await ensureLinked(ctx))) {
+    return;
+  }
   const view = buildPaymentMenuView();
   await safeSendMessage(ctx.chat.id, view.text, {
     reply_markup: { inline_keyboard: view.keyboard },
@@ -916,8 +1045,10 @@ bot.action(/^py:s:(ord_[A-Za-z0-9_-]+)$/, async (ctx) => {
 
 bot.hears('Поддержка', async (ctx) => {
   inSupportMode.add(ctx.chat.id);
+  const uid = ctx.from?.id;
+  const kb = uid ? await replyKeyboardForUser(uid) : guestKeyboard();
   const text = templates.support_mode_enter.text;
-  await safeReply(ctx, text, mainKeyboard());
+  await safeReply(ctx, text, kb);
 });
 
 bot.on('message', async (ctx, next) => {
@@ -925,7 +1056,8 @@ bot.on('message', async (ctx, next) => {
     return next();
   }
 
-  if (ctx.message?.text && MENU_BUTTONS_RE.test(ctx.message.text.trim())) {
+  const text = ctx.message?.text?.trim() ?? '';
+  if (text && (MENU_BUTTONS_RE.test(text) || GUEST_BUTTONS_RE.test(text))) {
     return next();
   }
 
@@ -935,10 +1067,12 @@ bot.on('message', async (ctx, next) => {
   }
 
   if (!supportGroupId) {
+    const uid = ctx.from?.id;
+    const kb = uid ? await replyKeyboardForUser(uid) : guestKeyboard();
     await safeReply(
       ctx,
       'Поддержка недоступна (не настроен TELEGRAM_SUPPORT_GROUP_ID).',
-      mainKeyboard()
+      kb
     );
     return;
   }
@@ -949,7 +1083,9 @@ bot.on('message', async (ctx, next) => {
     supportReplyMap.set(mid, chatId);
   } catch (e) {
     console.error('forwardMessage', e);
-    await safeReply(ctx, 'Не удалось передать сообщение в поддержку.', mainKeyboard());
+    const uid = ctx.from?.id;
+    const kb = uid ? await replyKeyboardForUser(uid) : guestKeyboard();
+    await safeReply(ctx, 'Не удалось передать сообщение в поддержку.', kb);
   }
 });
 
