@@ -18,6 +18,7 @@ use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetRenewalController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\PaymentSuccessController;
 use App\Http\Controllers\ProfileController;
@@ -133,6 +134,13 @@ Route::middleware('auth')->group(function () {
         ->name('cabinet.telegram.unlink');
 
     Route::redirect('/profile', '/dashboard/profile')->name('profile.edit');
+});
+
+Route::middleware(['auth', 'chat.access'])->group(function () {
+    Route::get('/chat', [ChatController::class, 'show'])->name('chat.show');
+    Route::post('/chat/message', [ChatController::class, 'message'])
+        ->middleware('throttle:30,1')
+        ->name('chat.message');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {

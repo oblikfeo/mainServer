@@ -39,6 +39,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'chat_access' => 'boolean',
             'trial_followup_email_sent_at' => 'datetime',
             'password' => 'hashed',
             'referral_pending_unlimited_traffic' => 'boolean',
