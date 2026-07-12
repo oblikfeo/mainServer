@@ -61,7 +61,7 @@ function mainKeyboard() {
   return Markup.keyboard([
     ['Личный кабинет'],
     ['Оплатить', 'Мои устройства'],
-    ['Мои бонусы'],
+    ['🎁 Пробный доступ', 'Мои бонусы'],
     ['Поддержка'],
   ])
     .resize()
@@ -78,7 +78,7 @@ function guestKeyboard() {
     .persistent();
 }
 
-const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|Мои бонусы|Поддержка)$/;
+const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|🎁 Пробный доступ|Мои бонусы|Поддержка)$/;
 const GUEST_BUTTONS_RE = /^(У меня уже есть аккаунт|Новый пользователь|↩️ Начать сначала|Поддержка)$/;
 
 const inSupportMode = new Set();
@@ -903,6 +903,96 @@ bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
   }
   await ctx.answerCbQuery(j.ok ? 'Все привязки сброшены' : j.message || 'Ошибка');
   await renderDetail(ctx, uid, scope, id);
+});
+
+/** @type {Set<number>} uid с выдачей триала в процессе — защита от двойного нажатия */
+const trialInFlight = new Set();
+
+async function fetchCabinetUrl(uid) {
+  const r = await apiFetch('/internal/telegram/bot/mirror', {
+    method: 'POST',
+    body: JSON.stringify({ telegram_user_id: uid }),
+  });
+  let j = {};
+  try {
+    j = await r.json();
+  } catch {
+    j = {};
+  }
+  return r.ok && j.ok && typeof j.url === 'string' ? j.url : null;
+}
+
+bot.hears('🎁 Пробный доступ', async (ctx) => {
+  inSupportMode.delete(ctx.chat.id);
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return;
+  }
+  if (!(await ensureLinked(ctx))) {
+    return;
+  }
+  if (trialInFlight.has(uid)) {
+    return;
+  }
+  trialInFlight.add(uid);
+  try {
+    const r = await apiFetch('/internal/telegram/bot/trial/issue', {
+      method: 'POST',
+      body: JSON.stringify({ telegram_user_id: uid }),
+    });
+    let j = {};
+    try {
+      j = await r.json();
+    } catch {
+      j = {};
+    }
+
+    if (r.ok && j.ok) {
+      const parts = ['🎁 Тестовая подписка активирована!'];
+      if (j.expires_at) {
+        parts.push(`Действует до: ${j.expires_at}`);
+      }
+      const details = [];
+      if (Number(j.devices) > 0) {
+        details.push(`устройств: ${Number(j.devices)}`);
+      }
+      if (Number(j.quota_gb) > 0) {
+        details.push(`трафик: ${Number(j.quota_gb)} ГБ`);
+      }
+      if (details.length > 0) {
+        parts.push(`Лимиты — ${details.join(', ')}.`);
+      }
+      parts.push(
+        'Подключение: откройте Личный кабинет, там появилась ваша тестовая подписка и инструкция для приложения Happ.'
+      );
+      const url = await fetchCabinetUrl(uid);
+      if (url) {
+        await safeSendMessage(ctx.chat.id, parts.join('\n'), {
+          reply_markup: {
+            inline_keyboard: [[{ text: 'Открыть Личный кабинет', url }]],
+          },
+        });
+      } else {
+        await safeReply(ctx, parts.join('\n'), mainKeyboard());
+      }
+      return;
+    }
+
+    const msg =
+      typeof j.message === 'string'
+        ? j.message
+        : 'Не удалось выдать тестовую подписку. Попробуйте позже или напишите в поддержку.';
+    await safeReply(ctx, msg, mainKeyboard());
+  } catch (e) {
+    console.error('trial issue', e);
+    await safeReply(
+      ctx,
+      'Сервис временно недоступен. Попробуйте через минуту.',
+      mainKeyboard()
+    );
+  } finally {
+    trialInFlight.delete(uid);
+  }
 });
 
 bot.hears('Оплатить', async (ctx) => {
