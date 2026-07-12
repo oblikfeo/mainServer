@@ -604,6 +604,13 @@ async function welcomeReturningUser(chatId) {
     'С возвращением! Пользуйтесь меню ниже — личный кабинет, устройства, бонусы и поддержка.';
   await safeSendMessage(chatId, text, mainKeyboard());
 }
+bot.command('menu', async (ctx) => {
+  const uid = ctx.from?.id;
+  if (!uid || !ctx.chat) {
+    return;
+  }
+  await safeSendMessage(ctx.chat.id, 'Меню обновлено.', await replyKeyboardForUser(uid));
+});
 
 bot.start(async (ctx) => {
   const payload = (ctx.startPayload ?? '').trim();
