@@ -48,46 +48,27 @@ class ChatController extends Controller
             }
 
             try {
-                $response = $this->anthropic->streamMessage($messages);
+                $result = $this->anthropic->streamMessage($messages, function (string $chunk): bool {
+                    echo $chunk;
+                    flush();
+
+                    return ! connection_aborted();
+                });
             } catch (Throwable $e) {
-                Log::error('Chat: не удалось подключиться к API', ['error' => $e->getMessage()]);
+                Log::error('Chat: не удалось выполнить запрос к API', ['error' => $e->getMessage()]);
                 $emitError('Не удалось связаться с сервисом. Попробуйте ещё раз.');
 
                 return;
             }
 
-            if (! $response->successful()) {
+            if (! $result['ok'] && ! $result['aborted']) {
                 Log::error('Chat: API вернул ошибку', [
-                    'status' => $response->status(),
-                    'body' => mb_substr((string) $response->body(), 0, 2000),
+                    'status' => $result['status'],
+                    'error' => $result['error'],
                 ]);
-                $emitError($response->status() === 429
+                $emitError($result['status'] === 429
                     ? 'Слишком много запросов, подождите немного.'
                     : 'Сервис вернул ошибку. Попробуйте ещё раз.');
-
-                return;
-            }
-
-            $body = $response->toPsrResponse()->getBody();
-            try {
-                while (! $body->eof()) {
-                    $chunk = $body->read(8192);
-                    if ($chunk === '') {
-                        usleep(20000);
-
-                        continue;
-                    }
-                    echo $chunk;
-                    flush();
-                    if (connection_aborted()) {
-                        break;
-                    }
-                }
-            } catch (Throwable $e) {
-                Log::warning('Chat: поток прервался', ['error' => $e->getMessage()]);
-                $emitError('Ответ прервался. Попробуйте ещё раз.');
-            } finally {
-                $body->close();
             }
         }, 200, [
             'Content-Type' => 'text/event-stream; charset=utf-8',
