@@ -62,8 +62,10 @@ final class TelegramBotTrialController extends Controller
                 'ok' => false,
                 'error' => 'trial_already_active',
                 'message' => $until !== null
-                    ? 'Тестовая подписка уже активна — до '.$until.'. Подключение — в Личном кабинете.'
-                    : 'Тестовая подписка уже активна. Подключение — в Личном кабинете.',
+                    ? 'Тестовая подписка уже активна — до '.$until.'.'
+                    : 'Тестовая подписка уже активна.',
+                'subscription_url' => $activeTrial->shareableSubUrl(),
+                'expires_at' => $until,
             ], 422);
         }
 
@@ -71,12 +73,13 @@ final class TelegramBotTrialController extends Controller
             ->where('user_id', $user->id)
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
-            ->exists();
-        if ($existingKey) {
+            ->first();
+        if ($existingKey !== null) {
             return response()->json([
                 'ok' => false,
                 'error' => 'trial_already_active',
-                'message' => 'Тестовый доступ уже активен. Подключение — в Личном кабинете.',
+                'message' => 'Тестовый доступ уже активен.',
+                'subscription_url' => $existingKey->shareableUrl(),
             ], 422);
         }
 
@@ -129,6 +132,7 @@ final class TelegramBotTrialController extends Controller
             'expires_at' => $expiresAt,
             'devices' => (int) $result->subscription->devices,
             'quota_gb' => max(1, (int) config('trial_subscription.quota_gb', 5)),
+            'subscription_url' => $result->subscriptionUrl,
         ]);
     }
 }

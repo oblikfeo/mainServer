@@ -908,20 +908,6 @@ bot.action(/^dv:C:([st]):(\d+)$/, async (ctx) => {
 /** @type {Set<number>} uid с выдачей триала в процессе — защита от двойного нажатия */
 const trialInFlight = new Set();
 
-async function fetchCabinetUrl(uid) {
-  const r = await apiFetch('/internal/telegram/bot/mirror', {
-    method: 'POST',
-    body: JSON.stringify({ telegram_user_id: uid }),
-  });
-  let j = {};
-  try {
-    j = await r.json();
-  } catch {
-    j = {};
-  }
-  return r.ok && j.ok && typeof j.url === 'string' ? j.url : null;
-}
-
 bot.hears('🎁 Пробный доступ', async (ctx) => {
   inSupportMode.delete(ctx.chat.id);
   const uid = ctx.from?.id;
@@ -947,6 +933,8 @@ bot.hears('🎁 Пробный доступ', async (ctx) => {
       j = {};
     }
 
+    const keyUrl = typeof j.subscription_url === 'string' && j.subscription_url !== '' ? j.subscription_url : null;
+
     if (r.ok && j.ok) {
       const parts = ['🎁 Тестовая подписка активирована!'];
       if (j.expires_at) {
@@ -962,26 +950,24 @@ bot.hears('🎁 Пробный доступ', async (ctx) => {
       if (details.length > 0) {
         parts.push(`Лимиты — ${details.join(', ')}.`);
       }
-      parts.push(
-        'Подключение: откройте Личный кабинет, там появилась ваша тестовая подписка и инструкция для приложения Happ.'
-      );
-      const url = await fetchCabinetUrl(uid);
-      if (url) {
-        await safeSendMessage(ctx.chat.id, parts.join('\n'), {
-          reply_markup: {
-            inline_keyboard: [[{ text: 'Открыть Личный кабинет', url }]],
-          },
-        });
-      } else {
-        await safeReply(ctx, parts.join('\n'), mainKeyboard());
+      if (keyUrl) {
+        parts.push('');
+        parts.push('Ваш тестовый ключ (ссылка подписки):');
+        parts.push(keyUrl);
+        parts.push('');
+        parts.push('Скопируйте ссылку и добавьте её в приложение Happ как подписку — интернет заработает сразу.');
       }
+      await safeReply(ctx, parts.join('\n'), mainKeyboard());
       return;
     }
 
-    const msg =
+    let msg =
       typeof j.message === 'string'
         ? j.message
         : 'Не удалось выдать тестовую подписку. Попробуйте позже или напишите в поддержку.';
+    if (keyUrl) {
+      msg += `\n\nВаш ключ (ссылка подписки):\n${keyUrl}`;
+    }
     await safeReply(ctx, msg, mainKeyboard());
   } catch (e) {
     console.error('trial issue', e);

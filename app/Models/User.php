@@ -130,8 +130,9 @@ class User extends Authenticatable
     }
 
     /**
-     * Можно ли запросить новый пробный доступ из ЛК: один базовый тест на аккаунт,
-     * плюс отдельные слоты referral_invitee_test_issues_remaining для приглашённых.
+     * Можно ли запросить новый пробный доступ самостоятельно (ЛК или бот):
+     * строго один тест на аккаунт, реферальные слоты повторную выдачу не дают.
+     * Повторная выдача — только вручную из админки (issueFromAdmin, без этой проверки).
      */
     public function canSelfIssueCabinetTrial(): bool
     {
@@ -144,10 +145,6 @@ class User extends Authenticatable
             ->where('expires_at', '>', now())
             ->exists()) {
             return false;
-        }
-
-        if ((int) $this->referral_invitee_test_issues_remaining > 0) {
-            return true;
         }
 
         return ! $this->hasEverUsedCabinetTrial();
