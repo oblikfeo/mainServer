@@ -66,23 +66,16 @@
             /* ======== шапка ======== */
             .lp-chat-header {
                 display: flex;
-                flex-wrap: wrap;
                 justify-content: space-between;
                 align-items: center;
-                gap: 0.6rem 0.75rem;
-                padding: 0.8rem 1rem;
+                gap: 0.75rem;
+                padding: 0.85rem 1rem;
                 border-bottom: 4px solid var(--ink);
                 flex-shrink: 0;
                 background: var(--paper);
             }
             @media (min-width: 560px) {
-                .lp-chat-header { padding: 0.95rem 1.5rem; }
-            }
-            .lp-chat-header__left {
-                display: flex;
-                align-items: center;
-                gap: 0.6rem;
-                min-width: 0;
+                .lp-chat-header { padding: 1rem 1.5rem; }
             }
             .lp-chat-header__brand {
                 font-size: 1rem;
@@ -92,39 +85,6 @@
                 color: var(--ink);
                 text-decoration: none;
                 white-space: nowrap;
-            }
-            .lp-chat-header__brand em {
-                font-style: normal;
-                color: var(--orange);
-            }
-            .lp-chat-status {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.35rem;
-                font-size: 0.625rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: #444;
-                white-space: nowrap;
-            }
-            .lp-chat-status::before {
-                content: "";
-                width: 8px;
-                height: 8px;
-                background: #1db954;
-                border: 2px solid var(--ink);
-                animation: status-pulse 2s ease-in-out infinite;
-            }
-            @keyframes status-pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.35); }
-            }
-            .lp-chat-header__right {
-                display: flex;
-                align-items: center;
-                gap: 0.6rem;
-                margin-left: auto;
             }
             .lp-chat-header__back {
                 font-size: 0.7rem;
@@ -149,48 +109,6 @@
                 transform: translate(2px, 2px);
                 box-shadow: 1px 1px 0 var(--ink);
             }
-
-            /* ======== переключатель моделей ======== */
-            .lp-chat-switch {
-                position: relative;
-                display: grid;
-                grid-template-columns: repeat({{ max(count($chatModels), 1) }}, 1fr);
-                border: 3px solid var(--ink);
-                background: var(--paper);
-                box-shadow: 4px 4px 0 var(--ink);
-                user-select: none;
-            }
-            .lp-chat-switch__thumb {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: calc(100% / {{ max(count($chatModels), 1) }});
-                height: 100%;
-                background: var(--orange);
-                border-right: 3px solid var(--ink);
-                border-left: 0 solid var(--ink);
-                transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.4, 1);
-                will-change: transform;
-            }
-            .lp-chat-switch button {
-                position: relative;
-                z-index: 1;
-                appearance: none;
-                border: none;
-                background: transparent;
-                font-family: inherit;
-                font-size: 0.7rem;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 0.06em;
-                padding: 0.55rem 0.9rem;
-                cursor: pointer;
-                color: var(--ink);
-                transition: color 0.2s ease;
-                white-space: nowrap;
-            }
-            .lp-chat-switch button.is-active { color: #fff; }
-            .lp-chat-switch button:not(.is-active):hover { color: var(--orange-dark); }
 
             /* ======== лента сообщений ======== */
             .lp-chat-messages {
@@ -225,15 +143,6 @@
             }
             .lp-chat-row--user { align-self: flex-end; align-items: flex-end; }
             .lp-chat-row--assistant { align-self: flex-start; align-items: flex-start; }
-            .lp-chat-row__label {
-                font-size: 0.55rem;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                color: #777;
-                margin-bottom: 0.3rem;
-                padding: 0 0.2rem;
-            }
             .lp-chat-msg {
                 border: 3px solid var(--ink);
                 padding: 0.75rem 0.95rem;
@@ -244,9 +153,10 @@
                 min-width: 3.5rem;
             }
             .lp-chat-row--user .lp-chat-msg {
-                background: var(--ink);
+                background: var(--orange);
                 color: #fff;
-                box-shadow: 6px 6px 0 var(--orange);
+                box-shadow: 6px 6px 0 var(--ink);
+                font-weight: 500;
             }
             .lp-chat-row--assistant .lp-chat-msg {
                 background: var(--cream);
@@ -293,24 +203,13 @@
                 padding: 0 1rem;
                 animation: msg-in 0.5s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
             }
-            .lp-chat-empty__badge {
-                display: inline-block;
-                background: var(--ink);
-                color: #fff;
-                font-size: 0.625rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                padding: 0.35rem 0.7rem;
-                margin-bottom: 1rem;
-            }
             .lp-chat-empty h1 {
                 font-size: 1.9rem;
                 line-height: 1.1;
                 font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: -0.02em;
-                margin: 0 0 0.75rem;
+                margin: 0 0 1.4rem;
             }
             @media (min-width: 560px) {
                 .lp-chat-empty h1 { font-size: 2.4rem; }
@@ -322,13 +221,6 @@
                 padding: 0 0.35rem;
                 display: inline-block;
                 transform: rotate(-1.5deg);
-            }
-            .lp-chat-empty p {
-                font-size: 0.875rem;
-                font-weight: 500;
-                color: #555;
-                margin: 0 0 1.4rem;
-                line-height: 1.5;
             }
             .lp-chat-chips {
                 display: flex;
@@ -361,11 +253,11 @@
 
             /* ======== панель ввода ======== */
             .lp-chat-inputbar {
+                position: relative;
                 border-top: 4px solid var(--ink);
                 flex-shrink: 0;
                 background: var(--paper);
-                padding: 0.85rem 1rem;
-                transition: background 0.2s ease;
+                padding: 0.9rem 1rem;
             }
             @media (min-width: 560px) {
                 .lp-chat-inputbar { padding: 1rem 1.5rem; }
@@ -373,7 +265,6 @@
             .lp-chat-inputbar__box {
                 display: flex;
                 align-items: flex-end;
-                gap: 0;
                 border: 3px solid var(--ink);
                 background: var(--paper);
                 box-shadow: 5px 5px 0 var(--ink);
@@ -398,48 +289,115 @@
                 color: var(--ink);
             }
             .lp-chat-inputbar textarea::placeholder { color: #999; font-weight: 500; }
+
+            /* кнопка выбора модели */
+            .lp-chat-modelbtn {
+                align-self: stretch;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                appearance: none;
+                background: var(--paper);
+                color: var(--ink);
+                border: none;
+                border-right: 3px solid var(--ink);
+                padding: 0 0.85rem;
+                cursor: pointer;
+                transition: background 0.15s ease, color 0.15s ease;
+            }
+            .lp-chat-modelbtn:hover { background: var(--cream); }
+            .lp-chat-modelbtn.is-open { background: var(--ink); color: #fff; }
+            .lp-chat-modelbtn svg { display: block; }
+
+            /* всплывающее окошко выбора модели */
+            .lp-chat-pop {
+                position: absolute;
+                bottom: calc(100% + 0.65rem);
+                left: 1rem;
+                min-width: 13rem;
+                background: var(--paper);
+                border: 3px solid var(--ink);
+                box-shadow: 7px 7px 0 var(--ink);
+                z-index: 20;
+                transform-origin: bottom left;
+                animation: pop-in 0.22s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+            }
+            @media (min-width: 560px) {
+                .lp-chat-pop { left: 1.5rem; }
+            }
+            @keyframes pop-in {
+                from { opacity: 0; transform: translateY(10px) scale(0.9); }
+            }
+            .lp-chat-pop__title {
+                font-size: 0.6rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.16em;
+                background: var(--ink);
+                color: #fff;
+                padding: 0.5rem 0.85rem;
+            }
+            .lp-chat-pop__item {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                width: 100%;
+                appearance: none;
+                text-align: left;
+                background: var(--paper);
+                border: none;
+                border-top: 2px solid var(--ink);
+                font-family: inherit;
+                font-size: 0.8rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--ink);
+                padding: 0.7rem 0.85rem;
+                cursor: pointer;
+                transition: background 0.15s ease, padding-left 0.15s ease;
+            }
+            .lp-chat-pop__item:first-of-type { border-top: none; }
+            .lp-chat-pop__item:hover { background: var(--cream); padding-left: 1.05rem; }
+            .lp-chat-pop__item i {
+                flex-shrink: 0;
+                width: 11px;
+                height: 11px;
+                border: 2px solid var(--ink);
+                background: var(--paper);
+                transition: background 0.15s ease, transform 0.15s ease;
+            }
+            .lp-chat-pop__item.is-active i {
+                background: var(--orange);
+                transform: rotate(45deg);
+            }
+
+            /* кнопка отправки */
             .lp-chat-send {
                 align-self: stretch;
                 background: var(--orange);
                 color: #fff;
                 border: none;
                 border-left: 3px solid var(--ink);
-                font-family: inherit;
-                font-weight: 900;
-                font-size: 1.3rem;
-                line-height: 1;
-                padding: 0 1.3rem;
+                padding: 0 1.2rem;
                 cursor: pointer;
                 transition: background 0.15s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
-            .lp-chat-send span {
-                display: inline-block;
+            .lp-chat-send svg {
+                display: block;
                 transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1);
             }
             .lp-chat-send:hover { background: var(--orange-dark); }
-            .lp-chat-send:hover span { transform: translateX(4px); }
-            .lp-chat-send:active span { transform: translateX(8px) scale(0.9); }
+            .lp-chat-send:hover svg { transform: translateX(3px) rotate(8deg); }
+            .lp-chat-send:active svg { transform: translateX(6px) scale(0.9) rotate(15deg); }
             .lp-chat-send:disabled { background: #b3b3b3; cursor: not-allowed; }
-            .lp-chat-send:disabled span { transform: none; animation: send-pulse 1s ease-in-out infinite; }
+            .lp-chat-send:disabled svg { transform: none; animation: send-pulse 1s ease-in-out infinite; }
             @keyframes send-pulse {
                 50% { opacity: 0.35; }
             }
-            .lp-chat-hint {
-                font-size: 0.625rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: #999;
-                margin: 0.55rem 0.15rem 0;
-                display: none;
-            }
-            @media (min-width: 768px) {
-                .lp-chat-hint { display: block; }
-            }
-            .lp-chat-hint b { color: #555; }
 
             @media (prefers-reduced-motion: reduce) {
                 *, *::before, *::after {
@@ -453,32 +411,13 @@
     <body class="lp-chat-body">
         <div class="lp-chat-shell">
             <header class="lp-chat-header">
-                <div class="lp-chat-header__left">
-                    <a href="{{ url('/') }}" class="lp-chat-header__brand">{{ $brand }}<em>.чат</em></a>
-                    <span class="lp-chat-status">онлайн</span>
-                </div>
-                <div class="lp-chat-header__right">
-                    <div id="chat-switch" class="lp-chat-switch" role="tablist" aria-label="Модель">
-                        <span class="lp-chat-switch__thumb"></span>
-                        @foreach ($chatModels as $key => $model)
-                            <button
-                                type="button"
-                                role="tab"
-                                data-model="{{ $key }}"
-                                aria-selected="{{ $key === $defaultModel ? 'true' : 'false' }}"
-                                class="{{ $key === $defaultModel ? 'is-active' : '' }}"
-                            >{{ $model['label'] }}</button>
-                        @endforeach
-                    </div>
-                    <a href="{{ route('dashboard') }}" class="lp-chat-header__back">Кабинет</a>
-                </div>
+                <a href="{{ url('/') }}" class="lp-chat-header__brand">{{ $brand }}</a>
+                <a href="{{ route('dashboard') }}" class="lp-chat-header__back">Кабинет</a>
             </header>
 
             <main id="chat-messages" class="lp-chat-messages" aria-live="polite">
                 <div id="chat-empty" class="lp-chat-empty">
-                    <div class="lp-chat-empty__badge">ассистент на связи</div>
                     <h1>Чем <em>помочь?</em></h1>
-                    <p>Любой вопрос — ответ появится здесь. История хранится только в этой вкладке.</p>
                     <div class="lp-chat-chips">
                         <button type="button" class="lp-chat-chip" data-prompt="Объясни простыми словами, как работает ">Объясни просто…</button>
                         <button type="button" class="lp-chat-chip" data-prompt="Напиши короткий текст на тему ">Напиши текст…</button>
@@ -488,7 +427,32 @@
             </main>
 
             <div class="lp-chat-inputbar">
+                <div id="model-pop" class="lp-chat-pop" hidden>
+                    <div class="lp-chat-pop__title">Модель</div>
+                    @foreach ($chatModels as $key => $model)
+                        <button
+                            type="button"
+                            data-model="{{ $key }}"
+                            class="lp-chat-pop__item {{ $key === $defaultModel ? 'is-active' : '' }}"
+                        ><i></i>{{ $model['label'] }}</button>
+                    @endforeach
+                </div>
+
                 <form id="chat-form" class="lp-chat-inputbar__box">
+                    <button
+                        type="button"
+                        id="model-trigger"
+                        class="lp-chat-modelbtn"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        title="Выбрать модель"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square">
+                            <rect x="5" y="5" width="14" height="14"/>
+                            <rect x="9.6" y="9.6" width="4.8" height="4.8"/>
+                            <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>
+                        </svg>
+                    </button>
                     <textarea
                         id="chat-input"
                         rows="1"
@@ -497,10 +461,11 @@
                         autofocus
                     ></textarea>
                     <button id="chat-send" type="submit" class="lp-chat-send" aria-label="Отправить">
-                        <span>→</span>
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.6 21.2 22.8 12 2.6 2.8l-.01 7.16L15.4 12 2.59 14.04z"/>
+                        </svg>
                     </button>
                 </form>
-                <p class="lp-chat-hint"><b>Enter</b> — отправить · <b>Shift+Enter</b> — новая строка</p>
             </div>
         </div>
 
@@ -516,46 +481,58 @@
                 var formEl = document.getElementById('chat-form');
                 var inputEl = document.getElementById('chat-input');
                 var sendEl = document.getElementById('chat-send');
-                var switchEl = document.getElementById('chat-switch');
-                var thumbEl = switchEl.querySelector('.lp-chat-switch__thumb');
-                var modelButtons = Array.prototype.slice.call(switchEl.querySelectorAll('button[data-model]'));
+                var popEl = document.getElementById('model-pop');
+                var triggerEl = document.getElementById('model-trigger');
+                var popItems = Array.prototype.slice.call(popEl.querySelectorAll('button[data-model]'));
 
                 var history = [];
                 var busy = false;
                 var currentModel = @json($defaultModel);
 
-                /* --- переключатель моделей --- */
+                /* --- выбор модели --- */
                 function setModel(key) {
                     currentModel = key;
-                    modelButtons.forEach(function (btn, i) {
-                        var active = btn.dataset.model === key;
-                        btn.classList.toggle('is-active', active);
-                        btn.setAttribute('aria-selected', active ? 'true' : 'false');
-                        if (active) {
-                            thumbEl.style.transform = 'translateX(' + (i * 100) + '%)';
-                        }
+                    popItems.forEach(function (btn) {
+                        btn.classList.toggle('is-active', btn.dataset.model === key);
                     });
                 }
-                modelButtons.forEach(function (btn) {
-                    btn.addEventListener('click', function () { setModel(btn.dataset.model); });
+                function openPop() {
+                    popEl.hidden = false;
+                    triggerEl.classList.add('is-open');
+                    triggerEl.setAttribute('aria-expanded', 'true');
+                }
+                function closePop() {
+                    popEl.hidden = true;
+                    triggerEl.classList.remove('is-open');
+                    triggerEl.setAttribute('aria-expanded', 'false');
+                }
+                triggerEl.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    popEl.hidden ? openPop() : closePop();
                 });
-                setModel(currentModel);
+                popItems.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        setModel(btn.dataset.model);
+                        closePop();
+                        inputEl.focus();
+                    });
+                });
+                document.addEventListener('click', function (e) {
+                    if (!popEl.hidden && !popEl.contains(e.target)) closePop();
+                });
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closePop();
+                });
 
                 /* --- лента --- */
                 function scrollDown() {
                     messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
                 }
 
-                function addRow(kind, label) {
+                function addRow(kind) {
                     if (emptyEl) { emptyEl.remove(); emptyEl = null; }
                     var row = document.createElement('div');
                     row.className = 'lp-chat-row lp-chat-row--' + kind;
-                    if (label) {
-                        var lab = document.createElement('div');
-                        lab.className = 'lp-chat-row__label';
-                        lab.textContent = label;
-                        row.appendChild(lab);
-                    }
                     var msg = document.createElement('div');
                     msg.className = 'lp-chat-msg';
                     row.appendChild(msg);
@@ -564,8 +541,8 @@
                     return { row: row, msg: msg };
                 }
 
-                function addText(kind, label, text) {
-                    var b = addRow(kind, label);
+                function addText(kind, text) {
+                    var b = addRow(kind);
                     b.msg.textContent = text;
                     scrollDown();
                     return b;
@@ -623,9 +600,9 @@
                 async function send(text) {
                     setBusy(true);
                     history.push({ role: 'user', content: text });
-                    addText('user', 'Вы', text);
+                    addText('user', text);
 
-                    var bubble = addRow('assistant', 'Ассистент');
+                    var bubble = addRow('assistant');
                     bubble.msg.appendChild(typingDots());
                     var answer = '';
                     var failed = null;
@@ -681,11 +658,11 @@
 
                     if (answer !== '') {
                         history.push({ role: 'assistant', content: answer });
-                        if (failed) addText('error', null, 'Ответ мог прерваться: ' + failed);
+                        if (failed) addText('error', 'Ответ мог прерваться: ' + failed);
                     } else {
                         bubble.row.remove();
                         history.pop();
-                        addText('error', null, failed || 'Пустой ответ. Попробуйте ещё раз.');
+                        addText('error', failed || 'Пустой ответ. Попробуйте ещё раз.');
                     }
 
                     setBusy(false);
