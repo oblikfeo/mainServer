@@ -41,7 +41,8 @@ return [
         'gpt' => [
             'label' => 'GPT Mini',
             'provider' => 'openai',
-            'model' => env('OPENAI_MODEL', 'gpt-5-mini'),
+            // gpt-5-mini требует верификации организации OpenAI; 4.1-mini — нет
+            'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
         ],
     ],
     'default_model' => env('CHAT_DEFAULT_MODEL', 'sonnet'),
