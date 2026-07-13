@@ -89,6 +89,23 @@
                 white-space: nowrap;
             }
             .lp-chat-header__back:hover { background: #111; color: #fff; }
+            .lp-chat-model {
+                border: 2px solid #111;
+                background: #fff;
+                color: #111;
+                font-family: inherit;
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                padding: 0.4rem 0.5rem;
+                cursor: pointer;
+                appearance: none;
+                -webkit-appearance: none;
+                border-radius: 0;
+                max-width: 9.5rem;
+            }
+            .lp-chat-model:hover { background: #fffde7; }
             .lp-chat-messages {
                 flex: 1;
                 overflow-y: auto;
@@ -202,7 +219,11 @@
         <div class="lp-chat-shell">
             <header class="lp-chat-header">
                 <a href="{{ url('/') }}" class="lp-chat-header__brand">{{ $brand }}</a>
-                <span class="lp-chat-header__tag">Чат</span>
+                <select id="chat-model" class="lp-chat-model" aria-label="Модель">
+                    @foreach (config('chat.models') as $key => $model)
+                        <option value="{{ $key }}" @selected($key === config('chat.default_model'))>{{ $model['label'] }}</option>
+                    @endforeach
+                </select>
                 <a href="{{ route('dashboard') }}" class="lp-chat-header__back">Кабинет</a>
             </header>
 
@@ -232,6 +253,7 @@
                 var endpoint = @json(route('chat.message'));
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
 
+                var modelEl = document.getElementById('chat-model');
                 var messagesEl = document.getElementById('chat-messages');
                 var emptyEl = document.getElementById('chat-empty');
                 var formEl = document.getElementById('chat-form');
@@ -304,7 +326,7 @@
                                 'Accept': 'text/event-stream',
                                 'X-CSRF-TOKEN': csrf
                             },
-                            body: JSON.stringify({ messages: history })
+                            body: JSON.stringify({ model: modelEl.value, messages: history })
                         });
 
                         if (!response.ok || !response.body) {
@@ -330,12 +352,8 @@
 
                                     if (evt.event === 'chat_error') {
                                         failed = evt.data.message || 'Ошибка сервиса.';
-                                    } else if (evt.event === 'error') {
-                                        failed = 'Сервис вернул ошибку. Попробуйте ещё раз.';
-                                    } else if (evt.event === 'content_block_delta'
-                                        && evt.data.delta
-                                        && evt.data.delta.type === 'text_delta') {
-                                        answer += evt.data.delta.text;
+                                    } else if (evt.event === 'delta' && typeof evt.data.text === 'string') {
+                                        answer += evt.data.text;
                                         bubble.textContent = answer;
                                         scrollDown();
                                     }

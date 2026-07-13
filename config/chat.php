@@ -25,9 +25,26 @@ return [
     // Доступ к API Anthropic
     'api_key' => env('ANTHROPIC_API_KEY', ''),
     'base_url' => env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com'),
-    'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-5'),
-    // Прокси для исходящих запросов (пусто — напрямую)
+    // Доступ к API OpenAI
+    'openai_api_key' => env('OPENAI_API_KEY', ''),
+    'openai_base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com'),
+    // Прокси для исходящих запросов к обоим API (пусто — напрямую)
     'proxy' => env('ANTHROPIC_PROXY', ''),
+
+    // Модели, доступные в селекторе на странице чата
+    'models' => [
+        'sonnet' => [
+            'label' => 'Sonnet',
+            'provider' => 'anthropic',
+            'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-5'),
+        ],
+        'gpt' => [
+            'label' => 'GPT Mini',
+            'provider' => 'openai',
+            'model' => env('OPENAI_MODEL', 'gpt-5-mini'),
+        ],
+    ],
+    'default_model' => env('CHAT_DEFAULT_MODEL', 'sonnet'),
 
     // Параметры генерации
     'max_tokens' => (int) env('CHAT_MAX_TOKENS', 2048),

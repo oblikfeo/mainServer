@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Chat\AnthropicClient;
+use App\Services\Chat\ChatStreamer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
 class ChatController extends Controller
 {
-    public function __construct(private readonly AnthropicClient $anthropic)
+    public function __construct(private readonly ChatStreamer $streamer)
     {
     }
 
@@ -19,57 +20,67 @@ class ChatController extends Controller
         return view('chat');
     }
 
-    /** Принимает историю диалога и проксирует SSE-поток ответа модели клиенту. */
+    /**
+     * Принимает историю диалога и стримит ответ модели клиенту единым SSE:
+     * event delta {text}, event chat_error {message}, event done.
+     */
     public function message(Request $request): StreamedResponse
     {
         $validated = $request->validate([
+            'model' => ['nullable', 'string', Rule::in(array_keys((array) config('chat.models')))],
             'messages' => ['required', 'array', 'min:1'],
             'messages.*.role' => ['required', 'in:user,assistant'],
             'messages.*.content' => ['required', 'string'],
         ]);
 
+        $modelKey = $validated['model'] ?? (string) config('chat.default_model');
         $messages = $this->normalizeHistory($validated['messages']);
 
-        return response()->stream(function () use ($messages): void {
+        return response()->stream(function () use ($modelKey, $messages): void {
             @set_time_limit(0);
             while (ob_get_level() > 0) {
                 @ob_end_flush();
             }
 
-            $emitError = function (string $text): void {
-                echo "event: chat_error\ndata: ".json_encode(['message' => $text], JSON_UNESCAPED_UNICODE)."\n\n";
+            $emit = function (string $event, array $data): void {
+                echo "event: {$event}\ndata: ".json_encode($data, JSON_UNESCAPED_UNICODE)."\n\n";
                 flush();
             };
 
-            if (! $this->anthropic->isConfigured()) {
-                $emitError('Чат временно недоступен: сервис не настроен.');
-
-                return;
-            }
-
             try {
-                $result = $this->anthropic->streamMessage($messages, function (string $chunk): bool {
-                    echo $chunk;
-                    flush();
+                $result = $this->streamer->stream($modelKey, $messages, function (string $text) use ($emit): bool {
+                    $emit('delta', ['text' => $text]);
 
                     return ! connection_aborted();
                 });
             } catch (Throwable $e) {
-                Log::error('Chat: не удалось выполнить запрос к API', ['error' => $e->getMessage()]);
-                $emitError('Не удалось связаться с сервисом. Попробуйте ещё раз.');
+                Log::error('Chat: не удалось выполнить запрос к API', ['model' => $modelKey, 'error' => $e->getMessage()]);
+                $emit('chat_error', ['message' => 'Не удалось связаться с сервисом. Попробуйте ещё раз.']);
 
                 return;
             }
 
-            if (! $result['ok'] && ! $result['aborted']) {
-                Log::error('Chat: API вернул ошибку', [
-                    'status' => $result['status'],
-                    'error' => $result['error'],
-                ]);
-                $emitError($result['status'] === 429
-                    ? 'Слишком много запросов, подождите немного.'
-                    : 'Сервис вернул ошибку. Попробуйте ещё раз.');
+            if ($result['ok']) {
+                $emit('done', []);
+
+                return;
             }
+
+            if ($result['aborted']) {
+                return;
+            }
+
+            Log::error('Chat: API вернул ошибку', [
+                'model' => $modelKey,
+                'status' => $result['status'],
+                'error' => $result['error'],
+            ]);
+
+            $emit('chat_error', ['message' => match (true) {
+                $result['error'] === 'not_configured' => 'Эта модель пока не настроена.',
+                $result['status'] === 429 => 'Слишком много запросов, подождите немного.',
+                default => 'Сервис вернул ошибку. Попробуйте ещё раз.',
+            }]);
         }, 200, [
             'Content-Type' => 'text/event-stream; charset=utf-8',
             'Cache-Control' => 'no-cache, no-transform',
