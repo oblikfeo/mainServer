@@ -1,5 +1,7 @@
 @php
     $brand = config('marketing.brand_name', 'Надежда');
+    $chatModels = (array) config('chat.models');
+    $defaultModel = (string) config('chat.default_model');
 @endphp
 
 <!DOCTYPE html>
@@ -12,6 +14,14 @@
         <title>{{ $brand }} — чат</title>
         @include('partials.favicon')
         <style>
+            :root {
+                --ink: #111;
+                --orange: #FF4500;
+                --orange-dark: #E03E00;
+                --paper: #fff;
+                --cream: #fffde7;
+            }
+            * { box-sizing: border-box; }
             .lp-chat-body {
                 background-color: #f4f4f4;
                 background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
@@ -20,7 +30,7 @@
                 min-height: 100vh;
                 min-height: 100dvh;
                 font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-                color: #111;
+                color: var(--ink);
                 display: flex;
                 justify-content: center;
                 align-items: stretch;
@@ -29,154 +39,349 @@
             @media (min-width: 768px) {
                 .lp-chat-body { padding: 2rem; }
             }
+
+            /* ======== каркас ======== */
             .lp-chat-shell {
-                background: #fff;
+                background: var(--paper);
                 width: 100%;
-                max-width: 800px;
-                border: 4px solid #111;
+                max-width: 820px;
+                border: 4px solid var(--ink);
                 display: flex;
                 flex-direction: column;
                 height: 100vh;
                 height: 100dvh;
                 overflow: hidden;
+                animation: shell-in 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
             }
             @media (min-width: 768px) {
                 .lp-chat-shell {
-                    box-shadow: 15px 15px 0 #111;
+                    box-shadow: 15px 15px 0 var(--ink);
                     height: calc(100vh - 4rem);
                 }
             }
+            @keyframes shell-in {
+                from { opacity: 0; transform: translateY(18px) scale(0.985); box-shadow: 0 0 0 var(--ink); }
+            }
+
+            /* ======== шапка ======== */
             .lp-chat-header {
                 display: flex;
+                flex-wrap: wrap;
                 justify-content: space-between;
                 align-items: center;
-                gap: 0.75rem;
-                padding: 0.85rem 1rem;
-                border-bottom: 4px solid #111;
+                gap: 0.6rem 0.75rem;
+                padding: 0.8rem 1rem;
+                border-bottom: 4px solid var(--ink);
                 flex-shrink: 0;
+                background: var(--paper);
             }
-            @media (min-width: 480px) {
-                .lp-chat-header { padding: 1rem 1.5rem; }
+            @media (min-width: 560px) {
+                .lp-chat-header { padding: 0.95rem 1.5rem; }
+            }
+            .lp-chat-header__left {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                min-width: 0;
             }
             .lp-chat-header__brand {
                 font-size: 1rem;
                 font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
-                color: #111;
+                color: var(--ink);
                 text-decoration: none;
                 white-space: nowrap;
             }
-            .lp-chat-header__tag {
-                display: inline-block;
-                background: #111;
-                color: #fff;
-                font-size: 0.6875rem;
+            .lp-chat-header__brand em {
+                font-style: normal;
+                color: var(--orange);
+            }
+            .lp-chat-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                font-size: 0.625rem;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.06em;
-                padding: 0.3rem 0.55rem;
+                letter-spacing: 0.08em;
+                color: #444;
+                white-space: nowrap;
+            }
+            .lp-chat-status::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                background: #1db954;
+                border: 2px solid var(--ink);
+                animation: status-pulse 2s ease-in-out infinite;
+            }
+            @keyframes status-pulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.35); }
+            }
+            .lp-chat-header__right {
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                margin-left: auto;
             }
             .lp-chat-header__back {
-                font-size: 0.75rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                border: 2px solid #111;
-                padding: 0.45rem 0.8rem;
-                text-decoration: none;
-                color: #111;
-                transition: background 0.2s, color 0.2s;
-                white-space: nowrap;
-            }
-            .lp-chat-header__back:hover { background: #111; color: #fff; }
-            .lp-chat-model {
-                border: 2px solid #111;
-                background: #fff;
-                color: #111;
-                font-family: inherit;
-                font-size: 0.75rem;
-                font-weight: 700;
+                font-size: 0.7rem;
+                font-weight: 900;
                 text-transform: uppercase;
                 letter-spacing: 0.04em;
-                padding: 0.4rem 0.5rem;
-                cursor: pointer;
-                appearance: none;
-                -webkit-appearance: none;
-                border-radius: 0;
-                max-width: 9.5rem;
+                border: 3px solid var(--ink);
+                padding: 0.5rem 0.8rem;
+                text-decoration: none;
+                color: var(--ink);
+                background: var(--paper);
+                box-shadow: 4px 4px 0 var(--ink);
+                transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+                white-space: nowrap;
             }
-            .lp-chat-model:hover { background: #fffde7; }
+            .lp-chat-header__back:hover {
+                transform: translate(-2px, -2px);
+                box-shadow: 6px 6px 0 var(--ink);
+                background: var(--cream);
+            }
+            .lp-chat-header__back:active {
+                transform: translate(2px, 2px);
+                box-shadow: 1px 1px 0 var(--ink);
+            }
+
+            /* ======== переключатель моделей ======== */
+            .lp-chat-switch {
+                position: relative;
+                display: grid;
+                grid-template-columns: repeat({{ max(count($chatModels), 1) }}, 1fr);
+                border: 3px solid var(--ink);
+                background: var(--paper);
+                box-shadow: 4px 4px 0 var(--ink);
+                user-select: none;
+            }
+            .lp-chat-switch__thumb {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: calc(100% / {{ max(count($chatModels), 1) }});
+                height: 100%;
+                background: var(--orange);
+                border-right: 3px solid var(--ink);
+                border-left: 0 solid var(--ink);
+                transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.4, 1);
+                will-change: transform;
+            }
+            .lp-chat-switch button {
+                position: relative;
+                z-index: 1;
+                appearance: none;
+                border: none;
+                background: transparent;
+                font-family: inherit;
+                font-size: 0.7rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                padding: 0.55rem 0.9rem;
+                cursor: pointer;
+                color: var(--ink);
+                transition: color 0.2s ease;
+                white-space: nowrap;
+            }
+            .lp-chat-switch button.is-active { color: #fff; }
+            .lp-chat-switch button:not(.is-active):hover { color: var(--orange-dark); }
+
+            /* ======== лента сообщений ======== */
             .lp-chat-messages {
                 flex: 1;
                 overflow-y: auto;
-                padding: 1.1rem 1rem;
+                padding: 1.25rem 1rem 1.5rem;
                 display: flex;
                 flex-direction: column;
-                gap: 0.85rem;
-                scroll-behavior: smooth;
+                gap: 1rem;
             }
-            @media (min-width: 480px) {
-                .lp-chat-messages { padding: 1.35rem 1.5rem; }
+            @media (min-width: 560px) {
+                .lp-chat-messages { padding: 1.5rem 1.75rem 1.75rem; }
+            }
+            .lp-chat-messages::-webkit-scrollbar { width: 10px; }
+            .lp-chat-messages::-webkit-scrollbar-track { background: #f1f1f1; }
+            .lp-chat-messages::-webkit-scrollbar-thumb {
+                background: var(--ink);
+                border: 2px solid #f1f1f1;
+            }
+
+            .lp-chat-row {
+                display: flex;
+                flex-direction: column;
+                max-width: 86%;
+                animation: msg-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+            }
+            @media (min-width: 560px) {
+                .lp-chat-row { max-width: 78%; }
+            }
+            @keyframes msg-in {
+                from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            }
+            .lp-chat-row--user { align-self: flex-end; align-items: flex-end; }
+            .lp-chat-row--assistant { align-self: flex-start; align-items: flex-start; }
+            .lp-chat-row__label {
+                font-size: 0.55rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                color: #777;
+                margin-bottom: 0.3rem;
+                padding: 0 0.2rem;
             }
             .lp-chat-msg {
-                max-width: 88%;
-                border: 3px solid #111;
-                padding: 0.7rem 0.9rem;
+                border: 3px solid var(--ink);
+                padding: 0.75rem 0.95rem;
                 font-size: 0.9375rem;
                 line-height: 1.55;
                 white-space: pre-wrap;
                 overflow-wrap: break-word;
+                min-width: 3.5rem;
             }
-            @media (min-width: 480px) {
-                .lp-chat-msg { max-width: 80%; }
-            }
-            .lp-chat-msg--user {
-                align-self: flex-end;
-                background: #111;
+            .lp-chat-row--user .lp-chat-msg {
+                background: var(--ink);
                 color: #fff;
-                box-shadow: 5px 5px 0 rgba(17, 17, 17, 0.25);
+                box-shadow: 6px 6px 0 var(--orange);
             }
-            .lp-chat-msg--assistant {
-                align-self: flex-start;
-                background: #fffde7;
-                box-shadow: 5px 5px 0 #111;
+            .lp-chat-row--assistant .lp-chat-msg {
+                background: var(--cream);
+                box-shadow: 6px 6px 0 var(--ink);
             }
-            .lp-chat-msg--error {
-                align-self: flex-start;
-                background: #fff;
-                border-color: #FF4500;
+            .lp-chat-row--error .lp-chat-msg {
+                background: var(--paper);
+                border-color: var(--orange);
                 color: #b53000;
                 font-weight: 700;
-                box-shadow: 5px 5px 0 #FF4500;
+                box-shadow: 6px 6px 0 var(--orange);
             }
+
+            /* индикатор набора: прыгающие квадраты */
+            .lp-chat-dots {
+                display: inline-flex;
+                gap: 5px;
+                padding: 0.2rem 0;
+            }
+            .lp-chat-dots i {
+                width: 9px;
+                height: 9px;
+                background: var(--ink);
+                animation: dot-jump 0.9s ease-in-out infinite;
+            }
+            .lp-chat-dots i:nth-child(2) { animation-delay: 0.12s; background: var(--orange); }
+            .lp-chat-dots i:nth-child(3) { animation-delay: 0.24s; }
+            @keyframes dot-jump {
+                0%, 60%, 100% { transform: translateY(0); }
+                30% { transform: translateY(-7px) rotate(45deg); }
+            }
+            .lp-chat-cursor::after {
+                content: "▌";
+                color: var(--orange);
+                animation: cursor-blink 0.9s steps(1) infinite;
+            }
+            @keyframes cursor-blink { 50% { opacity: 0; } }
+
+            /* ======== пустое состояние ======== */
             .lp-chat-empty {
                 margin: auto;
                 text-align: center;
-                color: #666;
-                font-size: 0.875rem;
-                font-weight: 500;
-                max-width: 26rem;
+                max-width: 30rem;
                 padding: 0 1rem;
+                animation: msg-in 0.5s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
             }
-            .lp-chat-empty strong {
-                display: block;
-                color: #111;
+            .lp-chat-empty__badge {
+                display: inline-block;
+                background: var(--ink);
+                color: #fff;
+                font-size: 0.625rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                padding: 0.35rem 0.7rem;
+                margin-bottom: 1rem;
+            }
+            .lp-chat-empty h1 {
+                font-size: 1.9rem;
+                line-height: 1.1;
                 font-weight: 900;
                 text-transform: uppercase;
-                font-size: 1.05rem;
-                margin-bottom: 0.4rem;
+                letter-spacing: -0.02em;
+                margin: 0 0 0.75rem;
             }
-            .lp-chat-typing::after {
-                content: "▌";
-                animation: lp-chat-blink 1s steps(1) infinite;
+            @media (min-width: 560px) {
+                .lp-chat-empty h1 { font-size: 2.4rem; }
             }
-            @keyframes lp-chat-blink { 50% { opacity: 0; } }
-            .lp-chat-inputbar {
+            .lp-chat-empty h1 em {
+                font-style: normal;
+                background: var(--orange);
+                color: #fff;
+                padding: 0 0.35rem;
+                display: inline-block;
+                transform: rotate(-1.5deg);
+            }
+            .lp-chat-empty p {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: #555;
+                margin: 0 0 1.4rem;
+                line-height: 1.5;
+            }
+            .lp-chat-chips {
                 display: flex;
-                align-items: stretch;
-                border-top: 4px solid #111;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.6rem;
+            }
+            .lp-chat-chip {
+                appearance: none;
+                font-family: inherit;
+                font-size: 0.75rem;
+                font-weight: 700;
+                border: 3px solid var(--ink);
+                background: var(--paper);
+                color: var(--ink);
+                padding: 0.55rem 0.85rem;
+                cursor: pointer;
+                box-shadow: 4px 4px 0 var(--ink);
+                transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            }
+            .lp-chat-chip:hover {
+                transform: translate(-2px, -2px);
+                box-shadow: 6px 6px 0 var(--ink);
+                background: var(--cream);
+            }
+            .lp-chat-chip:active {
+                transform: translate(2px, 2px);
+                box-shadow: 1px 1px 0 var(--ink);
+            }
+
+            /* ======== панель ввода ======== */
+            .lp-chat-inputbar {
+                border-top: 4px solid var(--ink);
                 flex-shrink: 0;
-                background: #fff;
+                background: var(--paper);
+                padding: 0.85rem 1rem;
+                transition: background 0.2s ease;
+            }
+            @media (min-width: 560px) {
+                .lp-chat-inputbar { padding: 1rem 1.5rem; }
+            }
+            .lp-chat-inputbar__box {
+                display: flex;
+                align-items: flex-end;
+                gap: 0;
+                border: 3px solid var(--ink);
+                background: var(--paper);
+                box-shadow: 5px 5px 0 var(--ink);
+                transition: box-shadow 0.2s ease, transform 0.2s ease;
+            }
+            .lp-chat-inputbar__box:focus-within {
+                box-shadow: 7px 7px 0 var(--orange);
+                transform: translate(-1px, -1px);
             }
             .lp-chat-inputbar textarea {
                 flex: 1;
@@ -185,65 +390,118 @@
                 resize: none;
                 font-family: inherit;
                 font-size: 1rem;
-                line-height: 1.45;
-                padding: 0.95rem 1rem;
-                max-height: 9.5rem;
+                line-height: 1.5;
+                padding: 0.8rem 0.95rem;
+                height: 3.1rem;
+                max-height: 10rem;
                 background: transparent;
-                color: #111;
+                color: var(--ink);
             }
-            @media (min-width: 480px) {
-                .lp-chat-inputbar textarea { padding: 1.05rem 1.5rem; }
-            }
+            .lp-chat-inputbar textarea::placeholder { color: #999; font-weight: 500; }
             .lp-chat-send {
-                background: #FF4500;
+                align-self: stretch;
+                background: var(--orange);
                 color: #fff;
                 border: none;
-                border-left: 4px solid #111;
+                border-left: 3px solid var(--ink);
                 font-family: inherit;
                 font-weight: 900;
-                font-size: 0.875rem;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-                padding: 0 1.25rem;
+                font-size: 1.3rem;
+                line-height: 1;
+                padding: 0 1.3rem;
                 cursor: pointer;
-                transition: background 0.2s;
+                transition: background 0.15s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
-            @media (min-width: 480px) {
-                .lp-chat-send { padding: 0 1.9rem; font-size: 0.9375rem; }
+            .lp-chat-send span {
+                display: inline-block;
+                transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1);
             }
-            .lp-chat-send:hover { background: #E03E00; }
-            .lp-chat-send:disabled { background: #999; cursor: not-allowed; }
+            .lp-chat-send:hover { background: var(--orange-dark); }
+            .lp-chat-send:hover span { transform: translateX(4px); }
+            .lp-chat-send:active span { transform: translateX(8px) scale(0.9); }
+            .lp-chat-send:disabled { background: #b3b3b3; cursor: not-allowed; }
+            .lp-chat-send:disabled span { transform: none; animation: send-pulse 1s ease-in-out infinite; }
+            @keyframes send-pulse {
+                50% { opacity: 0.35; }
+            }
+            .lp-chat-hint {
+                font-size: 0.625rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #999;
+                margin: 0.55rem 0.15rem 0;
+                display: none;
+            }
+            @media (min-width: 768px) {
+                .lp-chat-hint { display: block; }
+            }
+            .lp-chat-hint b { color: #555; }
+
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
         </style>
     </head>
     <body class="lp-chat-body">
         <div class="lp-chat-shell">
             <header class="lp-chat-header">
-                <a href="{{ url('/') }}" class="lp-chat-header__brand">{{ $brand }}</a>
-                <select id="chat-model" class="lp-chat-model" aria-label="Модель">
-                    @foreach (config('chat.models') as $key => $model)
-                        <option value="{{ $key }}" @selected($key === config('chat.default_model'))>{{ $model['label'] }}</option>
-                    @endforeach
-                </select>
-                <a href="{{ route('dashboard') }}" class="lp-chat-header__back">Кабинет</a>
+                <div class="lp-chat-header__left">
+                    <a href="{{ url('/') }}" class="lp-chat-header__brand">{{ $brand }}<em>.чат</em></a>
+                    <span class="lp-chat-status">онлайн</span>
+                </div>
+                <div class="lp-chat-header__right">
+                    <div id="chat-switch" class="lp-chat-switch" role="tablist" aria-label="Модель">
+                        <span class="lp-chat-switch__thumb"></span>
+                        @foreach ($chatModels as $key => $model)
+                            <button
+                                type="button"
+                                role="tab"
+                                data-model="{{ $key }}"
+                                aria-selected="{{ $key === $defaultModel ? 'true' : 'false' }}"
+                                class="{{ $key === $defaultModel ? 'is-active' : '' }}"
+                            >{{ $model['label'] }}</button>
+                        @endforeach
+                    </div>
+                    <a href="{{ route('dashboard') }}" class="lp-chat-header__back">Кабинет</a>
+                </div>
             </header>
 
             <main id="chat-messages" class="lp-chat-messages" aria-live="polite">
                 <div id="chat-empty" class="lp-chat-empty">
-                    <strong>Чем помочь?</strong>
-                    Задайте любой вопрос — ассистент ответит здесь. История хранится только в этой вкладке.
+                    <div class="lp-chat-empty__badge">ассистент на связи</div>
+                    <h1>Чем <em>помочь?</em></h1>
+                    <p>Любой вопрос — ответ появится здесь. История хранится только в этой вкладке.</p>
+                    <div class="lp-chat-chips">
+                        <button type="button" class="lp-chat-chip" data-prompt="Объясни простыми словами, как работает ">Объясни просто…</button>
+                        <button type="button" class="lp-chat-chip" data-prompt="Напиши короткий текст на тему ">Напиши текст…</button>
+                        <button type="button" class="lp-chat-chip" data-prompt="Помоги разобраться с кодом: ">Помоги с кодом…</button>
+                    </div>
                 </div>
             </main>
 
-            <form id="chat-form" class="lp-chat-inputbar">
-                <textarea
-                    id="chat-input"
-                    rows="1"
-                    placeholder="Напишите сообщение…"
-                    autocomplete="off"
-                    autofocus
-                ></textarea>
-                <button id="chat-send" type="submit" class="lp-chat-send">Отправить</button>
-            </form>
+            <div class="lp-chat-inputbar">
+                <form id="chat-form" class="lp-chat-inputbar__box">
+                    <textarea
+                        id="chat-input"
+                        rows="1"
+                        placeholder="Напишите сообщение…"
+                        autocomplete="off"
+                        autofocus
+                    ></textarea>
+                    <button id="chat-send" type="submit" class="lp-chat-send" aria-label="Отправить">
+                        <span>→</span>
+                    </button>
+                </form>
+                <p class="lp-chat-hint"><b>Enter</b> — отправить · <b>Shift+Enter</b> — новая строка</p>
+            </div>
         </div>
 
         <script>
@@ -253,33 +511,79 @@
                 var endpoint = @json(route('chat.message'));
                 var csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-                var modelEl = document.getElementById('chat-model');
                 var messagesEl = document.getElementById('chat-messages');
                 var emptyEl = document.getElementById('chat-empty');
                 var formEl = document.getElementById('chat-form');
                 var inputEl = document.getElementById('chat-input');
                 var sendEl = document.getElementById('chat-send');
+                var switchEl = document.getElementById('chat-switch');
+                var thumbEl = switchEl.querySelector('.lp-chat-switch__thumb');
+                var modelButtons = Array.prototype.slice.call(switchEl.querySelectorAll('button[data-model]'));
 
                 var history = [];
                 var busy = false;
+                var currentModel = @json($defaultModel);
 
+                /* --- переключатель моделей --- */
+                function setModel(key) {
+                    currentModel = key;
+                    modelButtons.forEach(function (btn, i) {
+                        var active = btn.dataset.model === key;
+                        btn.classList.toggle('is-active', active);
+                        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+                        if (active) {
+                            thumbEl.style.transform = 'translateX(' + (i * 100) + '%)';
+                        }
+                    });
+                }
+                modelButtons.forEach(function (btn) {
+                    btn.addEventListener('click', function () { setModel(btn.dataset.model); });
+                });
+                setModel(currentModel);
+
+                /* --- лента --- */
                 function scrollDown() {
-                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                    messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
                 }
 
-                function addBubble(kind, text) {
+                function addRow(kind, label) {
                     if (emptyEl) { emptyEl.remove(); emptyEl = null; }
-                    var el = document.createElement('div');
-                    el.className = 'lp-chat-msg lp-chat-msg--' + kind;
-                    el.textContent = text;
-                    messagesEl.appendChild(el);
+                    var row = document.createElement('div');
+                    row.className = 'lp-chat-row lp-chat-row--' + kind;
+                    if (label) {
+                        var lab = document.createElement('div');
+                        lab.className = 'lp-chat-row__label';
+                        lab.textContent = label;
+                        row.appendChild(lab);
+                    }
+                    var msg = document.createElement('div');
+                    msg.className = 'lp-chat-msg';
+                    row.appendChild(msg);
+                    messagesEl.appendChild(row);
                     scrollDown();
-                    return el;
+                    return { row: row, msg: msg };
                 }
 
+                function addText(kind, label, text) {
+                    var b = addRow(kind, label);
+                    b.msg.textContent = text;
+                    scrollDown();
+                    return b;
+                }
+
+                function typingDots() {
+                    var dots = document.createElement('span');
+                    dots.className = 'lp-chat-dots';
+                    dots.innerHTML = '<i></i><i></i><i></i>';
+                    return dots;
+                }
+
+                /* --- поле ввода: рост без скачков --- */
+                var baseHeight = inputEl.offsetHeight;
                 function autoGrow() {
-                    inputEl.style.height = 'auto';
-                    inputEl.style.height = Math.min(inputEl.scrollHeight, 152) + 'px';
+                    inputEl.style.height = '0px';
+                    var needed = Math.min(Math.max(inputEl.scrollHeight, baseHeight), 160);
+                    inputEl.style.height = needed + 'px';
                 }
                 inputEl.addEventListener('input', autoGrow);
 
@@ -290,12 +594,21 @@
                     }
                 });
 
+                /* --- чипы-подсказки --- */
+                Array.prototype.slice.call(document.querySelectorAll('.lp-chat-chip')).forEach(function (chip) {
+                    chip.addEventListener('click', function () {
+                        inputEl.value = chip.dataset.prompt;
+                        autoGrow();
+                        inputEl.focus();
+                        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+                    });
+                });
+
                 formEl.addEventListener('submit', function (e) {
                     e.preventDefault();
                     if (busy) return;
                     var text = inputEl.value.trim();
                     if (text === '') return;
-
                     inputEl.value = '';
                     autoGrow();
                     send(text);
@@ -304,17 +617,16 @@
                 function setBusy(value) {
                     busy = value;
                     sendEl.disabled = value;
-                    inputEl.disabled = value;
                     if (!value) inputEl.focus();
                 }
 
                 async function send(text) {
                     setBusy(true);
                     history.push({ role: 'user', content: text });
-                    addBubble('user', text);
+                    addText('user', 'Вы', text);
 
-                    var bubble = addBubble('assistant', '');
-                    bubble.classList.add('lp-chat-typing');
+                    var bubble = addRow('assistant', 'Ассистент');
+                    bubble.msg.appendChild(typingDots());
                     var answer = '';
                     var failed = null;
 
@@ -326,7 +638,7 @@
                                 'Accept': 'text/event-stream',
                                 'X-CSRF-TOKEN': csrf
                             },
-                            body: JSON.stringify({ model: modelEl.value, messages: history })
+                            body: JSON.stringify({ model: currentModel, messages: history })
                         });
 
                         if (!response.ok || !response.body) {
@@ -353,8 +665,9 @@
                                     if (evt.event === 'chat_error') {
                                         failed = evt.data.message || 'Ошибка сервиса.';
                                     } else if (evt.event === 'delta' && typeof evt.data.text === 'string') {
+                                        if (answer === '') bubble.msg.classList.add('lp-chat-cursor');
                                         answer += evt.data.text;
-                                        bubble.textContent = answer;
+                                        bubble.msg.textContent = answer;
                                         scrollDown();
                                     }
                                 }
@@ -364,15 +677,15 @@
                         failed = 'Соединение прервалось. Попробуйте ещё раз.';
                     }
 
-                    bubble.classList.remove('lp-chat-typing');
+                    bubble.msg.classList.remove('lp-chat-cursor');
 
                     if (answer !== '') {
                         history.push({ role: 'assistant', content: answer });
-                        if (failed) addBubble('error', 'Ответ мог прерваться: ' + failed);
+                        if (failed) addText('error', null, 'Ответ мог прерваться: ' + failed);
                     } else {
-                        bubble.remove();
+                        bubble.row.remove();
                         history.pop();
-                        addBubble('error', failed || 'Пустой ответ. Попробуйте ещё раз.');
+                        addText('error', null, failed || 'Пустой ответ. Попробуйте ещё раз.');
                     }
 
                     setBusy(false);
