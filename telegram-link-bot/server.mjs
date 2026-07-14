@@ -813,6 +813,18 @@ bot.hears('Мои бонусы', async (ctx) => {
     await safeReply(ctx, m, mainKeyboard());
     return;
   }
+  const html = typeof j.html === 'string' ? j.html : '';
+  if (html) {
+    const sent = await safeSendMessage(ctx.chat.id, html, {
+      ...mainKeyboard(),
+      parse_mode: 'HTML',
+      link_preview_options: { is_disabled: true },
+    });
+    if (sent) {
+      return;
+    }
+    // HTML не прошёл (например, ошибка разметки) — падаем на плоский текст ниже
+  }
   const lines = Array.isArray(j.lines) ? j.lines : [];
   const body = lines.length > 0 ? lines.join('\n') : 'Не удалось загрузить данные.';
   await safeReply(ctx, body, mainKeyboard());

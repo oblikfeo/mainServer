@@ -43,6 +43,7 @@ final class TelegramBotReferralController extends Controller
             'ok' => true,
             'referral_url' => $referralUrl,
             'lines' => TelegramReferralSummary::lines($referralMetrics, $user, $referralUrl, $cabinetLoginUrl),
+            'html' => TelegramReferralSummary::html($referralMetrics, $user, $referralUrl, $cabinetLoginUrl),
             'cabinet_url' => $cabinetLoginUrl,
         ]);
     }
