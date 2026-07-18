@@ -16,9 +16,12 @@ final class ChatStreamer
     /**
      * @param  array<int, array{role: string, content: string}>  $messages
      * @param  callable(string): bool  $onText  получает куски текста; false — прервать
+     * @param  string  $systemSuffix  доп. системная инструкция для конкретного канала
+     *                                 (например, правило перевода на оператора в боте);
+     *                                 пустая строка — базовый промпт без изменений
      * @return array{ok: bool, status: int, error: string, aborted: bool}
      */
-    public function stream(string $modelKey, array $messages, callable $onText): array
+    public function stream(string $modelKey, array $messages, callable $onText, string $systemSuffix = ''): array
     {
         $cfg = config('chat.models.'.$modelKey);
         if (! is_array($cfg)) {
@@ -26,18 +29,31 @@ final class ChatStreamer
         }
 
         return match ($cfg['provider']) {
-            'anthropic' => $this->streamAnthropic($cfg, $messages, $onText),
-            'openai' => $this->streamOpenAi($cfg, $messages, $onText),
+            'anthropic' => $this->streamAnthropic($cfg, $messages, $onText, $systemSuffix),
+            'openai' => $this->streamOpenAi($cfg, $messages, $onText, $systemSuffix),
             default => ['ok' => false, 'status' => 0, 'error' => 'unknown_provider', 'aborted' => false],
         };
     }
 
     /** @param array{model: string} $cfg */
-    private function streamAnthropic(array $cfg, array $messages, callable $onText): array
+    private function streamAnthropic(array $cfg, array $messages, callable $onText, string $systemSuffix = ''): array
     {
         $apiKey = trim((string) config('chat.api_key'));
         if ($apiKey === '') {
             return ['ok' => false, 'status' => 0, 'error' => 'not_configured', 'aborted' => false];
+        }
+
+        // Базовый промпт кэшируется отдельным блоком; суффикс канала — без кэша,
+        // чтобы не сбивать общий cache_control для основной (большой) части.
+        $system = [
+            [
+                'type' => 'text',
+                'text' => (string) config('chat.system_prompt'),
+                'cache_control' => ['type' => 'ephemeral'],
+            ],
+        ];
+        if (trim($systemSuffix) !== '') {
+            $system[] = ['type' => 'text', 'text' => $systemSuffix];
         }
 
         $payload = [
@@ -46,13 +62,7 @@ final class ChatStreamer
             'stream' => true,
             // Чат должен отвечать быстро: расширенное размышление выключено.
             'thinking' => ['type' => 'disabled'],
-            'system' => [
-                [
-                    'type' => 'text',
-                    'text' => (string) config('chat.system_prompt'),
-                    'cache_control' => ['type' => 'ephemeral'],
-                ],
-            ],
+            'system' => $system,
             'messages' => $messages,
         ];
 
@@ -101,11 +111,16 @@ final class ChatStreamer
     }
 
     /** @param array{model: string} $cfg */
-    private function streamOpenAi(array $cfg, array $messages, callable $onText): array
+    private function streamOpenAi(array $cfg, array $messages, callable $onText, string $systemSuffix = ''): array
     {
         $apiKey = trim((string) config('chat.openai_api_key'));
         if ($apiKey === '') {
             return ['ok' => false, 'status' => 0, 'error' => 'not_configured', 'aborted' => false];
+        }
+
+        $systemText = (string) config('chat.system_prompt');
+        if (trim($systemSuffix) !== '') {
+            $systemText .= "\n\n".$systemSuffix;
         }
 
         $payload = [
@@ -114,7 +129,7 @@ final class ChatStreamer
             // gpt-5-семейство принимает только max_completion_tokens (не max_tokens)
             'max_completion_tokens' => (int) config('chat.max_tokens'),
             'messages' => array_merge(
-                [['role' => 'system', 'content' => (string) config('chat.system_prompt')]],
+                [['role' => 'system', 'content' => $systemText]],
                 $messages,
             ),
         ];

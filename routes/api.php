@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\TelegramBotAdminController;
+use App\Http\Controllers\Api\TelegramBotChatController;
 use App\Http\Controllers\Api\TelegramBotDevicesController;
 use App\Http\Controllers\Api\TelegramBotPaymentController;
 use App\Http\Controllers\Api\TelegramBotMarkBlockedController;
@@ -73,6 +74,10 @@ Route::middleware(['telegram.link.internal', 'throttle:120,1'])
 Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->post('/internal/telegram/bot/trial/issue', [TelegramBotTrialController::class, 'issue'])
     ->name('api.telegram.bot.trial.issue');
+
+Route::middleware(['telegram.link.internal', 'throttle:30,1'])
+    ->post('/internal/telegram/bot/chat', [TelegramBotChatController::class, 'reply'])
+    ->name('api.telegram.bot.chat');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/mark-blocked', [TelegramBotMarkBlockedController::class, 'store'])
