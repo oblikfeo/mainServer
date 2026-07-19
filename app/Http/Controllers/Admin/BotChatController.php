@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BotChatMessage;
 use App\Models\User;
+use App\Services\Telegram\TelegramBotRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -56,6 +57,7 @@ class BotChatController extends Controller
         $emails = User::query()
             ->whereIn('telegram_id', $tgIds ?: [0])
             ->pluck('email', 'telegram_id')
+            ->map(fn (?string $email) => $this->realEmail($email))
             ->all();
 
         return view('admin.bot_chat.index', [
@@ -76,7 +78,7 @@ class BotChatController extends Controller
         abort_if($messages->isEmpty(), 404);
 
         $username = $messages->whereNotNull('telegram_username')->last()?->telegram_username;
-        $email = User::query()->where('telegram_id', $telegramUserId)->value('email');
+        $email = $this->realEmail(User::query()->where('telegram_id', $telegramUserId)->value('email'));
 
         return view('admin.bot_chat.show', [
             'telegramUserId' => $telegramUserId,
@@ -84,5 +86,29 @@ class BotChatController extends Controller
             'email' => $email,
             'messages' => $messages,
         ]);
+    }
+
+    /**
+     * Возвращает email, только если он настоящий (не технический placeholder
+     * для регистрации через бот или быстрой покупки). Иначе null.
+     */
+    private function realEmail(?string $email): ?string
+    {
+        if ($email === null || trim($email) === '') {
+            return null;
+        }
+
+        $normalized = strtolower(trim($email));
+
+        if (TelegramBotRegistrationService::isPlaceholderTelegramEmail($normalized)) {
+            return null;
+        }
+
+        $quickBuyDomain = strtolower((string) config('payments.quick_buy.autogen_email_domain', 'buy.nadezhda.local'));
+        if ($quickBuyDomain !== '' && str_ends_with($normalized, '@'.$quickBuyDomain)) {
+            return null;
+        }
+
+        return $email;
     }
 }
