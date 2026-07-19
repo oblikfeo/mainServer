@@ -1226,12 +1226,9 @@ async function escalateToSupport(ctx, chatId, reason) {
   const who =
     (from.username ? `@${from.username}` : `${from.first_name ?? ''}`.trim() || 'клиент') +
     ` (id ${from.id ?? '—'})`;
-  const reasonLine =
-    reason === 'manual' ? 'клиент нажал «Позвать оператора»' : 'ассистент передал диалог';
   const card =
     `🆘 Запрос оператора из бота\n` +
     `Клиент: ${who}\n` +
-    `Причина: ${reasonLine}\n` +
     `————\n` +
     `Суть: ${gist}\n\n` +
     `Ответьте на это сообщение (reply) — текст уйдёт клиенту.`;
