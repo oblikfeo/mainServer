@@ -79,6 +79,10 @@ Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->post('/internal/telegram/bot/chat', [TelegramBotChatController::class, 'reply'])
     ->name('api.telegram.bot.chat');
 
+Route::middleware(['telegram.link.internal', 'throttle:30,1'])
+    ->post('/internal/telegram/bot/chat/summary', [TelegramBotChatController::class, 'summarize'])
+    ->name('api.telegram.bot.chat.summary');
+
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/mark-blocked', [TelegramBotMarkBlockedController::class, 'store'])
     ->name('api.telegram.bot.mark_blocked');

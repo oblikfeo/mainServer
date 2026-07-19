@@ -90,6 +90,61 @@ final class TelegramBotChatController extends Controller
     }
 
     /**
+     * Сжимает диалог клиента с ассистентом в 1-2 предложения «суть проблемы»
+     * для карточки оператора в группе поддержки. Отдельный вызов, чтобы не
+     * пересылать оператору всю переписку.
+     */
+    public function summarize(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'messages' => ['required', 'array', 'min:1'],
+            'messages.*.role' => ['required', 'in:user,assistant'],
+            'messages.*.content' => ['required', 'string'],
+        ]);
+
+        $messages = $this->normalizeHistory($validated['messages']);
+        if ($messages === []) {
+            return response()->json(['ok' => false, 'error' => 'empty'], 422);
+        }
+
+        // Диалог сворачиваем в один текстовый блок и просим модель дать суть.
+        $transcript = [];
+        foreach ($messages as $m) {
+            $who = $m['role'] === 'user' ? 'Клиент' : 'Ассистент';
+            $transcript[] = "{$who}: {$m['content']}";
+        }
+        $prompt = "Ниже переписка клиента с ассистентом поддержки. Сформулируй для оператора суть обращения клиента в 1-2 предложениях: в чём проблема или запрос и что уже пробовали. Только суть, без вступлений, без обращения к оператору, обычным текстом.\n\n".implode("\n", $transcript);
+
+        $modelKey = (string) config('chat.default_model');
+        $summarySuffix = (string) config('chat.telegram_summary_prompt', '');
+
+        $summary = '';
+        try {
+            $result = $this->streamer->stream(
+                $modelKey,
+                [['role' => 'user', 'content' => $prompt]],
+                function (string $text) use (&$summary): bool {
+                    $summary .= $text;
+
+                    return true;
+                },
+                $summarySuffix,
+            );
+        } catch (Throwable $e) {
+            Log::error('TelegramBotChat: саммари не удалось', ['error' => $e->getMessage()]);
+
+            return response()->json(['ok' => false, 'error' => 'api_failed'], 502);
+        }
+
+        $summary = trim($summary);
+        if (! $result['ok'] || $summary === '') {
+            return response()->json(['ok' => false, 'error' => 'api_error'], 502);
+        }
+
+        return response()->json(['ok' => true, 'summary' => $summary]);
+    }
+
+    /**
      * Обрезает историю до лимитов и приводит к формату API (как в ChatController).
      *
      * @param  array<int, array{role: string, content: string}>  $raw

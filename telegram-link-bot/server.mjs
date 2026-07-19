@@ -1172,9 +1172,33 @@ async function askAiAssistant(history) {
   return { ok: r.ok && j.ok === true, reply: String(j.reply ?? ''), handoff: j.handoff === true };
 }
 
+/** Запрос сжатой сути обращения (1-2 предложения) через Laravel. Возвращает строку или ''. */
+async function fetchAiSummary(history) {
+  if (!Array.isArray(history) || history.length === 0) {
+    return '';
+  }
+  try {
+    const r = await apiFetch('/internal/telegram/bot/chat/summary', {
+      method: 'POST',
+      body: JSON.stringify({ messages: history }),
+    });
+    let j = {};
+    try {
+      j = await r.json();
+    } catch {
+      j = {};
+    }
+    return r.ok && j.ok === true ? String(j.summary ?? '').trim() : '';
+  } catch (e) {
+    console.error('fetchAiSummary', e);
+    return '';
+  }
+}
+
 /**
- * Перевод диалога с ИИ на живого оператора: сводка переписки уходит в группу
- * поддержки, клиент переключается в обычный режим форварда (inSupportMode).
+ * Перевод диалога с ИИ на живого оператора: в группу поддержки уходит одна
+ * компактная карточка (кто клиент + суть обращения от ИИ, без всей переписки),
+ * клиент переключается в обычный режим форварда (inSupportMode).
  */
 async function escalateToSupport(ctx, chatId, reason) {
   const history = aiChats.get(chatId) ?? [];
@@ -1191,40 +1215,34 @@ async function escalateToSupport(ctx, chatId, reason) {
     return;
   }
 
+  // Суть обращения. Фолбэк — последнее сообщение клиента, если ИИ-саммари не вышло.
+  let gist = await fetchAiSummary(history);
+  if (!gist) {
+    const lastUser = [...history].reverse().find((m) => m.role === 'user');
+    gist = lastUser ? lastUser.content : '(клиент не описал вопрос)';
+  }
+
   const from = ctx.from ?? {};
   const who =
     (from.username ? `@${from.username}` : `${from.first_name ?? ''}`.trim() || 'клиент') +
     ` (id ${from.id ?? '—'})`;
-  const header = [
-    '🆘 Запрос оператора из бота',
-    `Клиент: ${who}`,
-    reason === 'manual' ? 'Причина: клиент нажал «Позвать оператора»' : 'Причина: ассистент передал диалог',
-    '————',
-  ];
-  const body = history.length
-    ? history.map((m) => `${m.role === 'user' ? 'Клиент' : 'Ассистент'}: ${m.content}`)
-    : ['(клиент не писал ассистенту)'];
-  const summary = [...header, ...body].join('\n\n');
+  const reasonLine =
+    reason === 'manual' ? 'клиент нажал «Позвать оператора»' : 'ассистент передал диалог';
+  const card =
+    `🆘 Запрос оператора из бота\n` +
+    `Клиент: ${who}\n` +
+    `Причина: ${reasonLine}\n` +
+    `————\n` +
+    `Суть: ${gist}\n\n` +
+    `Ответьте на это сообщение (reply) — текст уйдёт клиенту.`;
 
-  // Постим сводку в группу и подвязываем её к чату клиента: reply оператора
-  // в группе долетит клиенту через нижний message-мост (supportReplyMap).
+  // Постим карточку и подвязываем её к чату клиента: reply оператора в группе
+  // долетит клиенту через нижний message-мост (supportReplyMap).
   try {
-    const CHUNK = 3800;
-    let rest = summary;
-    let anchorId = null;
-    while (rest.length > 0) {
-      const slice = rest.length > CHUNK ? rest.slice(0, rest.lastIndexOf('\n', CHUNK) || CHUNK) : rest;
-      rest = rest.slice(slice.length).replace(/^\n+/, '');
-      const sent = await bot.telegram.sendMessage(supportGroupId, slice, {
-        link_preview_options: { is_disabled: true },
-      });
-      if (anchorId === null) {
-        anchorId = sent.message_id;
-      }
-    }
-    if (anchorId !== null) {
-      supportReplyMap.set(anchorId, chatId);
-    }
+    const sent = await bot.telegram.sendMessage(supportGroupId, card, {
+      link_preview_options: { is_disabled: true },
+    });
+    supportReplyMap.set(sent.message_id, chatId);
   } catch (e) {
     console.error('escalateToSupport send', e?.response ?? e);
   }
