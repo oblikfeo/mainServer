@@ -1158,10 +1158,14 @@ function callOperatorKeyboard() {
 }
 
 /** Запрос к ИИ-ассистенту через Laravel. Возвращает { ok, reply, handoff }. */
-async function askAiAssistant(history) {
+async function askAiAssistant(history, from) {
   const r = await apiFetch('/internal/telegram/bot/chat', {
     method: 'POST',
-    body: JSON.stringify({ messages: history }),
+    body: JSON.stringify({
+      messages: history,
+      telegram_user_id: from?.id ?? null,
+      telegram_username: from?.username ?? null,
+    }),
   });
   let j = {};
   try {
@@ -1316,7 +1320,7 @@ bot.on('message', async (ctx, next) => {
   }
 
   await ctx.sendChatAction('typing').catch(() => {});
-  const { ok, reply, handoff } = await askAiAssistant(history);
+  const { ok, reply, handoff } = await askAiAssistant(history, ctx.from);
 
   if (!ok || reply === '') {
     // ИИ недоступен — не бросаем клиента, переводим на человека.

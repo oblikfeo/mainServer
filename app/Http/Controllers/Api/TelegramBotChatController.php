@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\BotChatMessage;
+use App\Models\User;
 use App\Services\Chat\ChatStreamer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,6 +37,8 @@ final class TelegramBotChatController extends Controller
             'messages' => ['required', 'array', 'min:1'],
             'messages.*.role' => ['required', 'in:user,assistant'],
             'messages.*.content' => ['required', 'string'],
+            'telegram_user_id' => ['nullable', 'integer'],
+            'telegram_username' => ['nullable', 'string', 'max:64'],
         ]);
 
         $messages = $this->normalizeHistory($validated['messages']);
@@ -82,11 +86,66 @@ final class TelegramBotChatController extends Controller
                 : 'Не удалось сформировать ответ. Попробуйте переформулировать вопрос.';
         }
 
+        // Логируем последнюю реплику клиента и ответ ИИ (каждый обмен — по разу).
+        $this->logExchange(
+            $validated['telegram_user_id'] ?? null,
+            $validated['telegram_username'] ?? null,
+            end($messages) ?: null,
+            $answer,
+            $handoff,
+        );
+
         return response()->json([
             'ok' => true,
             'reply' => $answer,
             'handoff' => $handoff,
         ]);
+    }
+
+    /**
+     * Сохраняет обмен репликами в bot_chat_messages. Ошибки не роняют ответ клиенту.
+     *
+     * @param  array{role: string, content: string}|null  $lastUserMessage
+     */
+    private function logExchange(
+        ?int $telegramUserId,
+        ?string $telegramUsername,
+        ?array $lastUserMessage,
+        string $assistantAnswer,
+        bool $handoff,
+    ): void {
+        if ($telegramUserId === null) {
+            return; // без идентификатора не к кому привязать диалог
+        }
+
+        try {
+            $userId = User::query()->where('telegram_id', $telegramUserId)->value('id');
+            $now = now();
+
+            if (is_array($lastUserMessage) && ($lastUserMessage['role'] ?? '') === 'user') {
+                BotChatMessage::create([
+                    'telegram_user_id' => $telegramUserId,
+                    'telegram_username' => $telegramUsername,
+                    'user_id' => $userId,
+                    'role' => 'user',
+                    'content' => $lastUserMessage['content'],
+                    'handoff' => false,
+                    'created_at' => $now,
+                ]);
+            }
+
+            BotChatMessage::create([
+                'telegram_user_id' => $telegramUserId,
+                'telegram_username' => $telegramUsername,
+                'user_id' => $userId,
+                'role' => 'assistant',
+                'content' => $assistantAnswer,
+                'handoff' => $handoff,
+                'created_at' => $now->copy()->addMillisecond(),
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('TelegramBotChat: не удалось залогировать диалог', ['error' => $e->getMessage()]);
+        }
     }
 
     /**

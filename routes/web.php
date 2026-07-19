@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BotChatController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\PaymentsController;
@@ -161,6 +162,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('throttle:6,1')
             ->name('what_works.run');
         Route::get('/report', [ReportController::class, 'index'])->name('report');
+        Route::get('/bot-chats', [BotChatController::class, 'index'])->name('bot_chats');
+        Route::get('/bot-chats/{telegramUserId}', [BotChatController::class, 'show'])
+            ->whereNumber('telegramUserId')
+            ->name('bot_chats.show');
         Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');
         Route::get('/test-keys', [TestKeysController::class, 'index'])->name('test_keys');
         Route::post('/test-keys', [TestKeysController::class, 'store'])
