@@ -195,6 +195,10 @@
                         @if (! empty($row['error']))
                             <p class="px-4 py-2.5 text-xs text-rose-800 bg-rose-50 border-t border-rose-100 break-words">{{ $row['error'] }}</p>
                         @endif
+
+                        @if (! empty($row['note']))
+                            <p class="px-4 py-2.5 text-xs text-sky-800 bg-sky-50 border-t border-sky-100 break-words">{{ $row['note'] }}</p>
+                        @endif
                     </article>
                 @endforeach
             </div>

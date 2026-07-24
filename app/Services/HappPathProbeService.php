@@ -201,7 +201,7 @@ class HappPathProbeService
         $config = $this->buildClientConfig($target, $socksPort);
 
         if ($config === null) {
-            return $this->failedVpnRow($target, 'Не удалось собрать outbound из vless://');
+            return $this->vpnFailureRow($target, 'Не удалось собрать outbound из vless://');
         }
 
         $dir = storage_path('app/path-probe');
@@ -216,12 +216,12 @@ class HappPathProbeService
             usleep((int) (max(0.5, (float) config('path_probe.xray_startup_seconds', 2.5)) * 1_000_000));
 
             if (! $process->running()) {
-                return $this->failedVpnRow($target, trim($process->errorOutput()) ?: 'Xray завершился сразу после старта');
+                return $this->vpnFailureRow($target, trim($process->errorOutput()) ?: 'Xray завершился сразу после старта');
             }
 
             $trace = $this->curlThroughSocks($socksPort, (string) config('path_probe.trace_url', ''), true);
             if (! ($trace['ok'] ?? false)) {
-                return $this->assembleVpnRow($target, false, $trace, null);
+                return $this->vpnFailureRow($target, (string) ($trace['error'] ?? 'канал не поднялся'));
             }
 
             $speed = $this->measureDownloadSpeed($socksPort);
@@ -296,6 +296,79 @@ class HappPathProbeService
             'egress_ip' => $egressIp,
             'egress_colo' => isset($trace['egress_colo']) ? (string) $trace['egress_colo'] : null,
             'error' => $tunnelOk ? null : (string) ($trace['error'] ?? 'канал не поднялся'),
+            'note' => null,
+        ];
+    }
+
+    /**
+     * Туннель с hub не поднялся. Для узлов с фронт-фоллбэком (белый CDN, который
+     * по устройству не тянет длинный xhttp с IP ЦОД) проверяем доступность фронта:
+     * если фронт отвечает — узел рабочий, красный только при реальном отказе фронта.
+     *
+     * @param  array{id: string, title: string}  $target
+     * @return array<string, mixed>
+     */
+    private function vpnFailureRow(array $target, string $reason): array
+    {
+        $fallback = config('path_probe.front_fallback.'.$target['id']);
+        if (is_array($fallback)) {
+            $url = trim((string) ($fallback['url'] ?? ''));
+            if ($url !== '') {
+                $front = $this->probeFront($url);
+                if ($front['ok'] ?? false) {
+                    return [
+                        'kind' => 'vpn',
+                        'id' => $target['id'],
+                        'title' => $target['title'],
+                        'status' => 'ok',
+                        'latency_ms' => $front['ms'] ?? null,
+                        'download_mbps' => null,
+                        'egress_ip' => null,
+                        'egress_colo' => null,
+                        'error' => null,
+                        'note' => trim((string) ($fallback['note'] ?? '')) ?: null,
+                    ];
+                }
+
+                return $this->failedVpnRow(
+                    $target,
+                    'Фронт недоступен ('.($front['error'] ?? 'нет ответа').'); туннель: '.$reason,
+                );
+            }
+        }
+
+        return $this->failedVpnRow($target, $reason);
+    }
+
+    /**
+     * Короткий запрос к CDN-фронту: жив, если ответил любым не-5xx HTTP-кодом.
+     *
+     * @return array{ok: bool, code: int, ms: int, error: string|null}
+     */
+    private function probeFront(string $url): array
+    {
+        $result = Process::timeout(20)->run([
+            'curl',
+            '-sS',
+            '--connect-timeout', '8',
+            '--max-time', '15',
+            '-o', '/dev/null',
+            '-w', '%{http_code} %{time_total}',
+            $url,
+        ]);
+
+        $parts = preg_split('/\s+/', trim($result->output())) ?: [];
+        $code = isset($parts[0]) ? (int) $parts[0] : 0;
+        $seconds = isset($parts[1]) ? (float) $parts[1] : 0.0;
+        $ok = $code >= 200 && $code < 500;
+
+        return [
+            'ok' => $ok,
+            'code' => $code,
+            'ms' => (int) round($seconds * 1000),
+            'error' => $ok
+                ? null
+                : (trim($result->errorOutput()) ?: ($code > 0 ? 'HTTP '.$code : 'нет ответа')),
         ];
     }
 
@@ -321,6 +394,7 @@ class HappPathProbeService
             'egress_ip' => null,
             'egress_colo' => null,
             'error' => $error,
+            'note' => null,
         ];
     }
 
@@ -463,6 +537,7 @@ class HappPathProbeService
             'egress_ip' => null,
             'egress_colo' => null,
             'error' => $reason,
+            'note' => null,
         ];
     }
 

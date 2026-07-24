@@ -52,11 +52,33 @@ return [
             'expected_egress' => trim((string) env('PATH_PROBE_NL75_EGRESS_IP', '222.167.208.75')),
         ],
         'cdn' => [
-            'expected_egress' => trim((string) env('PATH_PROBE_CDN_EGRESS_IP', '82.40.56.223')),
+            // AlphaVPS Sofia — сменил выключенный Hostkey FI 82.40.56.223 (06.07.2026).
+            'expected_egress' => trim((string) env('PATH_PROBE_CDN_EGRESS_IP', '82.118.235.92')),
             'must_not_egress' => trim((string) env('PATH_PROBE_CDN_MUST_NOT_EGRESS', '158.160.200.205')),
         ],
         'digital_cdn' => [
             'expected_egress' => trim((string) env('PATH_PROBE_DIGITAL_CDN_EGRESS_IP', '82.24.19.230')),
+        ],
+    ],
+
+    /**
+     * Фоллбэк-проверка «фронт жив», когда сквозной xhttp-туннель с hub недостоверен
+     * по устройству канала (белый CDN не тянет длинный поток с IP ЦОД, но реальные
+     * клиенты обслуживаются). Если туннель не поднялся, но фронт отвечает (любой
+     * не-5xx HTTP-код) — узел считается рабочим; красный — только когда фронт реально
+     * недоступен (нет ответа / 5xx). Ключ — id узла.
+     *
+     * @var array<string, array{url: string, note: string}>
+     */
+    'front_fallback' => [
+        'digital_cdn' => [
+            'url' => trim((string) env(
+                'PATH_PROBE_DIGITAL_CDN_FRONT_URL',
+                'https://nadezhda.digital/api/v1/upload/?chunk_id=probe'
+            )),
+            'note' => 'Сквозная xhttp-проба с hub недостоверна: белый CDN (Yandex) не тянет '
+                .'длинный поток с IP ЦОД. Доступность подтверждена по CDN-фронту '
+                .'(nadezhda.digital) и origin cdn2 82.24.19.230 — реальные клиенты обслуживаются.',
         ],
     ],
 
