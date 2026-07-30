@@ -15,6 +15,8 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
     private const VLESS_777 = 'vless://44444444-4444-4444-4444-444444444444@169.40.15.141:443?security=reality&encryption=none&type=tcp#777';
 
+    private const VLESS_KZ46 = 'vless://66666666-6666-6666-6666-666666666666@46.8.43.49:443?security=reality&encryption=none&type=tcp#kz46';
+
     private const VLESS_CDN = 'vless://aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa@cdn.nadezhda.space:443?encryption=none&security=tls&type=xhttp#cdn';
 
     private const VLESS_DIGITAL_CDN = 'vless://dddddddd-dddd-dddd-dddd-dddddddddddd@nadezhda.digital:443?encryption=none&security=tls&type=xhttp#digital';
@@ -103,6 +105,12 @@ final class SubscriptionExtraShareLinesTest extends TestCase
                 'vless_title' => '🇭🇰 МегаФон, Теле2, Йота',
                 'vless_subtitle' => '',
             ],
+            'xui.sub_extra_kz46' => [
+                'enabled' => true,
+                'vless_uri' => self::VLESS_KZ46,
+                'vless_title' => '🇰🇿 Быстрый Wi~~Fi',
+                'vless_subtitle' => '',
+            ],
             'xui.sub_extra_cdn' => [
                 'enabled' => true,
                 'vless_uri' => self::VLESS_CDN,
@@ -113,14 +121,16 @@ final class SubscriptionExtraShareLinesTest extends TestCase
 
         $lines = SubscriptionExtraShareLines::lines();
 
-        $this->assertCount(5, $lines);
+        $this->assertCount(6, $lines);
         $this->assertStringContainsString('@194.110.87.115:', $lines[0]);
         $this->assertStringContainsString('@31.22.10.250:', $lines[1]);
         $this->assertStringContainsString('Wi-Fi', $lines[1]);
         $this->assertStringNotContainsString('Wi--Fi', $lines[1]);
         $this->assertStringContainsString('@169.40.15.141:', $lines[2]);
         $this->assertStringContainsString('@195.133.198.100:', $lines[3]);
-        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[4]);
+        // KZ46 идёт после RUVDS и перед узлами обхода.
+        $this->assertStringContainsString('@46.8.43.49:', $lines[4]);
+        $this->assertStringContainsString('@cdn.nadezhda.space:', $lines[5]);
     }
 
     public function test_lines_order_777_then_ruvds(): void

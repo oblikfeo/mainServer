@@ -6,7 +6,7 @@ namespace App\Services\Subscription;
  * Общие share-строки: US194 (доступы194), BG31 (доступы31), 777 (доступы777), RUVDS (доступыRUVDS), NL shared (доступы11, опционально).
  *
  * Перед FI подставляются общие vless:// — заголовки из .env.
- * Порядок: US194 → BG31 → 777 → RUVDS → NL75 → CDN (FI) → FI (панель) → NL shared → Digital CDN (NL, последний).
+ * Порядок: US194 → BG31 → 777 → RUVDS → NL75 → KZ46 → CDN (FI) → FI (панель) → NL shared → Digital CDN (NL, последний).
  */
 final class SubscriptionExtraShareLines
 {
@@ -156,6 +156,11 @@ final class SubscriptionExtraShareLines
         $nl75 = config('xui.sub_extra_nl75', []);
         if (is_array($nl75) && self::isConfigured($nl75)) {
             $blocks[] = $nl75;
+        }
+
+        $kz46 = config('xui.sub_extra_kz46', []);
+        if (is_array($kz46) && self::isConfigured($kz46)) {
+            $blocks[] = $kz46;
         }
 
         $cdn = config('xui.sub_extra_cdn', []);

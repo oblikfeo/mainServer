@@ -27,6 +27,7 @@ return [
         ['id' => '777', 'extra_key' => 'sub_extra_777', 'title_key' => 'vless_title'],
         ['id' => 'ruvds', 'extra_key' => 'sub_extra_ruvds', 'title_key' => 'vless_title'],
         ['id' => 'nl75', 'extra_key' => 'sub_extra_nl75', 'title_key' => 'vless_title'],
+        ['id' => 'kz46', 'extra_key' => 'sub_extra_kz46', 'title_key' => 'vless_title'],
         ['id' => 'cdn', 'extra_key' => 'sub_extra_cdn', 'title_key' => 'vless_title'],
         ['id' => 'digital_cdn', 'extra_key' => 'sub_extra_digital_cdn', 'title_key' => 'vless_title'],
     ],
@@ -50,6 +51,9 @@ return [
         ],
         'nl75' => [
             'expected_egress' => trim((string) env('PATH_PROBE_NL75_EGRESS_IP', '222.167.208.75')),
+        ],
+        'kz46' => [
+            'expected_egress' => trim((string) env('PATH_PROBE_KZ46_EGRESS_IP', '46.8.43.49')),
         ],
         'cdn' => [
             // AlphaVPS Sofia — сменил выключенный Hostkey FI 82.40.56.223 (06.07.2026).

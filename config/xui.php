@@ -47,6 +47,17 @@ return [
     ],
 
     /**
+     * KZ46 (servers/kz/kz46, 46.8.43.49): общая VLESS Reality, одна ссылка на всех.
+     * В Happ: 🇰🇿 Быстрый Wi~~Fi — после NL75, перед узлами обхода (двойная тильда; одинарная — у NL75).
+     */
+    'sub_extra_kz46' => [
+        'enabled' => filter_var(env('SUB_KZ46_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_KZ46_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_KZ46_VLESS_TITLE', '🇰🇿 Быстрый Wi~~Fi')),
+        'vless_subtitle' => trim((string) env('SUB_KZ46_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * RUVDS (доступыRUVDS, 195.133.198.100): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇭🇰 МегаФон, Теле2, Йота — второй узел после 777.
      */

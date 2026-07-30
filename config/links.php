@@ -56,6 +56,16 @@ return [
             'health_profile' => 'home',
         ],
         [
+            'id' => 'kz46',
+            'name' => 'KZ46',
+            'subtitle' => '46.8.43.49 · 🇰🇿 Быстрый Wi~~Fi · shared VLESS',
+            'ip' => (string) env('LINK_KZ46_IP', '46.8.43.49'),
+            'ssh_user' => (string) env('LINK_KZ46_SSH_USER', 'root'),
+            'ssh_private_key' => env('LINK_KZ46_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_KZ46_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => 'cdn',
             'name' => 'CDN xhttp',
             'subtitle' => 'cdn.nadezhda.space · 🇫🇮 Обход глушилок LTE · egress FI Hostkey',
