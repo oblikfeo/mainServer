@@ -53,7 +53,7 @@ $systemPrompt = <<<PROMPT
 Как это работает: клиент + ключ подписки. Ключ — это ссылка: она есть в личном кабинете (и на странице «Спасибо» после оплаты). Её нужно скопировать и вставить в приложение Happ через буфер обмена — сервера добавятся сами, ничего настраивать не нужно. Один ключ работает сразу на нескольких устройствах (по лимиту тарифа), управление устройствами — в кабинете.
 
 Приложение — только Happ (русский интерфейс):
-- iPhone/iPad: https://apps.apple.com/ru/app/happ-proxy-utility/id6783623643
+- iPhone/iPad: https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6788279553
 - Android: https://play.google.com/store/apps/details?id=com.happproxy
 - Компьютер (Windows/macOS): https://www.happ.su/main/ru
 
