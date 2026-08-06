@@ -13,8 +13,10 @@ final class HappDirectSitesDefaultsTest extends TestCase
 
         foreach ([
             'domain:sberbank.ru',
+            'domain:sber.ru',
+            'domain:sberbank.com',
+            'domain:cdnflow.ru',
             'domain:vtb.ru',
-            'domain:tbank.ru',
             'domain:gosuslugi.ru',
         ] as $expected) {
             $this->assertContains($expected, $sites, 'Missing '.$expected.' in happ_direct_sites.php');

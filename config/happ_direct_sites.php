@@ -26,7 +26,11 @@ return [
     'domain:2gis.ru',
     'domain:2gis.com',
     'domain:2ip.ru',
+    // Сбер: отдельные корни (поддомены sberbank.ru уже покрыты domain:sberbank.ru)
     'domain:sberbank.ru',
+    'domain:sber.ru',
+    'domain:sberbank.com',
+    'domain:cdnflow.ru',
     'domain:vtb.ru',
     'domain:tbank.ru',
     'domain:tinkoff.ru',
