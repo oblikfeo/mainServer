@@ -48,12 +48,12 @@ return [
 
     /**
      * KZ46 (servers/kz/kz46, 46.8.43.49): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇰🇿 Быстрый Wi~~Fi — после NL75, перед узлами обхода (двойная тильда; одинарная — у NL75).
+     * В Happ: 🇰🇿 Быстрый Wi~Fi — после NL75, перед узлами обхода.
      */
     'sub_extra_kz46' => [
         'enabled' => filter_var(env('SUB_KZ46_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_KZ46_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_KZ46_VLESS_TITLE', '🇰🇿 Быстрый Wi~~Fi')),
+        'vless_title' => trim((string) env('SUB_KZ46_VLESS_TITLE', '🇰🇿 Быстрый Wi~Fi')),
         'vless_subtitle' => trim((string) env('SUB_KZ46_VLESS_SUBTITLE', '')),
     ],
 
@@ -323,7 +323,7 @@ return [
      * Happ: правила обхода прокси (Direct) через профиль routing в подписке.
      *
      * Geo URL пустые — без .dat (Loyalsoldier > ~50 МБ RAM в Happ).
-     * DirectSites: минимальный domain:-список (OZON, WB, VK, Яндекс…), без geosite:category-ru и geoip:ru (банки через VPN).
+     * DirectSites: domain:-список RU-сервисов, банков и Госуслуг — напрямую; без geosite:category-ru и geoip:ru (.dat → RAM в Happ).
      *
      * @see https://www.happ.su/main/dev-docs/routing
      */
@@ -344,31 +344,11 @@ return [
         'geosite_url' => trim((string) env('HAPP_GEOSITE_URL', '')),
 
         /**
-         * DirectSites: push + маркетплейсы/повседневные приложения. Без geosite:category-ru и без банков.
+         * DirectSites: push, маркетплейсы, банки, Госуслуги — напрямую. Список по умолчанию: config/happ_direct_sites.php
          */
         'direct_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_DIRECT_SITES',
-            implode(',', [
-                'domain:mtalk.google.com',
-                'domain:push.apple.com',
-                'domain:api.push.apple.com',
-                'domain:push-apple.com.akadns.net',
-                'domain:courier.push.apple.com',
-                'domain:ozon.ru',
-                'domain:wildberries.ru',
-                'domain:wbbasket.ru',
-                'domain:wb.ru',
-                'domain:vk.com',
-                'domain:mail.ru',
-                'domain:yandex.ru',
-                'domain:yandex.net',
-                'domain:yandex.com',
-                'domain:vkusvill.ru',
-                'domain:avito.ru',
-                'domain:2gis.ru',
-                'domain:2gis.com',
-                'domain:2ip.ru',
-            ])
+            implode(',', include __DIR__.'/happ_direct_sites.php')
         ))))),
 
         /** DirectIp: без geoip:ru (приватные сети + DoH bootstrap добавляет HappRoutingSubscriptionLine). */
@@ -385,6 +365,17 @@ return [
 
         'block_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
             'HAPP_BLOCK_IP',
+            ''
+        ))))),
+
+        /** ProxySites: через VPN (runetfreedom geosite-ru-only: ru-blocked). */
+        'proxy_sites' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'HAPP_PROXY_SITES',
+            ''
+        ))))),
+
+        'proxy_ip' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'HAPP_PROXY_IP',
             ''
         ))))),
     ],
