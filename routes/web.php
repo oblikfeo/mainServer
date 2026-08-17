@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\WhatWorksController;
 use App\Http\Controllers\CabinetBonusesController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
+use App\Http\Controllers\CabinetPromoWelcomeController;
 use App\Http\Controllers\CabinetNiceController;
 use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
@@ -88,6 +89,9 @@ Route::get('/test-sub/{token}', [TestSubscriptionFeedController::class, 'show'])
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [CabinetController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/promo-welcome', [CabinetPromoWelcomeController::class, 'dismiss'])
+        ->middleware('throttle:30,1')
+        ->name('cabinet.promo_welcome');
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
     Route::get('/dashboard/referral', [CabinetReferralController::class, 'show'])->name('cabinet.referral');
     Route::get('/dashboard/bonuses', CabinetBonusesController::class)->name('cabinet.bonuses');

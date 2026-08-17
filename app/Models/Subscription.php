@@ -20,6 +20,7 @@ class Subscription extends Model
         'expiry_ms',
         'devices',
         'is_trial',
+        'promo_code',
         'bound_hwid_hashes',
         'bound_hwid_meta',
     ];

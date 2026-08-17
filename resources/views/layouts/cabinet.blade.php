@@ -170,7 +170,80 @@
                     {{ $slot }}
                 </main>
             </div>
+            @if (Auth::user()?->promo_welcome_pending)
+                @php
+                    $promoKey = strtoupper((string) Auth::user()->registration_promo_code);
+                    $promoDays = (int) (config('promo.codes.'.$promoKey.'.trial_days') ?: 7);
+                @endphp
+                <div class="lp-promo-welcome" role="dialog" aria-modal="true" aria-labelledby="lp-promo-welcome-title">
+                    <div class="lp-promo-welcome__inner">
+                        <p id="lp-promo-welcome-title" class="lp-promo-welcome__title">
+                            Вам доступна тестовая подписка на {{ $promoDays }} {{ $promoDays === 1 ? 'день' : 'дней' }}
+                        </p>
+                        <div class="lp-promo-welcome__actions">
+                            <form method="POST" action="{{ route('cabinet.promo_welcome') }}">
+                                @csrf
+                                <input type="hidden" name="action" value="skip">
+                                <button type="submit" class="lp-promo-welcome__btn lp-promo-welcome__btn--skip">Пропустить</button>
+                            </form>
+                            <form method="POST" action="{{ route('cabinet.promo_welcome') }}">
+                                @csrf
+                                <input type="hidden" name="action" value="claim">
+                                <button type="submit" class="lp-promo-welcome__btn lp-promo-welcome__btn--claim">Забрать</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
-        <style>[x-cloak]{display:none!important}</style>
+        <style>
+            [x-cloak]{display:none!important}
+            .lp-promo-welcome {
+                position: fixed;
+                inset: 0;
+                z-index: 200;
+                background: #FF4500;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 1.5rem;
+                color: #fff;
+            }
+            .lp-promo-welcome__inner {
+                max-width: 32rem;
+                width: 100%;
+            }
+            .lp-promo-welcome__title {
+                font-size: clamp(1.35rem, 4vw, 2.1rem);
+                font-weight: 800;
+                text-align: center;
+                margin: 0 0 2rem;
+                line-height: 1.25;
+            }
+            .lp-promo-welcome__actions {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .lp-promo-welcome__btn {
+                min-width: 10rem;
+                padding: 0.85rem 1.4rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: .04em;
+                border: 3px solid #111;
+                cursor: pointer;
+            }
+            .lp-promo-welcome__btn--skip {
+                background: transparent;
+                color: #fff;
+                border-color: #fff;
+            }
+            .lp-promo-welcome__btn--claim {
+                background: #fff;
+                color: #111;
+            }
+        </style>
     </body>
 </html>

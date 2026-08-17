@@ -20,7 +20,7 @@
             $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     @endphp
 
-    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: 'paid' }" @endif>
+    <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: @js(request('tab') === 'trial' ? 'trial' : 'paid') }" @endif>
         @if ($showBothTabs)
             <div class="lp-cab-tabbar mb-3" role="tablist" aria-label="Подписки">
                 <button

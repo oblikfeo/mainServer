@@ -31,6 +31,12 @@ Route::middleware('guest')->group(function () {
     Route::get('Reset', [RegisteredUserController::class, 'createPartnerReset'])
         ->name('partner.reset.register');
 
+    Route::get('promo', [RegisteredUserController::class, 'createPromo'])
+        ->name('promo.register');
+
+    Route::post('promo', [RegisteredUserController::class, 'storePromo'])
+        ->name('promo.register.store');
+
     Route::post('register', [RegisteredUserController::class, 'store']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])

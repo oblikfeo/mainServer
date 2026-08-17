@@ -51,9 +51,21 @@ final class TrialSubscriptionIssuer
     }
 
     /**
+     * Промокод при регистрации: длительность в календарных днях, без cabinet cap.
+     *
      * @throws XuiPanelException
      */
-    private function issueWithHours(User $user, int $hours): CreatedSubscriptionResult
+    public function issueFromPromo(User $user, int $days, string $promoCode): CreatedSubscriptionResult
+    {
+        $hours = max(24, $days * 24);
+
+        return $this->issueWithHours($user, $hours, $promoCode);
+    }
+
+    /**
+     * @throws XuiPanelException
+     */
+    private function issueWithHours(User $user, int $hours, ?string $promoCode = null): CreatedSubscriptionResult
     {
         $devices = max(0, (int) config('trial_subscription.devices', 1));
         $quotaGb = max(1, (int) config('trial_subscription.quota_gb', 5));
@@ -68,6 +80,7 @@ final class TrialSubscriptionIssuer
             unlimitedTime: false,
             isTrial: true,
             expiryMsOverride: $expiryMs,
+            promoCode: $promoCode,
         );
     }
 }

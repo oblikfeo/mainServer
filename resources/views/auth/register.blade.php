@@ -13,7 +13,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ ! empty($showPromoCode) ? route('promo.register.store') : url('/register') }}">
         @csrf
 
         <div>
@@ -28,6 +28,15 @@
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
             <p class="lp-muted">Минимум 8 символов. При ошибке можно сбросить пароль по почте.</p>
         </div>
+
+        @if (! empty($showPromoCode))
+            <div class="mt-4">
+                <x-input-label for="promo_code" value="Промокод" />
+                <x-text-input id="promo_code" class="block mt-1 w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" />
+                <x-input-error :messages="$errors->get('promo_code')" class="mt-2" />
+                <p class="lp-muted">Необязательно. Если есть код — введите его здесь.</p>
+            </div>
+        @endif
 
         <div class="lp-checkbox-row lp-checkbox-row--wrap mt-4">
             <input type="checkbox" name="offer_accepted" id="offer_accepted" value="1" @checked(old('offer_accepted'))>

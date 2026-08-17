@@ -28,6 +28,7 @@ final class CreateDualBundleSubscription
         bool $unlimitedTime = false,
         bool $isTrial = false,
         ?int $expiryMsOverride = null,
+        ?string $promoCode = null,
     ): CreatedSubscriptionResult {
         $order = config('xui.bundle_order', ['fi', 'nl']);
         $nodes = config('xui.nodes', []);
@@ -138,6 +139,7 @@ final class CreateDualBundleSubscription
             'expiry_ms' => $expiryMs,
             'devices' => $devices,
             'is_trial' => $isTrial,
+            'promo_code' => $promoCode,
         ]);
 
         foreach ($order as $bundleKey) {

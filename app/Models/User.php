@@ -47,6 +47,7 @@ class User extends Authenticatable
             'telegram_linked_at' => 'datetime',
             'telegram_bot_blocked_at' => 'datetime',
             'telegram_id' => 'integer',
+            'promo_welcome_pending' => 'boolean',
         ];
     }
 
@@ -119,10 +120,10 @@ class User extends Authenticatable
             ->first();
     }
 
-    /** Была ли когда-либо самовыдача пробного доступа из ЛК (включая legacy test_keys). */
+    /** Была ли когда-либо самовыдача пробного доступа из ЛК (включая legacy test_keys). Промо-триал не считается. */
     public function hasEverUsedCabinetTrial(): bool
     {
-        if ($this->subscriptions()->where('is_trial', true)->exists()) {
+        if ($this->subscriptions()->where('is_trial', true)->whereNull('promo_code')->exists()) {
             return true;
         }
 

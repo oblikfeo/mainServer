@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Promo\PromoCodeService;
 use App\Services\Referral\ReferralRewardService;
+use App\Services\Xui\XuiPanelException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -45,6 +47,15 @@ class RegisteredUserController extends Controller
         ]);
     }
 
+    public function createPromo(): View
+    {
+        return view('auth.register', [
+            'invitedBy' => null,
+            'partnerLabel' => null,
+            'showPromoCode' => true,
+        ]);
+    }
+
     public function createPartnerReset(Request $request): View
     {
         $referrer = $this->partnerReferrer('reset');
@@ -71,13 +82,50 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request, ReferralRewardService $referralRewards): RedirectResponse
     {
-        $request->validate([
+        return $this->registerUser($request, $referralRewards, null);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    public function storePromo(
+        Request $request,
+        ReferralRewardService $referralRewards,
+        PromoCodeService $promo,
+    ): RedirectResponse {
+        return $this->registerUser($request, $referralRewards, $promo);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function registerUser(
+        Request $request,
+        ReferralRewardService $referralRewards,
+        ?PromoCodeService $promo,
+    ): RedirectResponse {
+        $rules = [
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::min(8)],
             'offer_accepted' => ['accepted'],
-        ], [
+        ];
+        if ($promo !== null) {
+            $rules['promo_code'] = ['nullable', 'string', 'max:32'];
+        }
+
+        $request->validate($rules, [
             'offer_accepted.accepted' => 'Нужно согласие с публичной офертой.',
         ]);
+
+        $promoCode = '';
+        if ($promo !== null) {
+            $promoCode = $promo->normalize($request->input('promo_code'));
+            if ($promoCode !== '' && $promo->definition($promoCode) === null) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Промокод не найден.',
+                ]);
+            }
+        }
 
         $email = (string) $request->email;
         $local = Str::before($email, '@');
@@ -102,6 +150,26 @@ class RegisteredUserController extends Controller
             $user->referred_by = $referredById;
         }
         $user->save();
+
+        if ($promo !== null && $promoCode !== '') {
+            try {
+                $promo->redeemOnRegistration($user, $promoCode);
+            } catch (XuiPanelException $e) {
+                report($e);
+                $user->delete();
+
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Не удалось активировать промокод. Попробуйте ещё раз.',
+                ]);
+            } catch (\Throwable $e) {
+                report($e);
+                $user->delete();
+
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Не удалось активировать промокод. Попробуйте ещё раз.',
+                ]);
+            }
+        }
 
         $referralRewards->onReferredUserRegistered($user);
 

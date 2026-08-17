@@ -11,6 +11,7 @@
             $pageTitle = match ($rn) {
                 'login' => 'Вход',
                 'register' => 'Регистрация',
+                'promo.register' => 'Регистрация',
                 'partner.reset.register' => 'Reset',
                 'password.request' => 'Сброс пароля',
                 'password.reset' => 'Новый пароль',
@@ -32,7 +33,7 @@
             <div class="lp-container lp-container--narrow">
                 <div class="lp-header">
                     <a href="{{ url('/') }}" class="lp-logo lp-cabinet-header__brand">{{ $brand }}</a>
-                    @if (in_array($rn, ['register', 'password.request', 'password.reset'], true))
+                    @if (in_array($rn, ['register', 'promo.register', 'password.request', 'password.reset'], true))
                         <a href="{{ route('login') }}" class="lp-login-btn">Вход</a>
                     @elseif ($rn === 'login')
                         <a href="{{ route('register') }}" class="lp-login-btn">Регистрация</a>
