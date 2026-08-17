@@ -33,31 +33,34 @@
 
         @if (! empty($showPromoCode))
             <div class="mt-4 lp-promo-field">
-                <x-input-label for="promo_code" value="Промокод" />
-                <x-text-input id="promo_code" class="block mt-1 w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" />
+                <x-text-input id="promo_code" class="block w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" placeholder="ПРОМОКОД" aria-label="Промокод" />
                 <x-input-error :messages="$errors->get('promo_code')" class="mt-2" />
                 <p class="lp-muted">Необязательно. Если есть код — введите его здесь.</p>
             </div>
             <style>
-                .lp-f1 .lp-promo-field label {
-                    color: #dc2626 !important;
-                }
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"] {
-                    color: #dc2626;
+                    color: var(--lp-orange);
                     font-weight: 800;
+                    text-transform: uppercase;
                     background: #fff;
-                    border: 3px solid #dc2626 !important;
+                    border: 3px solid var(--lp-orange) !important;
                     border-radius: 0 !important;
-                    box-shadow: 4px 4px 0 #dc2626 !important;
-                    caret-color: #dc2626;
+                    box-shadow: 4px 4px 0 var(--lp-orange) !important;
+                    caret-color: var(--lp-orange);
+                }
+                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]::placeholder {
+                    color: var(--lp-orange);
+                    opacity: 1;
+                    font-weight: 800;
+                    text-transform: uppercase;
                 }
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus,
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus-visible {
                     outline: none !important;
-                    box-shadow: 4px 4px 0 #dc2626 !important;
+                    box-shadow: 4px 4px 0 var(--lp-orange) !important;
                 }
                 .lp-f1 .lp-promo-field .lp-muted {
-                    color: #dc2626;
+                    color: var(--lp-orange);
                 }
             </style>
         @endif
