@@ -34,7 +34,7 @@
         @if (! empty($showPromoCode))
             <div class="mt-4 lp-promo-field">
                 <x-input-label for="promo_code" value="Промокод" />
-                <x-text-input id="promo_code" class="block mt-1 w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" placeholder="Введите промокод" />
+                <x-text-input id="promo_code" class="block mt-1 w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" />
                 <x-input-error :messages="$errors->get('promo_code')" class="mt-2" />
                 <p class="lp-muted">Необязательно. Если есть код — введите его здесь.</p>
             </div>
@@ -42,22 +42,22 @@
                 .lp-f1 .lp-promo-field label {
                     color: #dc2626 !important;
                 }
-                .lp-f1 .lp-promo-field input[type="text"] {
-                    color: #dc2626 !important;
-                    border-color: #dc2626 !important;
-                    caret-color: #dc2626;
+                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"] {
+                    color: #dc2626;
                     font-weight: 800;
+                    background: #fff;
+                    border: 3px solid var(--lp-ink) !important;
+                    border-radius: 0 !important;
+                    box-shadow: 4px 4px 0 var(--lp-ink) !important;
+                    caret-color: #dc2626;
                 }
-                .lp-f1 .lp-promo-field input[type="text"]::placeholder {
-                    color: #f87171;
-                    font-weight: 700;
+                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus,
+                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus-visible {
+                    outline: none !important;
+                    box-shadow: 4px 4px 0 var(--lp-ink) !important;
                 }
                 .lp-f1 .lp-promo-field .lp-muted {
                     color: #dc2626;
-                    font-weight: 700;
-                }
-                .lp-f1 .lp-auth-panel .lp-promo-field input:focus {
-                    outline-color: #dc2626;
                 }
             </style>
         @endif
