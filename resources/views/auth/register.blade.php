@@ -49,7 +49,7 @@
                     caret-color: var(--lp-orange);
                 }
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]::placeholder {
-                    color: var(--lp-orange);
+                    color: var(--lp-ink);
                     opacity: 1;
                     font-weight: 800;
                     text-transform: uppercase;
