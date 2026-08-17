@@ -53,14 +53,19 @@
     </form>
     <style>
         .lp-f1 .lp-auth-panel input::placeholder {
-            color: rgba(17, 17, 17, 0.4);
+            color: rgba(17, 17, 17, 0.58);
             opacity: 1;
-            font-weight: 500;
+            font-weight: 600;
         }
         .lp-f1 .lp-auth-panel input::-moz-placeholder {
-            color: rgba(17, 17, 17, 0.4);
+            color: rgba(17, 17, 17, 0.58);
             opacity: 1;
-            font-weight: 500;
+            font-weight: 600;
+        }
+        .lp-f1 .lp-auth-panel input:focus,
+        .lp-f1 .lp-auth-panel input:focus-visible {
+            outline: none !important;
+            outline-offset: 0 !important;
         }
         .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"] {
             color: var(--lp-orange);
