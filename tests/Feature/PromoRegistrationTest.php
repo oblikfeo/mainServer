@@ -70,7 +70,7 @@ class PromoRegistrationTest extends TestCase
             ->with(
                 Mockery::on(fn ($user) => $user instanceof User && $user->email === 'promo@example.com'),
                 7,
-                '2026',
+                'RITM26',
             )
             ->andReturn($this->dummyIssueResult());
         $this->instance(TrialSubscriptionIssuer::class, $issuer);
@@ -79,14 +79,14 @@ class PromoRegistrationTest extends TestCase
             'email' => 'promo@example.com',
             'password' => 'password-password',
             'offer_accepted' => '1',
-            'promo_code' => ' 2026 ',
+            'promo_code' => ' ritm26 ',
         ]);
 
         $response->assertRedirect(route('dashboard', absolute: false));
 
         $user = User::query()->where('email', 'promo@example.com')->first();
         $this->assertNotNull($user);
-        $this->assertSame('2026', $user->registration_promo_code);
+        $this->assertSame('RITM26', $user->registration_promo_code);
         $this->assertTrue((bool) $user->promo_welcome_pending);
     }
 
@@ -100,7 +100,7 @@ class PromoRegistrationTest extends TestCase
             'email' => 'sneaky@example.com',
             'password' => 'password-password',
             'offer_accepted' => '1',
-            'promo_code' => '2026',
+            'promo_code' => 'RITM26',
         ])->assertRedirect(route('dashboard', absolute: false));
 
         $user = User::query()->where('email', 'sneaky@example.com')->first();
@@ -119,7 +119,7 @@ class PromoRegistrationTest extends TestCase
             'email' => 'fail@example.com',
             'password' => 'password-password',
             'offer_accepted' => '1',
-            'promo_code' => '2026',
+            'promo_code' => 'RITM26',
         ])->assertSessionHasErrors('promo_code');
 
         $this->assertGuest();
@@ -138,7 +138,7 @@ class PromoRegistrationTest extends TestCase
             'expiry_ms' => (int) ((time() - 3600) * 1000),
             'devices' => 1,
             'is_trial' => true,
-            'promo_code' => '2026',
+            'promo_code' => 'RITM26',
         ]);
 
         $this->assertTrue($user->fresh()->canSelfIssueCabinetTrial());
@@ -147,7 +147,7 @@ class PromoRegistrationTest extends TestCase
     public function test_welcome_popup_skip_and_claim(): void
     {
         $user = User::factory()->create([
-            'registration_promo_code' => '2026',
+            'registration_promo_code' => 'RITM26',
             'promo_welcome_pending' => true,
         ]);
 
@@ -175,7 +175,7 @@ class PromoRegistrationTest extends TestCase
     public function test_unverified_user_with_promo_trial_sees_subscription_link(): void
     {
         $user = User::factory()->unverified()->create([
-            'registration_promo_code' => '2026',
+            'registration_promo_code' => 'RITM26',
             'promo_welcome_pending' => false,
         ]);
         Subscription::query()->create([
@@ -187,7 +187,7 @@ class PromoRegistrationTest extends TestCase
             'expiry_ms' => (int) ((time() + 86400) * 1000),
             'devices' => 1,
             'is_trial' => true,
-            'promo_code' => '2026',
+            'promo_code' => 'RITM26',
         ]);
 
         $this->actingAs($user)
