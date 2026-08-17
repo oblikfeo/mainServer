@@ -19,50 +19,20 @@
         @csrf
 
         <div>
-            <x-input-label for="email" value="Электронная почта" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-text-input id="email" class="block w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" placeholder="ЭЛЕКТРОННАЯ ПОЧТА" aria-label="Электронная почта" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <div class="mt-4">
-            <x-input-label for="password" value="Пароль" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+            <x-text-input id="password" class="block w-full" type="password" name="password" required autocomplete="new-password" placeholder="ПАРОЛЬ" aria-label="Пароль" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
-            <p class="lp-muted">Минимум 8 символов. При ошибке можно сбросить пароль по почте.</p>
         </div>
 
         @if (! empty($showPromoCode))
             <div class="mt-4 lp-promo-field">
                 <x-text-input id="promo_code" class="block w-full" type="text" name="promo_code" :value="old('promo_code')" autocomplete="off" placeholder="ПРОМОКОД" aria-label="Промокод" />
                 <x-input-error :messages="$errors->get('promo_code')" class="mt-2" />
-                <p class="lp-muted">Необязательно. Если есть код — введите его здесь.</p>
             </div>
-            <style>
-                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"] {
-                    color: var(--lp-orange);
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    background: #fff;
-                    border: 3px solid var(--lp-orange) !important;
-                    border-radius: 0 !important;
-                    box-shadow: 4px 4px 0 var(--lp-orange) !important;
-                    caret-color: var(--lp-orange);
-                }
-                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]::placeholder {
-                    color: var(--lp-ink);
-                    opacity: 1;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                }
-                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus,
-                .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus-visible {
-                    outline: none !important;
-                    box-shadow: 4px 4px 0 var(--lp-orange) !important;
-                }
-                .lp-f1 .lp-promo-field .lp-muted {
-                    color: var(--lp-orange);
-                }
-            </style>
         @endif
 
         <div class="lp-checkbox-row lp-checkbox-row--wrap mt-4">
@@ -81,4 +51,31 @@
             </x-primary-button>
         </div>
     </form>
+    <style>
+        .lp-f1 .lp-auth-panel input::placeholder {
+            color: rgba(17, 17, 17, 0.4);
+            opacity: 1;
+            font-weight: 500;
+        }
+        .lp-f1 .lp-auth-panel input::-moz-placeholder {
+            color: rgba(17, 17, 17, 0.4);
+            opacity: 1;
+            font-weight: 500;
+        }
+        .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"] {
+            color: var(--lp-orange);
+            font-weight: 800;
+            text-transform: uppercase;
+            background: #fff;
+            border: 3px solid var(--lp-orange) !important;
+            border-radius: 0 !important;
+            box-shadow: 4px 4px 0 var(--lp-orange) !important;
+            caret-color: var(--lp-orange);
+        }
+        .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus,
+        .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus-visible {
+            outline: none !important;
+            box-shadow: 4px 4px 0 var(--lp-orange) !important;
+        }
+    </style>
 </x-guest-layout>
