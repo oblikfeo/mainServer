@@ -46,15 +46,15 @@
                     color: #dc2626;
                     font-weight: 800;
                     background: #fff;
-                    border: 3px solid var(--lp-ink) !important;
+                    border: 3px solid #dc2626 !important;
                     border-radius: 0 !important;
-                    box-shadow: 4px 4px 0 var(--lp-ink) !important;
+                    box-shadow: 4px 4px 0 #dc2626 !important;
                     caret-color: #dc2626;
                 }
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus,
                 .lp-f1 .lp-auth-panel .lp-promo-field input[type="text"]:focus-visible {
                     outline: none !important;
-                    box-shadow: 4px 4px 0 var(--lp-ink) !important;
+                    box-shadow: 4px 4px 0 #dc2626 !important;
                 }
                 .lp-f1 .lp-promo-field .lp-muted {
                     color: #dc2626;
