@@ -202,12 +202,14 @@
                 position: fixed;
                 inset: 0;
                 z-index: 200;
-                background: #FF4500;
+                background-color: #f4f4f4;
+                background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+                background-size: 20px 20px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 1.5rem;
-                color: #fff;
+                color: #111;
             }
             .lp-promo-welcome__inner {
                 max-width: 32rem;
@@ -219,6 +221,7 @@
                 text-align: center;
                 margin: 0 0 2rem;
                 line-height: 1.25;
+                color: #FF4500;
             }
             .lp-promo-welcome__actions {
                 display: flex;
@@ -237,12 +240,13 @@
             }
             .lp-promo-welcome__btn--skip {
                 background: transparent;
-                color: #fff;
-                border-color: #fff;
+                color: #FF4500;
+                border-color: #FF4500;
             }
             .lp-promo-welcome__btn--claim {
-                background: #fff;
-                color: #111;
+                background: #FF4500;
+                color: #fff;
+                border-color: #111;
             }
         </style>
     </body>

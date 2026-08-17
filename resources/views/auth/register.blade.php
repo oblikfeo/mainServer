@@ -4,6 +4,8 @@
             'partnerLabel' => $partnerLabel,
             'partnerLogo' => $partnerLogo ?? null,
         ])
+    @elseif (! empty($showPromoCode))
+        <h1 class="lp-auth-title">Регистрация + бонус</h1>
     @else
         <h1 class="lp-auth-title">Регистрация</h1>
     @endif

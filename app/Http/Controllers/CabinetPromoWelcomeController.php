@@ -15,7 +15,9 @@ class CabinetPromoWelcomeController extends Controller
         }
 
         if ($request->input('action') === 'claim') {
-            return redirect()->route('dashboard', ['tab' => 'trial']);
+            return redirect()
+                ->route('dashboard', ['tab' => 'trial'])
+                ->withFragment('cabinet-trial');
         }
 
         return back();

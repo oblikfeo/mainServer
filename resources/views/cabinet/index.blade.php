@@ -50,7 +50,7 @@
 
         {{-- Раздел пробных подписок --}}
         @if ($showTrialSection)
-            <div @if ($showBothTabs) x-show="tab === 'trial'" x-cloak x-transition @endif>
+            <div id="cabinet-trial" @if ($showBothTabs) x-show="tab === 'trial'" x-cloak x-transition @endif>
             @unless ($showBothTabs)
             <h2 class="lp-page-section-title">Тестовая подписка</h2>
             @endunless
@@ -97,7 +97,7 @@
                         </div>
                     @enderror
 
-                    @if (! $me->hasVerifiedIdentity())
+                    @if (! $me->hasVerifiedIdentity() && ! $hasAnyActiveTestAccess)
                         <div class="lp-warn-box">
                             Чтобы получить тестовую подписку, подтвердите почту в
                             <a href="{{ route('cabinet.profile') }}" class="lp-auth-secondary">профиле</a>

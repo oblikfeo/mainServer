@@ -19,11 +19,13 @@ class PromoRegistrationTest extends TestCase
     {
         $this->get('/promo')
             ->assertOk()
-            ->assertSee('name="promo_code"', false);
+            ->assertSee('name="promo_code"', false)
+            ->assertSee('Регистрация + бонус', false);
 
         $this->get('/register')
             ->assertOk()
-            ->assertDontSee('name="promo_code"', false);
+            ->assertDontSee('name="promo_code"', false)
+            ->assertDontSee('Регистрация + бонус', false);
     }
 
     public function test_promo_registration_without_code_creates_user_without_trial(): void
@@ -165,9 +167,34 @@ class PromoRegistrationTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('cabinet.promo_welcome'), ['action' => 'claim'])
-            ->assertRedirect(route('dashboard', ['tab' => 'trial']));
+            ->assertRedirect(route('dashboard', ['tab' => 'trial']).'#cabinet-trial');
 
         $this->assertFalse((bool) $user->fresh()->promo_welcome_pending);
+    }
+
+    public function test_unverified_user_with_promo_trial_sees_subscription_link(): void
+    {
+        $user = User::factory()->unverified()->create([
+            'registration_promo_code' => '2026',
+            'promo_welcome_pending' => false,
+        ]);
+        Subscription::query()->create([
+            'user_id' => $user->id,
+            'token' => 'promo-live-token',
+            'fi_sub_id' => bin2hex(random_bytes(8)),
+            'nl_sub_id' => bin2hex(random_bytes(8)),
+            'quota_gb' => 5,
+            'expiry_ms' => (int) ((time() + 86400) * 1000),
+            'devices' => 1,
+            'is_trial' => true,
+            'promo_code' => '2026',
+        ]);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee('/sub/promo-live-token', false)
+            ->assertDontSee('Чтобы получить тестовую подписку, подтвердите почту', false);
     }
 
     private function dummyIssueResult(): CreatedSubscriptionResult
