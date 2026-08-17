@@ -240,8 +240,8 @@
             }
             .lp-promo-welcome__btn--skip {
                 background: transparent;
-                color: #FF4500;
-                border-color: #FF4500;
+                color: #111;
+                border-color: #111;
             }
             .lp-promo-welcome__btn--claim {
                 background: #FF4500;
