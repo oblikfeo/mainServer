@@ -97,7 +97,7 @@
             } catch (err) {
                 if (err.status === 422 && err.payload && err.payload.errors && err.payload.errors.email) {
                     if (emailError) {
-                        emailError.textContent = err.payload.errors.email[0] || 'Этот email уже занят.';
+                        emailError.textContent = err.payload.errors.email[0] || 'Этот email уже занят. Войдите в кабинет или укажите другую почту.';
                         emailError.hidden = false;
                     }
                 } else {

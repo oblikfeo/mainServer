@@ -174,6 +174,23 @@ class User extends Authenticatable
         return $this->subscriptions()->where('is_trial', false)->exists();
     }
 
+    /**
+     * Пустой аккаунт после неудачной оплаты в 3 клика (или незавершённой регистрации без ключа).
+     * Такую почту можно снова использовать в /buy.
+     */
+    public function isReleasableQuickBuyPlaceholder(): bool
+    {
+        if ($this->email_verified_at !== null || $this->telegram_id !== null) {
+            return false;
+        }
+
+        if ($this->subscriptions()->exists() || $this->testKeys()->exists()) {
+            return false;
+        }
+
+        return ! $this->hasEverPaid();
+    }
+
     /** Момент окончания последнего триала (пробная подписка или test_key), если был. */
     public function latestTrialEndedAt(): ?Carbon
     {

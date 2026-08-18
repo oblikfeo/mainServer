@@ -2,7 +2,10 @@
 
 namespace App\Services\QuickBuy;
 
+use App\Models\PaymentOrder;
+use App\Models\Purchase;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -11,10 +14,12 @@ final class QuickCheckoutUserCreator
     /**
      * @return array{0: User, 1: string}
      */
-    public function create(string $email): array
+    public function create(string $email, ?string $plainPassword = null): array
     {
         $name = $this->generateDisplayName();
-        $password = Str::password(12, symbols: false);
+        $password = $plainPassword !== null && $plainPassword !== ''
+            ? $plainPassword
+            : Str::password(12, symbols: false);
 
         $user = User::query()->create([
             'name' => $name,
@@ -23,6 +28,21 @@ final class QuickCheckoutUserCreator
         ]);
 
         return [$user, $password];
+    }
+
+    /** Удаляет пустой аккаунт, чтобы почта снова была свободна для оплаты в 3 клика. */
+    public function releaseUnpaidPlaceholder(User $user): void
+    {
+        if (! $user->isReleasableQuickBuyPlaceholder()) {
+            return;
+        }
+
+        DB::transaction(function () use ($user): void {
+            $user->testKeys()->delete();
+            Purchase::query()->where('user_id', $user->id)->delete();
+            PaymentOrder::query()->where('user_id', $user->id)->delete();
+            $user->delete();
+        });
     }
 
     /** Формат User1234 — пример; каждый раз свой случайный суффикс. */

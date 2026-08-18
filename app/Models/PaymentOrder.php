@@ -11,6 +11,8 @@ class PaymentOrder extends Model
         'order_id',
         'claim_token',
         'user_id',
+        'email',
+        'quick_buy_password',
         'subscription_id',
         'purpose',
         'provider',

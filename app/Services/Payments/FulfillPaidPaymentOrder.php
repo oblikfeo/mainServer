@@ -7,12 +7,14 @@ use App\Models\PaymentOrder;
 use App\Models\Purchase;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Referral\ReferralLinkBuilder;
 use App\Services\Referral\ReferralRewardService;
 use App\Services\Subscription\ApplySubscriptionRenewalPack;
 use App\Services\Subscription\CreateDualBundleSubscription;
 use App\Services\Telegram\TelegramOutreach;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -28,6 +30,7 @@ final class FulfillPaidPaymentOrder
         private readonly ReferralRewardService $referralRewards,
         private readonly ReferralLinkBuilder $referralLinks,
         private readonly TelegramOutreach $telegramOutreach,
+        private readonly QuickCheckoutUserCreator $quickBuyUsers,
     ) {}
 
     /**
@@ -50,7 +53,7 @@ final class FulfillPaidPaymentOrder
         $order->paid_at = $order->paid_at ?? now();
         $order->save();
 
-        $buyer = User::query()->whereKey((int) $order->user_id)->first();
+        $buyer = $this->ensureBuyer($order);
         $purpose = (string) ($order->purpose ?? 'new');
 
         if ($purpose === 'renew') {
@@ -78,6 +81,9 @@ final class FulfillPaidPaymentOrder
             $renewed = $this->renewals->apply($targetId, 0, 0, $addDevices);
             $expMs = (int) $renewed->expiry_ms;
         } else {
+            if ($buyer === null || (int) $order->user_id < 1) {
+                throw new \RuntimeException('new order without user: '.$order->order_id);
+            }
             $result = $this->subs->create(
                 (int) $order->devices,
                 (int) $order->days,
@@ -138,5 +144,40 @@ final class FulfillPaidPaymentOrder
             'subscription' => $renewed,
             'expiry_ms' => $expMs,
         ];
+    }
+
+    private function ensureBuyer(PaymentOrder $order): ?User
+    {
+        if ((int) $order->user_id > 0) {
+            return User::query()->whereKey((int) $order->user_id)->first();
+        }
+
+        $email = strtolower(trim((string) ($order->email ?? '')));
+        if ($email === '') {
+            throw new \RuntimeException('payment order has no user_id and no email: '.$order->order_id);
+        }
+
+        $existing = User::query()->where('email', $email)->first();
+        if ($existing !== null) {
+            $order->user_id = $existing->id;
+            $order->save();
+
+            return $existing;
+        }
+
+        $plain = null;
+        if (filled($order->quick_buy_password)) {
+            try {
+                $plain = Crypt::decryptString((string) $order->quick_buy_password);
+            } catch (\Throwable) {
+                $plain = null;
+            }
+        }
+
+        [$user] = $this->quickBuyUsers->create($email, $plain);
+        $order->user_id = $user->id;
+        $order->save();
+
+        return $user;
     }
 }

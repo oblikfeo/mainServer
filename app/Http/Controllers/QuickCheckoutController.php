@@ -11,8 +11,10 @@ use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -33,7 +35,7 @@ final class QuickCheckoutController extends Controller
         $data = $request->validate([
             'plan' => ['required', 'string', 'max:32'],
             'period' => ['required', 'string', 'max:32'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
         ]);
 
         $plan = (string) $data['plan'];
@@ -54,10 +56,20 @@ final class QuickCheckoutController extends Controller
             throw new RuntimeException('Неверная конфигурация payments.products для '.$plan.' / '.$period);
         }
 
-        try {
-            return DB::transaction(function () use ($request, $wata, $userCreator, $plan, $period, $devices, $days, $quotaGb, $amountRub, $data): JsonResponse {
-                [$user, $plainPassword] = $userCreator->create((string) $data['email']);
+        $email = strtolower(trim((string) $data['email']));
+        $existing = User::query()->where('email', $email)->first();
+        if ($existing !== null) {
+            if (! $existing->isReleasableQuickBuyPlaceholder()) {
+                throw ValidationException::withMessages([
+                    'email' => 'Этот email уже занят. Войдите в кабинет или укажите другую почту.',
+                ]);
+            }
+            $userCreator->releaseUnpaidPlaceholder($existing);
+        }
 
+        try {
+            return DB::transaction(function () use ($request, $wata, $plan, $period, $devices, $days, $quotaGb, $amountRub, $email): JsonResponse {
+                $plainPassword = Str::password(12, symbols: false);
                 $orderId = 'ord_'.(string) Str::ulid();
                 $claimToken = Str::random(48);
                 $desc = 'Подписка '.$plan.' · '.$period;
@@ -65,7 +77,9 @@ final class QuickCheckoutController extends Controller
                 $order = PaymentOrder::query()->create([
                     'order_id' => $orderId,
                     'claim_token' => $claimToken,
-                    'user_id' => $user->id,
+                    'user_id' => null,
+                    'email' => $email,
+                    'quick_buy_password' => Crypt::encryptString($plainPassword),
                     'subscription_id' => null,
                     'purpose' => 'new',
                     'provider' => 'wata',
@@ -84,7 +98,6 @@ final class QuickCheckoutController extends Controller
                 $failUrl = route('quick_buy.show', [], absolute: true);
 
                 $request->session()->put('quick_buy_pw:'.$claimToken, $plainPassword);
-                $request->session()->put('quick_buy_login:'.$claimToken, (int) $user->id);
 
                 $link = $wata->createPaymentLink([
                     'type' => 'OneTime',
@@ -106,7 +119,7 @@ final class QuickCheckoutController extends Controller
                     'doneUrl' => $returnUrl,
                 ]);
             });
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
             report($e);
@@ -179,10 +192,26 @@ final class QuickCheckoutController extends Controller
         }
 
         $plainPassword = $request->session()->pull('quick_buy_pw:'.$claimToken);
-        $loginUserId = (int) $request->session()->pull('quick_buy_login:'.$claimToken, 0);
+        if ((! is_string($plainPassword) || $plainPassword === '') && filled($order->quick_buy_password)) {
+            try {
+                $plainPassword = Crypt::decryptString((string) $order->quick_buy_password);
+            } catch (\Throwable) {
+                $plainPassword = null;
+            }
+        }
 
-        if ($loginUserId > 0 && $order->user_id === $loginUserId) {
-            $user = User::query()->find($loginUserId);
+        if ($order->status === 'paid' && filled($order->quick_buy_password)) {
+            $order->quick_buy_password = null;
+            $order->save();
+        }
+
+        $loginUserId = (int) $request->session()->pull('quick_buy_login:'.$claimToken, 0);
+        $userId = (int) ($order->user_id ?? 0);
+        if ($userId < 1) {
+            $userId = $loginUserId;
+        }
+        if ($userId > 0) {
+            $user = User::query()->find($userId);
             if ($user !== null && (! Auth::check() || Auth::id() !== $user->id)) {
                 Auth::login($user, remember: true);
                 $request->session()->regenerate();
