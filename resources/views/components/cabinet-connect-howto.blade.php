@@ -1,6 +1,7 @@
 @php
     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/apps/details?id=com.happproxy');
     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
+    $happIosUrl = config('marketing.apps.happ_ios_url', 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215');
     $incyIosUrl = config('marketing.apps.incy_ios_url', 'https://apps.apple.com/app/incy/id6756943388');
 @endphp
 
@@ -14,20 +15,19 @@
 
                 <div class="lp-connect-ios">
                     <div class="lp-connect-ios__label">iPhone / iPad</div>
-                    <p class="lp-connect-ios__note">Happ в российском App Store нет. Нужен <b>Happ</b> или <b>Incy</b> — ищите по иконке.</p>
                     <div class="lp-app-chips" role="list" aria-label="Приложения для iOS">
-                        <div class="lp-app-chip" role="listitem">
+                        <a class="lp-app-chip lp-app-chip--link" role="listitem" href="{{ $happIosUrl }}" target="_blank" rel="noopener noreferrer">
                             <img class="lp-app-chip__icon" src="{{ asset('apps/happ.jpg') }}" alt="Иконка Happ" width="56" height="56">
                             <span class="lp-app-chip__meta">
                                 <span class="lp-app-chip__name">Happ</span>
-                                <span class="lp-app-chip__hint">ищите в App Store</span>
+                                <span class="lp-app-chip__hint">App Store</span>
                             </span>
-                        </div>
+                        </a>
                         <a class="lp-app-chip lp-app-chip--link" role="listitem" href="{{ $incyIosUrl }}" target="_blank" rel="noopener noreferrer">
                             <img class="lp-app-chip__icon" src="{{ asset('apps/incy.jpg') }}" alt="Иконка Incy" width="56" height="56">
                             <span class="lp-app-chip__meta">
                                 <span class="lp-app-chip__name">Incy</span>
-                                <span class="lp-app-chip__hint">открыть App Store</span>
+                                <span class="lp-app-chip__hint">App Store</span>
                             </span>
                         </a>
                     </div>

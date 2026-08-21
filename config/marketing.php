@@ -122,7 +122,8 @@ return [
     /** Дата публикации оферты (строка, напр. 07.04.2026). Пусто — текущая дата на сервере. */
     'offer_published_at' => env('MARKETING_OFFER_PUBLISHED_AT', ''),
     'apps' => [
-        'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6788279553'),
+        'ios_url' => env('MARKETING_IOS_APP_URL', 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215'),
+        'happ_ios_url' => env('MARKETING_HAPP_IOS_URL', 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215'),
         'incy_ios_url' => env('MARKETING_INCY_IOS_URL', 'https://apps.apple.com/app/incy/id6756943388'),
         'android_url' => env('MARKETING_ANDROID_APP_URL', 'https://play.google.com/store/apps/details?id=com.happproxy'),
         'desktop_url' => env('MARKETING_DESKTOP_APP_URL', 'https://www.happ.su/main/ru'),
