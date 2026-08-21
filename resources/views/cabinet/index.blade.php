@@ -15,9 +15,7 @@
             $hasPaidSub = ! empty($items);
             $showTrialSection = $hasAnyActiveTestAccess || ! $me->shouldHideTestSubscriptionOffer();
             $showBothTabs = $showTrialSection && $hasPaidSub;
-            $iosAppUrl = config('marketing.apps.ios_url', 'https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6788279553');
-            $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/search?q=hiddify&c=apps');
-            $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
+
     @endphp
 
     <div class="max-w-4xl mx-auto lp-cab-dash" @if ($showBothTabs) x-data="{ tab: @js(request('tab') === 'trial' ? 'trial' : 'paid') }" @endif>
@@ -142,129 +140,60 @@
                                 </div>
                             @endforeach
 
-                            <div class="lp-howto mt-3">
-                                    <div class="lp-field-label">Как подключиться</div>
-                                    <div class="lp-steps">
-                                        <div class="lp-step">
-                                            <div class="lp-step__num">1</div>
-                                            <div class="lp-step__content">
-                                                <div class="lp-step__title">Скачиваем Happ</div>
-                                                <div class="lp-store-grid" role="list" aria-label="Скачать Happ">
-                                                    <a class="lp-store-btn" role="listitem" href="{{ $iosAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                        <span class="lp-store-btn__icon" aria-hidden="true">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M16.2 13.2c-.1 2.2 2 2.9 2 2.9s-1.4 4.1-3.4 4.1c-1 0-1.8-.6-2.9-.6-1.1 0-2.1.6-2.9.6-1.9 0-4.2-3.8-4.2-7.5 0-3.2 2-5 3.9-5 1 0 2 .7 2.7.7.7 0 1.9-.8 3.2-.8.5 0 2.1.1 3.1 1.6-.1.1-1.8 1-1.6 3z"/>
-                                                                <path d="M13.9 3.8c.7-.9 1.9-1.6 2.9-1.6.1 1.2-.4 2.4-1.1 3.3-.7.9-1.8 1.6-2.9 1.5-.1-1.2.4-2.4 1.1-3.2z"/>
-                                                            </svg>
-                                                        </span>
-                                                        <span class="lp-store-btn__text">
-                                                            <span class="lp-store-btn__kicker">App Store</span>
-                                                            <span class="lp-store-btn__title">iOS</span>
-                                                        </span>
-                                                    </a>
-                                                    <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                        <span class="lp-store-btn__icon" aria-hidden="true">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M8.5 9.5l-1.6-2.1"/>
-                                                                <path d="M15.5 9.5l1.6-2.1"/>
-                                                                <path d="M7.2 10.2c-1 1.1-1.6 2.6-1.6 4.3V18c0 1 .8 1.8 1.8 1.8h9.2c1 0 1.8-.8 1.8-1.8v-3.5c0-1.7-.6-3.2-1.6-4.3-1-1.1-2.4-1.7-4.2-1.7s-3.2.6-4.2 1.7z"/>
-                                                                <path d="M9 13v3"/>
-                                                                <path d="M15 13v3"/>
-                                                                <path d="M10 7.2l-.8-1.2"/>
-                                                                <path d="M14 7.2l.8-1.2"/>
-                                                                <path d="M9.3 7.8c.5-.5 1.4-.8 2.7-.8s2.2.3 2.7.8"/>
-                                                            </svg>
-                                                        </span>
-                                                        <span class="lp-store-btn__text">
-                                                            <span class="lp-store-btn__kicker">Google Play</span>
-                                                            <span class="lp-store-btn__title">Android</span>
-                                                        </span>
-                                                    </a>
-                                                    <a class="lp-store-btn" role="listitem" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                        <span class="lp-store-btn__icon" aria-hidden="true">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M4 5.5h16v10H4z"/>
-                                                                <path d="M9 19h6"/>
-                                                                <path d="M12 15.5V19"/>
-                                                            </svg>
-                                                        </span>
-                                                        <span class="lp-store-btn__text">
-                                                            <span class="lp-store-btn__kicker">Desktop</span>
-                                                            <span class="lp-store-btn__title">ПК</span>
-                                                        </span>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="lp-step">
-                                            <div class="lp-step__num">2</div>
-                                            <div class="lp-step__content">
-                                                <div class="lp-step__title">Копируем ссылку</div>
-                                                @foreach ($activeTrialSubscriptions as $trialSub)
-                                                    <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
-                                                        @if ($activeTrialSubscriptions->count() > 1)
-                                                            <div class="text-xs text-slate-600 mb-1">Пробная №{{ $trialSub->id }}, до {{ $trialSub->expiresAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
-                                                        @endif
-                                                        <button
-                                                            type="button"
-                                                            class="lp-btn lp-btn--copy"
-                                                            :class="copied ? 'lp-btn--copied' : ''"
-                                                            x-on:click="
-                                                                (async () => {
-                                                                    try { await navigator.clipboard.writeText(@js($trialSub->shareableSubUrl())); copied = true; setTimeout(() => copied = false, 1600); }
-                                                                    catch (e) { copied = false; }
-                                                                })()
-                                                            "
-                                                        >
-                                                            <span x-show="!copied">Скопировать ссылку</span>
-                                                            <span x-show="copied" x-cloak>Скопировано</span>
-                                                        </button>
-                                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
-                                                        <div class="lp-subscription-url-fallback">
-                                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
-                                                            <code class="lp-subscription-url-fallback__url">{{ $trialSub->shareableSubUrl() }}</code>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                                @foreach ($activeTestKeys as $activeTestKey)
-                                                    <div class="lp-copy-row @if ($activeTrialSubscriptions->isNotEmpty() || ! $loop->first) mt-3 @endif" x-data="{ copied: false }">
-                                                        @if ($activeTestKeys->count() > 1)
-                                                            <div class="text-xs text-slate-600 mb-1">Старый ключ №{{ $activeTestKey->id }}, до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
-                                                        @endif
-                                                        <button
-                                                            type="button"
-                                                            class="lp-btn lp-btn--copy"
-                                                            :class="copied ? 'lp-btn--copied' : ''"
-                                                            x-on:click="
-                                                                (async () => {
-                                                                    try { await navigator.clipboard.writeText(@js($activeTestKey->shareableUrl())); copied = true; setTimeout(() => copied = false, 1600); }
-                                                                    catch (e) { copied = false; }
-                                                                })()
-                                                            "
-                                                        >
-                                                            <span x-show="!copied">Скопировать ссылку</span>
-                                                            <span x-show="copied" x-cloak>Скопировано</span>
-                                                        </button>
-                                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
-                                                        <div class="lp-subscription-url-fallback">
-                                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
-                                                            <code class="lp-subscription-url-fallback__url">{{ $activeTestKey->shareableUrl() }}</code>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-
-                                        <div class="lp-step">
-                                            <div class="lp-step__num">3</div>
-                                            <div class="lp-step__content">
-                                                <div class="lp-step__title">Вставляем в Happ</div>
-                                                <div class="lp-step__text">Откройте Happ и нажмите «Вставить из буфера обмена» (или «Import from clipboard»).</div>
-                                            </div>
+                            <x-cabinet-connect-howto class="mt-3">
+                                @foreach ($activeTrialSubscriptions as $trialSub)
+                                    <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
+                                        @if ($activeTrialSubscriptions->count() > 1)
+                                            <div class="text-xs text-slate-600 mb-1">Пробная №{{ $trialSub->id }}, до {{ $trialSub->expiresAt()?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
+                                        @endif
+                                        <button
+                                            type="button"
+                                            class="lp-btn lp-btn--copy"
+                                            :class="copied ? 'lp-btn--copied' : ''"
+                                            x-on:click="
+                                                (async () => {
+                                                    try { await navigator.clipboard.writeText(@js($trialSub->shareableSubUrl())); copied = true; setTimeout(() => copied = false, 1600); }
+                                                    catch (e) { copied = false; }
+                                                })()
+                                            "
+                                        >
+                                            <span x-show="!copied">Скопировать ссылку</span>
+                                            <span x-show="copied" x-cloak>Скопировано</span>
+                                        </button>
+                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                        <div class="lp-subscription-url-fallback">
+                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                            <code class="lp-subscription-url-fallback__url">{{ $trialSub->shareableSubUrl() }}</code>
                                         </div>
                                     </div>
-                                </div>
+                                @endforeach
+                                @foreach ($activeTestKeys as $activeTestKey)
+                                    <div class="lp-copy-row @if ($activeTrialSubscriptions->isNotEmpty() || ! $loop->first) mt-3 @endif" x-data="{ copied: false }">
+                                        @if ($activeTestKeys->count() > 1)
+                                            <div class="text-xs text-slate-600 mb-1">Старый ключ №{{ $activeTestKey->id }}, до {{ $activeTestKey->expires_at->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</div>
+                                        @endif
+                                        <button
+                                            type="button"
+                                            class="lp-btn lp-btn--copy"
+                                            :class="copied ? 'lp-btn--copied' : ''"
+                                            x-on:click="
+                                                (async () => {
+                                                    try { await navigator.clipboard.writeText(@js($activeTestKey->shareableUrl())); copied = true; setTimeout(() => copied = false, 1600); }
+                                                    catch (e) { copied = false; }
+                                                })()
+                                            "
+                                        >
+                                            <span x-show="!copied">Скопировать ссылку</span>
+                                            <span x-show="copied" x-cloak>Скопировано</span>
+                                        </button>
+                                        <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                        <div class="lp-subscription-url-fallback">
+                                            <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                            <code class="lp-subscription-url-fallback__url">{{ $activeTestKey->shareableUrl() }}</code>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </x-cabinet-connect-howto>
                         @elseif ($canIssueCabinetTrial)
                             <form method="POST" action="{{ route('cabinet.test_keys.store') }}">
                                 @csrf
@@ -343,98 +272,29 @@
                             </div>
                         @endif
 
-                        <div class="lp-howto">
-                            <div class="lp-field-label">Как подключиться</div>
-                            <div class="lp-steps">
-                                <div class="lp-step">
-                                    <div class="lp-step__num">1</div>
-                                    <div class="lp-step__content">
-                                        <div class="lp-step__title">Скачиваем Happ</div>
-                                        <div class="lp-store-grid" role="list" aria-label="Скачать Happ">
-                                            <a class="lp-store-btn" role="listitem" href="{{ $iosAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                <span class="lp-store-btn__icon" aria-hidden="true">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M16.2 13.2c-.1 2.2 2 2.9 2 2.9s-1.4 4.1-3.4 4.1c-1 0-1.8-.6-2.9-.6-1.1 0-2.1.6-2.9.6-1.9 0-4.2-3.8-4.2-7.5 0-3.2 2-5 3.9-5 1 0 2 .7 2.7.7.7 0 1.9-.8 3.2-.8.5 0 2.1.1 3.1 1.6-.1.1-1.8 1-1.6 3z"/>
-                                                        <path d="M13.9 3.8c.7-.9 1.9-1.6 2.9-1.6.1 1.2-.4 2.4-1.1 3.3-.7.9-1.8 1.6-2.9 1.5-.1-1.2.4-2.4 1.1-3.2z"/>
-                                                    </svg>
-                                                </span>
-                                                <span class="lp-store-btn__text">
-                                                    <span class="lp-store-btn__kicker">App Store</span>
-                                                    <span class="lp-store-btn__title">iOS</span>
-                                                </span>
-                                            </a>
-                                            <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                <span class="lp-store-btn__icon" aria-hidden="true">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M8.5 9.5l-1.6-2.1"/>
-                                                        <path d="M15.5 9.5l1.6-2.1"/>
-                                                        <path d="M7.2 10.2c-1 1.1-1.6 2.6-1.6 4.3V18c0 1 .8 1.8 1.8 1.8h9.2c1 0 1.8-.8 1.8-1.8v-3.5c0-1.7-.6-3.2-1.6-4.3-1-1.1-2.4-1.7-4.2-1.7s-3.2.6-4.2 1.7z"/>
-                                                        <path d="M9 13v3"/>
-                                                        <path d="M15 13v3"/>
-                                                        <path d="M10 7.2l-.8-1.2"/>
-                                                        <path d="M14 7.2l.8-1.2"/>
-                                                        <path d="M9.3 7.8c.5-.5 1.4-.8 2.7-.8s2.2.3 2.7.8"/>
-                                                    </svg>
-                                                </span>
-                                                <span class="lp-store-btn__text">
-                                                    <span class="lp-store-btn__kicker">Google Play</span>
-                                                    <span class="lp-store-btn__title">Android</span>
-                                                </span>
-                                            </a>
-                                            <a class="lp-store-btn" role="listitem" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
-                                                <span class="lp-store-btn__icon" aria-hidden="true">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                                                        <path d="M4 5.5h16v10H4z"/>
-                                                        <path d="M9 19h6"/>
-                                                        <path d="M12 15.5V19"/>
-                                                    </svg>
-                                                </span>
-                                                <span class="lp-store-btn__text">
-                                                    <span class="lp-store-btn__kicker">Desktop</span>
-                                                    <span class="lp-store-btn__title">ПК</span>
-                                                </span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="lp-step">
-                                    <div class="lp-step__num">2</div>
-                                    <div class="lp-step__content">
-                                        <div class="lp-step__title">Копируем ссылку</div>
-                                        <div class="lp-copy-row" x-data="{ copied: false }">
-                                            <button
-                                                type="button"
-                                                class="lp-btn lp-btn--copy"
-                                                :class="copied ? 'lp-btn--copied' : ''"
-                                                x-on:click="
-                                                    (async () => {
-                                                        try { await navigator.clipboard.writeText(@js($row['subscriptionUrl'])); copied = true; setTimeout(() => copied = false, 1600); }
-                                                        catch (e) { copied = false; }
-                                                    })()
-                                                "
-                                            >
-                                                <span x-show="!copied">Скопировать ссылку</span>
-                                                <span x-show="copied" x-cloak>Скопировано</span>
-                                            </button>
-                                            <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
-                                            <div class="lp-subscription-url-fallback">
-                                                <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
-                                                <code class="lp-subscription-url-fallback__url">{{ $row['subscriptionUrl'] }}</code>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="lp-step">
-                                    <div class="lp-step__num">3</div>
-                                    <div class="lp-step__content">
-                                        <div class="lp-step__title">Вставляем в Happ</div>
-                                        <div class="lp-step__text">Откройте Happ и нажмите «Вставить из буфера обмена» (или «Import from clipboard»).</div>
-                                    </div>
+                        <x-cabinet-connect-howto>
+                            <div class="lp-copy-row" x-data="{ copied: false }">
+                                <button
+                                    type="button"
+                                    class="lp-btn lp-btn--copy"
+                                    :class="copied ? 'lp-btn--copied' : ''"
+                                    x-on:click="
+                                        (async () => {
+                                            try { await navigator.clipboard.writeText(@js($row['subscriptionUrl'])); copied = true; setTimeout(() => copied = false, 1600); }
+                                            catch (e) { copied = false; }
+                                        })()
+                                    "
+                                >
+                                    <span x-show="!copied">Скопировать ссылку</span>
+                                    <span x-show="copied" x-cloak>Скопировано</span>
+                                </button>
+                                <span class="lp-copy-hint">Ссылка подписки попадёт в буфер обмена.</span>
+                                <div class="lp-subscription-url-fallback">
+                                    <span class="lp-subscription-url-fallback__label">Ссылка текстом</span>
+                                    <code class="lp-subscription-url-fallback__url">{{ $row['subscriptionUrl'] }}</code>
                                 </div>
                             </div>
-                        </div>
+                        </x-cabinet-connect-howto>
                     </div>
                 </article>
                 <div class="lp-cab-sub-renew-below">

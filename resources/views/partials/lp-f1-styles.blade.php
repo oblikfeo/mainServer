@@ -1022,6 +1022,87 @@
     @media (min-width: 860px) {
         .lp-f1 .lp-store-grid { grid-template-columns: 1fr 1fr 1fr; }
     }
+    .lp-f1 .lp-store-grid--two {
+        grid-template-columns: 1fr;
+    }
+    @media (min-width: 560px) {
+        .lp-f1 .lp-store-grid--two { grid-template-columns: 1fr 1fr; }
+    }
+    .lp-f1 .lp-connect-ios { margin-top: 0.45rem; }
+    .lp-f1 .lp-connect-dl { margin-top: 0.95rem; }
+    .lp-f1 .lp-connect-ios__label {
+        font-size: 0.625rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #475569;
+        margin: 0 0 0.4rem;
+    }
+    .lp-f1 .lp-connect-ios__note {
+        margin: 0 0 0.65rem;
+        font-size: 0.8125rem;
+        line-height: 1.45;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    .lp-f1 .lp-app-chips {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.65rem;
+    }
+    @media (min-width: 520px) {
+        .lp-f1 .lp-app-chips { grid-template-columns: 1fr 1fr; }
+    }
+    .lp-f1 .lp-app-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 3px solid var(--lp-ink);
+        box-shadow: 4px 4px 0 var(--lp-ink);
+        padding: 0.65rem 0.75rem;
+        background: #fff;
+        text-decoration: none;
+        color: var(--lp-ink);
+    }
+    .lp-f1 .lp-app-chip--link:hover {
+        transform: translate(1px, 1px);
+        box-shadow: 3px 3px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-app-chip__icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.85rem;
+        border: 2px solid var(--lp-ink);
+        object-fit: cover;
+        flex: 0 0 auto;
+        background: #fff;
+    }
+    .lp-f1 .lp-app-chip__meta { min-width: 0; }
+    .lp-f1 .lp-app-chip__name {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+    }
+    .lp-f1 .lp-app-chip__hint {
+        display: block;
+        margin-top: 0.1rem;
+        font-size: 0.625rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #475569;
+    }
+    .lp-f1 .lp-store-btn__appicon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.7rem;
+        border: 2px solid var(--lp-ink);
+        object-fit: cover;
+        flex: 0 0 auto;
+        background: #fff;
+    }
     .lp-f1 .lp-store-btn {
         display: flex;
         align-items: center;
