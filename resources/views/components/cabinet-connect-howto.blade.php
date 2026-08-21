@@ -19,7 +19,7 @@
                         <a class="lp-app-chip lp-app-chip--link" role="listitem" href="{{ $happIosUrl }}" target="_blank" rel="noopener noreferrer">
                             <img class="lp-app-chip__icon" src="{{ asset('apps/happ.jpg') }}" alt="Иконка Happ" width="56" height="56">
                             <span class="lp-app-chip__meta">
-                                <span class="lp-app-chip__name">Happ</span>
+                                <span class="lp-app-chip__name">Happ (Global)</span>
                                 <span class="lp-app-chip__hint">App Store</span>
                             </span>
                         </a>
