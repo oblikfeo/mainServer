@@ -27,7 +27,9 @@ final class SubscriptionExtraShareLines
             $title = trim((string) ($extra['vless_title'] ?? ''));
             $sub = trim((string) ($extra['vless_subtitle'] ?? ''));
             if ($title !== '') {
-                $v = VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
+                $v = str_starts_with($v, 'vmess://')
+                    ? self::setVmessName($v, $title)
+                    : VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
             }
             $out[] = $v;
         }
@@ -133,6 +135,11 @@ final class SubscriptionExtraShareLines
     {
         $blocks = [];
 
+        $milan = config('xui.sub_extra_milan', []);
+        if (is_array($milan) && self::isConfigured($milan)) {
+            $blocks[] = $milan;
+        }
+
         $us194 = config('xui.sub_extra_us194', []);
         if (is_array($us194) && self::isConfigured($us194)) {
             $blocks[] = $us194;
@@ -172,6 +179,35 @@ final class SubscriptionExtraShareLines
     }
 
     /**
+     * У vmess:// имя узла лежит в поле ps внутри base64, а не во фрагменте после #
+     * (VlessSubscriptionHelper::setShareFragment такие ссылки не трогает вовсе).
+     * При любой ошибке разбора возвращаем ссылку как есть — лучше узел без имени,
+     * чем выпавший из подписки.
+     */
+    private static function setVmessName(string $uri, string $title): string
+    {
+        $payload = substr($uri, strlen('vmess://'));
+        $json = base64_decode(strtr($payload, '-_', '+/'), true);
+        if ($json === false) {
+            return $uri;
+        }
+
+        $data = json_decode($json, true);
+        if (! is_array($data)) {
+            return $uri;
+        }
+
+        $data['ps'] = function_exists('mb_substr') ? mb_substr($title, 0, 30) : substr($title, 0, 30);
+
+        $encoded = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            return $uri;
+        }
+
+        return 'vmess://'.base64_encode($encoded);
+    }
+
+    /**
      * @param  array<string, mixed>  $extra
      */
     public static function isConfigured(array $extra): bool
@@ -196,6 +232,12 @@ final class SubscriptionExtraShareLines
         $vless = trim((string) ($extra['vless_uri'] ?? ''));
         if ($vless !== '' && str_starts_with($vless, 'vless://')) {
             return $vless;
+        }
+
+        // Milan (Hostkey IT): там проходит только VMess — Reality из РФ блокируется.
+        $vmess = trim((string) ($extra['vmess_uri'] ?? ''));
+        if ($vmess !== '' && str_starts_with($vmess, 'vmess://')) {
+            return $vmess;
         }
 
         return '';

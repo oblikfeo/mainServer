@@ -69,6 +69,22 @@ return [
     ],
 
     /**
+     * Milan (servers/hostkey/milan, 151.243.198.125, Hostkey IT): общая VMess + WebSocket.
+     * В Happ: 🇮🇹 Быстрый WiFi — САМЫЙ ПЕРВЫЙ узел подписки.
+     *
+     * Здесь vmess://, а не vless:// — на этом IP Reality из РФ не проходит вообще
+     * (перебраны все порты/dest/отпечатки, разбор в servers/hostkey/milan/README.md).
+     * VMess шифрует и полезную нагрузку, и адрес назначения, WebSocket с early data
+     * убирает лишний round-trip.
+     */
+    'sub_extra_milan' => [
+        'enabled' => filter_var(env('SUB_MILAN_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vmess_uri' => trim((string) env('SUB_MILAN_VMESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_MILAN_VLESS_TITLE', '🇮🇹 Быстрый WiFi')),
+        'vless_subtitle' => trim((string) env('SUB_MILAN_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * US194 (доступы194, 194.110.87.115, AlphaVPS Wi-Fi #3): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇺🇸 Быстрый Wi Fi — самый первый узел подписки.
      */
