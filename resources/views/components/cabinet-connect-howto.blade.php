@@ -46,8 +46,7 @@
                         <a class="lp-store-btn" role="listitem" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
                             <img class="lp-store-btn__appicon" src="{{ asset('apps/happ.jpg') }}" alt="" width="40" height="40">
                             <span class="lp-store-btn__text">
-                                <span class="lp-store-btn__kicker">happ.su</span>
-                                <span class="lp-store-btn__title">Windows / ПК</span>
+                                <span class="lp-store-btn__title">Компьютер</span>
                             </span>
                         </a>
                     </div>
