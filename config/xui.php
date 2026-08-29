@@ -85,6 +85,20 @@ return [
     ],
 
     /**
+     * WiFi3 (185.223.253.246, Франкфурт, TerraTransit AS42366): общая VLESS Reality,
+     * одна ссылка на всех. dest www.cloudflare.com.
+     * В Happ: 🇩🇪 Быстрый Wi-Fi — имя унаследовано от заблокированного
+     * Нюрнберга (bg31, 31.22.10.250): у клиентов узел на вид тот же, просто на живом IP.
+     * bg31 обязан оставаться выключенным, иначе в подписке будет два одинаковых имени.
+     */
+    'sub_extra_wifi3' => [
+        'enabled' => filter_var(env('SUB_WIFI3_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_WIFI3_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_WIFI3_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
+        'vless_subtitle' => trim((string) env('SUB_WIFI3_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * US194 (доступы194, 194.110.87.115, AlphaVPS Wi-Fi #3): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇺🇸 Быстрый Wi Fi — самый первый узел подписки.
      */

@@ -140,6 +140,11 @@ final class SubscriptionExtraShareLines
             $blocks[] = $milan;
         }
 
+        $wifi3 = config('xui.sub_extra_wifi3', []);
+        if (is_array($wifi3) && self::isConfigured($wifi3)) {
+            $blocks[] = $wifi3;
+        }
+
         $us194 = config('xui.sub_extra_us194', []);
         if (is_array($us194) && self::isConfigured($us194)) {
             $blocks[] = $us194;

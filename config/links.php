@@ -16,6 +16,16 @@ return [
             'health_profile' => 'home',
         ],
         [
+            'id' => 'wifi3',
+            'name' => 'WIFI3',
+            'subtitle' => '185.223.253.246 · 🇩🇪 Быстрый Wi-Fi · shared VLESS',
+            'ip' => (string) env('LINK_WIFI3_IP', '185.223.253.246'),
+            'ssh_user' => (string) env('LINK_WIFI3_SSH_USER', 'root'),
+            'ssh_private_key' => env('LINK_WIFI3_SSH_KEY', ''),
+            'client_tcp_port' => (int) env('LINK_WIFI3_CLIENT_TCP_PORT', 443),
+            'health_profile' => 'home',
+        ],
+        [
             'id' => 'us194',
             'name' => 'US194',
             'subtitle' => '194.110.87.115 · 🇺🇸 Быстрый Wi Fi · shared VLESS',
