@@ -32,6 +32,10 @@
                             href="{{ route('admin.referral') }}"
                             class="{{ request()->routeIs('admin.referral') ? 'text-slate-900 underline decoration-2 underline-offset-4' : 'text-slate-600 hover:text-slate-900' }}"
                         >Реферальная система</a>
+                        <a
+                            href="{{ route('admin.campaigns') }}"
+                            class="{{ request()->routeIs('admin.campaigns') ? 'text-slate-900 underline decoration-2 underline-offset-4' : 'text-slate-600 hover:text-slate-900' }}"
+                        >Реклама</a>
                     </nav>
                 </div>
                 <form method="POST" action="{{ route('admin.logout') }}" class="shrink-0">

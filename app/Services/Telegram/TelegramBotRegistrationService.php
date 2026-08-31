@@ -43,6 +43,9 @@ final class TelegramBotRegistrationService
 
         $name = $this->resolveDisplayName($telegramFirstName, $telegramUsername, $telegramUserId);
         $referredById = $this->resolveReferrerId($referralParam);
+        $campaign = $referredById === null
+            ? $this->resolveCampaign($telegramUserId, $referralParam)
+            : null;
 
         $user = new User([
             'name' => $name,
@@ -55,6 +58,12 @@ final class TelegramBotRegistrationService
             'telegram_linked_at' => now(),
             'telegram_bot_blocked_at' => null,
         ]);
+        if ($campaign !== null) {
+            $user->forceFill([
+                'utm_campaign' => $campaign,
+                'utm_campaign_at' => now(),
+            ]);
+        }
         if ($referredById !== null) {
             $user->referred_by = $referredById;
         }
@@ -85,6 +94,68 @@ final class TelegramBotRegistrationService
         }
 
         return 'tg_'.$telegramUserId;
+    }
+
+    /**
+     * Допустимая метка кампании: алфавит deep link Telegram и длина в пределах колонки.
+     *
+     * Длиннее 47 символов метку сюда не донесёт бот — с 48 символов payload уходит
+     * в ветку привязки аккаунта (LINK_TOKEN_LEN в server.mjs).
+     */
+    public static function isCampaignLabel(string $value): bool
+    {
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/', $value) === 1;
+    }
+
+    /**
+     * Метка рекламной кампании (first-touch), если параметр /start не оказался
+     * реферальным кодом.
+     *
+     * Бот держит метку в памяти между /start и нажатием «Новый пользователь»,
+     * поэтому при его рестарте параметр до регистрации не доезжает — в этом
+     * случае достаём последнюю метку из лога /start.
+     */
+    private function resolveCampaign(int $telegramUserId, ?string $referralParam): ?string
+    {
+        $direct = $this->normalizeCampaign($referralParam);
+        if ($direct !== null) {
+            return $direct;
+        }
+
+        $windowHours = max(1, (int) config('campaign.attribution_window_hours', 72));
+
+        $logged = TelegramStartUtmLog::query()
+            ->where('telegram_user_id', $telegramUserId)
+            ->where('created_at', '>=', now()->subHours($windowHours))
+            ->orderByDesc('id')
+            ->pluck('utm_param');
+
+        foreach ($logged as $param) {
+            $candidate = $this->normalizeCampaign((string) $param);
+            if ($candidate !== null) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Метка кампании — payload /start в допустимом Telegram алфавите, который не
+     * занят как чей-то реферальный код.
+     */
+    private function normalizeCampaign(?string $raw): ?string
+    {
+        $value = trim((string) $raw);
+        if (! self::isCampaignLabel($value)) {
+            return null;
+        }
+
+        if (User::query()->where('referral_code', $value)->exists()) {
+            return null;
+        }
+
+        return $value;
     }
 
     private function resolveReferrerId(?string $referralParam): ?int

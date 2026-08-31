@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BotChatController;
+use App\Http\Controllers\Admin\CampaignsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\PaymentsController;
@@ -160,6 +161,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('referral', [ReferralController::class, 'index'])->name('referral');
+        Route::get('/campaigns', [CampaignsController::class, 'index'])->name('campaigns');
+        Route::get('/campaigns/export', [CampaignsController::class, 'export'])
+            ->middleware('throttle:20,1')
+            ->name('campaigns.export');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
         Route::get('/what-works', [WhatWorksController::class, 'index'])->name('what_works');
         Route::post('/what-works/run', [WhatWorksController::class, 'run'])
