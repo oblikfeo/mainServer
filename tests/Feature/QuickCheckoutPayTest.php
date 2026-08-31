@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Services\Payments\FulfillPaidPaymentOrder;
 use App\Services\Subscription\CreateDualBundleSubscription;
 use App\Services\Subscription\CreatedSubscriptionResult;
-use App\Services\Wata\WataH2hClient;
+use App\Services\Platega\PlategaClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
@@ -27,8 +27,7 @@ class QuickCheckoutPayTest extends TestCase
 
     public function test_pay_does_not_create_user_until_payment(): void
     {
-        config(['wata.access_token' => 'test-token']);
-        $this->mockWataLink();
+        $this->mockPlategaTransaction();
 
         $this->postJson('/buy/pay', [
             'plan' => 'solo',
@@ -47,8 +46,7 @@ class QuickCheckoutPayTest extends TestCase
 
     public function test_pay_releases_unpaid_placeholder_and_allows_same_email(): void
     {
-        config(['wata.access_token' => 'test-token']);
-        $this->mockWataLink();
+        $this->mockPlategaTransaction();
 
         $ghost = User::factory()->unverified()->create([
             'email' => 'ghost@example.com',
@@ -85,7 +83,7 @@ class QuickCheckoutPayTest extends TestCase
 
     public function test_pay_rejects_existing_real_account_email(): void
     {
-        config(['wata.access_token' => 'test-token']);
+        $this->configurePlatega();
         User::factory()->create(['email' => 'taken@example.com']);
 
         $this->postJson('/buy/pay', [
@@ -159,15 +157,27 @@ class QuickCheckoutPayTest extends TestCase
         $this->assertSame($order->user_id, $result['subscription']->user_id);
     }
 
-    private function mockWataLink(): void
+    private function configurePlatega(): void
     {
-        $wata = Mockery::mock(WataH2hClient::class);
-        $wata->shouldReceive('createPaymentLink')->once()->andReturn([
-            'id' => '11111111-1111-1111-1111-111111111111',
-            'url' => 'https://pay.example.test/x',
-            'status' => 'Opened',
-            'orderId' => null,
+        config([
+            'platega.merchant_id' => 'test-merchant',
+            'platega.secret' => 'test-secret',
         ]);
-        $this->instance(WataH2hClient::class, $wata);
+    }
+
+    private function mockPlategaTransaction(): void
+    {
+        $this->configurePlatega();
+
+        $platega = Mockery::mock(PlategaClient::class);
+        $platega->shouldReceive('isConfigured')->andReturn(true);
+        $platega->shouldReceive('createTransaction')->once()->andReturn([
+            'transactionId' => '11111111-1111-1111-1111-111111111111',
+            'status' => 'PENDING',
+            'url' => 'https://pay.platega.io/?id=test',
+            'expiresIn' => '00:15:00',
+            'raw' => ['transactionId' => '11111111-1111-1111-1111-111111111111'],
+        ]);
+        $this->instance(PlategaClient::class, $platega);
     }
 }

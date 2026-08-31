@@ -6,6 +6,7 @@ use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Payments\PaymentDonePage;
+use App\Services\Platega\PlategaClient;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
@@ -26,9 +27,9 @@ final class QuickCheckoutController extends Controller
         return view('quick-buy.index');
     }
 
-    public function pay(Request $request, WataH2hClient $wata, QuickCheckoutUserCreator $userCreator): JsonResponse
+    public function pay(Request $request, PlategaClient $platega, QuickCheckoutUserCreator $userCreator): JsonResponse
     {
-        if (trim((string) config('wata.access_token')) === '') {
+        if (! $platega->isConfigured()) {
             return response()->json(['error' => 'payments_not_configured'], 503);
         }
 
@@ -68,7 +69,7 @@ final class QuickCheckoutController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($request, $wata, $plan, $period, $devices, $days, $quotaGb, $amountRub, $email): JsonResponse {
+            return DB::transaction(function () use ($request, $platega, $plan, $period, $devices, $days, $quotaGb, $amountRub, $email): JsonResponse {
                 $plainPassword = Str::password(12, symbols: false);
                 $orderId = 'ord_'.(string) Str::ulid();
                 $claimToken = Str::random(48);
@@ -82,7 +83,7 @@ final class QuickCheckoutController extends Controller
                     'quick_buy_password' => Crypt::encryptString($plainPassword),
                     'subscription_id' => null,
                     'purpose' => 'new',
-                    'provider' => 'wata',
+                    'provider' => 'platega',
                     'status' => 'created',
                     'amount_rub' => $amountRub,
                     'currency' => 'RUB',
@@ -99,23 +100,27 @@ final class QuickCheckoutController extends Controller
 
                 $request->session()->put('quick_buy_pw:'.$claimToken, $plainPassword);
 
-                $link = $wata->createPaymentLink([
-                    'type' => 'OneTime',
-                    'amount' => (float) number_format($amountRub, 2, '.', ''),
-                    'currency' => 'RUB',
-                    'description' => $desc,
-                    'orderId' => $orderId,
-                    'successRedirectUrl' => $returnUrl,
-                    'failRedirectUrl' => $failUrl,
-                ]);
+                // Аккаунта ещё нет (создаём после оплаты) — для антифрода Platega передаём номер заказа.
+                $tx = $platega->createTransaction(
+                    amountRub: $amountRub,
+                    description: $desc,
+                    returnUrl: $returnUrl,
+                    failedUrl: $failUrl,
+                    payload: $orderId,
+                    paymentMethod: null,
+                    metadata: [
+                        'userId' => $orderId,
+                        'userName' => 'web-guest',
+                    ],
+                );
 
-                $order->provider_link_id = $link['id'];
+                $order->provider_transaction_id = (string) $tx['transactionId'];
                 $order->status = 'pending';
-                $order->provider_payload = $link;
+                $order->provider_payload = $tx['raw'] ?? $tx;
                 $order->save();
 
                 return response()->json([
-                    'url' => $link['url'],
+                    'url' => $tx['url'],
                     'doneUrl' => $returnUrl,
                 ]);
             });
@@ -128,7 +133,7 @@ final class QuickCheckoutController extends Controller
         }
     }
 
-    public function status(Request $request, string $orderId, WataH2hClient $wata): JsonResponse
+    public function status(Request $request, string $orderId, PlategaClient $platega, WataH2hClient $wata): JsonResponse
     {
         $claim = trim((string) $request->query('claim', ''));
         if ($claim === '') {
@@ -145,19 +150,30 @@ final class QuickCheckoutController extends Controller
         }
 
         if ($order->status === 'pending' && filled($order->provider_transaction_id)) {
+            // Подписку здесь не выдаём ни при каком статусе — это делает только вебхук.
             try {
-                $remote = $wata->getTransaction((string) $order->provider_transaction_id);
-                $remoteStatus = strtolower((string) ($remote['status'] ?? ''));
-                if ($remoteStatus === 'paid' && $order->status !== 'paid') {
-                    // Webhook мог опоздать — дождёмся его, не выдаём подписку здесь.
-                } elseif ($remoteStatus === 'declined' && $order->status !== 'paid') {
-                    $order->status = 'declined';
-                    $order->declined_at = now();
-                    $order->provider_payload = $remote;
-                    $order->save();
+                if ((string) $order->provider === 'platega') {
+                    $remote = $platega->getTransactionStatus((string) $order->provider_transaction_id);
+                    $remoteStatus = strtoupper((string) ($remote['status'] ?? ''));
+                    if ($remoteStatus === 'CANCELED' || $remoteStatus === 'CHARGEBACKED') {
+                        $order->status = 'declined';
+                        $order->declined_at = now();
+                        $order->provider_payload = $remote;
+                        $order->save();
+                    }
+                } else {
+                    // Старые заказы WATA: провайдер отключён, но их страницы «спасибо» ещё открываются.
+                    $remote = $wata->getTransaction((string) $order->provider_transaction_id);
+                    $remoteStatus = strtolower((string) ($remote['status'] ?? ''));
+                    if ($remoteStatus === 'declined') {
+                        $order->status = 'declined';
+                        $order->declined_at = now();
+                        $order->provider_payload = $remote;
+                        $order->save();
+                    }
                 }
             } catch (\Throwable) {
-                // Игнорируем временные ошибки WATA при поллинге.
+                // Временные ошибки провайдера при поллинге игнорируем.
             }
         }
 

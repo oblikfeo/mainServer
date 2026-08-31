@@ -26,6 +26,19 @@ return [
     ),
 
     /**
+     * Возврат с платёжной страницы для оплат С САЙТА.
+     * Для бота используются return_url / failed_url выше (ведут в Telegram).
+     */
+    'site_return_url' => (string) env(
+        'PLATEGA_SITE_RETURN_URL',
+        rtrim((string) env('APP_URL', ''), '/').'/spasibo'
+    ),
+    'site_failed_url' => (string) env(
+        'PLATEGA_SITE_FAILED_URL',
+        rtrim((string) env('APP_URL', ''), '/').'/oshibka'
+    ),
+
+    /**
      * Методы оплаты Platega (как у Wata: СБП + карта).
      * @see https://docs.platega.io/
      */

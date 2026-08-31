@@ -19,7 +19,7 @@
         @endif
     </div>
 
-    @include('partials.cabinet-wata-payment-script')
+    @include('partials.cabinet-payment-script')
 
     @if ($renewalSubscriptions->isNotEmpty())
         <script>

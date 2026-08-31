@@ -58,7 +58,7 @@
 
     <div class="rounded-3xl border-2 border-slate-200/90 bg-white shadow-xl shadow-slate-300/25 overflow-hidden mb-6 sm:mb-8">
         <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Заказы оплаты (WATA)</div>
+            <div class="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">Заказы оплаты</div>
         </div>
         @if (($orders ?? null) && $orders->isEmpty())
             <p class="px-6 py-10 text-center text-slate-500 text-sm">Заказов нет.</p>

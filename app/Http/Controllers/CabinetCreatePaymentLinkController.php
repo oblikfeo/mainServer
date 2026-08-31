@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Services\Payments\BonusExtraDevicePricing;
-use App\Services\Wata\WataH2hClient;
+use App\Services\Platega\PlategaClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,9 +13,9 @@ use RuntimeException;
 
 class CabinetCreatePaymentLinkController extends Controller
 {
-    public function __invoke(Request $request, WataH2hClient $wata, BonusExtraDevicePricing $bonusPricing): JsonResponse
+    public function __invoke(Request $request, PlategaClient $platega, BonusExtraDevicePricing $bonusPricing): JsonResponse
     {
-        if (trim((string) config('wata.access_token')) === '') {
+        if (! $platega->isConfigured()) {
             return response()->json(['error' => 'payments_not_configured'], 503);
         }
 
@@ -33,11 +33,11 @@ class CabinetCreatePaymentLinkController extends Controller
         $purpose = (string) ($data['purpose'] ?? 'new');
 
         if ($purpose === 'extra_device') {
-            return $this->createExtraDeviceOrder($request, $wata, $user, $data, $bonusPricing);
+            return $this->createExtraDeviceOrder($request, $platega, $user, $data, $bonusPricing);
         }
 
         if ($purpose === 'renew') {
-            return $this->createRenewalOrder($request, $wata, $user, $plan, $period, $data);
+            return $this->createRenewalOrder($request, $platega, $user, $plan, $period, $data);
         }
 
         $products = config('payments.products', []);
@@ -66,7 +66,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'user_id' => $user->id,
             'subscription_id' => null,
             'purpose' => 'new',
-            'provider' => 'wata',
+            'provider' => 'platega',
             'status' => 'created',
             'amount_rub' => $amountRub,
             'currency' => 'RUB',
@@ -78,26 +78,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'quota_gb' => $quotaGb,
         ]);
 
-        $payload = [
-            'type' => 'OneTime',
-            'amount' => (float) number_format($amountRub, 2, '.', ''),
-            'currency' => 'RUB',
-            'description' => $desc,
-            'orderId' => $orderId,
-            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
-            'failRedirectUrl' => (string) config('wata.fail_url'),
-        ];
-
-        $link = $wata->createPaymentLink($payload);
-
-        $order->provider_link_id = $link['id'];
-        $order->status = 'pending';
-        $order->provider_payload = $link;
-        $order->save();
-
-        return response()->json([
-            'url' => $link['url'],
-        ]);
+        return $this->startPayment($platega, $order, $request, $claimToken, $user);
     }
 
     /**
@@ -105,7 +86,7 @@ class CabinetCreatePaymentLinkController extends Controller
      */
     private function createRenewalOrder(
         Request $request,
-        WataH2hClient $wata,
+        PlategaClient $platega,
         $user,
         string $plan,
         string $period,
@@ -160,7 +141,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'user_id' => $user->id,
             'subscription_id' => $subscription->id,
             'purpose' => 'renew',
-            'provider' => 'wata',
+            'provider' => 'platega',
             'status' => 'created',
             'amount_rub' => $amountRub,
             'currency' => 'RUB',
@@ -172,26 +153,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'quota_gb' => $addQuotaGb,
         ]);
 
-        $payload = [
-            'type' => 'OneTime',
-            'amount' => (float) number_format($amountRub, 2, '.', ''),
-            'currency' => 'RUB',
-            'description' => $desc,
-            'orderId' => $orderId,
-            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
-            'failRedirectUrl' => (string) config('wata.fail_url'),
-        ];
-
-        $link = $wata->createPaymentLink($payload);
-
-        $order->provider_link_id = $link['id'];
-        $order->status = 'pending';
-        $order->provider_payload = $link;
-        $order->save();
-
-        return response()->json([
-            'url' => $link['url'],
-        ]);
+        return $this->startPayment($platega, $order, $request, $claimToken, $user);
     }
 
     /**
@@ -199,7 +161,7 @@ class CabinetCreatePaymentLinkController extends Controller
      */
     private function createExtraDeviceOrder(
         Request $request,
-        WataH2hClient $wata,
+        PlategaClient $platega,
         $user,
         array $data,
         BonusExtraDevicePricing $bonusPricing,
@@ -248,7 +210,7 @@ class CabinetCreatePaymentLinkController extends Controller
             'user_id' => $user->id,
             'subscription_id' => $subscription->id,
             'purpose' => 'extra_device',
-            'provider' => 'wata',
+            'provider' => 'platega',
             'status' => 'created',
             'amount_rub' => $amountRub,
             'currency' => 'RUB',
@@ -260,25 +222,40 @@ class CabinetCreatePaymentLinkController extends Controller
             'quota_gb' => 0,
         ]);
 
-        $payload = [
-            'type' => 'OneTime',
-            'amount' => (float) number_format($amountRub, 2, '.', ''),
-            'currency' => 'RUB',
-            'description' => $desc,
-            'orderId' => $orderId,
-            'successRedirectUrl' => $this->paymentDoneUrl($request, $claimToken),
-            'failRedirectUrl' => (string) config('wata.fail_url'),
-        ];
+        return $this->startPayment($platega, $order, $request, $claimToken, $user);
+    }
 
-        $link = $wata->createPaymentLink($payload);
+    /**
+     * Создаёт транзакцию Platega под уже сохранённый заказ и отдаёт ссылку на оплату.
+     * Способ оплаты не навязываем — Platega сама показывает выбор (СБП / карта).
+     */
+    private function startPayment(
+        PlategaClient $platega,
+        PaymentOrder $order,
+        Request $request,
+        string $claimToken,
+        $user,
+    ): JsonResponse {
+        $tx = $platega->createTransaction(
+            amountRub: (int) $order->amount_rub,
+            description: (string) $order->description,
+            returnUrl: $this->paymentDoneUrl($request, $claimToken),
+            failedUrl: (string) config('platega.site_failed_url'),
+            payload: (string) $order->order_id,
+            paymentMethod: null,
+            metadata: [
+                'userId' => (string) $user->id,
+                'userName' => 'web:'.$user->id,
+            ],
+        );
 
-        $order->provider_link_id = $link['id'];
+        $order->provider_transaction_id = (string) $tx['transactionId'];
         $order->status = 'pending';
-        $order->provider_payload = $link;
+        $order->provider_payload = $tx['raw'] ?? $tx;
         $order->save();
 
         return response()->json([
-            'url' => $link['url'],
+            'url' => $tx['url'],
         ]);
     }
 
@@ -286,6 +263,6 @@ class CabinetCreatePaymentLinkController extends Controller
     {
         $request->session()->put('cabinet_payment_claim', $claimToken);
 
-        return (string) config('wata.success_url');
+        return (string) config('platega.site_return_url');
     }
 }

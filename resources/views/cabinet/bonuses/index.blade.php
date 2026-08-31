@@ -78,7 +78,7 @@
         @endif
     </div>
 
-    @include('partials.cabinet-wata-payment-script')
+    @include('partials.cabinet-payment-script')
 
     <style>
         .lp-f1 .lp-bonus-page__lead {
