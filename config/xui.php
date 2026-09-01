@@ -101,6 +101,18 @@ return [
     ],
 
     /**
+     * FI (2.26.7.189, PLAY2GO, Хельсинки): общая VLESS Reality, одна ссылка на всех.
+     * Конфиг по образцу шведского узла: донор github.com, порт 443, без flow.
+     * В Happ: 🇫🇮 Быстрый Wi Fi.
+     */
+    'sub_extra_fi' => [
+        'enabled' => filter_var(env('SUB_FI_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_FI_VLESS_URI', '')),
+        'vless_title' => trim((string) env('SUB_FI_VLESS_TITLE', '🇫🇮 Быстрый Wi Fi')),
+        'vless_subtitle' => trim((string) env('SUB_FI_VLESS_SUBTITLE', '')),
+    ],
+
+    /**
      * US194 (доступы194, 194.110.87.115, AlphaVPS Wi-Fi #3): общая VLESS Reality, одна ссылка на всех.
      * В Happ: 🇺🇸 Быстрый Wi Fi — самый первый узел подписки.
      */
