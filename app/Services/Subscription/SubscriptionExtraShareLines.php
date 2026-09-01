@@ -27,9 +27,13 @@ final class SubscriptionExtraShareLines
             $title = trim((string) ($extra['vless_title'] ?? ''));
             $sub = trim((string) ($extra['vless_subtitle'] ?? ''));
             if ($title !== '') {
-                $v = str_starts_with($v, 'vmess://')
-                    ? self::setVmessName($v, $title)
-                    : VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
+                if (str_starts_with($v, 'vmess://')) {
+                    $v = self::setVmessName($v, $title);
+                } elseif (str_starts_with($v, 'ss://')) {
+                    $v = self::setSsName($v, $title);
+                } else {
+                    $v = VlessSubscriptionHelper::setShareFragment($v, $title, $sub, $fmt);
+                }
             }
             $out[] = $v;
         }
@@ -213,6 +217,23 @@ final class SubscriptionExtraShareLines
     }
 
     /**
+     * У ss:// имя узла — это фрагмент после #, но setShareFragment такие ссылки
+     * не трогает (он знает только vless и hy2), поэтому ставим фрагмент сами.
+     */
+    private static function setSsName(string $uri, string $title): string
+    {
+        $base = explode('#', $uri, 2)[0];
+        $title = trim($title);
+        if ($title === '') {
+            return $base;
+        }
+
+        $title = function_exists('mb_substr') ? mb_substr($title, 0, 30) : substr($title, 0, 30);
+
+        return $base.'#'.rawurlencode($title);
+    }
+
+    /**
      * @param  array<string, mixed>  $extra
      */
     public static function isConfigured(array $extra): bool
@@ -243,6 +264,12 @@ final class SubscriptionExtraShareLines
         $vmess = trim((string) ($extra['vmess_uri'] ?? ''));
         if ($vmess !== '' && str_starts_with($vmess, 'vmess://')) {
             return $vmess;
+        }
+
+        // KZ: на адресе режут TLS-рукопожатие, проходит только Shadowsocks.
+        $ss = trim((string) ($extra['ss_uri'] ?? ''));
+        if ($ss !== '' && str_starts_with($ss, 'ss://')) {
+            return $ss;
         }
 
         return '';

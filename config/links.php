@@ -78,11 +78,11 @@ return [
         [
             'id' => 'kz46',
             'name' => 'KZ46',
-            'subtitle' => '46.8.43.49 · 🇰🇿 Быстрый Wi~~Fi · shared VLESS',
-            'ip' => (string) env('LINK_KZ46_IP', '46.8.43.49'),
+            'subtitle' => '46.8.79.125 · 🇰🇿 Быстрый Wi~Fi · shared Shadowsocks',
+            'ip' => (string) env('LINK_KZ46_IP', '46.8.79.125'),
             'ssh_user' => (string) env('LINK_KZ46_SSH_USER', 'root'),
             'ssh_private_key' => env('LINK_KZ46_SSH_KEY', ''),
-            'client_tcp_port' => (int) env('LINK_KZ46_CLIENT_TCP_PORT', 443),
+            'client_tcp_port' => (int) env('LINK_KZ46_CLIENT_TCP_PORT', 20443),
             'health_profile' => 'home',
         ],
         [

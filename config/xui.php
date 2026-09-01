@@ -53,6 +53,8 @@ return [
     'sub_extra_kz46' => [
         'enabled' => filter_var(env('SUB_KZ46_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_KZ46_VLESS_URI', '')),
+        // 31.08.2026: на этом адресе режут TLS, Reality не проходит — узел живёт на Shadowsocks.
+        'ss_uri' => trim((string) env('SUB_KZ46_SS_URI', '')),
         'vless_title' => trim((string) env('SUB_KZ46_VLESS_TITLE', '🇰🇿 Быстрый Wi~Fi')),
         'vless_subtitle' => trim((string) env('SUB_KZ46_VLESS_SUBTITLE', '')),
     ],
