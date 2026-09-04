@@ -126,13 +126,16 @@ return [
     ],
 
     /**
-     * BG31 (доступы31, 31.22.10.250): общая VLESS Reality, одна ссылка на всех.
-     * В Happ: 🇩🇪 Быстрый Wi-Fi — второй узел после US194 (одно тире; двойное — у 777).
+     * BG31 (2.27.207.63, Берлин, PLAY2GO FZCO AS219337): общая VLESS Reality,
+     * одна ссылка на всех. Донор github.com, порт 443, без flow.
+     * Развёрнут 04.09.2026 взамен 31.22.10.250 (Нюрнберг), ушедшего в блок.
+     * Папка с доступами: nadezhdaVPN/servers/play2go-berlin/.
+     * В Happ: 🇫🇮 Быстрый Wi~~Fi (две тильды).
      */
     'sub_extra_bg31' => [
         'enabled' => filter_var(env('SUB_BG31_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_BG31_VLESS_URI', '')),
-        'vless_title' => trim((string) env('SUB_BG31_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
+        'vless_title' => trim((string) env('SUB_BG31_VLESS_TITLE', '🇫🇮 Быстрый Wi~~Fi')),
         'vless_subtitle' => trim((string) env('SUB_BG31_VLESS_SUBTITLE', '')),
     ],
 
