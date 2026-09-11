@@ -51,8 +51,9 @@
             --}}
             <div class="as-stage">
 
-                {{-- ИНТРО --}}
-                <section class="as-pane" :class="paneClass(0)" :aria-hidden="current !== 0">
+                {{-- ИНТРО: as-pane--on в разметке, чтобы первый экран был
+                     виден до инициализации Alpine и не мигал --}}
+                <section class="as-pane as-pane--on" :class="paneClass(0)" :aria-hidden="current !== 0">
                     <div class="as-pane__inner as-pane__inner--center">
                         <span class="as-badge">iPhone и iPad</span>
                         <h1 class="as-intro-title">Пропали<br>приложения?</h1>
@@ -323,7 +324,7 @@ function appleStoreWizard() {
         // Видимость слайда — только классом, без x-show: все панели всегда
         // в потоке, поэтому переключение не мигает и не дёргает высоту.
         paneClass(step) {
-            return this.current === step ? 'as-pane--on' : 'as-pane--off';
+            return this.current === step ? 'as-pane--on' : '';
         },
 
         next() {

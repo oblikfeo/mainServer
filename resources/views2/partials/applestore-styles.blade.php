@@ -2,11 +2,50 @@
     /* ---------- Ширина ----------
        Базовый .lp-container--tutorial из tutorial-styles ограничен 480px.
        Переопределяем только для этой страницы, /tutorial не трогаем. */
-    .lp-f1 .lp-container--applestore { max-width: 720px; }
+    .lp-f1 .lp-container--applestore {
+        max-width: 720px;
+        margin: 0 auto;        /* по центру экрана, а не у левого края */
+    }
 
     @media (min-width: 768px) {
         .lp-f1 .lp-container--applestore { max-width: 720px; }
     }
+
+    /* ---------- Шапка ----------
+       Правила для .lp-header__bar в общих стилях висят только на варианте
+       .lp-header--drawer, а здесь класс .lp-header-v2 — поэтому flex не
+       применялся и логотип с кнопкой падали в столбик у левого края.
+       Раскладываем сами, в границах своей страницы. */
+    .lp-f1 .lp-container--applestore .lp-header__bar {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        width: 100%;
+        min-width: 0;
+        padding: .85rem 1.25rem;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .lp-container--applestore .lp-header__bar { padding: 1rem 2rem; }
+    }
+
+    /* .lp-header из lp-f1-styles — flex row, но .lp-container--tutorial
+       задаёт column, и шапка складывалась вертикально. Возвращаем строку. */
+    .lp-f1 .lp-container--applestore .lp-header {
+        display: block;
+        flex-direction: row;
+    }
+
+    .lp-f1 .lp-container--applestore .lp-brand-line {
+        display: flex;
+        align-items: baseline;
+        gap: .3rem;
+        min-width: 0;
+    }
+
+    .lp-f1 .lp-container--applestore .lp-header-cta { flex-shrink: 0; }
 
     /* ---------- Сцена ----------
        Все слайды лежат в ОДНОЙ ячейке grid друг над другом. Высота сцены =
@@ -14,30 +53,33 @@
        схлопывается: нет ни мигания, ни прыжка кнопок внизу. */
     .lp-f1 .as-stage {
         flex: 1;
-        display: grid;
+        display: flex;
+        flex-direction: column;
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
+    /* Скрытая панель убирается из потока целиком (display:none), поэтому
+       высота сцены = высота ТЕКУЩЕГО шага: над коротким интро не повисает
+       пустота ростом с финальный экран. Мигания нет, потому что показ
+       и скрытие происходят в одном кадре, а не через x-show-транзишены. */
     .lp-f1 .as-pane {
-        grid-area: 1 / 1;              /* все панели в одной клетке */
-        display: flex;
+        display: none;
+        flex: 1;
         flex-direction: column;
         min-width: 0;
-        transition: opacity .28s ease;
+        min-height: 0;
     }
 
     .lp-f1 .as-pane--on {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
+        display: flex;
+        animation: as-fade .25s ease both;
     }
 
-    .lp-f1 .as-pane--off {
-        opacity: 0;
-        visibility: hidden;            /* убирает с фокуса и из чтения скринридером */
-        pointer-events: none;
+    @keyframes as-fade {
+        from { opacity: 0; }
+        to   { opacity: 1; }
     }
 
     /* ---------- Наполнение слайда ----------
