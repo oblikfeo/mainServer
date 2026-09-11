@@ -122,7 +122,7 @@
     .lp-f1 .as-pane .lp-tutorial__title,
     .lp-f1 .as-pane .lp-tutorial__icon { flex: none; }
 
-    .lp-f1 .as-pane--on .lp-tutorial__icon { margin-bottom: 1.1rem; }
+    .lp-f1 .as-pane .lp-tutorial__icon { margin-bottom: 1.1rem; }
 
     /* ---------- Интро ---------- */
     .lp-f1 .as-badge {
