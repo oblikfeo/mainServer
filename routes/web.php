@@ -46,6 +46,10 @@ Route::get('/tutorial', function () {
     return view('views2::tutorial');
 })->name('tutorial');
 
+Route::get('/AppleStore', function () {
+    return view('views2::applestore');
+})->name('applestore');
+
 Route::get('/agreement', function () {
     return view('agreement');
 })->name('agreement');
