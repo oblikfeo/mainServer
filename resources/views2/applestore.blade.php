@@ -31,29 +31,10 @@
         </header>
 
         <div class="lp-tutorial">
-            {{-- Прогресс: только на шагах --}}
-            <div class="lp-tutorial__progress" x-show="current > 0 && current <= total" x-cloak>
-                <template x-for="i in total" :key="i">
-                    <div
-                        class="lp-tutorial__dot"
-                        :class="{
-                            'lp-tutorial__dot--active': i === current,
-                            'lp-tutorial__dot--done': i < current
-                        }"
-                    ></div>
-                </template>
-            </div>
-
-            {{--
-                Все слайды лежат в одной ячейке grid друг над другом и переключаются
-                только прозрачностью. Высота сцены не схлопывается между шагами —
-                поэтому нет мигания и прыжка кнопок.
-            --}}
             <div class="as-stage">
 
-                {{-- ИНТРО: as-pane--on в разметке, чтобы первый экран был
-                     виден до инициализации Alpine и не мигал --}}
-                <section class="as-pane as-pane--on" :class="paneClass(0)" :aria-hidden="current !== 0">
+                {{-- ИНТРО --}}
+                <section class="as-pane" x-show="current === 0" x-cloak>
                     <div class="as-pane__inner as-pane__inner--center">
                         <span class="as-badge">iPhone и iPad</span>
                         <h1 class="as-intro-title">Пропали<br>приложения?</h1>
@@ -70,7 +51,7 @@
                 </section>
 
                 {{-- ШАГ 1 --}}
-                <section class="as-pane" :class="paneClass(1)" :aria-hidden="current !== 1">
+                <section class="as-pane" x-show="current === 1" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">⚙️</div>
                         <div class="lp-tutorial__step-label">Шаг 1 из 6</div>
@@ -90,7 +71,7 @@
                 </section>
 
                 {{-- ШАГ 2 --}}
-                <section class="as-pane" :class="paneClass(2)" :aria-hidden="current !== 2">
+                <section class="as-pane" x-show="current === 2" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">🛒</div>
                         <div class="lp-tutorial__step-label">Шаг 2 из 6</div>
@@ -113,7 +94,7 @@
                 </section>
 
                 {{-- ШАГ 3 --}}
-                <section class="as-pane" :class="paneClass(3)" :aria-hidden="current !== 3">
+                <section class="as-pane" x-show="current === 3" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">🌍</div>
                         <div class="lp-tutorial__step-label">Шаг 3 из 6</div>
@@ -144,7 +125,7 @@
                 </section>
 
                 {{-- ШАГ 4: подготовка спрятана здесь, раскрывается по нажатию --}}
-                <section class="as-pane" :class="paneClass(4)" :aria-hidden="current !== 4">
+                <section class="as-pane" x-show="current === 4" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">💳</div>
                         <div class="lp-tutorial__step-label">Шаг 4 из 6</div>
@@ -201,7 +182,7 @@
                 </section>
 
                 {{-- ШАГ 5 --}}
-                <section class="as-pane" :class="paneClass(5)" :aria-hidden="current !== 5">
+                <section class="as-pane" x-show="current === 5" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">🏠</div>
                         <div class="lp-tutorial__step-label">Шаг 5 из 6</div>
@@ -225,7 +206,7 @@
                 </section>
 
                 {{-- ШАГ 6 --}}
-                <section class="as-pane" :class="paneClass(6)" :aria-hidden="current !== 6">
+                <section class="as-pane" x-show="current === 6" x-cloak>
                     <div class="as-pane__inner">
                         <div class="lp-tutorial__icon" aria-hidden="true">✅</div>
                         <div class="lp-tutorial__step-label">Шаг 6 из 6</div>
@@ -243,7 +224,7 @@
                 </section>
 
                 {{-- ФИНАЛ --}}
-                <section class="as-pane" :class="paneClass(7)" :aria-hidden="current !== 7">
+                <section class="as-pane" x-show="current === 7" x-cloak>
                     <div class="as-pane__inner as-pane__inner--center">
                         <div class="as-done-head">
                             <div class="lp-tutorial__done-icon" aria-hidden="true">✓</div>
@@ -320,12 +301,6 @@ function appleStoreWizard() {
         current: 0,
         total: 6,
         trouble: false,
-
-        // Видимость слайда — только классом, без x-show: все панели всегда
-        // в потоке, поэтому переключение не мигает и не дёргает высоту.
-        paneClass(step) {
-            return this.current === step ? 'as-pane--on' : '';
-        },
 
         next() {
             if (this.current <= this.total) {

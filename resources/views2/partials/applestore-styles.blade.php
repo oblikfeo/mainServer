@@ -12,10 +12,19 @@
     }
 
     /* ---------- Шапка ----------
-       Правила для .lp-header__bar в общих стилях висят только на варианте
-       .lp-header--drawer, а здесь класс .lp-header-v2 — поэтому flex не
-       применялся и логотип с кнопкой падали в столбик у левого края.
-       Раскладываем сами, в границах своей страницы. */
+       .lp-header уже даёт padding 1rem/1.25rem. Свой padding на __bar
+       складывался с ним и раздувал шапку — поэтому здесь паддинг только
+       на .lp-header, а __bar остаётся прозрачной строкой. */
+    .lp-f1 .lp-container--applestore .lp-header {
+        display: block;
+        padding: .7rem 1.25rem;
+        flex: none;
+    }
+
+    @media (min-width: 768px) {
+        .lp-f1 .lp-container--applestore .lp-header { padding: .8rem 1.75rem; }
+    }
+
     .lp-f1 .lp-container--applestore .lp-header__bar {
         display: flex;
         flex-wrap: nowrap;
@@ -24,25 +33,35 @@
         gap: 1rem;
         width: 100%;
         min-width: 0;
-        padding: .85rem 1.25rem;
+        padding: 0;
+    }
+
+    /* align-items:center — «НАДЕЖДА» и плашка «VPN» по одной оси.
+       baseline их разъезжал, потому что у плашки своя рамка и padding. */
+    .lp-f1 .lp-container--applestore .lp-brand-line {
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+        min-width: 0;
+    }
+
+    /* Логотип в шапке инструкции скромнее, чем на лендинге: 32px съедали
+       треть экрана вместе с паддингами. */
+    .lp-f1 .lp-container--applestore .lp-logo-heavy {
+        font-size: 19px;
+        letter-spacing: -.5px;
+        line-height: 1;
+    }
+
+    .lp-f1 .lp-container--applestore .lp-logo-vpn {
+        font-size: .75rem;
+        border-width: 2px;
+        padding: .12rem .35rem;
+        line-height: 1;
     }
 
     @media (min-width: 768px) {
-        .lp-f1 .lp-container--applestore .lp-header__bar { padding: 1rem 2rem; }
-    }
-
-    /* .lp-header из lp-f1-styles — flex row, но .lp-container--tutorial
-       задаёт column, и шапка складывалась вертикально. Возвращаем строку. */
-    .lp-f1 .lp-container--applestore .lp-header {
-        display: block;
-        flex-direction: row;
-    }
-
-    .lp-f1 .lp-container--applestore .lp-brand-line {
-        display: flex;
-        align-items: baseline;
-        gap: .3rem;
-        min-width: 0;
+        .lp-f1 .lp-container--applestore .lp-logo-heavy { font-size: 22px; }
     }
 
     .lp-f1 .lp-container--applestore .lp-header-cta { flex-shrink: 0; }
@@ -60,21 +79,16 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Скрытая панель убирается из потока целиком (display:none), поэтому
-       высота сцены = высота ТЕКУЩЕГО шага: над коротким интро не повисает
-       пустота ростом с финальный экран. Мигания нет, потому что показ
-       и скрытие происходят в одном кадре, а не через x-show-транзишены. */
+    /* Видимостью управляет x-show (выставляет display:none напрямую), поэтому
+       в потоке всегда ровно одна панель: высота сцены равна текущему шагу,
+       наложения слайдов нет. */
     .lp-f1 .as-pane {
-        display: none;
         flex: 1;
+        display: flex;
         flex-direction: column;
         min-width: 0;
         min-height: 0;
-    }
-
-    .lp-f1 .as-pane--on {
-        display: flex;
-        animation: as-fade .25s ease both;
+        animation: as-fade .22s ease both;
     }
 
     @keyframes as-fade {
