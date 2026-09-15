@@ -1,8 +1,12 @@
 <?php
 
 /**
- * Базовый DirectSites для Happ (без geosite/geoip .dat).
- * RU-сервисы, банки и Госуслуги — напрямую, без VPN-туннеля.
+ * DirectSites для Happ (без geosite/geoip .dat).
+ *
+ * На LTE с whitelist direct = пакет не доходит до IP (банки, многие RU-сервисы).
+ * Банки идут через VPN (GlobalProxy) → CDN → egress → интернет.
+ *
+ * Direct: push, маркетплейсы, соцсети — то, что реально доступно с телефона напрямую.
  *
  * @return list<string>
  */
@@ -26,28 +30,4 @@ return [
     'domain:2gis.ru',
     'domain:2gis.com',
     'domain:2ip.ru',
-    // Сбер: отдельные корни (поддомены sberbank.ru уже покрыты domain:sberbank.ru)
-    'domain:sberbank.ru',
-    'domain:sber.ru',
-    'domain:sberbank.com',
-    'domain:cdnflow.ru',
-    'domain:vtb.ru',
-    'domain:tbank.ru',
-    'domain:tinkoff.ru',
-    'domain:alfabank.ru',
-    'domain:raiffeisen.ru',
-    'domain:gazprombank.ru',
-    'domain:psbank.ru',
-    'domain:open.ru',
-    'domain:rshb.ru',
-    'domain:rosbank.ru',
-    'domain:mkb.ru',
-    'domain:sovcombank.ru',
-    'domain:homecredit.ru',
-    'domain:rencredit.ru',
-    'domain:otpbank.ru',
-    'domain:modulbank.ru',
-    'domain:tochka.com',
-    'domain:nspk.ru',
-    'domain:gosuslugi.ru',
 ];

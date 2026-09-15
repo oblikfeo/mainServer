@@ -157,6 +157,9 @@ final class HappRoutingSubscriptionLine
         array $proxySites = [],
         string $domainStrategy = 'AsIs',
     ): ?string {
+        // geosite:/geoip: требуют своей .dat: в предустановленной базе Happ нет CATEGORY-RU,
+        // и ядро падает с "failed to check code CATEGORY-RU from geosite.dat > EOF".
+        // Поэтому без URL такие правила отбрасываем.
         $allowGeosite = $geositeUrl !== '';
         $allowGeoip = $geoipUrl !== '';
 
@@ -209,9 +212,9 @@ final class HappRoutingSubscriptionLine
         }
 
         // DomainStrategy AsIs — иначе при IPIfNonMatch после доменных правил включался матч по IP и трафик мог уйти в прокси.
-        // LastUpdated — по доке Happ помогает принудительно обновить профиль при изменении подписки.
-        // Geoipurl/Geositeurl: либо реальные URL на .dat (по умолчанию Loyalsoldier), либо пустые строки —
-        // последнее блокирует автоподстановку дефолтных URL клиентом (см. dev-docs/routing).
+        // Без geo URL: пустые Geoipurl/Geositeurl, UseChunkFiles=false, LastUpdated="" — как в примере dev-docs/routing
+        // (иначе Happ подставляет Loyalsoldier из дефолтного профиля и качает .dat).
+        $usesGeoFiles = $geoipUrl !== '' || $geositeUrl !== '';
         $profile = [
             'Name' => $profileName,
             'GlobalProxy' => 'true',
@@ -223,6 +226,7 @@ final class HappRoutingSubscriptionLine
             'DomesticDNSIP' => self::YANDEX_DNS_PRIMARY,
             'Geoipurl' => $geoipUrl,
             'Geositeurl' => $geositeUrl,
+            'UseChunkFiles' => $usesGeoFiles ? 'true' : 'false',
             'DnsHosts' => [
                 self::YANDEX_DOH_HOST => self::YANDEX_DNS_PRIMARY,
             ],
@@ -234,7 +238,7 @@ final class HappRoutingSubscriptionLine
             'BlockIp' => $blockIp,
             'DomainStrategy' => $domainStrategy,
             'FakeDNS' => 'false',
-            'LastUpdated' => (string) time(),
+            'LastUpdated' => $usesGeoFiles ? (string) time() : '',
         ];
 
         $json = json_encode($profile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
