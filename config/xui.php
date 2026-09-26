@@ -81,6 +81,7 @@ return [
      */
     'sub_extra_milan' => [
         'enabled' => filter_var(env('SUB_MILAN_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'vless_uri' => trim((string) env('SUB_MILAN_VLESS_URI', '')),
         'vmess_uri' => trim((string) env('SUB_MILAN_VMESS_URI', '')),
         'vless_title' => trim((string) env('SUB_MILAN_VLESS_TITLE', '🇮🇹 Быстрый WiFi')),
         'vless_subtitle' => trim((string) env('SUB_MILAN_VLESS_SUBTITLE', '')),
