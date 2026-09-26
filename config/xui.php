@@ -99,6 +99,7 @@ return [
     'sub_extra_wifi3' => [
         'enabled' => filter_var(env('SUB_WIFI3_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_WIFI3_VLESS_URI', '')),
+        'vmess_uri' => trim((string) env('SUB_WIFI3_VMESS_URI', '')),
         'vless_title' => trim((string) env('SUB_WIFI3_VLESS_TITLE', '🇩🇪 Быстрый Wi-Fi')),
         'vless_subtitle' => trim((string) env('SUB_WIFI3_VLESS_SUBTITLE', '')),
     ],
@@ -136,6 +137,7 @@ return [
     'sub_extra_bg31' => [
         'enabled' => filter_var(env('SUB_BG31_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_BG31_VLESS_URI', '')),
+        'vmess_uri' => trim((string) env('SUB_BG31_VMESS_URI', '')),
         'vless_title' => trim((string) env('SUB_BG31_VLESS_TITLE', '🇫🇮 Быстрый Wi~~Fi')),
         'vless_subtitle' => trim((string) env('SUB_BG31_VLESS_SUBTITLE', '')),
     ],
@@ -147,6 +149,7 @@ return [
     'sub_extra_777' => [
         'enabled' => filter_var(env('SUB_777_ENABLED', false), FILTER_VALIDATE_BOOL),
         'vless_uri' => trim((string) env('SUB_777_VLESS_URI', '')),
+        'vmess_uri' => trim((string) env('SUB_777_VMESS_URI', '')),
         'vless_title' => trim((string) env('SUB_777_VLESS_TITLE', '🇧🇬 Быстрый Wi--Fi')),
         'vless_subtitle' => trim((string) env('SUB_777_VLESS_SUBTITLE', '')),
     ],
