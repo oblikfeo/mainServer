@@ -7,6 +7,7 @@ use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Platega\PlategaClient;
+use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -115,9 +116,13 @@ final class TelegramBotPaymentController extends Controller
         ]);
     }
 
-    public function create(Request $request, PlategaClient $platega): JsonResponse
+    public function create(Request $request, PlategaClient $platega, WataH2hClient $wata): JsonResponse
     {
-        if (! $platega->isConfigured()) {
+        $provider = self::provider();
+        $configured = $provider === 'wata'
+            ? trim((string) config('wata.access_token')) !== ''
+            : $platega->isConfigured();
+        if (! $configured) {
             return response()->json([
                 'ok' => false,
                 'error' => 'payments_not_configured',
@@ -170,6 +175,10 @@ final class TelegramBotPaymentController extends Controller
                     subscriptionId: null,
                     description: 'Подписка '.$plan.' · '.$periodLabel,
                 );
+            }
+
+            if ($provider === 'wata') {
+                return $this->startWataPayment($wata, $order, $paymentMethodCode);
             }
 
             $methodId = $this->paymentMethodId($paymentMethodCode);
@@ -230,7 +239,7 @@ final class TelegramBotPaymentController extends Controller
         $order = PaymentOrder::query()
             ->where('order_id', (string) $data['order_id'])
             ->where('user_id', $user->id)
-            ->where('provider', 'platega')
+            ->whereIn('provider', ['platega', 'wata'])
             ->first();
 
         if ($order === null) {
@@ -245,6 +254,44 @@ final class TelegramBotPaymentController extends Controller
             'ok' => true,
             'status' => (string) $order->status,
             'paid' => $order->status === 'paid',
+        ]);
+    }
+
+    /** Платёжка для оплат из бота: wata (по умолчанию) или platega. */
+    private static function provider(): string
+    {
+        return config('payments.telegram_bot_provider') === 'platega' ? 'platega' : 'wata';
+    }
+
+    /**
+     * Wata сама показывает на своей странице выбор СБП/карта, поэтому способ из бота
+     * в платёж не передаём — только возвращаем боту для подписи кнопки.
+     */
+    private function startWataPayment(WataH2hClient $wata, PaymentOrder $order, string $paymentMethodCode): JsonResponse
+    {
+        $link = $wata->createPaymentLink([
+            'type' => 'OneTime',
+            'amount' => (float) number_format((int) $order->amount_rub, 2, '.', ''),
+            'currency' => 'RUB',
+            'description' => (string) $order->description,
+            'orderId' => (string) $order->order_id,
+            'successRedirectUrl' => (string) config('platega.return_url'),
+            'failRedirectUrl' => (string) config('platega.failed_url'),
+        ]);
+
+        $order->provider_link_id = $link['id'];
+        $order->status = 'pending';
+        $order->provider_payload = $link;
+        $order->save();
+
+        return response()->json([
+            'ok' => true,
+            'order_id' => $order->order_id,
+            'pay_url' => $link['url'],
+            'amount_rub' => (int) $order->amount_rub,
+            'description' => (string) $order->description,
+            'payment_method' => $paymentMethodCode,
+            'expires_in' => null,
         ]);
     }
 
@@ -354,7 +401,7 @@ final class TelegramBotPaymentController extends Controller
             'user_id' => $user->id,
             'subscription_id' => $subscriptionId,
             'purpose' => $purpose,
-            'provider' => 'platega',
+            'provider' => self::provider(),
             'status' => 'created',
             'amount_rub' => $amountRub,
             'currency' => 'RUB',

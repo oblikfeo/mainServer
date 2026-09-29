@@ -9,6 +9,9 @@ return [
     /**
      * Быстрая покупка без регистрации (/buy).
      */
+    /** Платёжка для оплат в Telegram-боте: wata | platega. Сайт всегда на Platega. */
+    'telegram_bot_provider' => env('TELEGRAM_BOT_PAYMENT_PROVIDER', 'wata'),
+
     'quick_buy' => [
         'autogen_email_domain' => env('QUICK_BUY_AUTOGEN_EMAIL_DOMAIN', 'buy.nadezhda.local'),
     ],
