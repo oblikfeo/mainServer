@@ -6,6 +6,8 @@ return [
     'telegram_url' => env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
     /** Если задано — используется в блоке «Поддержка» вместо telegram_url */
     'telegram_support_url' => env('MARKETING_TELEGRAM_SUPPORT_URL') ?: env('MARKETING_TELEGRAM_URL', 'https://t.me/nadezhda_tehsup'),
+    /** Кнопка Telegram в Happ (#support-url). Пусто — telegram_support_url. На сайт не влияет. */
+    'happ_support_button_url' => env('MARKETING_HAPP_SUPPORT_BUTTON_URL', ''),
     /**
      * Публичный URL сайта для кнопки в строке профиля Happ (#profile-web-page-url).
      * Пусто — берётся из APP_URL.

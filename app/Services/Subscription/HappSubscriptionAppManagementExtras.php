@@ -48,7 +48,9 @@ final class HappSubscriptionAppManagementExtras
         ?int $usageDownloadBytes = null,
     ): array {
         $supportUrl = self::normalizedUrl(
-            trim((string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')))
+            trim((string) (config('marketing.happ_support_button_url')
+                ?: config('marketing.telegram_support_url')
+                ?: config('marketing.telegram_url')))
         );
 
         $needsRenewal = self::contextNeedsRenewal($context, $usageUploadBytes, $usageDownloadBytes);
