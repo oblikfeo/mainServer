@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\TestKey;
+use App\Services\Subscription\AutoSubscriptionFeedRenderer;
 use App\Services\Subscription\MergedSubscriptionFeedRenderer;
 use App\Services\Subscription\SubscriptionFeedHwidGate;
 use App\Services\Subscription\SubscriptionFeedHwidVerdict;
@@ -21,6 +22,7 @@ class SubscriptionFeedController extends Controller
         MergedSubscriptionFeedRenderer $uriFeedRenderer,
         XrayJsonSubscriptionFeedRenderer $xrayJsonFeedRenderer,
         TestKeySubscriptionFeedRenderer $testKeyRenderer,
+        AutoSubscriptionFeedRenderer $autoFeedRenderer,
     ): Response {
         $subscription = Subscription::query()->where('token', $token)->first();
         if ($subscription !== null) {
@@ -34,9 +36,11 @@ class SubscriptionFeedController extends Controller
                 return $blocked;
             }
 
-            return $this->subFeedFormat() === 'xray_json'
-                ? $xrayJsonFeedRenderer->render($subscription)
-                : $uriFeedRenderer->render($subscription);
+            return match ($this->subFeedFormat()) {
+                'auto' => $autoFeedRenderer->render($subscription),
+                'xray_json' => $xrayJsonFeedRenderer->render($subscription),
+                default => $uriFeedRenderer->render($subscription),
+            };
         }
 
         $testKey = TestKey::query()

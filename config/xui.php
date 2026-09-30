@@ -286,6 +286,24 @@ return [
      */
     'sub_feed_format' => strtolower(trim((string) env('SUB_FEED_FORMAT', 'uri'))),
 
+    /**
+     * SUB_FEED_FORMAT=auto: одна кнопка «Авто» (JSON Xray). Пул Wi-Fi выбирается по leastPing;
+     * если мёртв весь пул — трафик уходит в пул LTE (анти-глушилки). Узлы — готовые share-ссылки.
+     */
+    'sub_auto' => [
+        'remarks' => trim((string) env('SUB_AUTO_REMARKS', '🚀 Авто')),
+        'probe_interval' => trim((string) env('SUB_AUTO_PROBE_INTERVAL', '20s')),
+        'log_level' => trim((string) env('SUB_AUTO_LOG_LEVEL', 'warning')),
+        'wifi' => array_values(array_filter(array_map(
+            static fn (int $i): string => trim((string) env('SUB_AUTO_WIFI_'.$i, '')),
+            range(1, 12),
+        ))),
+        'lte' => array_values(array_filter(array_map(
+            static fn (int $i): string => trim((string) env('SUB_AUTO_LTE_'.$i, '')),
+            range(1, 12),
+        ))),
+    ],
+
     /** Непустое значение фиксирует meta.serverDescription в JSON-подписке (перекрывает авто-сборку по узлам). */
     'sub_json_meta_server_description' => trim((string) env('SUB_JSON_META_SERVER_DESCRIPTION', '')),
 
