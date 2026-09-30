@@ -10,7 +10,7 @@ use Throwable;
 /**
  * Подписка «одна кнопка Авто»: JSON-массив из одного конфига Xray.
  *
- * Пул Wi-Fi (leastPing по observatory). Когда мёртв весь пул — fallback через loopback
+ * Пул Wi-Fi: равномерно по живым узлам (roundRobin, мёртвые отсеивает observatory). Когда мёртв весь пул — fallback через loopback
  * в пул LTE (анти-глушилки). Российские домены — direct. Профиль маршрутизации Happ
  * должен быть выключен (HAPP_ROUTING_ENABLED=false → заголовок routing: happ://routing/off),
  * иначе Happ подменяет routing конфига и балансировщик не работает.
@@ -81,6 +81,7 @@ final class AutoSubscriptionFeedRenderer
         $cfg = config('xui.sub_auto', []);
         $wifi = $this->convertPool((array) ($cfg['wifi'] ?? []), 'proxy-wifi-');
         $lte = $this->convertPool((array) ($cfg['lte'] ?? []), 'proxy-lte-');
+        $wifiStrategy = ['type' => (string) ($cfg['wifi_strategy'] ?? 'roundRobin')];
         if ($wifi === [] && $lte === []) {
             throw new \RuntimeException('SUB_AUTO_WIFI_* и SUB_AUTO_LTE_* пусты или не разобрались.');
         }
@@ -92,13 +93,13 @@ final class AutoSubscriptionFeedRenderer
 
         if ($wifi !== [] && $lte !== []) {
             $outbounds[] = ['tag' => 'loopback-lte', 'protocol' => 'loopback', 'settings' => ['inboundTag' => 'lte-auto-reentry']];
-            $balancers[] = ['tag' => 'wifi-pool', 'selector' => ['proxy-wifi-'], 'strategy' => ['type' => 'leastPing'], 'fallbackTag' => 'loopback-lte'];
+            $balancers[] = ['tag' => 'wifi-pool', 'selector' => ['proxy-wifi-'], 'strategy' => $wifiStrategy, 'fallbackTag' => 'loopback-lte'];
             $balancers[] = ['tag' => 'lte-auto', 'selector' => ['proxy-lte-'], 'strategy' => ['type' => 'leastPing'], 'fallbackTag' => 'block'];
             $rules[] = ['type' => 'field', 'inboundTag' => ['lte-auto-reentry'], 'balancerTag' => 'lte-auto', 'ruleTag' => 'fallback-to-lte'];
             $defaultBalancer = 'wifi-pool';
             $subjects = ['proxy-wifi-', 'proxy-lte-'];
         } elseif ($wifi !== []) {
-            $balancers[] = ['tag' => 'wifi-pool', 'selector' => ['proxy-wifi-'], 'strategy' => ['type' => 'leastPing']];
+            $balancers[] = ['tag' => 'wifi-pool', 'selector' => ['proxy-wifi-'], 'strategy' => $wifiStrategy];
             $defaultBalancer = 'wifi-pool';
             $subjects = ['proxy-wifi-'];
         } else {

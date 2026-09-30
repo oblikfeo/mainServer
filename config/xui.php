@@ -287,12 +287,14 @@ return [
     'sub_feed_format' => strtolower(trim((string) env('SUB_FEED_FORMAT', 'uri'))),
 
     /**
-     * SUB_FEED_FORMAT=auto: одна кнопка «Авто» (JSON Xray). Пул Wi-Fi выбирается по leastPing;
+     * SUB_FEED_FORMAT=auto: одна кнопка «Авто» (JSON Xray). Пул Wi-Fi — поровну по живым узлам;
      * если мёртв весь пул — трафик уходит в пул LTE (анти-глушилки). Узлы — готовые share-ссылки.
      */
     'sub_auto' => [
         'remarks' => trim((string) env('SUB_AUTO_REMARKS', '🚀 Авто')),
         'probe_interval' => trim((string) env('SUB_AUTO_PROBE_INTERVAL', '20s')),
+        /** roundRobin — поровну по живым узлам; leastPing — все на самый быстрый. */
+        'wifi_strategy' => trim((string) env('SUB_AUTO_WIFI_STRATEGY', 'roundRobin')),
         'log_level' => trim((string) env('SUB_AUTO_LOG_LEVEL', 'warning')),
         'wifi' => array_values(array_filter(array_map(
             static fn (int $i): string => trim((string) env('SUB_AUTO_WIFI_'.$i, '')),
