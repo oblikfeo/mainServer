@@ -140,7 +140,7 @@
                                 </div>
                             @endforeach
 
-                            <x-cabinet-connect-howto class="mt-3" :open="true">
+                            <x-cabinet-connect-howto class="mt-3">
                                 @foreach ($activeTrialSubscriptions as $trialSub)
                                     <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
                                         @if ($activeTrialSubscriptions->count() > 1)
@@ -231,7 +231,7 @@
                     $exp = $sub->expiresAt();
                 @endphp
                 <div class="lp-cab-paid-sub-unit">
-                <article class="lp-card" x-data="{ open: true }">
+                <article class="lp-card" x-data="{ open: false }">
                     <button
                         type="button"
                         class="lp-card__head"
@@ -272,7 +272,7 @@
                             </div>
                         @endif
 
-                        <x-cabinet-connect-howto :open="count($items) === 1">
+                        <x-cabinet-connect-howto>
                             <div class="lp-copy-row" x-data="{ copied: false }">
                                 <button
                                     type="button"

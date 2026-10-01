@@ -1,18 +1,11 @@
-@props(['open' => false])
-
 @php
     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/apps/details?id=com.happproxy');
     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     $newsTgUrl = 'https://t.me/Nadezhda_VPN';
 @endphp
 
-<div {{ $attributes->class(['lp-howto', 'lp-hw']) }} x-data="{ hw: @js((bool) $open) }">
-    <button type="button" class="lp-hw__toggle" x-on:click="hw = !hw" :aria-expanded="hw">
-        <span x-show="!hw" @if ($open) x-cloak @endif>Подключиться</span>
-        <span x-show="hw" @unless ($open) x-cloak @endunless>Скрыть инструкцию</span>
-    </button>
-
-    <ol class="lp-hw__steps" x-show="hw" @unless ($open) x-cloak @endunless x-transition>
+<div {{ $attributes->class(['lp-howto', 'lp-hw']) }}>
+    <ol class="lp-hw__steps">
         <li class="lp-hw__step">
             <div class="lp-hw__head"><span class="lp-hw__num">1</span>Ставим приложение</div>
 

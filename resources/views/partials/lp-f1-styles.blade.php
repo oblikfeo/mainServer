@@ -1148,23 +1148,7 @@
     }
 
     /* «Как подключиться» в кабинете: компактные шаги, на телефоне — в одну колонку */
-    .lp-f1 .lp-hw__toggle {
-        display: block;
-        width: 100%;
-        padding: 0.8rem 1rem;
-        border: 3px solid var(--lp-ink);
-        background: var(--lp-orange);
-        color: #fff;
-        font-size: 0.875rem;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        cursor: pointer;
-        box-shadow: 4px 4px 0 var(--lp-ink);
-    }
-    .lp-f1 .lp-hw__toggle[aria-expanded="true"] { background: #fff; color: var(--lp-ink); box-shadow: none; padding: 0.55rem 1rem; font-size: 0.75rem; }
-    .lp-f1 .lp-hw__toggle:hover { transform: translate(1px, 1px); }
-    .lp-f1 .lp-hw__steps { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
+    .lp-f1 .lp-hw__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
     .lp-f1 .lp-hw__step {
         border: 3px solid var(--lp-ink);
         background: #fffef5;
