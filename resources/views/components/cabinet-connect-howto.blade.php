@@ -1,20 +1,25 @@
+@props(['open' => false])
+
 @php
     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/apps/details?id=com.happproxy');
     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     $newsTgUrl = 'https://t.me/Nadezhda_VPN';
 @endphp
 
-<div {{ $attributes->class(['lp-howto', 'lp-hw']) }}>
-    <div class="lp-field-label">Как подключиться</div>
+<div {{ $attributes->class(['lp-howto', 'lp-hw']) }} x-data="{ hw: @js((bool) $open) }">
+    <button type="button" class="lp-hw__toggle" x-on:click="hw = !hw" :aria-expanded="hw">
+        <span x-show="!hw" @if ($open) x-cloak @endif>Подключиться</span>
+        <span x-show="hw" @unless ($open) x-cloak @endunless>Скрыть инструкцию</span>
+    </button>
 
-    <ol class="lp-hw__steps">
+    <ol class="lp-hw__steps" x-show="hw" @unless ($open) x-cloak @endunless x-transition>
         <li class="lp-hw__step">
             <div class="lp-hw__head"><span class="lp-hw__num">1</span>Ставим приложение</div>
 
             <div class="lp-hw__ios">
                 <img class="lp-hw__ios-icon" src="{{ asset('apps/happ.jpg') }}" alt="" width="40" height="40">
                 <div class="lp-hw__ios-text">
-                    <b>iPhone:</b> найдите в App Store <b>Happ</b> или <b>Incy</b>
+                    <b>iPhone:</b> найдите в App Store <b>Happ</b>
                 </div>
                 <a class="lp-hw__ios-help" href="{{ route('applestore') }}">Не находится?</a>
             </div>
@@ -39,7 +44,7 @@
         <li class="lp-hw__step">
             <div class="lp-hw__head"><span class="lp-hw__num">3</span>Вставляем в приложение</div>
             <div class="lp-hw__text">
-                Откройте Happ или Incy и нажмите <b>«Вставить из буфера обмена»</b> (или «Import from clipboard»).
+                Откройте Happ и нажмите <b>«Вставить из буфера обмена»</b> (или «Import from clipboard»).
             </div>
         </li>
 

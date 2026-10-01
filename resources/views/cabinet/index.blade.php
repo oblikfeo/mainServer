@@ -140,7 +140,7 @@
                                 </div>
                             @endforeach
 
-                            <x-cabinet-connect-howto class="mt-3">
+                            <x-cabinet-connect-howto class="mt-3" :open="true">
                                 @foreach ($activeTrialSubscriptions as $trialSub)
                                     <div class="lp-copy-row @if (!$loop->first) mt-3 @endif" x-data="{ copied: false }">
                                         @if ($activeTrialSubscriptions->count() > 1)
@@ -272,7 +272,7 @@
                             </div>
                         @endif
 
-                        <x-cabinet-connect-howto>
+                        <x-cabinet-connect-howto :open="count($items) === 1">
                             <div class="lp-copy-row" x-data="{ copied: false }">
                                 <button
                                     type="button"
