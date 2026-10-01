@@ -1,73 +1,55 @@
 @php
     $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/apps/details?id=com.happproxy');
     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
-    $happIosUrl = config('marketing.apps.happ_ios_url', 'https://apps.apple.com/us/app/happ-proxy-utility/id6504287215');
-    $incyIosUrl = config('marketing.apps.incy_ios_url', 'https://apps.apple.com/app/incy/id6756943388');
+    $newsTgUrl = 'https://t.me/Nadezhda_VPN';
 @endphp
 
-<div {{ $attributes->class(['lp-howto']) }}>
+<div {{ $attributes->class(['lp-howto', 'lp-hw']) }}>
     <div class="lp-field-label">Как подключиться</div>
-    <div class="lp-steps">
-        <div class="lp-step">
-            <div class="lp-step__num">1</div>
-            <div class="lp-step__content">
-                <div class="lp-step__title">Ставим приложение</div>
 
-                <div class="lp-connect-ios">
-                    <div class="lp-connect-ios__label">iPhone / iPad</div>
-                    <div class="lp-app-chips" role="list" aria-label="Приложения для iOS">
-                        <a class="lp-app-chip lp-app-chip--link" role="listitem" href="{{ $happIosUrl }}" target="_blank" rel="noopener noreferrer">
-                            <img class="lp-app-chip__icon" src="{{ asset('apps/happ.jpg') }}" alt="Иконка Happ" width="56" height="56">
-                            <span class="lp-app-chip__meta">
-                                <span class="lp-app-chip__name">Happ (Global)</span>
-                                <span class="lp-app-chip__hint">App Store</span>
-                            </span>
-                        </a>
-                        <a class="lp-app-chip lp-app-chip--link" role="listitem" href="{{ $incyIosUrl }}" target="_blank" rel="noopener noreferrer">
-                            <img class="lp-app-chip__icon" src="{{ asset('apps/incy.jpg') }}" alt="Иконка Incy" width="56" height="56">
-                            <span class="lp-app-chip__meta">
-                                <span class="lp-app-chip__name">Incy</span>
-                                <span class="lp-app-chip__hint">App Store</span>
-                            </span>
-                        </a>
-                    </div>
+    <ol class="lp-hw__steps">
+        <li class="lp-hw__step">
+            <div class="lp-hw__head"><span class="lp-hw__num">1</span>Ставим приложение</div>
+
+            <div class="lp-hw__ios">
+                <img class="lp-hw__ios-icon" src="{{ asset('apps/happ.jpg') }}" alt="" width="40" height="40">
+                <div class="lp-hw__ios-text">
+                    <b>iPhone:</b> найдите в App Store <b>Happ</b> или <b>Incy</b>
                 </div>
-
-                <div class="lp-connect-dl">
-                    <div class="lp-connect-ios__label">Android и ПК</div>
-                    <div class="lp-store-grid lp-store-grid--two" role="list" aria-label="Скачать Happ">
-                        <a class="lp-store-btn" role="listitem" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
-                            <img class="lp-store-btn__appicon" src="{{ asset('apps/happ.jpg') }}" alt="" width="40" height="40">
-                            <span class="lp-store-btn__text">
-                                <span class="lp-store-btn__kicker">Google Play</span>
-                                <span class="lp-store-btn__title">Android</span>
-                            </span>
-                        </a>
-                        <a class="lp-store-btn" role="listitem" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
-                            <img class="lp-store-btn__appicon" src="{{ asset('apps/happ.jpg') }}" alt="" width="40" height="40">
-                            <span class="lp-store-btn__text">
-                                <span class="lp-store-btn__title">Компьютер</span>
-                            </span>
-                        </a>
-                    </div>
-                </div>
+                <a class="lp-hw__ios-help" href="{{ route('applestore') }}">Не находится?</a>
             </div>
-        </div>
 
-        <div class="lp-step">
-            <div class="lp-step__num">2</div>
-            <div class="lp-step__content">
-                <div class="lp-step__title">Копируем ссылку</div>
-                {{ $slot }}
+            <div class="lp-hw__apps">
+                <a class="lp-hw__app" href="{{ $androidAppUrl }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ asset('apps/happ.jpg') }}" alt="" width="28" height="28">
+                    <span>Android</span>
+                </a>
+                <a class="lp-hw__app" href="{{ $desktopAppUrl }}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{ asset('apps/happ.jpg') }}" alt="" width="28" height="28">
+                    <span>Компьютер</span>
+                </a>
             </div>
-        </div>
+        </li>
 
-        <div class="lp-step">
-            <div class="lp-step__num">3</div>
-            <div class="lp-step__content">
-                <div class="lp-step__title">Вставляем в приложение</div>
-                <div class="lp-step__text">Откройте Happ или Incy и нажмите «Вставить из буфера обмена» (или «Import from clipboard»).</div>
+        <li class="lp-hw__step">
+            <div class="lp-hw__head"><span class="lp-hw__num">2</span>Копируем ссылку</div>
+            {{ $slot }}
+        </li>
+
+        <li class="lp-hw__step">
+            <div class="lp-hw__head"><span class="lp-hw__num">3</span>Вставляем в приложение</div>
+            <div class="lp-hw__text">
+                Откройте Happ или Incy и нажмите <b>«Вставить из буфера обмена»</b> (или «Import from clipboard»).
             </div>
-        </div>
-    </div>
+        </li>
+
+        <li class="lp-hw__step lp-hw__step--tg">
+            <div class="lp-hw__head"><span class="lp-hw__num">4</span>Подпишитесь на новости</div>
+            <a class="lp-hw__tg" href="{{ $newsTgUrl }}" target="_blank" rel="noopener noreferrer">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M21.94 4.3 18.7 19.6c-.24 1.07-.88 1.34-1.78.83l-4.93-3.63-2.38 2.29c-.26.26-.48.48-.99.48l.35-5.01 9.13-8.25c.4-.35-.09-.55-.61-.2L6.2 13.2l-4.86-1.52c-1.06-.33-1.08-1.06.22-1.57L20.55 2.8c.88-.33 1.65.2 1.39 1.5z"/></svg>
+                <span>Канал Надежды в Telegram</span>
+            </a>
+            <div class="lp-hw__note">Там первыми пишем о сбоях и обновлениях.</div>
+        </li>
+    </ol>
 </div>

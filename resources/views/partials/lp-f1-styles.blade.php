@@ -1146,6 +1146,129 @@
         text-transform: uppercase;
         letter-spacing: -0.01em;
     }
+
+    /* «Как подключиться» в кабинете: компактные шаги, на телефоне — в одну колонку */
+    .lp-f1 .lp-hw__steps { list-style: none; margin: 0.35rem 0 0; padding: 0; display: grid; gap: 0.6rem; }
+    .lp-f1 .lp-hw__step {
+        border: 3px solid var(--lp-ink);
+        background: #fffef5;
+        padding: 0.7rem 0.75rem 0.8rem;
+        min-width: 0;
+    }
+    .lp-f1 .lp-hw__head {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        font-size: 0.8125rem;
+        margin-bottom: 0.6rem;
+    }
+    .lp-f1 .lp-hw__num {
+        flex: 0 0 auto;
+        width: 1.75rem;
+        height: 1.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--lp-ink);
+        background: var(--lp-orange);
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1;
+    }
+    .lp-f1 .lp-hw__text { font-size: 0.875rem; line-height: 1.45; font-weight: 600; color: #1f2937; }
+    .lp-f1 .lp-hw__note { margin-top: 0.45rem; font-size: 0.75rem; font-weight: 600; color: #475569; }
+
+    .lp-f1 .lp-hw__ios {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        padding: 0.55rem 0.6rem;
+        border: 2px solid var(--lp-ink);
+        background: #fff;
+    }
+    .lp-f1 .lp-hw__ios-icon { width: 2.25rem; height: 2.25rem; border-radius: 0.6rem; border: 2px solid var(--lp-ink); flex: 0 0 auto; }
+    .lp-f1 .lp-hw__ios-text { flex: 1 1 10rem; min-width: 0; font-size: 0.8125rem; line-height: 1.35; font-weight: 600; color: #1f2937; }
+    .lp-f1 .lp-hw__ios-help {
+        flex: 0 0 auto;
+        padding: 0.4rem 0.65rem;
+        border: 2px solid var(--lp-ink);
+        background: var(--lp-orange);
+        color: #fff;
+        font-size: 0.6875rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        box-shadow: 3px 3px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-hw__ios-help:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--lp-ink); }
+
+    .lp-f1 .lp-hw__apps { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+    .lp-f1 .lp-hw__app {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.5rem;
+        border: 2px solid var(--lp-ink);
+        background: #fff;
+        color: var(--lp-ink);
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 3px 3px 0 var(--lp-ink);
+        min-width: 0;
+    }
+    .lp-f1 .lp-hw__app:hover { transform: translate(1px, 1px); box-shadow: 2px 2px 0 var(--lp-ink); }
+    .lp-f1 .lp-hw__app img { width: 1.6rem; height: 1.6rem; border-radius: 0.45rem; border: 1.5px solid var(--lp-ink); flex: 0 0 auto; }
+
+    /* шаг 2: кнопка копирования во всю ширину, ссылка текстом — аккуратной плашкой */
+    .lp-f1 .lp-hw .lp-copy-row { align-items: stretch; gap: 0.4rem; }
+    .lp-f1 .lp-hw .lp-btn.lp-btn--copy {
+        width: 100%;
+        background: var(--lp-ink);
+        color: #fff;
+        box-shadow: 4px 4px 0 var(--lp-orange);
+        font-size: 0.8125rem;
+    }
+    .lp-f1 .lp-hw .lp-btn.lp-btn--copy:hover { background: #000; }
+    .lp-f1 .lp-hw .lp-btn.lp-btn--copy.lp-btn--copied { background: var(--lp-orange); box-shadow: 4px 4px 0 var(--lp-ink); }
+    .lp-f1 .lp-hw .lp-copy-hint { font-size: 0.6875rem; text-align: center; margin-top: 0.15rem; }
+    .lp-f1 .lp-hw .lp-subscription-url-fallback {
+        margin-top: 0.1rem;
+        border: 2px dashed var(--lp-ink);
+        border-radius: 0;
+        background: #fff;
+    }
+
+    .lp-f1 .lp-hw__step--tg { background: #eef7fd; }
+    .lp-f1 .lp-hw__tg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.65rem 0.75rem;
+        border: 3px solid var(--lp-ink);
+        background: #229ED9;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        box-shadow: 4px 4px 0 var(--lp-ink);
+    }
+    .lp-f1 .lp-hw__tg:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--lp-ink); }
+
+    @media (min-width: 640px) {
+        .lp-f1 .lp-hw__steps { grid-template-columns: 1fr 1fr; }
+        .lp-f1 .lp-hw__step { padding: 0.85rem 0.9rem 0.95rem; }
+    }
     .lp-f1 .lp-empty {
         text-align: center;
         padding: 2rem 1.25rem;
