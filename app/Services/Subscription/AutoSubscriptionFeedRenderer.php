@@ -31,7 +31,7 @@ final class AutoSubscriptionFeedRenderer
         }
 
         try {
-            $doc = $this->buildConfig();
+            $docs = $this->wantsSeparateNodes($sub) ? $this->buildSeparateConfigs() : [$this->buildConfig()];
         } catch (Throwable $e) {
             Log::warning('subscription.auto.error', [
                 'message' => $e->getMessage(),
@@ -68,7 +68,7 @@ final class AutoSubscriptionFeedRenderer
             $headers['routing'] = $routingLine;
         }
 
-        $body = json_encode([$doc], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $body = json_encode($docs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
         return new Response($body, 200, $headers);
     }
@@ -141,6 +141,56 @@ final class AutoSubscriptionFeedRenderer
             ],
             'routing' => ['domainStrategy' => 'AsIs', 'balancers' => $balancers, 'rules' => $rules],
         ];
+    }
+
+    /**
+     * Клиенты из SUB_AUTO_SEPARATE_EMAILS попросили вместо «Авто» отдельные кнопки на каждый узел.
+     */
+    private function wantsSeparateNodes(Subscription $sub): bool
+    {
+        $emails = (array) config('xui.sub_auto.separate_emails', []);
+        $email = strtolower(trim((string) $sub->user?->email));
+
+        return $email !== '' && in_array($email, $emails, true);
+    }
+
+    /**
+     * Те же узлы, что в «Авто», но каждый — отдельный конфиг (кнопка) с собственным именем из #фрагмента ссылки.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function buildSeparateConfigs(): array
+    {
+        $cfg = config('xui.sub_auto', []);
+        $uris = [...(array) ($cfg['wifi'] ?? []), ...(array) ($cfg['lte'] ?? [])];
+        $base = $this->buildConfig();
+        $directRules = array_values(array_filter(
+            $base['routing']['rules'],
+            static fn (array $r): bool => ($r['outboundTag'] ?? '') === 'direct' || ($r['outboundTag'] ?? '') === 'block',
+        ));
+
+        $docs = [];
+        foreach ($uris as $i => $uri) {
+            $ob = self::convertUri((string) $uri, 'proxy');
+            if ($ob === null) {
+                continue;
+            }
+            $title = trim(rawurldecode(explode('#', (string) $uri, 2)[1] ?? ''));
+            $doc = $base;
+            $doc['remarks'] = $title !== '' ? $title : 'Сервер '.($i + 1);
+            $doc['outbounds'] = [$ob, ['tag' => 'direct', 'protocol' => 'freedom'], ['tag' => 'block', 'protocol' => 'blackhole']];
+            unset($doc['observatory']);
+            $doc['routing'] = [
+                'domainStrategy' => 'AsIs',
+                'rules' => [...$directRules, ['type' => 'field', 'network' => 'tcp,udp', 'outboundTag' => 'proxy']],
+            ];
+            $docs[] = $doc;
+        }
+        if ($docs === []) {
+            throw new \RuntimeException('Отдельные узлы не собрались.');
+        }
+
+        return $docs;
     }
 
     /**

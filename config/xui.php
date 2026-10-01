@@ -295,6 +295,11 @@ return [
         'probe_interval' => trim((string) env('SUB_AUTO_PROBE_INTERVAL', '20s')),
         /** roundRobin — поровну по живым узлам; leastPing — все на самый быстрый. */
         'wifi_strategy' => trim((string) env('SUB_AUTO_WIFI_STRATEGY', 'roundRobin')),
+        /** Почты клиентов (через запятую), которым вместо «Авто» отдаются отдельные кнопки на каждый узел. */
+        'separate_emails' => array_values(array_filter(array_map(
+            static fn (string $e): string => strtolower(trim($e)),
+            explode(',', (string) env('SUB_AUTO_SEPARATE_EMAILS', '')),
+        ))),
         'log_level' => trim((string) env('SUB_AUTO_LOG_LEVEL', 'warning')),
         'wifi' => array_values(array_filter(array_map(
             static fn (int $i): string => trim((string) env('SUB_AUTO_WIFI_'.$i, '')),
