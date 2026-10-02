@@ -47,7 +47,7 @@ return [
     ],
     'api.1connection.ru' => [
         'provider' => 'Яндекс CDN → выход AlphaVPS',
-        'location' => 'Вход через CDN в РФ, выход Болгария, София',
+        'location' => 'Болгария, София (вход через CDN в РФ)',
         'geo' => 'Болгария',
         'google' => 'Россия',
         'server' => 'cdn-egress',
@@ -55,7 +55,7 @@ return [
     ],
     'nadezhda.digital' => [
         'provider' => 'Яндекс CDN → выход AlphaVPS',
-        'location' => 'Вход через CDN в РФ, выход Болгария, София',
+        'location' => 'Болгария, София (вход через CDN в РФ)',
         'geo' => 'Болгария',
         'google' => 'Россия',
         'server' => 'digital-cdn-egress',
