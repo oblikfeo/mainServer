@@ -71,7 +71,19 @@
                                                 {{ $server['provider'] ?? 'нет в справочнике' }}
                                             </span>
                                         </td>
-                                        <td rowspan="{{ $span }}" class="px-4 py-3 align-top text-slate-700 border-r border-slate-100 bg-white">{{ $server['location'] ?? '—' }}</td>
+                                        <td rowspan="{{ $span }}" class="px-4 py-3 align-top text-slate-700 border-r border-slate-100 bg-white">
+                                            <div class="font-semibold text-slate-900">{{ $server['location'] ?? '—' }}</div>
+                                            @if ($server['geo'] || $server['google'])
+                                                <div class="mt-1 flex flex-wrap gap-1 text-[11px]">
+                                                    @if ($server['geo'])
+                                                        <span class="rounded-md bg-slate-100 px-1.5 py-0.5 text-slate-600">геобаза: {{ $server['geo'] }}</span>
+                                                    @endif
+                                                    @if ($server['google'])
+                                                        <span class="rounded-md px-1.5 py-0.5 {{ $server['google'] === 'Россия' ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700' }}">Google: {{ $server['google'] }}</span>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </td>
                                     @endif
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <div class="font-bold text-slate-900">{{ $link['name'] !== '' ? $link['name'] : 'без названия' }}</div>

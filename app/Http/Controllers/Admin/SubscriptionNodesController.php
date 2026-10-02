@@ -45,6 +45,8 @@ class SubscriptionNodesController extends Controller
                 'location' => $info['location'] ?? null,
                 'server' => $info['server'] ?? null,
                 'egress' => $info['egress'] ?? null,
+                'geo' => $info['geo'] ?? null,
+                'google' => $info['google'] ?? null,
             ];
         }
 
@@ -67,6 +69,8 @@ class SubscriptionNodesController extends Controller
                 'provider' => $row['provider'],
                 'location' => $row['location'],
                 'egress' => $row['egress'],
+                'geo' => $row['geo'],
+                'google' => $row['google'],
                 'links' => [],
             ];
             $groups[$host]['links'][] = $row;
