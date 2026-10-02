@@ -50,6 +50,18 @@
         action="{{ route('admin.report') }}"
         class="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-4 rounded-2xl border border-slate-200/90 bg-white px-4 sm:px-5 py-4 shadow-md shadow-slate-200/40 ring-1 ring-slate-900/5"
     >
+        <div class="w-full sm:w-auto sm:min-w-[16rem] sm:flex-1">
+            <label for="email" class="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">Почта</label>
+            <input
+                type="search"
+                name="email"
+                id="email"
+                value="{{ $email }}"
+                placeholder="часть адреса, например ivan@"
+                autocomplete="off"
+                class="w-full rounded-xl border-slate-200 shadow-sm text-slate-900 focus:border-slate-400 focus:ring-slate-400 min-h-[44px]"
+            >
+        </div>
         <div class="w-full sm:w-auto sm:min-w-[10rem]">
             <label for="date_from" class="block text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 mb-2">С даты</label>
             <input
@@ -74,7 +86,7 @@
             <button type="submit" class="w-full sm:w-auto rounded-xl bg-slate-900 text-white px-5 py-3 sm:py-2.5 text-sm font-bold shadow-sm hover:bg-slate-800 transition-colors min-h-[44px] sm:min-h-0">
                 Показать
             </button>
-            @if ($dateFrom !== '' || $dateTo !== '')
+            @if ($dateFrom !== '' || $dateTo !== '' || $email !== '')
                 <a href="{{ route('admin.report') }}" class="text-center sm:text-left text-sm font-semibold text-slate-600 hover:text-slate-900 py-2 sm:py-2.5">Сбросить</a>
             @endif
         </div>

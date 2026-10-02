@@ -124,11 +124,13 @@ final class HappSubscriptionAppManagementExtras
 
         [$used, $max] = self::deviceCounters($context);
         $daysLeft = self::daysLeft($context);
+        $expiryDate = self::expiresAt($context)?->timezone(config('app.timezone'))->format('d.m');
 
         $vars = [
             '{used}' => (string) $used,
             '{max}' => (string) $max,
             '{days}' => $daysLeft !== null ? (string) $daysLeft : '',
+            '{date}' => $expiryDate ?? '',
             '{brand}' => (string) config('marketing.brand_name', 'Надежда'),
             '{support}' => (string) (config('marketing.telegram_support_url') ?: config('marketing.telegram_url')),
             '{site}' => self::happCabinetOrPublicSiteUrl($context, $needsRenewal),
@@ -144,6 +146,12 @@ final class HappSubscriptionAppManagementExtras
         // Строка: устройства. Всегда после подсказки.
         $devicesTpl = trim((string) config('marketing.subscription_announce_line_devices', 'Привязанные устройства: {used}/{max}'));
         if ($devicesTpl !== '') {
+            if ($expiryDate === null) {
+                $devicesTpl = implode(' · ', array_filter(
+                    explode(' · ', $devicesTpl),
+                    static fn (string $part): bool => ! str_contains($part, '{date}') && ! str_contains($part, '{days}'),
+                ));
+            }
             $lines[] = strtr($devicesTpl, $vars);
         }
 
@@ -190,13 +198,7 @@ final class HappSubscriptionAppManagementExtras
      */
     private static function daysLeft(Subscription|TestKey|null $context): ?int
     {
-        $expiresAt = null;
-
-        if ($context instanceof Subscription) {
-            $expiresAt = $context->expiresAt();
-        } elseif ($context instanceof TestKey) {
-            $expiresAt = $context->expires_at instanceof Carbon ? $context->expires_at : null;
-        }
+        $expiresAt = self::expiresAt($context);
 
         if (! $expiresAt instanceof Carbon) {
             return null;
@@ -209,6 +211,19 @@ final class HappSubscriptionAppManagementExtras
 
         // ceil: «осталось 23 часа» → 1 день, не 0; чувствительнее, чем floor, и согласуется с UX «N дней».
         return (int) ceil($diffSeconds / 86400);
+    }
+
+    private static function expiresAt(Subscription|TestKey|null $context): ?Carbon
+    {
+        if ($context instanceof Subscription) {
+            $expiresAt = $context->expiresAt();
+        } elseif ($context instanceof TestKey) {
+            $expiresAt = $context->expires_at;
+        } else {
+            $expiresAt = null;
+        }
+
+        return $expiresAt instanceof Carbon ? $expiresAt->copy() : null;
     }
 
     /**

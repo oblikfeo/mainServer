@@ -16,6 +16,7 @@ class ReportController extends Controller
     {
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
+        $email = trim((string) $request->query('email', ''));
 
         $q = Subscription::query()->with('user')->orderByDesc('created_at');
 
@@ -24,6 +25,11 @@ class ReportController extends Controller
         }
         if (is_string($dateTo) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
             $q->whereDate('created_at', '<=', $dateTo);
+        }
+
+        if ($email !== '') {
+            $like = '%'.str_replace(['%', '_'], '', mb_strtolower($email)).'%';
+            $q->whereHas('user', fn ($u) => $u->whereRaw('LOWER(email) LIKE ?', [$like]));
         }
 
         $subscriptions = $q->paginate(20)->withQueryString();
@@ -53,6 +59,7 @@ class ReportController extends Controller
             'connectionErrors' => $connectionPayload['errors'] ?? [],
             'dateFrom' => is_string($dateFrom) ? $dateFrom : '',
             'dateTo' => is_string($dateTo) ? $dateTo : '',
+            'email' => $email,
             'byteFmt' => \Closure::fromCallable([$this, 'formatBytes']),
         ]);
     }
