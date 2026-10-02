@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
+use App\Http\Controllers\Admin\SubscriptionNodesController;
 use App\Http\Controllers\Admin\WhatWorksController;
 use App\Http\Controllers\CabinetBonusesController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
@@ -170,6 +171,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middleware('throttle:20,1')
             ->name('campaigns.export');
         Route::get('/servers', [DashboardController::class, 'servers'])->name('servers');
+        Route::get('/subscription-nodes', [SubscriptionNodesController::class, 'index'])->name('subscription_nodes');
         Route::get('/what-works', [WhatWorksController::class, 'index'])->name('what_works');
         Route::post('/what-works/run', [WhatWorksController::class, 'run'])
             ->middleware('throttle:6,1')
