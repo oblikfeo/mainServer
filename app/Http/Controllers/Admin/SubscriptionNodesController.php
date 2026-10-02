@@ -14,8 +14,8 @@ class SubscriptionNodesController extends Controller
     public function index(): View
     {
         $pools = [
-            'wifi' => $this->parsePool((array) config('xui.sub_auto.wifi', [])),
-            'lte' => $this->parsePool((array) config('xui.sub_auto.lte', [])),
+            'wifi' => $this->groupByServer($this->parsePool((array) config('xui.sub_auto.wifi', []))),
+            'lte' => $this->groupByServer($this->parsePool((array) config('xui.sub_auto.lte', []))),
         ];
 
         return view('admin.subscription_nodes', [
@@ -49,6 +49,30 @@ class SubscriptionNodesController extends Controller
         }
 
         return $rows;
+    }
+
+    /**
+     * Ссылки одного сервера (один хост) — в одну группу, порядок как в пуле.
+     *
+     * @param  array<int, array<string, string|null>>  $rows
+     * @return array<int, array{host: string, provider: ?string, location: ?string, egress: ?string, links: array<int, array<string, string|null>>}>
+     */
+    private function groupByServer(array $rows): array
+    {
+        $groups = [];
+        foreach ($rows as $row) {
+            $host = (string) $row['host'];
+            $groups[$host] ??= [
+                'host' => $host,
+                'provider' => $row['provider'],
+                'location' => $row['location'],
+                'egress' => $row['egress'],
+                'links' => [],
+            ];
+            $groups[$host]['links'][] = $row;
+        }
+
+        return array_values($groups);
     }
 
     /**

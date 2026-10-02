@@ -11,9 +11,9 @@
             default => 'bg-emerald-50 text-emerald-800 ring-emerald-200',
         };
     };
-    $pools = [
-        'wifi' => ['title' => 'Wi-Fi', 'icon' => '📶', 'rows' => $pools['wifi']],
-        'lte' => ['title' => 'Анти-глушилки', 'icon' => '🛡️', 'rows' => $pools['lte']],
+    $sections = [
+        'wifi' => ['title' => 'Wi-Fi', 'icon' => '📶'],
+        'lte' => ['title' => 'Анти-глушилки', 'icon' => '🛡️'],
     ];
 @endphp
 
@@ -30,48 +30,64 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="bg-slate-900 text-left text-[11px] font-bold uppercase tracking-[0.1em] text-white/80">
-                        <th class="px-4 py-3 whitespace-nowrap">Узел</th>
-                        <th class="px-4 py-3 whitespace-nowrap">🌐 Адрес</th>
+                        <th class="px-4 py-3 whitespace-nowrap">🖥️ Сервер</th>
                         <th class="px-4 py-3 whitespace-nowrap">🏢 Провайдер</th>
-                        <th class="px-4 py-3 whitespace-nowrap">📍 Где сервер</th>
+                        <th class="px-4 py-3 whitespace-nowrap">📍 Где</th>
+                        <th class="px-4 py-3 whitespace-nowrap">🔗 Кнопка</th>
+                        <th class="px-4 py-3 whitespace-nowrap">🚪 Порт</th>
                         <th class="px-4 py-3 whitespace-nowrap">🔒 Протокол</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($pools as $poolKey => $pool)
-                        <tr class="bg-slate-100 border-t border-slate-200">
-                            <td colspan="5" class="px-4 py-2 font-bold text-slate-700 whitespace-nowrap">
-                                {{ $pool['icon'] }} {{ $pool['title'] }}
-                                <span class="ml-1 rounded-full bg-white px-2 py-0.5 text-xs text-slate-500 ring-1 ring-slate-200">{{ count($pool['rows']) }}</span>
+                    @foreach ($sections as $poolKey => $section)
+                        @php
+                            $servers = $pools[$poolKey];
+                            $linkCount = array_sum(array_map(static fn ($s) => count($s['links']), $servers));
+                        @endphp
+                        <tr class="bg-slate-100 border-t-2 border-slate-300">
+                            <td colspan="6" class="px-4 py-2 font-bold text-slate-700 whitespace-nowrap">
+                                {{ $section['icon'] }} {{ $section['title'] }}
+                                <span class="ml-2 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">
+                                    серверов: {{ count($servers) }} · ссылок: {{ $linkCount }}
+                                </span>
                             </td>
                         </tr>
-                        @forelse ($pool['rows'] as $node)
-                            <tr class="border-t border-slate-100 hover:bg-slate-50">
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <div class="font-bold text-slate-900">{{ $node['name'] !== '' ? $node['name'] : 'без названия' }}</div>
-                                    <div class="text-[11px] text-slate-400">{{ strtoupper($poolKey) }}_{{ $node['slot'] }}</div>
-                                </td>
-                                <td class="px-4 py-3 whitespace-nowrap font-mono text-slate-900">
-                                    {{ $node['host'] }}<span class="text-slate-400">:{{ $node['port'] }}</span>
-                                    @if ($node['egress'])
-                                        <div class="text-[11px] text-slate-500 font-sans">выход ↗ <span class="font-mono">{{ $node['egress'] }}</span></div>
+                        @forelse ($servers as $server)
+                            @foreach ($server['links'] as $link)
+                                <tr class="{{ $loop->first ? 'border-t-2 border-slate-200' : 'border-t border-dashed border-slate-100' }} hover:bg-slate-50">
+                                    @if ($loop->first)
+                                        @php $span = count($server['links']); @endphp
+                                        <td rowspan="{{ $span }}" class="px-4 py-3 align-top whitespace-nowrap border-r border-slate-100 bg-white">
+                                            <div class="font-mono font-bold text-slate-900">{{ $server['host'] }}</div>
+                                            @if ($server['egress'])
+                                                <div class="text-[11px] text-slate-500">выход ↗ <span class="font-mono">{{ $server['egress'] }}</span></div>
+                                            @endif
+                                            @if ($span > 1)
+                                                <div class="mt-1 inline-flex rounded-md bg-slate-900 px-1.5 py-0.5 text-[11px] font-bold text-white">{{ $span }} ссылки на одном сервере</div>
+                                            @endif
+                                        </td>
+                                        <td rowspan="{{ $span }}" class="px-4 py-3 align-top whitespace-nowrap bg-white">
+                                            <span class="inline-flex rounded-lg px-2 py-1 text-xs font-bold ring-1 {{ $providerBadge($server['provider']) }}">
+                                                {{ $server['provider'] ?? 'нет в справочнике' }}
+                                            </span>
+                                        </td>
+                                        <td rowspan="{{ $span }}" class="px-4 py-3 align-top text-slate-700 border-r border-slate-100 bg-white">{{ $server['location'] ?? '—' }}</td>
                                     @endif
-                                </td>
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    <span class="inline-flex rounded-lg px-2 py-1 text-xs font-bold ring-1 {{ $providerBadge($node['provider']) }}">
-                                        {{ $node['provider'] ?? 'нет в справочнике' }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-slate-700">{{ $node['location'] ?? '—' }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap">
-                                    @foreach (explode(' · ', $node['protocol']) as $tag)
-                                        <span class="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 mr-0.5">{{ $tag }}</span>
-                                    @endforeach
-                                </td>
-                            </tr>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <div class="font-bold text-slate-900">{{ $link['name'] !== '' ? $link['name'] : 'без названия' }}</div>
+                                        <div class="text-[11px] text-slate-400">{{ strtoupper($poolKey) }}_{{ $link['slot'] }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap font-mono font-bold text-slate-900">{{ $link['port'] }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        @foreach (explode(' · ', $link['protocol']) as $tag)
+                                            <span class="inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 mr-0.5">{{ $tag }}</span>
+                                        @endforeach
+                                    </td>
+                                </tr>
+                            @endforeach
                         @empty
                             <tr class="border-t border-slate-100">
-                                <td colspan="5" class="px-4 py-3 text-slate-400">Пусто</td>
+                                <td colspan="6" class="px-4 py-3 text-slate-400">Пусто</td>
                             </tr>
                         @endforelse
                     @endforeach

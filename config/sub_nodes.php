@@ -19,7 +19,7 @@ return [
     '217.217.234.134' => [
         'provider' => 'AlphaVPS',
         'location' => 'Болгария, София (геобазы пишут Нидерланды)',
-        'server' => 'Sofia3',
+        'server' => 'sofia3',
     ],
     '169.40.15.141' => [
         'provider' => 'AlphaVPS',
