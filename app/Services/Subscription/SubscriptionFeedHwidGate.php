@@ -178,21 +178,31 @@ final class SubscriptionFeedHwidGate
     }
 
     /**
-     * Не занимать слот устройства запросами с наших серверов / без UA Happ (диагностика, curl).
+     * Не занимать слот устройства запросами с наших серверов / без UA Happ или INCY (диагностика, curl).
      */
     public static function shouldPersistHwidBinding(Request $request): bool
     {
-        if (! self::looksLikeHappClient($request)) {
+        if (! self::looksLikeVpnClient($request)) {
             return false;
         }
 
         return ! self::isInfrastructureClientIp($request);
     }
 
-    private static function looksLikeHappClient(Request $request): bool
+    /**
+     * Приложение INCY: UA «INCY/<версия>/<платформа> …» и заголовок x-client: INCY.
+     * Ему нужен свой формат выключения маршрутизации (routing: off), см. docs.incy.cc.
+     */
+    public static function isIncyClient(Request $request): bool
+    {
+        return preg_match('/^INCY\//i', trim((string) $request->userAgent())) === 1
+            || strcasecmp(trim((string) $request->header('x-client')), 'INCY') === 0;
+    }
+
+    private static function looksLikeVpnClient(Request $request): bool
     {
         $ua = trim((string) $request->userAgent());
-        if ($ua === '' || preg_match('/^Happ\//i', $ua) !== 1) {
+        if ($ua === '' || preg_match('/^(?:Happ|INCY)\//i', $ua) !== 1) {
             return false;
         }
 
@@ -358,7 +368,8 @@ final class SubscriptionFeedHwidGate
      */
     private static function parseHappUserAgentPlatform(string $ua): ?string
     {
-        if (preg_match('#^Happ/[\d.]+/(ios|android|windows|macos|linux)/#i', trim($ua), $m)) {
+        // Happ/4.9.0/ios/2605051739663 и INCY/2.5.1/ios CFNetwork/…
+        if (preg_match('#^(?:Happ|INCY)/[\d.]+/(ios|android|windows|macos|linux)(?:/|\s|$)#i', trim($ua), $m)) {
             return match (strtolower($m[1])) {
                 'ios' => 'iOS',
                 'android' => 'Android',

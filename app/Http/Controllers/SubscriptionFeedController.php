@@ -36,11 +36,11 @@ class SubscriptionFeedController extends Controller
                 return $blocked;
             }
 
-            return match ($this->subFeedFormat()) {
+            return $this->adaptForClient($request, match ($this->subFeedFormat()) {
                 'auto' => $autoFeedRenderer->render($subscription),
                 'xray_json' => $xrayJsonFeedRenderer->render($subscription),
                 default => $uriFeedRenderer->render($subscription),
-            };
+            });
         }
 
         $testKey = TestKey::query()
@@ -63,9 +63,24 @@ class SubscriptionFeedController extends Controller
             return $blocked;
         }
 
-        return $this->subFeedFormat() === 'xray_json'
+        return $this->adaptForClient($request, $this->subFeedFormat() === 'xray_json'
             ? $xrayJsonFeedRenderer->renderTestKey($testKey)
-            : $testKeyRenderer->render($testKey);
+            : $testKeyRenderer->render($testKey));
+    }
+
+    /**
+     * INCY не понимает happ://routing/…: ему маршрутизацию выключает заголовок «routing: off».
+     * Профили Happ для него не годятся, поэтому любой happ://-профиль тоже заменяем на off.
+     */
+    private function adaptForClient(Request $request, Response $response): Response
+    {
+        if (! SubscriptionFeedHwidGate::isIncyClient($request)) {
+            return $response;
+        }
+
+        $response->headers->set('routing', 'off');
+
+        return $response;
     }
 
     private function subFeedFormat(): string
