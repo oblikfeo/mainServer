@@ -12,14 +12,12 @@ use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\Admin\SubscriptionNodesController;
 use App\Http\Controllers\Admin\WhatWorksController;
-use App\Http\Controllers\CabinetBonusesController;
 use App\Http\Controllers\CabinetCreatePaymentLinkController;
 use App\Http\Controllers\CabinetController;
 use App\Http\Controllers\CabinetPromoWelcomeController;
 use App\Http\Controllers\CabinetNiceController;
 use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
-use App\Http\Controllers\CabinetRenewalController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
 use App\Http\Controllers\ChatController;
@@ -100,13 +98,14 @@ Route::middleware('auth')->group(function () {
         ->name('cabinet.promo_welcome');
     Route::get('/dashboard/profile', [ProfileController::class, 'edit'])->name('cabinet.profile');
     Route::get('/dashboard/referral', [CabinetReferralController::class, 'show'])->name('cabinet.referral');
-    Route::get('/dashboard/bonuses', CabinetBonusesController::class)->name('cabinet.bonuses');
+    // «Бонусы» и «Продление» упразднены: всё на странице «Оплата».
+    Route::redirect('/dashboard/bonuses', '/dashboard/payment')->name('cabinet.bonuses');
     Route::get('/nice', [CabinetNiceController::class, 'show'])->name('cabinet.nice');
     Route::patch('/dashboard/profile', [ProfileController::class, 'update'])->name('cabinet.profile.update');
     Route::delete('/dashboard/profile', [ProfileController::class, 'destroy'])->name('cabinet.profile.destroy');
     Route::get('/dashboard/purchases', [PurchaseHistoryController::class, 'index'])->name('cabinet.purchases');
     Route::get('/dashboard/payment', CabinetPaymentController::class)->name('cabinet.payment');
-    Route::get('/dashboard/renewal', CabinetRenewalController::class)->name('cabinet.renewal');
+    Route::redirect('/dashboard/renewal', '/dashboard/payment')->name('cabinet.renewal');
     Route::post('/dashboard/payment/link', CabinetCreatePaymentLinkController::class)
         ->middleware('throttle:20,1')
         ->name('cabinet.payment.link');

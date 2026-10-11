@@ -168,6 +168,15 @@ class SubscriptionController extends Controller
         ]);
 
         $user = User::query()->where('email', $data['owner_email'])->firstOrFail();
+
+        // «Аккаунт = подписка»: вторую подписку к аккаунту привязать нельзя.
+        $existing = Subscription::query()->where('user_id', $user->id)->whereKeyNot($subscription->id)->first();
+        if ($existing !== null) {
+            return back()->withErrors([
+                'owner_email' => 'У '.$user->email.' уже есть подписка #'.$existing->id.' (код '.$existing->public_code.'). У аккаунта может быть только одна.',
+            ]);
+        }
+
         $subscription->user_id = $user->id;
         $subscription->save();
 

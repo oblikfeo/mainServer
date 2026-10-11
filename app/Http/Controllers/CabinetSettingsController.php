@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Subscription;
 use App\Models\TestKey;
+use App\Services\Account\AccountOverview;
+use App\Services\Account\AccountPricing;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,21 +14,10 @@ class CabinetSettingsController extends Controller
 {
     public function index(Request $request): View
     {
-        $subscriptions = $request->user()
-            ->subscriptions()
-            ->orderByDesc('created_at')
-            ->get();
-
-        $testKeys = $request->user()
-            ->testKeys()
-            ->whereNull('revoked_at')
-            ->where('expires_at', '>', now())
-            ->orderByDesc('created_at')
-            ->get();
-
+        // «Устройства»: один список слотов аккаунта (базовые + доп.).
         return view('cabinet.settings', [
-            'subscriptions' => $subscriptions,
-            'testKeys' => $testKeys,
+            'account' => AccountOverview::forUser($request->user()),
+            'deviceMonthRub' => AccountPricing::deviceMonthRub(),
         ]);
     }
 

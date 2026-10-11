@@ -29,7 +29,7 @@
                             <a
                                 href="{{ route('dashboard') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Мои подписки</a>
+                            >Моя подписка</a>
                             <a
                                 href="{{ route('cabinet.profile') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}"
@@ -39,21 +39,13 @@
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}"
                             >Реферальная программа</a>
                             <a
-                                href="{{ route('cabinet.bonuses') }}"
-                                class="lp-cab-nav__link {{ request()->routeIs('cabinet.bonuses') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Бонусы</a>
-                            <a
                                 href="{{ route('cabinet.settings') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}"
                             >Устройства</a>
                             <a
                                 href="{{ route('cabinet.payment') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Тарифы и оплата</a>
-                            <a
-                                href="{{ route('cabinet.renewal') }}"
-                                class="lp-cab-nav__link {{ request()->routeIs('cabinet.renewal') ? 'lp-cab-nav__link--active' : '' }}"
-                            >Продление</a>
+                            >Оплата</a>
                             <a
                                 href="{{ route('cabinet.purchases') }}"
                                 class="lp-cab-nav__link {{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}"
@@ -146,13 +138,11 @@
                             </button>
                         </div>
                         <nav class="flex-1 overflow-y-auto p-3 lp-drawer-nav" aria-label="Мобильное меню">
-                            <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Мои подписки</a>
+                            <a href="{{ route('dashboard') }}" @click="mobileNav = false" class="{{ request()->routeIs('dashboard') ? 'lp-cab-nav__link--active' : '' }}">Моя подписка</a>
                             <a href="{{ route('cabinet.profile') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.profile') ? 'lp-cab-nav__link--active' : '' }}">Профиль</a>
                             <a href="{{ route('cabinet.referral') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.referral') ? 'lp-cab-nav__link--active' : '' }}">Реферальная программа</a>
-                            <a href="{{ route('cabinet.bonuses') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.bonuses') ? 'lp-cab-nav__link--active' : '' }}">Бонусы</a>
                             <a href="{{ route('cabinet.settings') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.settings') ? 'lp-cab-nav__link--active' : '' }}">Устройства</a>
-                            <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Тарифы и оплата</a>
-                            <a href="{{ route('cabinet.renewal') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.renewal') ? 'lp-cab-nav__link--active' : '' }}">Продление</a>
+                            <a href="{{ route('cabinet.payment') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.payment') ? 'lp-cab-nav__link--active' : '' }}">Оплата</a>
                             <a href="{{ route('cabinet.purchases') }}" @click="mobileNav = false" class="{{ request()->routeIs('cabinet.purchases') ? 'lp-cab-nav__link--active' : '' }}">История покупок</a>
                             <a href="{{ $supportTgUrl }}" target="_blank" rel="noopener noreferrer" @click="mobileNav = false">Поддержка</a>
                         </nav>

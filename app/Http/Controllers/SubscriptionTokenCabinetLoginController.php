@@ -64,7 +64,7 @@ final class SubscriptionTokenCabinetLoginController extends Controller
         $request->session()->regenerate();
 
         if ($request->query('intent') === 'renew') {
-            return redirect()->to(route('cabinet.renewal', absolute: false));
+            return redirect()->to(route('cabinet.payment', absolute: false));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

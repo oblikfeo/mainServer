@@ -31,6 +31,14 @@ class SubscriptionAttachUserCommand extends Command
             return self::FAILURE;
         }
 
+        // «Аккаунт = подписка»: у аккаунта может быть только одна.
+        $existing = Subscription::query()->where('user_id', $user->id)->whereKeyNot($subscription->id)->first();
+        if ($existing !== null) {
+            $this->error("У {$user->email} уже есть подписка #{$existing->id}. Вторую привязать нельзя.");
+
+            return self::FAILURE;
+        }
+
         $subscription->user_id = $user->id;
         $subscription->save();
 

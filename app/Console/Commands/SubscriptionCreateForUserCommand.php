@@ -54,6 +54,14 @@ class SubscriptionCreateForUserCommand extends Command
             $this->newLine();
         }
 
+        // «Аккаунт = подписка»: у аккаунта может быть только одна.
+        $existing = \App\Models\Subscription::query()->where('user_id', $user->id)->first();
+        if ($existing !== null) {
+            $this->error("У {$email} уже есть подписка #{$existing->id}. Продлите её (subscription:bulk-extend-month) вместо создания второй.");
+
+            return self::FAILURE;
+        }
+
         $this->info("Создаю: {$devices} устр., {$days} дн., {$quotaGb} ГБ → {$email}");
 
         try {

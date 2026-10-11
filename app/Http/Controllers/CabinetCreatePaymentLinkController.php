@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\PaymentOrder;
-use App\Models\Subscription;
-use App\Services\Payments\BonusExtraDevicePricing;
+use App\Services\Account\AccountOrderFactory;
+use App\Services\Account\AccountSubscription;
 use App\Services\Platega\PlategaClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use RuntimeException;
+use InvalidArgumentException;
 
+/**
+ * Страница «Оплата» в кабинете: срок подписки + число устройств + срок доп. устройств → ссылка на оплату.
+ */
 class CabinetCreatePaymentLinkController extends Controller
 {
-    public function __invoke(Request $request, PlategaClient $platega, BonusExtraDevicePricing $bonusPricing): JsonResponse
+    public function __invoke(Request $request, PlategaClient $platega): JsonResponse
     {
         if (! $platega->isConfigured()) {
             return response()->json(['error' => 'payments_not_configured'], 503);
@@ -22,207 +24,30 @@ class CabinetCreatePaymentLinkController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'plan' => ['required_unless:purpose,extra_device', 'nullable', 'string', 'max:32'],
-            'period' => ['required_unless:purpose,extra_device', 'nullable', 'string', 'max:32'],
-            'purpose' => ['nullable', 'string', 'in:new,renew,extra_device'],
-            'subscription_id' => ['nullable', 'integer', 'min:1'],
+            'term' => ['nullable', 'string', 'max:16'],
+            'devices' => ['required', 'integer', 'min:0', 'max:100'],
+            'device_months' => ['nullable', 'integer', 'min:0', 'max:24'],
         ]);
 
-        $plan = (string) ($data['plan'] ?? '');
-        $period = (string) ($data['period'] ?? '');
-        $purpose = (string) ($data['purpose'] ?? 'new');
+        $sub = AccountSubscription::forUser($user);
 
-        if ($purpose === 'extra_device') {
-            return $this->createExtraDeviceOrder($request, $platega, $user, $data, $bonusPricing);
+        try {
+            $quote = AccountOrderFactory::quote(
+                $sub,
+                isset($data['term']) && $data['term'] !== '' ? (string) $data['term'] : null,
+                (int) $data['devices'],
+                (int) ($data['device_months'] ?? 0),
+            );
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
-        if ($purpose === 'renew') {
-            return $this->createRenewalOrder($request, $platega, $user, $plan, $period, $data);
-        }
-
-        $products = config('payments.products', []);
-        $planCfg = is_array($products) ? ($products[$plan] ?? null) : null;
-        $rows = is_array($planCfg) ? ($planCfg['rows'] ?? null) : null;
-        $row = is_array($rows) ? ($rows[$period] ?? null) : null;
-        if (! is_array($row)) {
-            return response()->json(['error' => 'unknown_tariff'], 422);
-        }
-
-        $devices = (int) ($planCfg['devices'] ?? 0);
-        $days = (int) ($row['days'] ?? 0);
-        $quotaGb = (int) ($row['quota_gb'] ?? 0);
-        $amountRub = (int) ($row['amount_rub'] ?? 0);
-        if ($devices < 1 || $days < 1 || $quotaGb < 1 || $amountRub < 1) {
-            throw new RuntimeException('Неверная конфигурация payments.products для '.$plan.' / '.$period);
-        }
-
-        $orderId = 'ord_'.(string) Str::ulid();
-        $claimToken = Str::random(48);
-        $desc = 'Подписка '.$plan.' · '.$period;
-
-        $order = PaymentOrder::query()->create([
-            'order_id' => $orderId,
-            'claim_token' => $claimToken,
+        $order = AccountOrderFactory::create($quote, [
             'user_id' => $user->id,
-            'subscription_id' => null,
-            'purpose' => 'new',
-            'provider' => 'platega',
-            'status' => 'created',
-            'amount_rub' => $amountRub,
-            'currency' => 'RUB',
-            'description' => $desc,
-            'tariff_plan' => $plan,
-            'tariff_period' => $period,
-            'days' => $days,
-            'devices' => $devices,
-            'quota_gb' => $quotaGb,
+            'subscription_id' => $sub?->id,
         ]);
 
-        return $this->startPayment($platega, $order, $request, $claimToken, $user);
-    }
-
-    /**
-     * @param  array{subscription_id?: int|null}  $data
-     */
-    private function createRenewalOrder(
-        Request $request,
-        PlategaClient $platega,
-        $user,
-        string $plan,
-        string $period,
-        array $data,
-    ): JsonResponse {
-        $subscriptionId = isset($data['subscription_id']) ? (int) $data['subscription_id'] : 0;
-        if ($subscriptionId < 1) {
-            return response()->json(['error' => 'subscription_required'], 422);
-        }
-
-        /** @var Subscription|null $subscription */
-        $subscription = Subscription::query()
-            ->whereKey($subscriptionId)
-            ->where('user_id', $user->id)
-            ->first();
-        if ($subscription === null) {
-            return response()->json(['error' => 'subscription_not_found'], 422);
-        }
-
-        $soloCap = (int) config('payments.products.solo.devices', 2);
-        $expectedPlan = $subscription->devices <= $soloCap ? 'solo' : 'family';
-        if ($plan !== $expectedPlan) {
-            return response()->json(['error' => 'plan_mismatch'], 422);
-        }
-
-        $renewals = config('payments.renewals', []);
-        $planCfg = is_array($renewals) ? ($renewals[$plan] ?? null) : null;
-        $rows = is_array($planCfg) ? ($planCfg['rows'] ?? null) : null;
-        $row = is_array($rows) ? ($rows[$period] ?? null) : null;
-        if (! is_array($row)) {
-            return response()->json(['error' => 'unknown_renewal'], 422);
-        }
-
-        $addDays = (int) ($row['days'] ?? 0);
-        $addQuotaGb = (int) ($row['quota_gb'] ?? 0);
-        $amountRub = (int) ($row['amount_rub'] ?? 0);
-        $addDevices = (int) ($planCfg['add_devices'] ?? 0);
-        if ($addDays < 1 || $addQuotaGb < 1 || $amountRub < 1) {
-            throw new RuntimeException('Неверная конфигурация payments.renewals для '.$plan.' / '.$period);
-        }
-        if ($addDevices < 0 || $addDevices > 100) {
-            return response()->json(['error' => 'invalid_configuration'], 500);
-        }
-
-        $orderId = 'ord_'.(string) Str::ulid();
-        $claimToken = Str::random(48);
-        $desc = 'Продление #'.$subscription->public_code.' · '.$plan.' · '.$period;
-
-        $order = PaymentOrder::query()->create([
-            'order_id' => $orderId,
-            'claim_token' => $claimToken,
-            'user_id' => $user->id,
-            'subscription_id' => $subscription->id,
-            'purpose' => 'renew',
-            'provider' => 'platega',
-            'status' => 'created',
-            'amount_rub' => $amountRub,
-            'currency' => 'RUB',
-            'description' => $desc,
-            'tariff_plan' => $plan,
-            'tariff_period' => $period,
-            'days' => $addDays,
-            'devices' => $addDevices,
-            'quota_gb' => $addQuotaGb,
-        ]);
-
-        return $this->startPayment($platega, $order, $request, $claimToken, $user);
-    }
-
-    /**
-     * @param  array{subscription_id?: int|null}  $data
-     */
-    private function createExtraDeviceOrder(
-        Request $request,
-        PlategaClient $platega,
-        $user,
-        array $data,
-        BonusExtraDevicePricing $bonusPricing,
-    ): JsonResponse {
-        $subscriptionId = isset($data['subscription_id']) ? (int) $data['subscription_id'] : 0;
-        if ($subscriptionId < 1) {
-            return response()->json(['error' => 'subscription_required'], 422);
-        }
-
-        if (! $bonusPricing->isConfigured()) {
-            return response()->json(['error' => 'invalid_configuration'], 500);
-        }
-
-        /** @var Subscription|null $subscription */
-        $subscription = Subscription::query()
-            ->whereKey($subscriptionId)
-            ->where('user_id', $user->id)
-            ->where('is_trial', false)
-            ->first();
-        if ($subscription === null) {
-            return response()->json(['error' => 'subscription_not_found'], 422);
-        }
-        if ($subscription->isExpired()) {
-            return response()->json(['error' => 'subscription_expired'], 422);
-        }
-
-        $addDevices = $bonusPricing->addDevices();
-        if ($addDevices < 1 || $addDevices > 100) {
-            return response()->json(['error' => 'invalid_configuration'], 500);
-        }
-
-        $remainingDays = $bonusPricing->remainingActiveDays($subscription);
-        $amountRub = $bonusPricing->amountRubForSubscription($subscription);
-        if ($amountRub < 1) {
-            return response()->json(['error' => 'subscription_expired'], 422);
-        }
-
-        $orderId = 'ord_'.(string) Str::ulid();
-        $claimToken = Str::random(48);
-        $tierRange = $bonusPricing->tierRangeLabel($remainingDays);
-        $desc = 'Бонус +'.$addDevices.' устр. · №'.$subscription->public_code.' · '.$tierRange.' · '.$amountRub.' ₽';
-
-        $order = PaymentOrder::query()->create([
-            'order_id' => $orderId,
-            'claim_token' => $claimToken,
-            'user_id' => $user->id,
-            'subscription_id' => $subscription->id,
-            'purpose' => 'extra_device',
-            'provider' => 'platega',
-            'status' => 'created',
-            'amount_rub' => $amountRub,
-            'currency' => 'RUB',
-            'description' => $desc,
-            'tariff_plan' => 'bonus',
-            'tariff_period' => 'extra_device',
-            'days' => $remainingDays ?? 0,
-            'devices' => $addDevices,
-            'quota_gb' => 0,
-        ]);
-
-        return $this->startPayment($platega, $order, $request, $claimToken, $user);
+        return $this->startPayment($platega, $order, $request, (string) $order->claim_token, $user);
     }
 
     /**
