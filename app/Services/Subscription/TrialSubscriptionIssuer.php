@@ -3,15 +3,17 @@
 namespace App\Services\Subscription;
 
 use App\Models\User;
+use App\Services\Account\AccountSubscription;
 use App\Services\Xui\XuiPanelException;
 
 /**
- * Пробная подписка на тех же узлах, что и платная (CreateDualBundleSubscription), с лимитами из trial_subscription.
+ * Пробный доступ с лимитами из trial_subscription. «Аккаунт = подписка»: если подписка у аккаунта
+ * уже есть, пробные часы прибавляются к ней же, вторая не создаётся.
  */
 final class TrialSubscriptionIssuer
 {
     public function __construct(
-        private readonly CreateDualBundleSubscription $createDual,
+        private readonly AccountSubscription $account,
     ) {}
 
     /**
@@ -69,18 +71,15 @@ final class TrialSubscriptionIssuer
     {
         $devices = max(0, (int) config('trial_subscription.devices', 1));
         $quotaGb = max(1, (int) config('trial_subscription.quota_gb', 5));
-        $expiryMs = (int) (now()->addHours($hours)->getTimestamp() * 1000);
 
-        return $this->createDual->create(
-            devices: $devices,
-            days: 0,
-            quotaGb: $quotaGb,
-            userId: (int) $user->id,
-            unlimitedTraffic: false,
-            unlimitedTime: false,
-            isTrial: true,
-            expiryMsOverride: $expiryMs,
-            promoCode: $promoCode,
+        $subscription = $this->account->grantHours($user, $hours, $devices, $quotaGb, isTrial: true, promoCode: $promoCode)['subscription'];
+
+        return new CreatedSubscriptionResult(
+            $subscription,
+            $subscription->shareableSubUrl(),
+            '',
+            '',
+            null,
         );
     }
 }

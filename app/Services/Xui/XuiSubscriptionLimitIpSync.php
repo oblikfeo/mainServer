@@ -13,7 +13,7 @@ final class XuiSubscriptionLimitIpSync
 {
     public function syncForSubscription(Subscription $sub): void
     {
-        $limitIp = max(0, (int) $sub->devices);
+        $limitIp = max(0, $sub->deviceLimit());
 
         $bundleOrder = config('xui.bundle_order', ['fi', 'nl']);
 

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\Account\DeviceSlots;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 class Subscription extends Model
@@ -23,6 +25,8 @@ class Subscription extends Model
         'promo_code',
         'bound_hwid_hashes',
         'bound_hwid_meta',
+        'archived_from_user_id',
+        'archived_at',
     ];
 
     protected function casts(): array
@@ -35,6 +39,7 @@ class Subscription extends Model
             'is_trial' => 'boolean',
             'bound_hwid_hashes' => 'array',
             'bound_hwid_meta' => 'array',
+            'archived_at' => 'datetime',
         ];
     }
 
@@ -95,6 +100,31 @@ class Subscription extends Model
     public function shareableSubUrl(): string
     {
         return url('/sub/'.$this->token);
+    }
+
+    /** @return HasMany<DeviceSlot, self> */
+    public function deviceSlots(): HasMany
+    {
+        return $this->hasMany(DeviceSlot::class);
+    }
+
+    public function isActive(): bool
+    {
+        return ! $this->isExpired();
+    }
+
+    /**
+     * Сколько устройств может быть привязано сейчас: базовые (devices) + оплаченные доп. слоты.
+     * 0 — без ограничения (особые подписки с devices = 0).
+     */
+    public function deviceLimit(?int $nowMs = null): int
+    {
+        $base = (int) $this->devices;
+        if ($base <= 0) {
+            return 0;
+        }
+
+        return $base + DeviceSlots::activeCount($this, $nowMs);
     }
 
 }

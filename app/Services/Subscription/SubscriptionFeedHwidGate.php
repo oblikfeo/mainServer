@@ -43,10 +43,12 @@ final class SubscriptionFeedHwidGate
             return SubscriptionFeedHwidVerdict::Allowed;
         }
 
-        $max = max(0, (int) $subscription->devices);
+        // Лимит = базовые устройства + оплаченные доп. слоты (0 — без ограничения).
+        $max = max(0, $subscription->deviceLimit());
         if ($max < 1) {
             return SubscriptionFeedHwidVerdict::Allowed;
         }
+        $expired = $subscription->isExpired();
 
         $hwid = self::peekHwidFromRequest($request);
         if ($hwid === null) {
@@ -60,7 +62,7 @@ final class SubscriptionFeedHwidGate
         $hash = hash('sha256', $hwid);
         $meta = $this->buildDeviceMeta($request);
 
-        return DB::transaction(function () use ($subscription, $hash, $max, $meta): SubscriptionFeedHwidVerdict {
+        return DB::transaction(function () use ($subscription, $hash, $max, $meta, $expired): SubscriptionFeedHwidVerdict {
             $row = Subscription::query()->whereKey($subscription->id)->lockForUpdate()->first();
             if ($row === null) {
                 return SubscriptionFeedHwidVerdict::MissingHwid;
@@ -73,10 +75,17 @@ final class SubscriptionFeedHwidGate
             $hashes = array_values(array_filter($hashes, static fn ($h) => is_string($h) && strlen($h) === 64));
             $metaMap = $this->sanitizeMetaMap($row->bound_hwid_meta);
 
-            if (in_array($hash, $hashes, true)) {
+            $position = array_search($hash, $hashes, true);
+            if ($position !== false) {
                 $metaMap[$hash] = $meta;
                 $row->bound_hwid_meta = $metaMap;
                 $row->save();
+
+                // Доп. слот закончился или заморожен: устройства, привязанные сверх лимита, ждут оплаты.
+                // У истёкшей подписки не вмешиваемся — рендерер сам покажет «подписка истекла».
+                if (! $expired && $position >= $max) {
+                    return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
+                }
 
                 return SubscriptionFeedHwidVerdict::Allowed;
             }

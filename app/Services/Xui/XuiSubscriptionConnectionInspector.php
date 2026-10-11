@@ -78,7 +78,7 @@ final class XuiSubscriptionConnectionInspector
             }
 
             $count = count($ips);
-            $limit = max(0, (int) $sub->devices);
+            $limit = max(0, $sub->deviceLimit());
             $over = $limit > 0 && $count > $limit;
 
             $byId[(int) $sub->id] = [

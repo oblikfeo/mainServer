@@ -10,8 +10,8 @@ use App\Models\User;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Referral\ReferralLinkBuilder;
 use App\Services\Referral\ReferralRewardService;
-use App\Services\Subscription\ApplySubscriptionRenewalPack;
-use App\Services\Subscription\CreateDualBundleSubscription;
+use App\Services\Account\AccountPricing;
+use App\Services\Account\AccountSubscription;
 use App\Services\Telegram\TelegramOutreach;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
@@ -25,8 +25,7 @@ use Illuminate\Support\Facades\Mail;
 final class FulfillPaidPaymentOrder
 {
     public function __construct(
-        private readonly CreateDualBundleSubscription $subs,
-        private readonly ApplySubscriptionRenewalPack $renewals,
+        private readonly AccountSubscription $account,
         private readonly ReferralRewardService $referralRewards,
         private readonly ReferralLinkBuilder $referralLinks,
         private readonly TelegramOutreach $telegramOutreach,
@@ -56,50 +55,22 @@ final class FulfillPaidPaymentOrder
         $buyer = $this->ensureBuyer($order);
         $purpose = (string) ($order->purpose ?? 'new');
 
-        if ($purpose === 'renew') {
-            $targetId = (int) $order->subscription_id;
-            if ($targetId < 1) {
-                throw new \RuntimeException('renew order without subscription_id: '.$order->order_id);
-            }
-            $renewed = $this->renewals->apply(
-                $targetId,
-                (int) $order->days,
-                (int) $order->quota_gb,
-                (int) $order->devices,
-                (string) ($order->tariff_plan ?? ''),
-            );
-            $expMs = (int) $renewed->expiry_ms;
-        } elseif ($purpose === 'extra_device') {
-            $targetId = (int) $order->subscription_id;
-            if ($targetId < 1) {
-                throw new \RuntimeException('extra_device order without subscription_id: '.$order->order_id);
-            }
-            $addDevices = (int) $order->devices;
-            if ($addDevices < 1) {
-                throw new \RuntimeException('extra_device order without devices: '.$order->order_id);
-            }
-            $renewed = $this->renewals->apply($targetId, 0, 0, $addDevices);
-            $expMs = (int) $renewed->expiry_ms;
-        } else {
-            if ($buyer === null || (int) $order->user_id < 1) {
-                throw new \RuntimeException('new order without user: '.$order->order_id);
-            }
-            $result = $this->subs->create(
-                (int) $order->devices,
-                (int) $order->days,
-                (int) $order->quota_gb,
-                (int) $order->user_id
-            );
-
-            $order->subscription_id = $result->subscription->id;
-            $order->save();
-
-            if ($buyer !== null) {
-                $this->referralRewards->consumeUserCreditsOnNewSubscription($buyer, $result->subscription);
-            }
-            $renewed = $result->subscription;
-            $expMs = (int) $renewed->expiry_ms;
+        if ($buyer === null || (int) $order->user_id < 1) {
+            throw new \RuntimeException('paid order without user: '.$order->order_id);
         }
+
+        // «Аккаунт = подписка»: любая оплата продлевает единственную подписку аккаунта (или создаёт первую).
+        [$days, $extraDevices, $deviceDays] = $this->purchaseParts($order, $purpose);
+        $result = $this->account->applyPurchase($buyer, $days, $extraDevices, $deviceDays, (int) $order->id);
+
+        $renewed = $result['subscription'];
+        $order->subscription_id = $renewed->id;
+        $order->save();
+
+        if ($result['created']) {
+            $this->referralRewards->consumeUserCreditsOnNewSubscription($buyer, $renewed);
+        }
+        $expMs = (int) $renewed->expiry_ms;
 
         $purchase = Purchase::query()->create([
             'user_id' => (int) $order->user_id,
@@ -144,6 +115,28 @@ final class FulfillPaidPaymentOrder
             'subscription' => $renewed,
             'expiry_ms' => $expMs,
         ];
+    }
+
+    /**
+     * Что куплено заказом: [дни подписки, сколько доп. устройств, на сколько дней каждое].
+     * Цели new / renew / extra_device — заказы старой схемы, созданные до перехода.
+     *
+     * @return array{0: int, 1: int, 2: int}
+     */
+    private function purchaseParts(PaymentOrder $order, string $purpose): array
+    {
+        $days = max(0, (int) $order->days);
+        $devices = max(0, (int) $order->devices);
+        $monthDays = AccountPricing::deviceMonthDays();
+
+        return match ($purpose) {
+            'account' => [$days, $devices, max(0, (int) $order->device_months) * $monthDays],
+            // Старая «Семейная» (5 устройств) = базовые + доп. слоты на тот же срок.
+            'new' => [$days, max(0, $devices - AccountPricing::baseDevices()), $days],
+            'renew' => [$days, $devices, $days],
+            'extra_device' => [0, max(1, $devices), max($monthDays, $days)],
+            default => throw new \RuntimeException('unknown order purpose «'.$purpose.'»: '.$order->order_id),
+        };
     }
 
     private function ensureBuyer(PaymentOrder $order): ?User

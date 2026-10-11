@@ -251,7 +251,7 @@ final class HappSubscriptionAppManagementExtras
     {
         if ($context instanceof Subscription) {
             $used = self::hwidUsedCount($context->bound_hwid_hashes);
-            $max = max(1, (int) $context->devices);
+            $max = max(1, $context->deviceLimit());
 
             return [$used, $max];
         }
