@@ -235,4 +235,18 @@ class AccountSubscriptionTest extends TestCase
         $three = AccountPricing::quote($sub, '3m', 0, 0);
         $this->assertSame(700 + 28 * 3 * 150, $three['amount_rub']);
     }
+
+    public function test_referral_gift_device_stays_free_on_renewal(): void
+    {
+        $user = User::factory()->create();
+        $sub = $this->account()->applyPurchase($user, 30, 0, 0)['subscription'];
+        $sub->forceFill(['devices' => 3])->save();
+        \App\Models\ReferralGrant::query()->create([
+            'grant_key' => 'milestone_devices:'.$user->id,
+            'kind' => \App\Models\ReferralGrant::KIND_MILESTONE_EXTRA_DEVICE,
+            'beneficiary_user_id' => $user->id,
+        ]);
+
+        $this->assertSame(290, AccountPricing::quote($sub, '1m', 0, 0)['amount_rub']);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\Account;
 
+use App\Models\ReferralGrant;
 use App\Models\Subscription;
 use InvalidArgumentException;
 
@@ -99,7 +100,23 @@ final class AccountPricing
      */
     public static function overBaseDevices(?Subscription $sub): int
     {
-        return $sub !== null ? max(0, (int) $sub->devices - self::baseDevices()) : 0;
+        if ($sub === null) {
+            return 0;
+        }
+        $over = (int) $sub->devices - self::baseDevices();
+        if ($over <= 0) {
+            return 0;
+        }
+
+        // Устройства, подаренные реферальной программой, остаются бесплатными.
+        $gifted = $sub->user_id !== null
+            ? ReferralGrant::query()
+                ->where('beneficiary_user_id', $sub->user_id)
+                ->where('kind', ReferralGrant::KIND_MILESTONE_EXTRA_DEVICE)
+                ->count()
+            : 0;
+
+        return max(0, $over - $gifted);
     }
 
     /** Сколько доп. устройств можно иметь на этой подписке (с учётом её базовых). */
