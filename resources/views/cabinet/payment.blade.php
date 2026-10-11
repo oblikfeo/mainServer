@@ -8,35 +8,15 @@
     @endphp
 
     <div class="max-w-4xl mx-auto acc" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
-        {{-- Состояние подписки --}}
-        <div class="acc-block">
-            <div class="acc-status">
-                @if ($state === 'active')
-                    <span class="acc-pill acc-pill--on">Активна</span>
-                @elseif ($state === 'trial')
-                    <span class="acc-pill acc-pill--trial">Пробный период</span>
-                @elseif ($state === 'inactive')
-                    <span class="acc-pill acc-pill--off">Не активна</span>
-                @else
-                    <span class="acc-pill acc-pill--off">Не оформлена</span>
-                @endif
-
-                @if ($account['expires_at'] && in_array($state, ['active', 'trial'], true))
-                    <span class="acc-status__until">до {{ $account['expires_at']->format('d.m.Y') }}</span>
-                    <span class="acc-status__left">осталось {{ $account['days_left'] }} дн.</span>
-                @elseif ($state === 'inactive' && $account['expires_at'])
-                    <span class="acc-status__left">закончилась {{ $account['expires_at']->format('d.m.Y') }}</span>
-                @elseif (in_array($state, ['active', 'trial'], true))
-                    <span class="acc-status__until">без срока</span>
-                @endif
-            </div>
-        </div>
-
         {{-- Срок подписки --}}
         <div class="acc-block">
             <div class="acc-chips">
                 <span class="acc-chip">Срок подписки</span>
-                <span class="acc-chip acc-chip--ghost">Трафик безлимит</span>
+                @if ($state === 'active' || $state === 'trial')
+                    <span class="acc-chip acc-chip--ghost">{{ $state === 'trial' ? 'Пробный период' : 'Активна' }} {{ $account['expires_at'] ? 'до '.$account['expires_at']->format('d.m.Y') : '· без срока' }}</span>
+                @elseif ($state === 'inactive')
+                    <span class="acc-chip acc-chip--orange">Не активна</span>
+                @endif
             </div>
             <div class="acc-cards" id="acc-terms"></div>
         </div>
@@ -94,7 +74,10 @@
             const termByKey = Object.fromEntries(cfg.terms.map((t) => [t.key, t]));
 
             // Выбор: term — ключ срока или '' («не продлевать»); devices — сколько устройств всего; months — срок оплаты доп. устройств.
-            let term = cfg.terms.length ? cfg.terms[0].key : '';
+            // Подписка без срока: продлевать нечего, срок не выбирается.
+            const noExpiry = cfg.active && !cfg.expiresAtIso;
+            const atCap = cfg.maxDevices <= base;
+            let term = cfg.terms.length && !noExpiry ? cfg.terms[0].key : '';
             let devices = Math.max(base, currentTotal);
             let months = 0;
             let moreOpen = devices > cardMax;
@@ -125,9 +108,9 @@
                 // Срок
                 let html = '';
                 if (cfg.active) {
-                    html += card({ on: term === '', attr: 'data-term=""', big: '—', label: 'Не продлевать', price: '', sub: cfg.expiresAt ? 'действует до ' + cfg.expiresAt : 'без срока' });
+                    html += card({ on: term === '', attr: 'data-term=""', big: noExpiry ? '∞' : '—', label: noExpiry ? 'Без срока' : 'Не продлевать', price: '', sub: noExpiry ? 'продлевать не нужно' : cfg.expiresAt ? 'действует до ' + cfg.expiresAt : 'без срока' });
                 }
-                cfg.terms.forEach((x) => {
+                (noExpiry ? [] : cfg.terms).forEach((x) => {
                     html += card({
                         on: term === x.key, attr: 'data-term="' + x.key + '"',
                         big: x.months + '<small>' + plural(x.months, 'месяц', 'месяца', 'месяцев') + '</small>', label: '',
@@ -137,17 +120,17 @@
                     });
                 });
                 $('acc-terms').innerHTML = html;
-                $('acc-terms').style.setProperty('--acc-cols', cfg.active ? 4 : 3);
+                $('acc-terms').style.setProperty('--acc-cols', noExpiry ? 3 : (cfg.active ? 4 : 3));
 
                 // Устройства
                 const block = $('acc-devices-block');
-                block.hidden = cfg.unlimitedDevices || cfg.maxDevices <= base;
+                block.hidden = cfg.unlimitedDevices;
                 if (!block.hidden) {
-                    $('acc-device-price').textContent = 'Доп. устройство ' + rub(cfg.deviceMonthRub) + ' в месяц';
+                    $('acc-device-price').textContent = atCap ? 'Максимум устройств' : 'Доп. устройство ' + rub(cfg.deviceMonthRub) + ' в месяц';
                     let dh = '';
                     for (let n = base; n <= cardMax; n++) {
                         dh += card({
-                            on: !moreOpen && devices === n, attr: 'data-devices="' + n + '"', tag: n === currentTotal ? 'Сейчас' : '',
+                            on: !moreOpen && devices === n, attr: 'data-devices="' + n + '"', tag: n === currentTotal ? 'Сейчас' : '', cls: atCap ? ' acc-card--static' : '',
                             big: String(n), label: plural(n, 'устройство', 'устройства', 'устройств'),
                             price: n === base ? '' : '+' + rub((n - base) * cfg.deviceMonthRub),
                             sub: n === base ? 'входит в подписку' : 'в месяц',
@@ -199,11 +182,11 @@
 
                 const btn = $('acc-pay-btn');
                 btn.disabled = total === 0;
-                btn.textContent = total === 0 ? 'Выберите, что оплатить' : 'Оплатить ' + rub(total);
+                btn.textContent = total === 0 ? (noExpiry && atCap ? 'Оплачивать нечего' : 'Выберите, что оплатить') : 'Оплатить ' + rub(total);
             }
 
             function card(o) {
-                return '<button type="button" class="acc-card' + (o.on ? ' is-on' : '') + '" ' + o.attr + '>'
+                return '<button type="button" class="acc-card' + (o.on ? ' is-on' : '') + (o.cls || '') + '" ' + o.attr + '>'
                     + (o.tag ? '<span class="acc-card__tag">' + o.tag + '</span>' : '')
                     + '<span class="acc-card__radio"></span>'
                     + '<div class="acc-card__big">' + o.big + '</div>'
@@ -254,6 +237,7 @@
                     btn.textContent = old;
                     const messages = {
                         term_required: 'Подписка не активна — выберите срок.',
+                        no_expiry: 'Подписка без срока — продлевать её не нужно.',
                         device_months_required: 'Укажите, на сколько месяцев оплатить новые устройства.',
                         devices_out_of_range: 'Столько устройств на одной подписке подключить нельзя.',
                         payments_not_configured: 'Оплата временно недоступна. Напишите в поддержку.',

@@ -123,6 +123,9 @@ final class AccountPricing
         }
 
         $active = $sub !== null && DeviceSlots::subscriptionActive($sub);
+        if ($term !== null && $active && (int) $sub->expiry_ms <= 0) {
+            throw new InvalidArgumentException('no_expiry'); // подписка без срока — продлевать нечего
+        }
         if ($term === null && ! $active) {
             throw new InvalidArgumentException('term_required');
         }

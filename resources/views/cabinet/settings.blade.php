@@ -109,6 +109,11 @@
                             <span class="acc-slot__addlabel">Добавить устройство</span>
                             <span class="acc-slot__meta">{{ $deviceMonthRub }} ₽ в месяц</span>
                         </a>
+                    @elseif (! $account['unlimited_devices'])
+                        <div class="acc-slot acc-slot--max">
+                            <span class="acc-slot__addlabel">Максимум</span>
+                            <span class="acc-slot__meta">{{ count($account['slots']) }} устройств на аккаунте</span>
+                        </div>
                     @endif
                 </div>
 
