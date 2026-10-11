@@ -11,8 +11,52 @@
 
     let pendingTariff = null;
 
-    function openEmailModal(plan, period, amount) {
-        pendingTariff = { plan, period, amount };
+    const devicesBox = document.getElementById('lp-buy-devices');
+    const devicesCount = document.getElementById('lp-buy-devices-count');
+    const devicesHint = document.getElementById('lp-buy-devices-hint');
+    const baseDevices = Number(devicesBox?.dataset.base || 2);
+    const maxDevices = Number(devicesBox?.dataset.max || baseDevices);
+    const deviceRub = Number(devicesBox?.dataset.deviceRub || 0);
+    let devices = baseDevices;
+
+    function termAmount(btn) {
+        const months = Number(btn.getAttribute('data-term-months') || 1);
+        const amount = Number(btn.getAttribute('data-term-amount') || 0);
+        return amount + Math.max(0, devices - baseDevices) * months * deviceRub;
+    }
+
+    function devicesWord(n) {
+        const d = n % 10, h = n % 100;
+        if (d === 1 && h !== 11) return 'устройство';
+        if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return 'устройства';
+        return 'устройств';
+    }
+
+    function renderDevices() {
+        if (devicesCount) devicesCount.textContent = String(devices);
+        if (devicesHint) devicesHint.textContent = devices + ' ' + devicesWord(devices);
+        document.querySelectorAll('.lp-buy-pay-btn[data-term]').forEach((btn) => {
+            const price = btn.closest('.pricing-card')?.querySelector('[data-buy-price]');
+            if (price) price.textContent = String(termAmount(btn));
+        });
+        const minus = document.getElementById('lp-buy-devices-minus');
+        const plus = document.getElementById('lp-buy-devices-plus');
+        if (minus) minus.disabled = devices <= baseDevices;
+        if (plus) plus.disabled = devices >= maxDevices;
+    }
+
+    document.getElementById('lp-buy-devices-minus')?.addEventListener('click', () => {
+        devices = Math.max(baseDevices, devices - 1);
+        renderDevices();
+    });
+    document.getElementById('lp-buy-devices-plus')?.addEventListener('click', () => {
+        devices = Math.min(maxDevices, devices + 1);
+        renderDevices();
+    });
+    renderDevices();
+
+    function openEmailModal(term, amount) {
+        pendingTariff = { term, devices, amount };
         if (emailAmount) {
             emailAmount.textContent = amount ? amount + ' ₽' : '';
         }
@@ -36,8 +80,8 @@
         pendingTariff = null;
     }
 
-    async function createPayment(plan, period, email) {
-        const body = { plan, period, email };
+    async function createPayment(term, deviceCount, email) {
+        const body = { term, devices: deviceCount, email };
 
         const r = await fetch(@json(route('quick_buy.pay')), {
             method: 'POST',
@@ -62,12 +106,10 @@
         const btn = e.target && e.target.closest ? e.target.closest('.lp-buy-pay-btn') : null;
         if (!btn || btn.disabled || btn.id === 'lp-buy-email-submit') return;
 
-        const plan = btn.getAttribute('data-tariff-plan') || '';
-        const period = btn.getAttribute('data-tariff-period') || '';
-        const amount = btn.getAttribute('data-tariff-amount') || '';
-        if (!plan || !period) return;
+        const term = btn.getAttribute('data-term') || '';
+        if (!term) return;
 
-        openEmailModal(plan, period, amount);
+        openEmailModal(term, termAmount(btn));
     }, { passive: true });
 
     if (emailForm) {
@@ -89,8 +131,8 @@
 
             try {
                 const data = await createPayment(
-                    pendingTariff.plan,
-                    pendingTariff.period,
+                    pendingTariff.term,
+                    pendingTariff.devices,
                     email
                 );
                 window.location.href = data.url;

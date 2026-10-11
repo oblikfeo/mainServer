@@ -419,7 +419,7 @@
                 <div id="chat-empty" class="lp-chat-empty">
                     <h1>Чем <em>помочь?</em></h1>
                     <div class="lp-chat-chips">
-                        <button type="button" class="lp-chat-chip" data-prompt="Какой тариф мне подойдёт?">Какой тариф выбрать?</button>
+                        <button type="button" class="lp-chat-chip" data-prompt="Сколько стоит подписка?">Сколько стоит?</button>
                         <button type="button" class="lp-chat-chip" data-prompt="Как подключиться и начать пользоваться?">Как подключиться?</button>
                         <button type="button" class="lp-chat-chip" data-prompt="Есть ли бесплатный пробный период?">Пробный период</button>
                     </div>

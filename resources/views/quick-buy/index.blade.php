@@ -6,7 +6,7 @@
 @endphp
 
 @section('title', $brand.' — быстрая оплата')
-@section('meta_description', 'Выберите тариф и оплатите подписку за пару кликов — без регистрации. Оплата картой или СБП на защищённой странице платёжной системы.')
+@section('meta_description', 'Выберите срок и число устройств и оплатите подписку за пару кликов — без регистрации. Оплата картой или СБП на защищённой странице платёжной системы.')
 
 @push('styles')
     @include('views2::partials.lp-f1-styles')
@@ -28,7 +28,7 @@
                 </a>
                 <nav class="lp-header__nav" id="lp-main-nav" aria-label="Быстрые ссылки">
                     <a href="{{ url('/') }}">Главная</a>
-                    <a href="#tarify">Тарифы</a>
+                    <a href="#tarify">Цены</a>
                     <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer">Поддержка</a>
                 </nav>
                 <button
@@ -58,13 +58,13 @@
                 Оплата в <span class="lp-nice-hero__title-em">2 клика</span>
             </h1>
             <p class="lp-nice-hero__lead">
-                Выберите тариф, укажите почту и перейдите к оплате. Аккаунт создадим автоматически — подписку можно сразу добавить в Happ.
+                Выберите срок и число устройств, укажите почту и перейдите к оплате. Аккаунт создадим автоматически — подписку можно сразу добавить в Happ.
             </p>
         </section>
 
         <section id="tarify" class="lp-pricing lp-pricing-mock">
             <div class="lp-pricing-head-mock">
-                <h2 class="lp-section-title">Выберите тариф</h2>
+                <h2 class="lp-section-title">Выберите подписку</h2>
             </div>
             <div class="pricing-container">
                 @include('quick-buy.partials.pricing-buy-plaques')

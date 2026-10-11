@@ -322,4 +322,36 @@
         font-size: 16px;
         color: #475569;
     }
+
+    .lp-f1 .lp-buy-devices__stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        margin: 6px 0 14px;
+    }
+    .lp-f1 .lp-buy-devices__btn {
+        width: 52px;
+        height: 52px;
+        border: var(--mock-border);
+        background: var(--mock-accent);
+        color: var(--mock-dark);
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .lp-f1 .lp-buy-devices__btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+    .lp-f1 .lp-buy-devices__count {
+        min-width: 64px;
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--mock-dark);
+        text-align: center;
+    }
 </style>

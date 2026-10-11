@@ -102,6 +102,14 @@
                                         @if ($o->subscription_id)
                                             · sub #{{ $o->subscription_id }}
                                         @endif
+                                    @elseif (($o->purpose ?? 'new') === 'account')
+                                        {{ (int) $o->days > 0 ? 'Подписка '.(int) $o->days.' дн.' : 'Без продления' }}
+                                        @if ((int) $o->devices > 0)
+                                            · +{{ (int) $o->devices }} устр. × {{ (int) $o->device_months }} мес.
+                                        @endif
+                                        @if ($o->subscription_id)
+                                            · sub #{{ $o->subscription_id }}
+                                        @endif
                                     @elseif (($o->purpose ?? 'new') === 'extra_device')
                                         Бонус · +устр.
                                         @if ($o->subscription_id)

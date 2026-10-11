@@ -30,8 +30,7 @@ class QuickCheckoutPayTest extends TestCase
         $this->mockPlategaTransaction();
 
         $this->postJson('/buy/pay', [
-            'plan' => 'solo',
-            'period' => '1 месяц',
+            'term' => '1m',
             'email' => 'retry@example.com',
         ])->assertOk()->assertJsonStructure(['url']);
 
@@ -71,8 +70,7 @@ class QuickCheckoutPayTest extends TestCase
         ]);
 
         $this->postJson('/buy/pay', [
-            'plan' => 'solo',
-            'period' => '1 месяц',
+            'term' => '1m',
             'email' => 'ghost@example.com',
         ])->assertOk();
 
@@ -87,8 +85,7 @@ class QuickCheckoutPayTest extends TestCase
         User::factory()->create(['email' => 'taken@example.com']);
 
         $this->postJson('/buy/pay', [
-            'plan' => 'solo',
-            'period' => '1 месяц',
+            'term' => '1m',
             'email' => 'taken@example.com',
         ])->assertStatus(422)->assertJsonValidationErrors(['email']);
 

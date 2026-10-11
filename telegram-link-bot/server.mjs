@@ -217,110 +217,172 @@ async function checkPaymentStatus(uid, orderId) {
   return { ok: r.ok, data: j };
 }
 
-function findPlan(catalog, planKey) {
-  const plans = Array.isArray(catalog?.plans) ? catalog.plans : [];
-  return plans.find((p) => p.plan === planKey) ?? null;
-}
-
-function buildPaymentMenuView() {
-  return {
-    text: '💳 Оплата подписки\n\nВыберите действие:',
-    keyboard: [
-      [{ text: '✨ Новая подписка', callback_data: 'py:1' }],
-      [{ text: '🔄 Продлить подписку', callback_data: 'py:2' }],
-    ],
-  };
-}
-
-function buildNewPlanView(catalog) {
-  const plans = Array.isArray(catalog?.plans) ? catalog.plans : [];
-  const keyboard = plans.map((p) => [
-    { text: String(p.label ?? p.plan), callback_data: `py:n:${p.plan}` },
-  ]);
-  keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
-  return {
-    text: '✨ Новая подписка\n\nВыберите тариф:',
-    keyboard,
-  };
-}
-
-function buildPeriodView(catalog, planKey, renew, subscriptionId) {
-  const plan = findPlan(catalog, planKey);
-  const periods = renew
-    ? Array.isArray(plan?.renew_periods)
-      ? plan.renew_periods
-      : []
-    : Array.isArray(plan?.periods)
-      ? plan.periods
-      : [];
-  const keyboard = periods.map((row) => [
-    {
-      text: `${row.period} · ${row.amount_rub} ₽`,
-      callback_data: renew
-        ? `py:rt:${subscriptionId}:${planKey}:${row.index}`
-        : `py:nt:${planKey}:${row.index}`,
-    },
-  ]);
-  keyboard.push([
-    {
-      text: '← Назад',
-      callback_data: renew ? `py:2` : 'py:1',
-    },
-  ]);
-  return {
-    text: renew
-      ? `🔄 Продление · ${plan?.label ?? planKey}\n\nВыберите срок:`
-      : `✨ ${plan?.label ?? planKey}\n\nВыберите срок:`,
-    keyboard,
-  };
-}
-
-function buildRenewSubsView(items) {
-  if (!Array.isArray(items) || items.length === 0) {
+/** Каталог цен + состояние подписки аккаунта одним вызовом. */
+async function loadPayContext(uid) {
+  const [cat, acc] = await Promise.all([fetchPaymentCatalog(), fetchRenewSubscriptions(uid)]);
+  if (!cat.ok || !cat.data.ok) {
+    return { ok: false, message: 'Не удалось загрузить цены. Попробуйте позже.' };
+  }
+  if (!acc.ok || !acc.data.ok) {
     return {
-      text: 'У вас нет подписок для продления.\n\nОформите новую подписку.',
-      keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]],
+      ok: false,
+      message:
+        typeof acc.data.message === 'string'
+          ? acc.data.message
+          : 'Привяжите Telegram в Личном кабинете на сайте.',
     };
   }
-  const keyboard = items.map((it) => {
-    const created = String(it.created ?? '').trim() || String(it.public_code ?? '');
-    const state = it.active ? 'активна' : 'неактивна';
+  return { ok: true, catalog: cat.data, account: acc.data.account ?? {} };
+}
+
+function payStatusLine(account) {
+  const state = String(account?.state ?? 'none');
+  const expires = String(account?.expires ?? '').trim();
+  if (state === 'active') {
+    return expires !== '' ? `✅ Подписка активна до ${expires}` : '✅ Подписка активна';
+  }
+  if (state === 'trial') {
+    return expires !== '' ? `🎁 Пробный период до ${expires}` : '🎁 Пробный период';
+  }
+  if (state === 'inactive') {
+    return '⏸ Подписка не активна';
+  }
+  return 'Подписка ещё не оформлена';
+}
+
+const payBase = (ctxPay) => Number(ctxPay.account?.base_devices ?? ctxPay.catalog?.base_devices ?? 2);
+const payHave = (ctxPay) => payBase(ctxPay) + Number(ctxPay.account?.extra_devices ?? 0);
+const payMax = (ctxPay) => Number(ctxPay.account?.max_devices ?? ctxPay.catalog?.max_devices ?? 10);
+const payLive = (ctxPay) => ['active', 'trial'].includes(String(ctxPay.account?.state ?? ''));
+const payFixedDevices = (ctxPay) =>
+  Boolean(ctxPay.account?.unlimited_devices) || payMax(ctxPay) <= payBase(ctxPay);
+
+function findTerm(catalog, key) {
+  const terms = Array.isArray(catalog?.terms) ? catalog.terms : [];
+  return terms.find((t) => t.key === key) ?? null;
+}
+
+function payTotal(ctxPay, n, termKey, months) {
+  const term = findTerm(ctxPay.catalog, termKey);
+  const extra = Math.max(0, n - payBase(ctxPay));
+  const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  return Number(term?.amount_rub ?? 0) + extra * months * perMonth;
+}
+
+/** Шаг 1: сколько устройств нужно. */
+function buildPayDevicesView(ctxPay) {
+  const base = payBase(ctxPay);
+  const have = payHave(ctxPay);
+  const max = payMax(ctxPay);
+  const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  const keyboard = [];
+  let row = [];
+  for (let n = base; n <= max; n++) {
+    row.push({ text: n === have ? `· ${n} ·` : String(n), callback_data: `py:d:${n}` });
+    if (row.length === 4) {
+      keyboard.push(row);
+      row = [];
+    }
+  }
+  if (row.length > 0) {
+    keyboard.push(row);
+  }
+  return {
+    text:
+      `💳 Оплата\n\n${payStatusLine(ctxPay.account)}\n` +
+      `Устройств сейчас: ${have}\n\n` +
+      `В подписку входит ${base} устр. Каждое дополнительное — ${perMonth} ₽ в месяц.\n\n` +
+      'Сколько устройств нужно?',
+    keyboard,
+  };
+}
+
+/** Шаг 2: срок подписки. */
+function buildPayTermView(ctxPay, n) {
+  const terms = Array.isArray(ctxPay.catalog?.terms) ? ctxPay.catalog.terms : [];
+  const extra = Math.max(0, n - payBase(ctxPay));
+  const keyboard = terms.map((t) => {
+    const discount = Number(t.discount_percent ?? 0);
     return [
       {
-        text: `${created} · ${state}`,
-        callback_data: `py:rs:${it.id}:${it.plan}`,
+        text: `${t.label} · ${t.amount_rub} ₽${discount > 0 ? ` (−${discount}%)` : ''}`,
+        callback_data: `py:t:${n}:${t.key}`,
       },
     ];
   });
-  keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
+  if (payLive(ctxPay) && extra > 0) {
+    keyboard.push([{ text: 'Не продлевать, только устройства', callback_data: `py:t:${n}:none` }]);
+  }
+  if (!payFixedDevices(ctxPay)) {
+    keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
+  }
+  const head = payFixedDevices(ctxPay)
+    ? `💳 Оплата\n\n${payStatusLine(ctxPay.account)}`
+    : `💳 Оплата · устройств: ${n}`;
+  return { text: `${head}\n\nВыберите срок подписки:`, keyboard };
+}
+
+/** Шаг 3: на сколько месяцев оплатить доп. устройства. */
+function buildPayDeviceMonthsView(ctxPay, n, termKey) {
+  const extra = Math.max(0, n - payBase(ctxPay));
+  const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  const maxMonths = Number(ctxPay.catalog?.device_max_months ?? 6);
+  const keyboard = [];
+  let row = [];
+  for (let m = 1; m <= maxMonths; m++) {
+    row.push({ text: `${m} мес. · ${extra * m * perMonth} ₽`, callback_data: `py:m:${n}:${termKey}:${m}` });
+    if (row.length === 2) {
+      keyboard.push(row);
+      row = [];
+    }
+  }
+  if (row.length > 0) {
+    keyboard.push(row);
+  }
+  if (termKey !== 'none' && Number(ctxPay.account?.extra_devices ?? 0) >= extra) {
+    keyboard.push([{ text: 'Устройства сейчас не оплачивать', callback_data: `py:m:${n}:${termKey}:0` }]);
+  }
+  keyboard.push([{ text: '← Назад', callback_data: `py:d:${n}` }]);
   return {
-    text: '🔄 Продление\n\nВыберите подписку:',
+    text:
+      `📱 Доп. устройств: ${extra} · ${perMonth} ₽ в месяц за каждое\n\n` +
+      'На сколько месяцев их оплатить?\n' +
+      'Дни доп. устройства идут только пока подписка активна.',
     keyboard,
   };
 }
 
-function buildPaymentMethodView(purpose, plan, periodIndex, subscriptionId) {
-  const base =
-    purpose === 'r'
-      ? `py:x:r:${plan}:${periodIndex}:${subscriptionId}`
-      : `py:x:n:${plan}:${periodIndex}`;
+/** Шаг 4: итог и способ оплаты. */
+function buildPayMethodView(ctxPay, n, termKey, months) {
+  const term = findTerm(ctxPay.catalog, termKey);
+  const extra = Math.max(0, n - payBase(ctxPay));
+  const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  const lines = [];
+  if (term) {
+    lines.push(`Подписка · ${term.label} — ${term.amount_rub} ₽`);
+  }
+  if (extra > 0 && months > 0) {
+    lines.push(`Доп. устройства: ${extra} × ${months} мес. — ${extra * months * perMonth} ₽`);
+  }
+  const base = `py:x:${n}:${termKey}:${months}`;
   return {
-    text: 'Выберите способ оплаты:',
+    text: `${lines.join('\n')}\n\nИтого: ${payTotal(ctxPay, n, termKey, months)} ₽\n\nВыберите способ оплаты:`,
     keyboard: [
       [{ text: '📱 СБП', callback_data: `${base}:sbp` }],
       [{ text: '💳 Картой', callback_data: `${base}:card` }],
-      [
-        {
-          text: '← Назад',
-          callback_data:
-            purpose === 'r'
-              ? `py:rs:${subscriptionId}:${plan}`
-              : `py:n:${plan}`,
-        },
-      ],
+      [{ text: '← Назад', callback_data: `py:d:${n}` }],
     ],
   };
 }
+
+function buildPayHomeView(ctxPay) {
+  return payFixedDevices(ctxPay) ? buildPayTermView(ctxPay, 0) : buildPayDevicesView(ctxPay);
+}
+
+const payErrorView = (message) => ({
+  text: message,
+  keyboard: [[{ text: '🔄 Обновить', callback_data: 'py:0' }]],
+});
 
 function buildPayLinkView(data) {
   const url = String(data.pay_url ?? '');
@@ -329,7 +391,7 @@ function buildPayLinkView(data) {
   const keyboard = [
     [{ text: `💳 Оплатить (${methodLabel})`, url }],
     [{ text: '🔄 Проверить оплату', callback_data: `py:s:${orderId}` }],
-    [{ text: '← В меню оплаты', callback_data: 'py:0' }],
+    [{ text: '← К оплате', callback_data: 'py:0' }],
   ];
   return {
     text:
@@ -372,23 +434,25 @@ function findItem(j, scope, id) {
   return items.find((it) => scopeOf(it) === scope && Number(it.id) === id) ?? null;
 }
 
-/** Экран выбора подписки: короткий список кнопок, без «мусора». */
+/** Экран устройств: у аккаунта одна подписка, поэтому сразу список устройств. */
 function buildSubscriptionsView(j) {
   const items = Array.isArray(j.items) ? j.items : [];
   if (items.length === 0) {
     return {
       text:
-        'У вас пока нет подписок с устройствами.\n\n' +
+        'Привязанных устройств пока нет.\n\n' +
         'Устройство появляется здесь после первого подключения через приложение Happ.',
       keyboard: [[{ text: '🔄 Обновить', callback_data: 'dv:l' }]],
     };
+  }
+  if (items.length === 1) {
+    return buildDeviceDetailView(items[0], true);
   }
 
   const keyboard = items.map((it) => {
     const scope = scopeOf(it);
     const id = Number(it.id);
-    const created = String(it.created ?? '').trim();
-    const label = created !== '' ? created : truncate(String(it.title ?? 'Подписка'), 24);
+    const label = scope === 't' ? 'Тестовая подписка' : 'Подписка';
     const state = it.active ? 'активна' : 'неактивна';
     const bound = Number(it.bound ?? 0);
     const slots = Number(it.slots ?? 0);
@@ -402,23 +466,30 @@ function buildSubscriptionsView(j) {
   keyboard.push([{ text: '🔄 Обновить', callback_data: 'dv:l' }]);
 
   return {
-    text: '📱 Мои устройства\n\nВыберите подписку, чтобы посмотреть и отвязать устройства.',
+    text: '📱 Мои устройства\n\nВыберите, что открыть.',
     keyboard,
   };
 }
 
-/** Экран одной подписки: устройства и кнопки отвязки. */
-function buildDeviceDetailView(it) {
+/** Устройства подписки и кнопки отвязки. */
+function buildDeviceDetailView(it, single = false) {
   const scope = scopeOf(it);
   const id = Number(it.id);
-  const title = String(it.title ?? 'Подписка');
+  const title = scope === 't' ? 'Тестовая подписка' : 'Мои устройства';
   const slots = Number(it.slots ?? 0);
   const devices = Array.isArray(it.devices) ? it.devices : [];
+  const back = single
+    ? { text: '🔄 Обновить', callback_data: 'dv:l' }
+    : { text: '← Назад', callback_data: 'dv:l' };
+  const addRow = scope === 's' ? [[{ text: '➕ Добавить устройство', callback_data: 'py:0' }]] : [];
+  const state = it.active ? '' : '\nПодписка не активна.';
 
   if (devices.length === 0) {
     return {
-      text: `📱 ${title}\n\nНа этой подписке нет привязанных устройств.`,
-      keyboard: [[{ text: '← Назад к подпискам', callback_data: 'dv:l' }]],
+      text:
+        `📱 ${title}\nЗанято 0 из ${slots}${state}\n\n` +
+        'Устройство появится здесь после первого подключения через приложение Happ.',
+      keyboard: [...addRow, [back]],
     };
   }
 
@@ -428,11 +499,14 @@ function buildDeviceDetailView(it) {
       callback_data: `dv:d:${scope}:${id}:${d.hash_prefix}`,
     },
   ]);
-  keyboard.push([{ text: '🧹 Отвязать все', callback_data: `dv:c:${scope}:${id}` }]);
-  keyboard.push([{ text: '← Назад к подпискам', callback_data: 'dv:l' }]);
+  if (devices.length > 1) {
+    keyboard.push([{ text: '🧹 Отвязать все', callback_data: `dv:c:${scope}:${id}` }]);
+  }
+  keyboard.push(...addRow);
+  keyboard.push([back]);
 
   return {
-    text: `📱 ${title}\nУстройств: ${devices.length} из ${slots}`,
+    text: `📱 ${title}\nЗанято ${devices.length} из ${slots}${state}\n\nНажмите на устройство, чтобы отвязать его.`,
     keyboard,
   };
 }
@@ -461,7 +535,8 @@ async function renderDetail(ctx, uid, scope, id) {
     return;
   }
   const it = findItem(data, scope, id);
-  await editView(ctx, it ? buildDeviceDetailView(it) : buildSubscriptionsView(data));
+  const items = Array.isArray(data.items) ? data.items : [];
+  await editView(ctx, it ? buildDeviceDetailView(it, items.length === 1) : buildSubscriptionsView(data));
 }
 
 async function fetchBotStatus(uid) {
@@ -1014,111 +1089,75 @@ bot.hears('Оплатить', async (ctx) => {
   if (!(await ensureLinked(ctx))) {
     return;
   }
-  const view = buildPaymentMenuView();
+  const ctxPay = await loadPayContext(uid);
+  const view = ctxPay.ok ? buildPayHomeView(ctxPay) : payErrorView(ctxPay.message);
   await safeSendMessage(ctx.chat.id, view.text, {
     reply_markup: { inline_keyboard: view.keyboard },
   });
 });
 
-bot.action('py:0', async (ctx) => {
+/** Загружает контекст оплаты; при ошибке сам показывает её и возвращает null. */
+async function payContextOrShowError(ctx) {
+  const ctxPay = await loadPayContext(ctx.from?.id);
+  if (!ctxPay.ok) {
+    await editPayView(ctx, payErrorView(ctxPay.message));
+    return null;
+  }
+  return ctxPay;
+}
+
+// py:1, py:2 и py:n… — кнопки старого меню в уже отправленных сообщениях: ведём в новое.
+bot.action(/^py:(0|1|2|n:.*|nt:.*|rs:.*|rt:.*|x:[nr]:.*)$/, async (ctx) => {
   await ctx.answerCbQuery();
-  await editPayView(ctx, buildPaymentMenuView());
+  const ctxPay = await payContextOrShowError(ctx);
+  if (ctxPay) {
+    await editPayView(ctx, buildPayHomeView(ctxPay));
+  }
 });
 
-bot.action('py:1', async (ctx) => {
+bot.action(/^py:d:(\d+)$/, async (ctx) => {
   await ctx.answerCbQuery();
-  const { ok, data } = await fetchPaymentCatalog();
-  if (!ok || !data.ok) {
-    await ctx.answerCbQuery('Не удалось загрузить тарифы', { show_alert: true });
+  const ctxPay = await payContextOrShowError(ctx);
+  if (ctxPay) {
+    await editPayView(ctx, buildPayTermView(ctxPay, Number(ctx.match[1])));
+  }
+});
+
+bot.action(/^py:t:(\d+):([a-z0-9]+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const ctxPay = await payContextOrShowError(ctx);
+  if (!ctxPay) {
     return;
   }
-  await editPayView(ctx, buildNewPlanView(data));
+  const n = Number(ctx.match[1]);
+  const termKey = ctx.match[2];
+  const extra = Math.max(0, n - payBase(ctxPay));
+  if (extra > 0 && !payFixedDevices(ctxPay)) {
+    await editPayView(ctx, buildPayDeviceMonthsView(ctxPay, n, termKey));
+    return;
+  }
+  await editPayView(ctx, buildPayMethodView(ctxPay, n, termKey, 0));
 });
 
-bot.action('py:2', async (ctx) => {
+bot.action(/^py:m:(\d+):([a-z0-9]+):(\d+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const ctxPay = await payContextOrShowError(ctx);
+  if (ctxPay) {
+    await editPayView(
+      ctx,
+      buildPayMethodView(ctxPay, Number(ctx.match[1]), ctx.match[2], Number(ctx.match[3])),
+    );
+  }
+});
+
+bot.action(/^py:x:(\d+):([a-z0-9]+):(\d+):(sbp|card)$/, async (ctx) => {
   const uid = ctx.from?.id;
-  await ctx.answerCbQuery();
-  const { ok, data } = await fetchRenewSubscriptions(uid);
-  if (!ok || !data.ok) {
-    const m =
-      typeof data.message === 'string'
-        ? data.message
-        : 'Привяжите Telegram в Личном кабинете на сайте.';
-    await editPayView(ctx, { text: m, keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]] });
-    return;
-  }
-  await editPayView(ctx, buildRenewSubsView(data.items));
-});
-
-bot.action(/^py:n:(solo|family)$/, async (ctx) => {
-  await ctx.answerCbQuery();
-  const plan = ctx.match[1];
-  const { ok, data } = await fetchPaymentCatalog();
-  if (!ok || !data.ok) {
-    return;
-  }
-  await editPayView(ctx, buildPeriodView(data, plan, false, null));
-});
-
-bot.action(/^py:nt:(solo|family):(\d+)$/, async (ctx) => {
-  await ctx.answerCbQuery();
-  const plan = ctx.match[1];
-  const periodIndex = Number(ctx.match[2]);
-  await editPayView(ctx, buildPaymentMethodView('n', plan, periodIndex, null));
-});
-
-bot.action(/^py:rs:(\d+):(solo|family)$/, async (ctx) => {
-  await ctx.answerCbQuery();
-  const subId = Number(ctx.match[1]);
-  const plan = ctx.match[2];
-  const { ok, data } = await fetchPaymentCatalog();
-  if (!ok || !data.ok) {
-    return;
-  }
-  await editPayView(ctx, buildPeriodView(data, plan, true, subId));
-});
-
-bot.action(/^py:rt:(\d+):(solo|family):(\d+)$/, async (ctx) => {
-  await ctx.answerCbQuery();
-  const subId = Number(ctx.match[1]);
-  const plan = ctx.match[2];
-  const periodIndex = Number(ctx.match[3]);
-  await editPayView(ctx, buildPaymentMethodView('r', plan, periodIndex, subId));
-});
-
-bot.action(/^py:x:n:(solo|family):(\d+):(sbp|card)$/, async (ctx) => {
-  const uid = ctx.from?.id;
-  const plan = ctx.match[1];
-  const periodIndex = Number(ctx.match[2]);
-  const method = ctx.match[3];
   await ctx.answerCbQuery('Создаём платёж…');
   const { ok, data } = await createPayment(uid, ctx.from?.username, {
-    purpose: 'new',
-    plan,
-    period_index: periodIndex,
-    payment_method: method,
-  });
-  if (!ok || !data.ok) {
-    const m = typeof data.message === 'string' ? data.message : 'Не удалось создать платёж.';
-    await editPayView(ctx, { text: m, keyboard: [[{ text: '← Назад', callback_data: 'py:0' }]] });
-    return;
-  }
-  await editPayView(ctx, buildPayLinkView(data));
-});
-
-bot.action(/^py:x:r:(solo|family):(\d+):(\d+):(sbp|card)$/, async (ctx) => {
-  const uid = ctx.from?.id;
-  const plan = ctx.match[1];
-  const periodIndex = Number(ctx.match[2]);
-  const subId = Number(ctx.match[3]);
-  const method = ctx.match[4];
-  await ctx.answerCbQuery('Создаём платёж…');
-  const { ok, data } = await createPayment(uid, ctx.from?.username, {
-    purpose: 'renew',
-    plan,
-    period_index: periodIndex,
-    subscription_id: subId,
-    payment_method: method,
+    term: ctx.match[2],
+    devices: Number(ctx.match[1]),
+    device_months: Number(ctx.match[3]),
+    payment_method: ctx.match[4],
   });
   if (!ok || !data.ok) {
     const m = typeof data.message === 'string' ? data.message : 'Не удалось создать платёж.';

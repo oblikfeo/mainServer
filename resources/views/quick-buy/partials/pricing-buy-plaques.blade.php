@@ -1,59 +1,54 @@
-{{-- Карточки цен с кнопкой «Оплатить» для /buy --}}
-@foreach (config('marketing.tariffs', []) as $plan)
-    @php
-        $rows = $plan['rows'] ?? [];
-        $rowCount = count($rows);
-    @endphp
-    <div class="pricing-column">
-        <h3 class="pricing-column-title">{{ $plan['title'] }}</h3>
-        @if (filled($plan['pricing_hint'] ?? null))
-            <p class="pricing-column-hint">{{ $plan['pricing_hint'] }}</p>
-        @endif
-        <div class="pricing-cards">
-            @foreach ($rows as $i => $row)
-                @php
-                    $isLast = $i === $rowCount - 1;
-                    $sub = $row['sub'] ?? null;
-                    $plainSub = trim(strip_tags((string) $sub));
-                    $classes = ['pricing-card'];
-                    if (! empty($row['badge'] ?? null)) {
-                        $classes[] = 'pricing-card-best';
-                    } elseif (($plan['kind'] ?? '') === 'solo' && $isLast) {
-                        $classes[] = 'pricing-card-popular';
-                    }
-                    $showSavings = filled($sub) && str_contains($plainSub, 'Выгода');
-                    $showPerMonth = filled($sub) && ! $showSavings && (
-                        str_contains($plainSub, '/мес') || str_contains($plainSub, '₽/мес')
-                    );
-                    $showRemainderSub = filled($sub) && ! $showSavings && ! $showPerMonth;
-                @endphp
-                <div class="{{ implode(' ', $classes) }}">
-                    @if (filled($row['badge'] ?? null))
-                        <span class="pricing-tag">{{ $row['badge'] }}</span>
-                    @endif
-                    <div class="pricing-duration">{{ $row['period'] }}</div>
-                    <div class="pricing-price">{{ $row['amount'] }}&nbsp;₽</div>
-                    @if ($showSavings)
-                        <div class="pricing-savings">{!! $sub !!}</div>
-                    @elseif ($showPerMonth)
-                        <div class="pricing-per-month">{!! $sub !!}</div>
-                    @elseif ($showRemainderSub)
-                        <div class="pricing-note">{!! $sub !!}</div>
-                    @endif
-                    @if (filled($row['note'] ?? null))
-                        <div class="pricing-note">{!! $row['note'] !!}</div>
-                    @endif
-                    <button
-                        type="button"
-                        class="lp-buy-pay-btn"
-                        data-tariff-plan="{{ $plan['id'] }}"
-                        data-tariff-period="{{ $row['period'] }}"
-                        data-tariff-amount="{{ $row['amount'] }}"
-                    >
-                        Оплатить
-                    </button>
-                </div>
-            @endforeach
+{{-- /buy: выбор числа устройств + срок подписки с кнопкой «Оплатить» --}}
+@php
+    $terms = array_values(\App\Services\Account\AccountPricing::terms());
+    $baseDevices = \App\Services\Account\AccountPricing::baseDevices();
+    $maxDevices = \App\Services\Account\AccountPricing::maxDevices();
+    $deviceRub = \App\Services\Account\AccountPricing::deviceMonthRub();
+    $lastIndex = count($terms) - 1;
+@endphp
+<div class="pricing-column">
+    <h3 class="pricing-column-title">Устройства</h3>
+    <p class="pricing-column-hint">{{ $baseDevices }} входят в подписку</p>
+    <div class="pricing-cards">
+        <div
+            class="pricing-card lp-buy-devices"
+            id="lp-buy-devices"
+            data-base="{{ $baseDevices }}"
+            data-max="{{ $maxDevices }}"
+            data-device-rub="{{ $deviceRub }}"
+        >
+            <div class="pricing-duration">Сколько устройств</div>
+            <div class="lp-buy-devices__stepper">
+                <button type="button" class="lp-buy-devices__btn" id="lp-buy-devices-minus" aria-label="Меньше устройств">&minus;</button>
+                <span class="lp-buy-devices__count" id="lp-buy-devices-count" aria-live="polite">{{ $baseDevices }}</span>
+                <button type="button" class="lp-buy-devices__btn" id="lp-buy-devices-plus" aria-label="Больше устройств">+</button>
+            </div>
+            <div class="pricing-per-month">+{{ $deviceRub }}&nbsp;₽ в месяц за каждое дополнительное</div>
+            <div class="pricing-note">До {{ $maxDevices }} устройств на одном аккаунте. Добавить устройство можно и позже — в личном кабинете.</div>
         </div>
     </div>
-@endforeach
+</div>
+<div class="pricing-column">
+    <h3 class="pricing-column-title">Срок</h3>
+    <p class="pricing-column-hint" id="lp-buy-devices-hint">{{ $baseDevices }} устройства</p>
+    <div class="pricing-cards">
+        @foreach ($terms as $i => $term)
+            <div class="pricing-card {{ $i === $lastIndex ? 'pricing-card-popular' : '' }}">
+                <div class="pricing-duration">{{ $term['label'] }}</div>
+                <div class="pricing-price"><span data-buy-price>{{ $term['amount_rub'] }}</span>&nbsp;₽</div>
+                @if ($term['discount_percent'] > 0)
+                    <div class="pricing-savings">Скидка {{ $term['discount_percent'] }}% на подписку</div>
+                @endif
+                <button
+                    type="button"
+                    class="lp-buy-pay-btn"
+                    data-term="{{ $term['key'] }}"
+                    data-term-months="{{ $term['months'] }}"
+                    data-term-amount="{{ $term['amount_rub'] }}"
+                >
+                    Оплатить
+                </button>
+            </div>
+        @endforeach
+    </div>
+</div>

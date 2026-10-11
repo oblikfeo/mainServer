@@ -121,10 +121,25 @@ class User extends Authenticatable
             ->first();
     }
 
+    /**
+     * Пробные подписки аккаунта за всё время, включая ушедшие в архив при переходе
+     * на «аккаунт = подписка» (у них user_id пуст, владелец записан в archived_from_user_id).
+     */
+    public function everTrialSubscriptions(): \Illuminate\Database\Eloquent\Builder
+    {
+        $id = $this->id;
+
+        return Subscription::query()
+            ->where('is_trial', true)
+            ->where(static function ($q) use ($id): void {
+                $q->where('user_id', $id)->orWhere('archived_from_user_id', $id);
+            });
+    }
+
     /** Была ли когда-либо самовыдача пробного доступа из ЛК (включая legacy test_keys). Промо-триал не считается. */
     public function hasEverUsedCabinetTrial(): bool
     {
-        if ($this->subscriptions()->where('is_trial', true)->whereNull('promo_code')->exists()) {
+        if ($this->everTrialSubscriptions()->whereNull('promo_code')->exists()) {
             return true;
         }
 
@@ -146,6 +161,11 @@ class User extends Authenticatable
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
             ->exists()) {
+            return false;
+        }
+
+        // У аккаунта одна подписка: пробный период после оплаты уже не выдаётся.
+        if ($this->hasEverPaid()) {
             return false;
         }
 
@@ -197,7 +217,7 @@ class User extends Authenticatable
     {
         $latest = null;
 
-        foreach ($this->subscriptions()->where('is_trial', true)->get(['expiry_ms']) as $trialSub) {
+        foreach ($this->everTrialSubscriptions()->get(['expiry_ms']) as $trialSub) {
             $at = $trialSub->expiresAt();
             if ($at !== null && ($latest === null || $at->gt($latest))) {
                 $latest = $at;
@@ -221,7 +241,7 @@ class User extends Authenticatable
     {
         $latest = null;
 
-        foreach ($this->subscriptions()->where('is_trial', true)->get(['expiry_ms']) as $trialSub) {
+        foreach ($this->everTrialSubscriptions()->get(['expiry_ms']) as $trialSub) {
             $at = $trialSub->expiresAt();
             if ($at !== null && ($latest === null || $at->gt($latest))) {
                 $latest = $at;
@@ -233,7 +253,7 @@ class User extends Authenticatable
 
     public function hadAnyTrial(): bool
     {
-        if ($this->subscriptions()->where('is_trial', true)->exists()) {
+        if ($this->everTrialSubscriptions()->exists()) {
             return true;
         }
 
@@ -243,7 +263,7 @@ class User extends Authenticatable
     /** Был ли триал через пробную подписку (не legacy test_key). */
     public function hadSubscriptionTrial(): bool
     {
-        return $this->subscriptions()->where('is_trial', true)->exists();
+        return $this->everTrialSubscriptions()->exists();
     }
 
     /** Подтверждённая почта или привязанный Telegram — достаточно для пробного доступа. */

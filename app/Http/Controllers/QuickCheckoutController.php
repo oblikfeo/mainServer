@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PaymentOrder;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Account\AccountOrderFactory;
+use App\Services\Account\AccountPricing;
 use App\Services\Payments\PaymentDonePage;
 use App\Services\Platega\PlategaClient;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
@@ -17,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -34,27 +37,26 @@ final class QuickCheckoutController extends Controller
         }
 
         $data = $request->validate([
-            'plan' => ['required', 'string', 'max:32'],
-            'period' => ['required', 'string', 'max:32'],
+            'term' => ['required', 'string', 'max:16'],
+            'devices' => ['nullable', 'integer', 'min:1', 'max:100'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
         ]);
 
-        $plan = (string) $data['plan'];
-        $period = (string) $data['period'];
-        $products = config('payments.products', []);
-        $planCfg = is_array($products) ? ($products[$plan] ?? null) : null;
-        $rows = is_array($planCfg) ? ($planCfg['rows'] ?? null) : null;
-        $row = is_array($rows) ? ($rows[$period] ?? null) : null;
-        if (! is_array($row)) {
+        // Новый аккаунт: доп. устройства оплачиваются на тот же срок, что и подписка.
+        $term = AccountPricing::terms()[(string) $data['term']] ?? null;
+        if ($term === null) {
             return response()->json(['error' => 'unknown_tariff'], 422);
         }
-
-        $devices = (int) ($planCfg['devices'] ?? 0);
-        $days = (int) ($row['days'] ?? 0);
-        $quotaGb = (int) ($row['quota_gb'] ?? 0);
-        $amountRub = (int) ($row['amount_rub'] ?? 0);
-        if ($devices < 1 || $days < 1 || $quotaGb < 1 || $amountRub < 1) {
-            throw new RuntimeException('Неверная конфигурация payments.products для '.$plan.' / '.$period);
+        $devices = max(AccountPricing::baseDevices(), (int) ($data['devices'] ?? 0));
+        try {
+            $quote = AccountOrderFactory::quote(
+                null,
+                $term['key'],
+                $devices,
+                $devices > AccountPricing::baseDevices() ? $term['months'] : 0,
+            );
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
         $email = strtolower(trim((string) $data['email']));
@@ -69,31 +71,19 @@ final class QuickCheckoutController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($request, $platega, $plan, $period, $devices, $days, $quotaGb, $amountRub, $email): JsonResponse {
+            return DB::transaction(function () use ($request, $platega, $quote, $email): JsonResponse {
                 $plainPassword = Str::password(12, symbols: false);
-                $orderId = 'ord_'.(string) Str::ulid();
                 $claimToken = Str::random(48);
-                $desc = 'Подписка '.$plan.' · '.$period;
 
-                $order = PaymentOrder::query()->create([
-                    'order_id' => $orderId,
+                $order = AccountOrderFactory::create($quote, [
                     'claim_token' => $claimToken,
                     'user_id' => null,
                     'email' => $email,
                     'quick_buy_password' => Crypt::encryptString($plainPassword),
-                    'subscription_id' => null,
-                    'purpose' => 'new',
-                    'provider' => 'platega',
-                    'status' => 'created',
-                    'amount_rub' => $amountRub,
-                    'currency' => 'RUB',
-                    'description' => $desc,
-                    'tariff_plan' => $plan,
-                    'tariff_period' => $period,
-                    'days' => $days,
-                    'devices' => $devices,
-                    'quota_gb' => $quotaGb,
                 ]);
+                $orderId = (string) $order->order_id;
+                $amountRub = (int) $order->amount_rub;
+                $desc = (string) $order->description;
 
                 $returnUrl = route('quick_buy.done', ['claimToken' => $claimToken], absolute: true);
                 $failUrl = route('quick_buy.show', [], absolute: true);

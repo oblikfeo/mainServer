@@ -37,7 +37,7 @@ final class TelegramBotDevicesController extends Controller
 
         $subscriptions = $user->subscriptions()->orderByDesc('created_at')->get();
         foreach ($subscriptions as $sub) {
-            $slots = max(0, (int) $sub->devices);
+            $slots = max(0, $sub->deviceLimit());
             $devices = $this->devicesOf($sub->bound_hwid_hashes, $sub->bound_hwid_meta);
 
             // Пропускаем подписки без слотов устройств и истёкшие без привязок — чтобы не засорять меню.
