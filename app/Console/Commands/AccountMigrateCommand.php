@@ -187,6 +187,10 @@ class AccountMigrateCommand extends Command
             $this->archive($user, $other, 'остаток срока перенесён в #'.$keep->id, expireNow: true);
         } elseif ($rule['type'] === 'detach') {
             $this->archive($user, $other, 'отвязана от аккаунта, работает по своей ссылке до конца срока');
+            // Отвязана совсем: её ссылка не должна вести на подписку аккаунта.
+            if ($this->option('apply')) {
+                Subscription::query()->whereKey($other->id)->update(['archived_from_user_id' => null]);
+            }
         } else {
             throw new RuntimeException('неизвестное правило «'.$rule['type'].'» для '.$user->email);
         }

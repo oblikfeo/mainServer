@@ -26,7 +26,7 @@ final class SubscriptionTokenCabinetLoginController extends Controller
             throw new NotFoundHttpException;
         }
 
-        $subscription = Subscription::query()->where('token', $token)->first();
+        $subscription = Subscription::resolveByToken($token);
         if ($subscription !== null) {
             return $this->loginForUser($request, $subscription->user_id, 'Подписка не привязана к аккаунту. Войдите с тем email, что указывали при покупке.');
         }

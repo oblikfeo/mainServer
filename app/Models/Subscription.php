@@ -90,6 +90,20 @@ class Subscription extends Model
         return Carbon::createFromTimestampMs($ms);
     }
 
+    /**
+     * Подписка по токену из ссылки. Старая ссылка аккаунта (подписка ушла в архив при переходе
+     * на «аккаунт = подписка») ведёт на его нынешнюю подписку — менять ссылку в приложении не нужно.
+     */
+    public static function resolveByToken(string $token): ?self
+    {
+        $sub = self::query()->where('token', $token)->first();
+        if ($sub === null || $sub->archived_from_user_id === null) {
+            return $sub;
+        }
+
+        return self::query()->where('user_id', $sub->archived_from_user_id)->first() ?? $sub;
+    }
+
     public function isExpired(): bool
     {
         $at = $this->expiresAt();

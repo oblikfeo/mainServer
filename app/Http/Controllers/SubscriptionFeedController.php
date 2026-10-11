@@ -24,7 +24,7 @@ class SubscriptionFeedController extends Controller
         TestKeySubscriptionFeedRenderer $testKeyRenderer,
         AutoSubscriptionFeedRenderer $autoFeedRenderer,
     ): Response {
-        $subscription = Subscription::query()->where('token', $token)->first();
+        $subscription = Subscription::resolveByToken($token);
         if ($subscription !== null) {
             $verdict = $hwidGate->checkSubscription($request, $subscription);
             $blocked = $this->responseForHwidVerdict(

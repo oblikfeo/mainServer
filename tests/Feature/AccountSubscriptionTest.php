@@ -249,4 +249,25 @@ class AccountSubscriptionTest extends TestCase
 
         $this->assertSame(290, AccountPricing::quote($sub, '1m', 0, 0)['amount_rub']);
     }
+
+    public function test_old_link_of_archived_subscription_leads_to_account_subscription(): void
+    {
+        $user = User::factory()->create();
+        $current = $this->account()->applyPurchase($user, 30, 0, 0)['subscription'];
+        $old = Subscription::query()->create([
+            'user_id' => null, 'archived_from_user_id' => $user->id, 'archived_at' => now(),
+            'token' => 'old-token', 'fi_sub_id' => 'a', 'nl_sub_id' => 'b', 'quota_gb' => 0,
+            'expiry_ms' => 1, 'devices' => 2, 'is_trial' => false, 'public_code' => 99001,
+        ]);
+        $detached = Subscription::query()->create([
+            'user_id' => null, 'archived_from_user_id' => null, 'archived_at' => now(),
+            'token' => 'detached-token', 'fi_sub_id' => 'c', 'nl_sub_id' => 'd', 'quota_gb' => 0,
+            'expiry_ms' => 1, 'devices' => 2, 'is_trial' => false, 'public_code' => 99002,
+        ]);
+
+        $this->assertSame($current->id, Subscription::resolveByToken('old-token')->id);
+        $this->assertSame($detached->id, Subscription::resolveByToken('detached-token')->id);
+        $this->assertSame($current->id, Subscription::resolveByToken($current->token)->id);
+        $this->assertNull(Subscription::resolveByToken('nope'));
+    }
 }
