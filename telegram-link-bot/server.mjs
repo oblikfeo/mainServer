@@ -262,11 +262,21 @@ function findTerm(catalog, key) {
   return terms.find((t) => t.key === key) ?? null;
 }
 
+/** Цена срока: сам срок + базовые устройства сверх стандартных (каждое как доп. устройство). */
+function payTermRub(ctxPay, term) {
+  if (!term) {
+    return 0;
+  }
+  const over = Number(ctxPay.account?.over_base_devices ?? 0);
+  const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  return Number(term.amount_rub ?? 0) + over * Number(term.months ?? 1) * perMonth;
+}
+
 function payTotal(ctxPay, n, termKey, months) {
   const term = findTerm(ctxPay.catalog, termKey);
   const extra = Math.max(0, n - payBase(ctxPay));
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
-  return Number(term?.amount_rub ?? 0) + extra * months * perMonth;
+  return payTermRub(ctxPay, term) + extra * months * perMonth;
 }
 
 /** Шаг 1: сколько устройств нужно. */
@@ -305,7 +315,7 @@ function buildPayTermView(ctxPay, n) {
     const discount = Number(t.discount_percent ?? 0);
     return [
       {
-        text: `${t.label} · ${t.amount_rub} ₽${discount > 0 ? ` (−${discount}%)` : ''}`,
+        text: `${t.label} · ${payTermRub(ctxPay, t)} ₽${discount > 0 ? ` (−${discount}%)` : ''}`,
         callback_data: `py:t:${n}:${t.key}`,
       },
     ];
@@ -359,7 +369,13 @@ function buildPayMethodView(ctxPay, n, termKey, months) {
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
   const lines = [];
   if (term) {
-    lines.push(`Подписка · ${term.label} — ${term.amount_rub} ₽`);
+    const have = payBase(ctxPay);
+    const over = Number(ctxPay.account?.over_base_devices ?? 0);
+    lines.push(
+      over > 0
+        ? `Подписка · ${term.label} · ${have} устр. — ${payTermRub(ctxPay, term)} ₽`
+        : `Подписка · ${term.label} — ${term.amount_rub} ₽`,
+    );
   }
   if (extra > 0 && months > 0) {
     lines.push(`Доп. устройства: ${extra} × ${months} мес. — ${extra * months * perMonth} ₽`);

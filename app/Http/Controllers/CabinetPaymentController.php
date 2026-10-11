@@ -30,6 +30,8 @@ class CabinetPaymentController extends Controller
                 'baseDevices' => $base,
                 'unlimitedDevices' => (bool) $account['unlimited_devices'],
                 'paidExtra' => (int) $account['extra_total'],
+                // Базовые устройства сверх стандартных оплачиваются при продлении как доп. устройства.
+                'overBase' => AccountPricing::overBaseDevices($account['subscription']),
                 'maxDevices' => $base + (int) $account['max_extra'],
                 'deviceMonthRub' => AccountPricing::deviceMonthRub(),
                 'deviceMaxMonths' => AccountPricing::deviceMaxMonths(),

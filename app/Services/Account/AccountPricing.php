@@ -93,6 +93,15 @@ final class AccountPricing
         return $out;
     }
 
+    /**
+     * Базовые устройства подписки сверх стандартных (исторические лимиты: 3, 10, 30 устройств).
+     * При продлении оплачиваются как доп. устройства на весь срок.
+     */
+    public static function overBaseDevices(?Subscription $sub): int
+    {
+        return $sub !== null ? max(0, (int) $sub->devices - self::baseDevices()) : 0;
+    }
+
     /** Сколько доп. устройств можно иметь на этой подписке (с учётом её базовых). */
     public static function maxExtraDevices(?Subscription $sub): int
     {
@@ -142,7 +151,9 @@ final class AccountPricing
 
         $baseRub = $term['amount_rub'] ?? 0;
         $devicesRub = $extraDevices * $deviceMonths * self::deviceMonthRub();
-        $amount = $baseRub + $devicesRub;
+        $overBase = $term !== null ? self::overBaseDevices($sub) : 0;
+        $overBaseRub = $overBase * ($term['months'] ?? 0) * self::deviceMonthRub();
+        $amount = $baseRub + $overBaseRub + $devicesRub;
         if ($amount < 1) {
             throw new InvalidArgumentException('nothing_to_pay');
         }
@@ -152,6 +163,8 @@ final class AccountPricing
             'term_label' => $term['label'] ?? null,
             'days' => $term['days'] ?? 0,
             'base_rub' => $baseRub,
+            'over_base_devices' => $overBase,
+            'over_base_rub' => $overBaseRub,
             'extra_devices' => $extraDevices,
             'device_months' => $deviceMonths,
             'device_days' => $deviceMonths * self::deviceMonthDays(),
@@ -165,7 +178,8 @@ final class AccountPricing
     {
         $parts = [];
         if (($quote['days'] ?? 0) > 0) {
-            $parts[] = 'Подписка · '.$quote['term_label'];
+            $parts[] = 'Подписка · '.$quote['term_label']
+                .(($quote['over_base_devices'] ?? 0) > 0 ? ' · '.(self::baseDevices() + (int) $quote['over_base_devices']).' устр.' : '');
         }
         if (($quote['extra_devices'] ?? 0) > 0) {
             $parts[] = 'Доп. устройства: '.$quote['extra_devices'].' × '.$quote['device_months'].' мес.';

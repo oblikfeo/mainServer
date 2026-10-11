@@ -72,6 +72,9 @@
             const currentTotal = base + cfg.paidExtra;
             const cardMax = Math.min(cfg.maxDevices, Math.max(5, base));
             const termByKey = Object.fromEntries(cfg.terms.map((t) => [t.key, t]));
+            // Базовые устройства сверх стандартных входят в цену срока: каждое — как доп. устройство.
+            const overBase = cfg.overBase || 0;
+            const termPrice = (x) => x.amount_rub + overBase * x.months * cfg.deviceMonthRub;
 
             // Выбор: term — ключ срока или '' («не продлевать»); devices — сколько устройств всего; months — срок оплаты доп. устройств.
             // Подписка без срока: продлевать нечего, срок не выбирается.
@@ -114,8 +117,8 @@
                     html += card({
                         on: term === x.key, attr: 'data-term="' + x.key + '"',
                         big: x.months + '<small>' + plural(x.months, 'месяц', 'месяца', 'месяцев') + '</small>', label: '',
-                        price: rub(x.amount_rub),
-                        sub: x.months > 1 ? '≈ ' + rub(x.per_month_rub) + ' в месяц' : 'в месяц',
+                        price: rub(termPrice(x)),
+                        sub: x.months > 1 ? '≈ ' + rub(Math.round(termPrice(x) / x.months)) + ' в месяц' : 'в месяц',
                         badge: x.discount_percent > 0 ? 'Скидка −' + x.discount_percent + '%' : '',
                     });
                 });
@@ -133,7 +136,7 @@
                             on: !moreOpen && devices === n, attr: 'data-devices="' + n + '"', tag: n === currentTotal ? 'Сейчас' : '', cls: atCap ? ' acc-card--static' : '',
                             big: String(n), label: plural(n, 'устройство', 'устройства', 'устройств'),
                             price: n === base ? '' : '+' + rub((n - base) * cfg.deviceMonthRub),
-                            sub: n === base ? 'входит в подписку' : 'в месяц',
+                            sub: n === base ? (overBase > 0 ? (base - overBase) + ' + ' + overBase + ' по ' + rub(cfg.deviceMonthRub) : 'входит в подписку') : 'в месяц',
                         });
                     }
                     if (cfg.maxDevices > cardMax) {
@@ -158,6 +161,11 @@
                 const lines = [];
                 let total = 0;
                 if (t) { lines.push(['Подписка · ' + t.label, t.amount_rub]); total += t.amount_rub; }
+                if (t && overBase > 0) {
+                    const over = overBase * t.months * cfg.deviceMonthRub;
+                    lines.push(['Устройства сверх ' + (base - overBase) + ': ' + overBase + ' × ' + t.months + ' мес. × ' + rub(cfg.deviceMonthRub), over]);
+                    total += over;
+                }
                 if (paidExtraNow > 0) {
                     const sum = paidExtraNow * months * cfg.deviceMonthRub;
                     lines.push(['Доп. устройства: ' + paidExtraNow + ' × ' + months + ' мес. × ' + rub(cfg.deviceMonthRub), sum]);

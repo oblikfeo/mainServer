@@ -221,4 +221,18 @@ class AccountSubscriptionTest extends TestCase
         $this->assertFalse($paid->is_trial);
         $this->assertSame(2, $paid->devices);
     }
+
+    public function test_base_devices_above_standard_are_charged_on_renewal(): void
+    {
+        $user = User::factory()->create();
+        $sub = $this->account()->applyPurchase($user, 30, 0, 0)['subscription'];
+        $sub->forceFill(['devices' => 30])->save();
+
+        $month = AccountPricing::quote($sub, '1m', 0, 0);
+        $this->assertSame(28, $month['over_base_devices']);
+        $this->assertSame(290 + 28 * 150, $month['amount_rub']);
+
+        $three = AccountPricing::quote($sub, '3m', 0, 0);
+        $this->assertSame(700 + 28 * 3 * 150, $three['amount_rub']);
+    }
 }
