@@ -84,7 +84,7 @@
                                     @if ($frozen)
                                         Заморожено · осталось {{ $slot['left_days'] }} дн.
                                     @elseif (! empty($slot['outlives_subscription']))
-                                        Оплачено на {{ $slot['left_days'] }} дн. · замёрзнет вместе с подпиской
+                                        Оплачено ещё на {{ $slot['left_days'] }} дн.
                                     @elseif ($slot['until'])
                                         Оплачено до {{ $slot['until']->format('d.m.Y') }}
                                     @endif

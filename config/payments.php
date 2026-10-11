@@ -86,8 +86,8 @@ return [
         'device_max_months' => 6,
         'terms' => [
             '1m' => ['label' => '1 месяц', 'months' => 1, 'days' => 30, 'amount_rub' => 290],
-            '3m' => ['label' => '3 месяца', 'months' => 3, 'days' => 90, 'amount_rub' => 700],
-            '6m' => ['label' => '6 месяцев', 'months' => 6, 'days' => 180, 'amount_rub' => 1190],
+            '3m' => ['label' => '3 месяца', 'months' => 3, 'days' => 90, 'amount_rub' => 700, 'discount_percent' => 20],
+            '6m' => ['label' => '6 месяцев', 'months' => 6, 'days' => 180, 'amount_rub' => 1190, 'discount_percent' => 30],
         ],
     ],
 ];

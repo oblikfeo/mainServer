@@ -26,11 +26,11 @@
     .lp-f1 .acc-fact__k { font-size: 0.6875rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: var(--acc-muted); }
     .lp-f1 .acc-fact__v { margin-top: 0.15rem; font-size: 1.05rem; font-weight: 900; }
     .lp-f1 .acc-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
-    .lp-f1 .acc-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem 1.1rem; border: 3px solid var(--acc-ink); background: #fff; color: var(--acc-ink); font-family: inherit; font-size: 0.875rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; box-shadow: 4px 4px 0 var(--acc-ink); }
-    .lp-f1 .acc-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--acc-ink); }
-    .lp-f1 .acc-btn--primary { background: var(--acc-orange); color: #fff; }
-    .lp-f1 .acc-btn--wide { width: 100%; padding: 1rem; font-size: 1rem; }
-    .lp-f1 .acc-btn:disabled { background: #d8d8d8; color: #8a8a8a; box-shadow: none; cursor: default; transform: none; }
+    .lp-f1 .acc .acc-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.8rem 1.1rem; border: 3px solid var(--acc-ink) !important; background: #fff !important; color: var(--acc-ink) !important; font-family: inherit; font-size: 0.875rem !important; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; box-shadow: 4px 4px 0 var(--acc-ink) !important; }
+    .lp-f1 .acc .acc-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--acc-ink); }
+    .lp-f1 .acc .acc-btn--primary { background: var(--acc-orange) !important; color: #fff !important; }
+    .lp-f1 .acc .acc-btn--wide { width: 100%; padding: 1rem; font-size: 1rem; }
+    .lp-f1 .acc .acc-btn:disabled { background: #d8d8d8 !important; color: #8a8a8a !important; box-shadow: none !important; cursor: default; transform: none; }
     .lp-f1 .acc-note { border-left: 6px solid var(--acc-ok); background: #e9f7ee; padding: 0.7rem 0.9rem; font-size: 0.875rem; font-weight: 600; }
     .lp-f1 .acc-note--warn { border-left-color: var(--acc-orange); background: #fff1ea; }
 
@@ -85,8 +85,8 @@
     .lp-f1 .acc-slot__name { font-size: 0.9375rem; font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
     .lp-f1 .acc-slot__meta { margin-top: 0.2rem; font-size: 0.75rem; font-weight: 600; color: var(--acc-muted); }
     .lp-f1 .acc-slot__foot { margin-top: auto; padding-top: 0.6rem; }
-    .lp-f1 .acc-slot__btn { width: 100%; padding: 0.4rem; border: 2px solid var(--acc-ink); background: #fff; font-family: inherit; font-size: 0.6875rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; color: var(--acc-ink); }
-    .lp-f1 .acc-slot__btn:hover { background: var(--acc-ink); color: #fff; }
+    .lp-f1 .acc .acc-slot__btn { width: 100%; padding: 0.4rem !important; border: 2px solid var(--acc-ink) !important; background: #fff !important; box-shadow: none !important; font-family: inherit; font-size: 0.6875rem !important; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; color: var(--acc-ink) !important; }
+    .lp-f1 .acc .acc-slot__btn:hover { background: var(--acc-ink) !important; color: #fff !important; }
     .lp-f1 .acc-slot__paid { margin-top: 0.3rem; font-size: 0.6875rem; font-weight: 800; }
     .lp-f1 .acc-slot__plus { font-size: 2.5rem; line-height: 1; font-weight: 900; }
     .lp-f1 .acc-slot__addlabel { margin-top: 0.35rem; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }

@@ -72,14 +72,22 @@ final class AccountPricing
                 'days' => $days,
                 'amount_rub' => $amount,
                 'per_month_rub' => (int) round($amount / $months),
-                'discount_percent' => 0,
+                // Подпись скидки можно задать в конфиге явно (круглое число для витрины).
+                'discount_percent' => isset($row['discount_percent']) ? (int) $row['discount_percent'] : -1,
             ];
         }
         if ($monthPrice > 0) {
             foreach ($out as $key => $row) {
+                if ($row['discount_percent'] >= 0) {
+                    continue;
+                }
                 $full = $monthPrice * $row['months'];
                 $out[$key]['discount_percent'] = $full > 0 ? max(0, (int) round(100 - $row['amount_rub'] * 100 / $full)) : 0;
             }
+        }
+
+        foreach ($out as $key => $row) {
+            $out[$key]['discount_percent'] = max(0, $row['discount_percent']);
         }
 
         return $out;
