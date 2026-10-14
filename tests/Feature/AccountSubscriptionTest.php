@@ -140,9 +140,9 @@ class AccountSubscriptionTest extends TestCase
     {
         $user = User::factory()->create();
         $this->account()->applyPurchase($user, 90, 1, 30);
-        $sub = $this->account()->applyPurchase($user, 0, 2, 30)['subscription'];
+        $sub = $this->account()->applyPurchase($user, 30, 2, 30)['subscription'];
 
-        $this->assertSame(2, $sub->deviceSlots()->count(), 'один слот продлён, один создан');
+        $this->assertSame(2, $sub->deviceSlots()->count(), 'при продлении один слот продлён, один создан');
         $left = $sub->deviceSlots->map(fn ($s) => DeviceSlots::leftMs($s, $sub))->sort()->values()->all();
         $this->assertSame([30 * DeviceSlots::DAY_MS, 60 * DeviceSlots::DAY_MS], $left);
     }
@@ -269,5 +269,26 @@ class AccountSubscriptionTest extends TestCase
         $this->assertSame($detached->id, Subscription::resolveByToken('detached-token')->id);
         $this->assertSame($current->id, Subscription::resolveByToken($current->token)->id);
         $this->assertNull(Subscription::resolveByToken('nope'));
+    }
+
+    public function test_adding_devices_without_renewal_charges_only_new_ones(): void
+    {
+        $user = User::factory()->create();
+        // Полгода + 1 доп. устройство (3 устройства всего).
+        $sub = $this->account()->applyPurchase($user, 180, 1, 180)['subscription'];
+
+        // Хочет 5 устройств без продления: платит только за 2 новых.
+        $q = \App\Services\Account\AccountOrderFactory::quote($sub, null, 5, 6);
+        $this->assertSame(2, $q['extra_devices']);
+        $this->assertSame(2 * 6 * 150, $q['amount_rub']);
+
+        $this->account()->applyPurchase($user, 0, 2, 180);
+        $sub->refresh();
+        $this->assertSame(5, $sub->deviceLimit());
+        $this->assertSame(3, $sub->deviceSlots()->count());
+
+        // Уже оплаченное количество без продления — платить нечего.
+        $this->expectException(InvalidArgumentException::class);
+        \App\Services\Account\AccountOrderFactory::quote($sub->fresh(), null, 5, 1);
     }
 }

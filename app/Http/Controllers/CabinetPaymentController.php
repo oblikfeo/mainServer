@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Account\AccountOrderFactory;
 use App\Services\Account\AccountOverview;
 use App\Services\Account\AccountPricing;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class CabinetPaymentController extends Controller
                 'daysLeft' => $account['days_left'],
                 'baseDevices' => $base,
                 'unlimitedDevices' => (bool) $account['unlimited_devices'],
-                'paidExtra' => (int) $account['extra_total'],
+                'paidExtra' => AccountOrderFactory::paidSlots($account['subscription']),
                 // Базовые устройства сверх стандартных оплачиваются при продлении как доп. устройства.
                 'overBase' => AccountPricing::overBaseDevices($account['subscription']),
                 'maxDevices' => $base + (int) $account['max_extra'],

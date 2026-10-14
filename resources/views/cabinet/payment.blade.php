@@ -106,7 +106,9 @@
                 const extra = Math.max(0, devices - base);
                 if (extra === 0) months = 0;
                 months = Math.max(minMonths(), Math.min(cfg.deviceMaxMonths, months));
-                const paidExtraNow = months > 0 ? extra : 0;
+                // Без продления платим только за новые доп. устройства; с продлением — за все.
+                const chargeable = term === '' ? Math.max(0, extra - cfg.paidExtra) : extra;
+                const paidExtraNow = months > 0 ? chargeable : 0;
 
                 // Срок
                 let html = '';
@@ -148,7 +150,7 @@
                     $('acc-more-minus').disabled = devices <= cardMax + 1;
                     $('acc-more-plus').disabled = devices >= cfg.maxDevices;
 
-                    $('acc-months-row').hidden = extra === 0;
+                    $('acc-months-row').hidden = (term === '' ? Math.max(0, extra - cfg.paidExtra) : extra) === 0;
                     $('acc-months-value').textContent = months === 0 ? 'не оплачивать' : months + ' ' + plural(months, 'месяц', 'месяца', 'месяцев');
                     $('acc-months-minus').disabled = months <= minMonths();
                     $('acc-months-plus').disabled = months >= cfg.deviceMaxMonths;
@@ -168,7 +170,7 @@
                 }
                 if (paidExtraNow > 0) {
                     const sum = paidExtraNow * months * cfg.deviceMonthRub;
-                    lines.push(['Доп. устройства: ' + paidExtraNow + ' × ' + months + ' мес. × ' + rub(cfg.deviceMonthRub), sum]);
+                    lines.push([(term === '' ? 'Новые доп. устройства: ' : 'Доп. устройства: ') + paidExtraNow + ' × ' + months + ' мес. × ' + rub(cfg.deviceMonthRub), sum]);
                     total += sum;
                 }
                 $('acc-lines').innerHTML = lines.map((l) => '<div class="acc-sum__line"><span>' + l[0] + '</span><span>' + rub(l[1]) + '</span></div>').join('');

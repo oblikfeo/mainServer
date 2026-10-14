@@ -272,9 +272,15 @@ function payTermRub(ctxPay, term) {
   return Number(term.amount_rub ?? 0) + over * Number(term.months ?? 1) * perMonth;
 }
 
+/** Сколько доп. устройств оплачивается: без продления — только новые, с продлением — все. */
+function payChargeable(ctxPay, n, termKey) {
+  const extra = Math.max(0, n - payBase(ctxPay));
+  return termKey === 'none' ? Math.max(0, extra - Number(ctxPay.account?.paid_extra_devices ?? 0)) : extra;
+}
+
 function payTotal(ctxPay, n, termKey, months) {
   const term = findTerm(ctxPay.catalog, termKey);
-  const extra = Math.max(0, n - payBase(ctxPay));
+  const extra = payChargeable(ctxPay, n, termKey);
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
   return payTermRub(ctxPay, term) + extra * months * perMonth;
 }
@@ -334,7 +340,7 @@ function buildPayTermView(ctxPay, n) {
 
 /** Шаг 3: на сколько месяцев оплатить доп. устройства. */
 function buildPayDeviceMonthsView(ctxPay, n, termKey) {
-  const extra = Math.max(0, n - payBase(ctxPay));
+  const extra = payChargeable(ctxPay, n, termKey);
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
   const maxMonths = Number(ctxPay.catalog?.device_max_months ?? 6);
   const keyboard = [];
@@ -355,7 +361,7 @@ function buildPayDeviceMonthsView(ctxPay, n, termKey) {
   keyboard.push([{ text: '← Назад', callback_data: `py:d:${n}` }]);
   return {
     text:
-      `📱 Доп. устройств: ${extra} · ${perMonth} ₽ в месяц за каждое\n\n` +
+      `📱 ${termKey === 'none' ? 'Новых доп. устройств' : 'Доп. устройств'}: ${extra} · ${perMonth} ₽ в месяц за каждое\n\n` +
       'На сколько месяцев их оплатить?\n' +
       'Дни доп. устройства идут только пока подписка активна.',
     keyboard,
@@ -365,7 +371,7 @@ function buildPayDeviceMonthsView(ctxPay, n, termKey) {
 /** Шаг 4: итог и способ оплаты. */
 function buildPayMethodView(ctxPay, n, termKey, months) {
   const term = findTerm(ctxPay.catalog, termKey);
-  const extra = Math.max(0, n - payBase(ctxPay));
+  const extra = payChargeable(ctxPay, n, termKey);
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
   const lines = [];
   if (term) {
@@ -378,7 +384,7 @@ function buildPayMethodView(ctxPay, n, termKey, months) {
     );
   }
   if (extra > 0 && months > 0) {
-    lines.push(`Доп. устройства: ${extra} × ${months} мес. — ${extra * months * perMonth} ₽`);
+    lines.push(`${termKey === 'none' ? 'Новые доп. устройства' : 'Доп. устройства'}: ${extra} × ${months} мес. — ${extra * months * perMonth} ₽`);
   }
   const base = `py:x:${n}:${termKey}:${months}`;
   return {
@@ -1147,7 +1153,7 @@ bot.action(/^py:t:(\d+):([a-z0-9]+)$/, async (ctx) => {
   }
   const n = Number(ctx.match[1]);
   const termKey = ctx.match[2];
-  const extra = Math.max(0, n - payBase(ctxPay));
+  const extra = payChargeable(ctxPay, n, termKey);
   if (extra > 0 && !payFixedDevices(ctxPay)) {
     await editPayView(ctx, buildPayDeviceMonthsView(ctxPay, n, termKey));
     return;

@@ -29,10 +29,16 @@ final class AccountOrderFactory
             $base = 0;
         }
         $extraWanted = max(0, $totalDevices - $base);
+        $have = self::paidSlots($sub);
 
-        if ($deviceMonths < 1) {
-            // Устройства сейчас не оплачиваются: нельзя просить больше, чем уже оплачено слотов.
-            $have = $sub !== null ? DeviceSlots::overview($sub)->count() : 0;
+        if ($termKey === null || $termKey === '') {
+            // Без продления оплачиваются только НОВЫЕ доп. устройства; уже оплаченные дорабатывают свой срок.
+            $extraWanted = max(0, $extraWanted - $have);
+            if ($extraWanted > 0 && $deviceMonths < 1) {
+                throw new InvalidArgumentException('device_months_required');
+            }
+        } elseif ($deviceMonths < 1) {
+            // Продление без оплаты устройств: нельзя просить больше, чем уже оплачено слотов.
             if ($extraWanted > $have) {
                 throw new InvalidArgumentException('device_months_required');
             }
@@ -40,6 +46,16 @@ final class AccountOrderFactory
         }
 
         return AccountPricing::quote($sub, $termKey, $extraWanted, max(0, $deviceMonths));
+    }
+
+    /** Сколько доп. устройств уже оплачено и ещё не израсходовано. */
+    public static function paidSlots(?Subscription $sub): int
+    {
+        if ($sub === null) {
+            return 0;
+        }
+
+        return DeviceSlots::overview($sub)->filter(static fn (array $row): bool => $row['left_ms'] > 0)->count();
     }
 
     /**

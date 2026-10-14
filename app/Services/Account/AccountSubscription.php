@@ -79,8 +79,14 @@ final class AccountSubscription
             }
 
             if ($extraDevices > 0 && $deviceDays > 0) {
-                $extended = DeviceSlots::extend($sub, $extraDevices, $deviceDays);
-                DeviceSlots::add($sub, $extraDevices - $extended, $deviceDays, $paymentOrderId);
+                if ($days > 0) {
+                    // Продление: сначала продлеваем уже оплаченные доп. устройства, остальное — новые.
+                    $extended = DeviceSlots::extend($sub, $extraDevices, $deviceDays);
+                    DeviceSlots::add($sub, $extraDevices - $extended, $deviceDays, $paymentOrderId);
+                } else {
+                    // Докупка без продления: только новые устройства, старые дорабатывают свой срок.
+                    DeviceSlots::add($sub, $extraDevices, $deviceDays, $paymentOrderId);
+                }
             }
 
             $sub = $sub->fresh();
