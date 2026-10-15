@@ -309,6 +309,11 @@ return [
             static fn (int $i): string => trim((string) env('SUB_AUTO_LTE_'.$i, '')),
             range(1, 12),
         ))),
+        /** Отдельные кнопки после «Авто» (например, узел только для нейросетей); имя — из #фрагмента ссылки. */
+        'extra' => array_values(array_filter(array_map(
+            static fn (int $i): string => trim((string) env('SUB_AUTO_EXTRA_'.$i, '')),
+            range(1, 4),
+        ))),
     ],
 
     /** Непустое значение фиксирует meta.serverDescription в JSON-подписке (перекрывает авто-сборку по узлам). */

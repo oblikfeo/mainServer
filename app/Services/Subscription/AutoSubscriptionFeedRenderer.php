@@ -32,6 +32,7 @@ final class AutoSubscriptionFeedRenderer
 
         try {
             $docs = $this->wantsSeparateNodes($sub) ? $this->buildSeparateConfigs() : [$this->buildConfig()];
+            $docs = [...$docs, ...$this->buildExtraConfigs()];
         } catch (Throwable $e) {
             Log::warning('subscription.auto.error', [
                 'message' => $e->getMessage(),
@@ -171,26 +172,73 @@ final class AutoSubscriptionFeedRenderer
 
         $docs = [];
         foreach ($uris as $i => $uri) {
-            $ob = self::convertUri((string) $uri, 'proxy');
-            if ($ob === null) {
-                continue;
+            $doc = self::singleNodeDoc($base, $directRules, (string) $uri, 'Сервер '.($i + 1));
+            if ($doc !== null) {
+                $docs[] = $doc;
             }
-            $title = trim(rawurldecode(explode('#', (string) $uri, 2)[1] ?? ''));
-            $doc = $base;
-            $doc['remarks'] = $title !== '' ? $title : 'Сервер '.($i + 1);
-            $doc['outbounds'] = [$ob, ['tag' => 'direct', 'protocol' => 'freedom'], ['tag' => 'block', 'protocol' => 'blackhole']];
-            unset($doc['observatory']);
-            $doc['routing'] = [
-                'domainStrategy' => 'AsIs',
-                'rules' => [...$directRules, ['type' => 'field', 'network' => 'tcp,udp', 'outboundTag' => 'proxy']],
-            ];
-            $docs[] = $doc;
         }
         if ($docs === []) {
             throw new \RuntimeException('Отдельные узлы не собрались.');
         }
 
         return $docs;
+    }
+
+    /**
+     * Дополнительные кнопки после «Авто» (SUB_AUTO_EXTRA_N). Сломанная ссылка пропускается и не ломает подписку.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function buildExtraConfigs(): array
+    {
+        $uris = (array) config('xui.sub_auto.extra', []);
+        if ($uris === []) {
+            return [];
+        }
+        $base = $this->buildConfig();
+        $directRules = array_values(array_filter(
+            $base['routing']['rules'],
+            static fn (array $r): bool => ($r['outboundTag'] ?? '') === 'direct' || ($r['outboundTag'] ?? '') === 'block',
+        ));
+
+        $docs = [];
+        foreach ($uris as $i => $uri) {
+            $doc = self::singleNodeDoc($base, $directRules, (string) $uri, 'Узел '.($i + 1));
+            if ($doc === null) {
+                Log::warning('subscription.auto.extra_convert_failed', ['uri_head' => substr((string) $uri, 0, 40)]);
+
+                continue;
+            }
+            $docs[] = $doc;
+        }
+
+        return $docs;
+    }
+
+    /**
+     * Конфиг-кнопка на один узел: те же DNS и прямые правила, что у «Авто», весь остальной трафик — в узел.
+     *
+     * @param  array<string, mixed>  $base
+     * @param  list<array<string, mixed>>  $directRules
+     * @return array<string, mixed>|null
+     */
+    private static function singleNodeDoc(array $base, array $directRules, string $uri, string $fallbackTitle): ?array
+    {
+        $ob = self::convertUri($uri, 'proxy');
+        if ($ob === null) {
+            return null;
+        }
+        $title = trim(rawurldecode(explode('#', $uri, 2)[1] ?? ''));
+        $doc = $base;
+        $doc['remarks'] = $title !== '' ? $title : $fallbackTitle;
+        $doc['outbounds'] = [$ob, ['tag' => 'direct', 'protocol' => 'freedom'], ['tag' => 'block', 'protocol' => 'blackhole']];
+        unset($doc['observatory']);
+        $doc['routing'] = [
+            'domainStrategy' => 'AsIs',
+            'rules' => [...$directRules, ['type' => 'field', 'network' => 'tcp,udp', 'outboundTag' => 'proxy']],
+        ];
+
+        return $doc;
     }
 
     /**
