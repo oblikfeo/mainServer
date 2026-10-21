@@ -69,6 +69,35 @@ Route::view('/oshibka', 'oshibka')->name('payment.failure');
 
 Route::get('/spasibo', PaymentSuccessController::class)->name('payment.success');
 
+/*
+ * Английская версия публичных страниц: статичные HTML из resources/en-static.
+ * Формы отправляются в обычные обработчики входа и регистрации; после входа — русский кабинет.
+ * Маршрут только подставляет токен формы и короткое английское сообщение после ошибки.
+ */
+Route::get('/en/{page?}', function (\Illuminate\Http\Request $request, ?string $page = null) {
+    $name = $page ?? 'index';
+    $html = file_get_contents(resource_path('en-static/'.$name.'.html'));
+
+    $alert = '';
+    $errors = $request->session()->get('errors');
+    if ($errors !== null && $errors->any()) {
+        $text = match (true) {
+            $errors->has('offer_accepted') => 'Please accept the Public Offer to continue.',
+            $name === 'login' => 'Wrong email or password. Please try again.',
+            $name === 'register' && $errors->has('email') => 'This email is already registered or is not valid.',
+            $errors->has('password') => 'The password must be at least 8 characters long.',
+            default => 'Please check the form and try again.',
+        };
+        $alert = '<p style="margin:0 0 1rem;padding:.75rem 1rem;border:3px solid #111;background:#ffe3d6;font-weight:700;">'.e($text).'</p>';
+    } elseif ($request->session()->has('status')) {
+        $alert = '<p style="margin:0 0 1rem;padding:.75rem 1rem;border:3px solid #111;background:#e9f7ee;font-weight:700;">'
+            .e($name === 'forgot-password' ? 'We have emailed you a link to reset your password.' : 'Done.').'</p>';
+    }
+
+    return response(str_replace(['__CSRF__', '__ALERT__'], [csrf_token(), $alert], $html))
+        ->header('Content-Type', 'text/html; charset=utf-8');
+})->where('page', 'login|register|forgot-password|agreement|privacy|terms')->name('en.page');
+
 Route::get('/buy', [QuickCheckoutController::class, 'show'])->name('quick_buy.show');
 Route::post('/buy/pay', [QuickCheckoutController::class, 'pay'])
     ->middleware('throttle:15,1')
