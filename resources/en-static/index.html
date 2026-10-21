@@ -3484,7 +3484,16 @@
         }
     }
 </style>
-    <link rel="alternate" hreflang="ru" href="https://nadezhda.space/">
+    <style id="en-overrides">
+    /* Английские слова длиннее русских: заголовок меньше, но без переноса посреди слова. */
+    .lp-f1 .hero-title { font-size: min(2.85rem, 7.4vw); overflow-wrap: normal; word-break: normal; hyphens: none; }
+    @media (min-width: 768px) { .lp-f1 .hero-title { font-size: 54px; } }
+    @media (min-width: 1024px) { .lp-f1 .hero-title { font-size: 66px; } }
+    .lp-f1 .en-cur { font-size: 0.5em; letter-spacing: 0.02em; vertical-align: 0.15em; }
+    .lp-f1 footer h4, .lp-f1 [class*=footer] h4 { font-size: 0.8em; letter-spacing: 0.02em; overflow-wrap: normal; word-break: normal; }
+    .lp-f1 .btn-cta, .lp-f1 .lp-btn { white-space: normal; text-align: center; }
+</style>
+<link rel="alternate" hreflang="ru" href="https://nadezhda.space/">
 <link rel="alternate" hreflang="en" href="https://nadezhda.space/en">
 </head>
     <body class="font-sans text-slate-900 antialiased bg-slate-50">
@@ -3597,17 +3606,17 @@
                 <div class="pricing-cards">
                                             <div class="pricing-card">
                                         <div class="pricing-duration">1 month</div>
-                    <div class="pricing-price">290&nbsp;₽</div>
+                    <div class="pricing-price">290&nbsp;<span class="en-cur">RUB</span></div>
                                                         </div>
                                             <div class="pricing-card">
                                         <div class="pricing-duration">3 months</div>
-                    <div class="pricing-price">700&nbsp;₽</div>
-                                            <div class="pricing-savings">Save 170 ₽</div>
+                    <div class="pricing-price">700&nbsp;<span class="en-cur">RUB</span></div>
+                                            <div class="pricing-savings">Save 170&nbsp;RUB</div>
                                                         </div>
                                             <div class="pricing-card pricing-card-popular">
                                         <div class="pricing-duration">6 months</div>
-                    <div class="pricing-price">1190&nbsp;₽</div>
-                                            <div class="pricing-per-month">Only 198 ₽/mo</div>
+                    <div class="pricing-price">1190&nbsp;<span class="en-cur">RUB</span></div>
+                                            <div class="pricing-per-month">Only 198&nbsp;RUB/mo</div>
                                                                 <div class="pricing-note">the price of a coffee</div>
                                     </div>
                     </div>
@@ -3618,19 +3627,19 @@
                 <div class="pricing-cards">
                                             <div class="pricing-card">
                                         <div class="pricing-duration">Each extra device</div>
-                    <div class="pricing-price">150&nbsp;₽</div>
+                    <div class="pricing-price">150&nbsp;<span class="en-cur">RUB</span></div>
                                             <div class="pricing-note">per month</div>
                                                                 <div class="pricing-note">Add any time</div>
                                     </div>
                                             <div class="pricing-card">
                                         <div class="pricing-duration">Example: 4 devices for a month</div>
-                    <div class="pricing-price">590&nbsp;₽</div>
-                                            <div class="pricing-note">290 + 2 × 150&nbsp;₽</div>
+                    <div class="pricing-price">590&nbsp;<span class="en-cur">RUB</span></div>
+                                            <div class="pricing-note">290 + 2 × 150&nbsp;RUB</div>
                                                         </div>
                                             <div class="pricing-card">
                                         <div class="pricing-duration">Example: 5 devices for a month</div>
-                    <div class="pricing-price">740&nbsp;₽</div>
-                                            <div class="pricing-note">290 + 3 × 150&nbsp;₽</div>
+                    <div class="pricing-price">740&nbsp;<span class="en-cur">RUB</span></div>
+                                            <div class="pricing-note">290 + 3 × 150&nbsp;RUB</div>
                                                         </div>
                     </div>
     </div>

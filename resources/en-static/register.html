@@ -2742,7 +2742,16 @@
         line-height: 1.55;
     }
 </style>
-    <link rel="alternate" hreflang="ru" href="https://nadezhda.space/register">
+    <style id="en-overrides">
+    /* Английские слова длиннее русских: заголовок меньше, но без переноса посреди слова. */
+    .lp-f1 .hero-title { font-size: min(2.85rem, 7.4vw); overflow-wrap: normal; word-break: normal; hyphens: none; }
+    @media (min-width: 768px) { .lp-f1 .hero-title { font-size: 54px; } }
+    @media (min-width: 1024px) { .lp-f1 .hero-title { font-size: 66px; } }
+    .lp-f1 .en-cur { font-size: 0.5em; letter-spacing: 0.02em; vertical-align: 0.15em; }
+    .lp-f1 footer h4, .lp-f1 [class*=footer] h4 { font-size: 0.8em; letter-spacing: 0.02em; overflow-wrap: normal; word-break: normal; }
+    .lp-f1 .btn-cta, .lp-f1 .lp-btn { white-space: normal; text-align: center; }
+</style>
+<link rel="alternate" hreflang="ru" href="https://nadezhda.space/register">
 <link rel="alternate" hreflang="en" href="https://nadezhda.space/en/register">
 </head>
     <body class="m-0 p-0">
