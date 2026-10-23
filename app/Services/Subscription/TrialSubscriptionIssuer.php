@@ -57,19 +57,19 @@ final class TrialSubscriptionIssuer
      *
      * @throws XuiPanelException
      */
-    public function issueFromPromo(User $user, int $days, string $promoCode): CreatedSubscriptionResult
+    public function issueFromPromo(User $user, int $days, string $promoCode, ?int $devices = null): CreatedSubscriptionResult
     {
         $hours = max(24, $days * 24);
 
-        return $this->issueWithHours($user, $hours, $promoCode);
+        return $this->issueWithHours($user, $hours, $promoCode, $devices);
     }
 
     /**
      * @throws XuiPanelException
      */
-    private function issueWithHours(User $user, int $hours, ?string $promoCode = null): CreatedSubscriptionResult
+    private function issueWithHours(User $user, int $hours, ?string $promoCode = null, ?int $devices = null): CreatedSubscriptionResult
     {
-        $devices = max(0, (int) config('trial_subscription.devices', 1));
+        $devices ??= max(0, (int) config('trial_subscription.devices', 1));
         $quotaGb = max(1, (int) config('trial_subscription.quota_gb', 5));
 
         $subscription = $this->account->grantHours($user, $hours, $devices, $quotaGb, isTrial: true, promoCode: $promoCode)['subscription'];

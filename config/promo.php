@@ -10,5 +10,11 @@ return [
             'trial_days' => 7,
             'welcome_popup' => true,
         ],
+        // TikTok: 3 дня полного доступа (устройств как у платной подписки), дальше — обычная оплата.
+        'TIKTOK' => [
+            'trial_days' => 3,
+            'devices' => 2,
+            'welcome_popup' => true,
+        ],
     ],
 ];

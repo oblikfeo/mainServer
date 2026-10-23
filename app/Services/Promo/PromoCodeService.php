@@ -18,7 +18,7 @@ final class PromoCodeService
     }
 
     /**
-     * @return array{trial_days?: int, welcome_popup?: bool}|null
+     * @return array{trial_days?: int, devices?: int, welcome_popup?: bool}|null
      */
     public function definition(string $code): ?array
     {
@@ -51,7 +51,8 @@ final class PromoCodeService
         }
 
         $days = max(1, (int) ($def['trial_days'] ?? 0));
-        $this->issuer->issueFromPromo($user, $days, $code);
+        $devices = isset($def['devices']) ? max(1, (int) $def['devices']) : null;
+        $this->issuer->issueFromPromo($user, $days, $code, $devices);
 
         $user->forceFill([
             'registration_promo_code' => $code,

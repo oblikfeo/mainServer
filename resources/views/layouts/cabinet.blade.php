@@ -164,11 +164,12 @@
                 @php
                     $promoKey = strtoupper((string) Auth::user()->registration_promo_code);
                     $promoDays = (int) (config('promo.codes.'.$promoKey.'.trial_days') ?: 7);
+                    $promoDaysWord = ($promoDays % 10 === 1 && $promoDays % 100 !== 11) ? 'день' : (($promoDays % 10 >= 2 && $promoDays % 10 <= 4 && ($promoDays % 100 < 10 || $promoDays % 100 >= 20)) ? 'дня' : 'дней');
                 @endphp
                 <div class="lp-promo-welcome" role="dialog" aria-modal="true" aria-labelledby="lp-promo-welcome-title">
                     <div class="lp-promo-welcome__inner">
                         <p id="lp-promo-welcome-title" class="lp-promo-welcome__title">
-                            Вам доступна тестовая подписка на {{ $promoDays }} {{ $promoDays === 1 ? 'день' : 'дней' }}
+                            Вам доступна тестовая подписка на {{ $promoDays }} {{ $promoDaysWord }}
                         </p>
                         <div class="lp-promo-welcome__actions">
                             <form method="POST" action="{{ route('cabinet.promo_welcome') }}">
