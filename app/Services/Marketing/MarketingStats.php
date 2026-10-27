@@ -10,21 +10,22 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Сводка для раздела «Маркетинг»: регистрации, оплаты, промокоды и источники за период.
+ * Сводка для раздела «Маркетинг»: откуда приходят люди, промокоды, подключение и переход в оплату.
  *
- * Регистрации и оплаты считаются по дням периода. Конверсия и выручка источника —
- * по когорте: люди, зарегистрированные в периоде, и все их оплаты (в том числе позже),
- * иначе продление через месяц выпадало бы из отчёта по каналу, который привёл человека.
+ * Раздел видят люди вне компании, поэтому денежных сумм здесь нет вообще — только количество
+ * людей и доли. Конверсия считается по когорте: люди, зарегистрированные в периоде,
+ * и стали ли они платящими (в том числе позже конца периода).
  */
 final class MarketingStats
 {
+    /** Каналы привлечения в фиксированном порядке (порядок задаёт и цвет на графике). */
     public const SOURCES = [
-        'promo' => 'Промокод',
-        'referral' => 'Реферальная ссылка',
-        'campaign' => 'Реклама в боте',
-        'bot' => 'Telegram-бот',
-        'quick_buy' => 'Покупка без регистрации',
         'site' => 'Сайт',
+        'bot' => 'Telegram-бот',
+        'referral' => 'Реферальная ссылка',
+        'promo' => 'Промокод',
+        'campaign' => 'Реклама в боте',
+        'quick_buy' => 'Покупка без регистрации',
     ];
 
     /**
@@ -39,9 +40,10 @@ final class MarketingStats
         $prevTo = $from->copy()->subSecond();
         $prevFrom = $prevTo->copy()->subDays($days - 1)->startOfDay();
 
-        $paidAll = PaymentOrder::query()->where('status', 'paid')->whereNotNull('paid_at')
-            ->get(['id', 'user_id', 'amount_rub', 'paid_at', 'provider', 'purpose', 'days', 'devices', 'email', 'claim_token']);
-        $firstPaidAt = $paidAll->groupBy('user_id')->map(fn (Collection $g) => $g->min('paid_at'));
+        // Из оплат берём только факт и время первой оплаты человека — суммы не читаем.
+        $paidAll = PaymentOrder::query()->where('status', 'paid')->whereNotNull('paid_at')->get(['user_id', 'paid_at', 'email']);
+        $paidByUser = $paidAll->groupBy('user_id');
+        $firstPaidAt = $paidByUser->map(fn (Collection $g) => Carbon::parse($g->min('paid_at')));
         $quickBuyUsers = $paidAll->filter(fn ($o) => filled($o->email))->pluck('user_id')->unique()->flip();
 
         $users = User::query()->get(['id', 'email', 'created_at', 'registration_promo_code', 'referred_by', 'utm_campaign']);
@@ -50,12 +52,17 @@ final class MarketingStats
         $inRange = fn ($at, Carbon $a, Carbon $b) => $at !== null && Carbon::parse($at)->betweenIncluded($a, $b);
         $periodUsers = $users->filter(fn ($u) => $inRange($u->created_at, $from, $to));
         $prevUsers = $users->filter(fn ($u) => $inRange($u->created_at, $prevFrom, $prevTo));
-        $periodPaid = $paidAll->filter(fn ($o) => $inRange($o->paid_at, $from, $to));
-        $prevPaid = $paidAll->filter(fn ($o) => $inRange($o->paid_at, $prevFrom, $prevTo));
 
-        $isNewPayer = fn ($o) => $firstPaidAt->has($o->user_id) && (string) $firstPaidAt[$o->user_id] === (string) $o->paid_at;
-        $paidByUser = $paidAll->groupBy('user_id');
+        $paid = fn ($u) => $paidByUser->has($u->id);
+        $activated = function ($u) use ($subs, $paid) {
+            $s = $subs[$u->id] ?? null;
+
+            return $paid($u) || ($s !== null && is_array($s->bound_hwid_hashes) && $s->bound_hwid_hashes !== []);
+        };
+        $newPayersIn = fn (Carbon $a, Carbon $b) => $firstPaidAt->filter(fn (Carbon $at) => $at->betweenIncluded($a, $b))->count();
         $source = fn ($u) => $this->sourceOf($u, $quickBuyUsers);
+        $isPromo = fn ($u) => filled($u->registration_promo_code);
+        $share = fn (Collection $c, \Closure $f) => $c->isEmpty() ? 0.0 : round($c->filter($f)->count() * 100 / $c->count(), 1);
 
         return [
             'from' => $from,
@@ -63,35 +70,16 @@ final class MarketingStats
             'days' => $days,
             'kpi' => [
                 'registrations' => $this->kpi($periodUsers->count(), $prevUsers->count()),
-                'payments' => $this->kpi($periodPaid->count(), $prevPaid->count()),
-                'revenue' => $this->kpi((int) $periodPaid->sum('amount_rub'), (int) $prevPaid->sum('amount_rub')),
-                'new_payers' => $this->kpi($periodPaid->filter($isNewPayer)->count(), $prevPaid->filter($isNewPayer)->count()),
-                'avg_check' => $this->kpi(
-                    $periodPaid->count() > 0 ? (int) round($periodPaid->avg('amount_rub')) : 0,
-                    $prevPaid->count() > 0 ? (int) round($prevPaid->avg('amount_rub')) : 0,
-                ),
-                'conversion' => $this->kpi(
-                    $this->conversion($periodUsers, $paidByUser),
-                    $this->conversion($prevUsers, $paidByUser),
-                    isPercent: true,
-                ),
+                'promo' => $this->kpi($periodUsers->filter($isPromo)->count(), $prevUsers->filter($isPromo)->count()),
+                'referral' => $this->kpi($periodUsers->filter(fn ($u) => $u->referred_by !== null)->count(), $prevUsers->filter(fn ($u) => $u->referred_by !== null)->count()),
+                'activation' => $this->kpi($share($periodUsers, $activated), $share($prevUsers, $activated), isPercent: true),
+                'conversion' => $this->kpi($share($periodUsers, $paid), $share($prevUsers, $paid), isPercent: true),
+                'new_payers' => $this->kpi($newPayersIn($from, $to), $newPayersIn($prevFrom, $prevTo)),
             ],
-            'daily' => $this->daily($from, $days, $tz, $periodUsers, $periodPaid, $isNewPayer),
-            'promo' => $this->promoReport($from, $days, $tz, $users, $periodUsers, $prevUsers, $paidByUser, $subs),
-            'sources' => $this->sourcesTable($periodUsers, $paidByUser, $source),
-            'campaigns' => $this->campaignsTable($periodUsers, $paidByUser),
-            'payments' => [
-                'new_revenue' => (int) $periodPaid->filter($isNewPayer)->sum('amount_rub'),
-                'repeat_revenue' => (int) $periodPaid->reject($isNewPayer)->sum('amount_rub'),
-                'by_channel' => $this->group($periodPaid, fn ($o) => $o->provider === 'wata' ? 'Telegram-бот' : (filled($o->email) ? 'Покупка без регистрации' : 'Сайт, кабинет')),
-                'by_term' => $this->group($periodPaid, fn ($o) => match (true) {
-                    (int) $o->days >= 170 => '6 месяцев',
-                    (int) $o->days >= 85 => '3 месяца',
-                    (int) $o->days >= 25 => '1 месяц',
-                    default => 'Только устройства',
-                }),
-            ],
-            'active_paid_now' => $subs->filter(fn ($s) => ! $s->is_trial && (int) $s->expiry_ms > 0 && DeviceSlots::subscriptionActive($s))->count(),
+            'daily' => $this->daily($from, $days, $tz, $periodUsers, $firstPaidAt, $source),
+            'promo' => $this->promoReport($from, $days, $tz, $users, $periodUsers, $prevUsers, $paidByUser, $firstPaidAt, $subs, $activated),
+            'sources' => $this->sourcesTable($periodUsers, $prevUsers, $source, $activated, $paid),
+            'campaigns' => $this->campaignsTable($periodUsers, $activated, $paid),
         ];
     }
 
@@ -120,40 +108,27 @@ final class MarketingStats
         return ['value' => $value, 'prev' => $prev, 'delta' => $delta, 'percent' => $isPercent];
     }
 
-    private function conversion(Collection $cohort, Collection $paidByUser): float
-    {
-        if ($cohort->isEmpty()) {
-            return 0.0;
-        }
-
-        return round($cohort->filter(fn ($u) => $paidByUser->has($u->id))->count() * 100 / $cohort->count(), 1);
-    }
-
-    /** @return list<array{date: string, label: string, registrations: int, promo: int, payments: int, revenue: int, new_payers: int}> */
-    private function daily(Carbon $from, int $days, string $tz, Collection $users, Collection $paid, \Closure $isNewPayer): array
+    /** @return list<array<string, mixed>> */
+    private function daily(Carbon $from, int $days, string $tz, Collection $users, Collection $firstPaidAt, \Closure $source): array
     {
         $rows = [];
         for ($i = 0; $i < $days; $i++) {
-            $d = $from->copy()->addDays($i)->format('Y-m-d');
-            $rows[$d] = ['date' => $d, 'label' => $from->copy()->addDays($i)->format('d.m'), 'registrations' => 0, 'promo' => 0, 'payments' => 0, 'revenue' => 0, 'new_payers' => 0];
+            $d = $from->copy()->addDays($i);
+            $rows[$d->format('Y-m-d')] = ['date' => $d->format('Y-m-d'), 'label' => $d->format('d.m'), 'registrations' => 0, 'new_payers' => 0]
+                + array_fill_keys(array_keys(self::SOURCES), 0);
         }
         foreach ($users as $u) {
             $d = Carbon::parse($u->created_at)->timezone($tz)->format('Y-m-d');
             if (isset($rows[$d])) {
                 $rows[$d]['registrations']++;
-                if (filled($u->registration_promo_code)) {
-                    $rows[$d]['promo']++;
-                }
+                // Канал «promo» = регистрации по промокоду (отдельного счётчика нет — ключи совпали бы).
+                $rows[$d][$source($u)]++;
             }
         }
-        foreach ($paid as $o) {
-            $d = Carbon::parse($o->paid_at)->timezone($tz)->format('Y-m-d');
+        foreach ($firstPaidAt as $at) {
+            $d = $at->copy()->timezone($tz)->format('Y-m-d');
             if (isset($rows[$d])) {
-                $rows[$d]['payments']++;
-                $rows[$d]['revenue'] += (int) $o->amount_rub;
-                if ($isNewPayer($o)) {
-                    $rows[$d]['new_payers']++;
-                }
+                $rows[$d]['new_payers']++;
             }
         }
 
@@ -161,7 +136,7 @@ final class MarketingStats
     }
 
     /**
-     * Промокоды: сводка за период, таблица и воронка по кодам, регистрации по дням, последние регистрации.
+     * Промокоды: сводка за период, воронка по кодам, регистрации по дням, последние регистрации.
      *
      * «Подключили устройство» — у подписки есть привязанное устройство или человек уже платил.
      * Привязки неактивных аккаунтов очищены при переходе 12.10.2026, поэтому для старых
@@ -169,7 +144,7 @@ final class MarketingStats
      *
      * @return array<string, mixed>
      */
-    private function promoReport(Carbon $from, int $days, string $tz, Collection $users, Collection $periodUsers, Collection $prevUsers, Collection $paidByUser, Collection $subs): array
+    private function promoReport(Carbon $from, int $days, string $tz, Collection $users, Collection $periodUsers, Collection $prevUsers, Collection $paidByUser, Collection $firstPaidAt, Collection $subs, \Closure $activated): array
     {
         $defs = (array) config('promo.codes', []);
         $codeOf = fn ($u) => strtoupper((string) $u->registration_promo_code);
@@ -177,12 +152,6 @@ final class MarketingStats
         $codes = collect(array_keys($defs))->map(fn ($c) => strtoupper((string) $c))
             ->merge($promoUsers->map($codeOf))->unique()->values();
 
-        $paidSum = fn ($u) => $paidByUser->has($u->id) ? (int) $paidByUser[$u->id]->sum('amount_rub') : 0;
-        $activated = function ($u) use ($subs, $paidByUser) {
-            $s = $subs[$u->id] ?? null;
-
-            return $paidByUser->has($u->id) || ($s !== null && is_array($s->bound_hwid_hashes) && $s->bound_hwid_hashes !== []);
-        };
         $payingNow = function ($u) use ($subs) {
             $s = $subs[$u->id] ?? null;
 
@@ -193,17 +162,16 @@ final class MarketingStats
 
             return $s !== null && $s->is_trial && DeviceSlots::subscriptionActive($s);
         };
-        $trialDaysOf = fn (string $code) => (int) ($defs[$code]['trial_days'] ?? 0);
 
-        $rows = $codes->map(function (string $code) use ($promoUsers, $periodUsers, $prevUsers, $paidByUser, $defs, $codeOf, $paidSum, $activated, $payingNow, $trialNow, $trialDaysOf) {
+        $rows = $codes->map(function (string $code) use ($promoUsers, $periodUsers, $prevUsers, $paidByUser, $firstPaidAt, $defs, $codeOf, $activated, $payingNow, $trialNow, $tz) {
             $all = $promoUsers->filter(fn ($u) => $codeOf($u) === $code);
             $payers = $all->filter(fn ($u) => $paidByUser->has($u->id));
             $def = $defs[$code] ?? null;
-            $revenue = (int) $payers->sum($paidSum);
-            $orders = $payers->sum(fn ($u) => $paidByUser[$u->id]->count());
-            $firstPay = $payers->map(fn ($u) => Carbon::parse($u->created_at)->diffInHours(Carbon::parse($paidByUser[$u->id]->min('paid_at'))) / 24);
-            $trialDays = $trialDaysOf($code);
+            $trialDays = (int) ($def['trial_days'] ?? 0);
+            $firstPay = $payers->map(fn ($u) => Carbon::parse($u->created_at)->diffInHours($firstPaidAt[$u->id]) / 24);
             $n = $all->count();
+            $nAct = $all->filter($activated)->count();
+            $nNow = $all->filter($payingNow)->count();
 
             return [
                 'code' => $code,
@@ -212,21 +180,17 @@ final class MarketingStats
                 'registrations_period' => $periodUsers->filter(fn ($u) => $codeOf($u) === $code)->count(),
                 'registrations_prev' => $prevUsers->filter(fn ($u) => $codeOf($u) === $code)->count(),
                 'registrations_all' => $n,
-                'first_at' => $n > 0 ? Carbon::parse($all->min('created_at'))->timezone((string) config('app.timezone')) : null,
-                'last_at' => $n > 0 ? Carbon::parse($all->max('created_at'))->timezone((string) config('app.timezone')) : null,
-                'activated' => $all->filter($activated)->count(),
+                'first_at' => $n > 0 ? Carbon::parse($all->min('created_at'))->timezone($tz) : null,
+                'last_at' => $n > 0 ? Carbon::parse($all->max('created_at'))->timezone($tz) : null,
+                'activated' => $nAct,
                 'trial_now' => $all->filter($trialNow)->count(),
                 'payers' => $payers->count(),
                 'repeat_payers' => $payers->filter(fn ($u) => $paidByUser[$u->id]->count() > 1)->count(),
-                'paying_now' => $all->filter($payingNow)->count(),
+                'paying_now' => $nNow,
+                'activation' => $n > 0 ? round($nAct * 100 / $n, 1) : null,
                 'conversion' => $n > 0 ? round($payers->count() * 100 / $n, 1) : null,
-                'activation' => $n > 0 ? round($all->filter($activated)->count() * 100 / $n, 1) : null,
-                'retention' => $payers->count() > 0 ? round($all->filter($payingNow)->count() * 100 / $payers->count(), 1) : null,
-                'revenue' => $revenue,
-                'orders' => (int) $orders,
-                'avg_check' => $orders > 0 ? (int) round($revenue / $orders) : null,
-                'arpu' => $n > 0 ? (int) round($revenue / $n) : null,
-                'ltv' => $payers->count() > 0 ? (int) round($revenue / $payers->count()) : null,
+                'conversion_activated' => $nAct > 0 ? round($payers->count() * 100 / $nAct, 1) : null,
+                'retention' => $payers->count() > 0 ? round($nNow * 100 / $payers->count(), 1) : null,
                 'days_to_pay' => $firstPay->isNotEmpty() ? round($firstPay->avg(), 1) : null,
                 'paid_in_trial' => $trialDays > 0 ? $firstPay->filter(fn ($d) => $d <= $trialDays)->count() : null,
             ];
@@ -256,35 +220,28 @@ final class MarketingStats
         // Последние регистрации по промокодам за период (почта скрыта).
         $recent = $periodUsers->filter(fn ($u) => filled($u->registration_promo_code))
             ->sortByDesc('created_at')->take(25)
-            ->map(function ($u) use ($codeOf, $paidSum, $activated, $payingNow, $trialNow, $paidByUser, $tz) {
-                $state = match (true) {
+            ->map(fn ($u) => [
+                'email' => $this->maskEmail((string) $u->email),
+                'code' => $codeOf($u),
+                'at' => Carbon::parse($u->created_at)->timezone($tz),
+                'state' => match (true) {
                     $payingNow($u) => 'платит',
                     $trialNow($u) => 'пробный период',
                     $paidByUser->has($u->id) => 'платил, истекла',
                     default => 'не оплатил',
-                };
-
-                return [
-                    'email' => $this->maskEmail((string) $u->email),
-                    'code' => $codeOf($u),
-                    'at' => Carbon::parse($u->created_at)->timezone($tz),
-                    'state' => $state,
-                    'activated' => $activated($u),
-                    'paid' => $paidSum($u),
-                ];
-            })->values()->all();
+                },
+                'activated' => $activated($u),
+            ])->values()->all();
 
         $periodPromo = $periodUsers->filter(fn ($u) => filled($u->registration_promo_code));
-        $periodPromoPayers = $periodPromo->filter(fn ($u) => $paidByUser->has($u->id));
 
         return [
             'summary' => [
                 'registrations' => $this->kpi($periodPromo->count(), $prevUsers->filter(fn ($u) => filled($u->registration_promo_code))->count()),
                 'share' => $periodUsers->count() > 0 ? round($periodPromo->count() * 100 / $periodUsers->count(), 1) : 0.0,
                 'activated' => $periodPromo->filter($activated)->count(),
-                'payers' => $periodPromoPayers->count(),
-                'conversion' => $periodPromo->count() > 0 ? round($periodPromoPayers->count() * 100 / $periodPromo->count(), 1) : null,
-                'revenue' => (int) $periodPromoPayers->sum($paidSum),
+                'payers' => $periodPromo->filter(fn ($u) => $paidByUser->has($u->id))->count(),
+                'conversion' => $periodPromo->count() > 0 ? round($periodPromo->filter(fn ($u) => $paidByUser->has($u->id))->count() * 100 / $periodPromo->count(), 1) : null,
                 'trial_now' => $promoUsers->filter($trialNow)->count(),
                 'paying_now' => $promoUsers->filter($payingNow)->count(),
             ],
@@ -307,21 +264,23 @@ final class MarketingStats
     }
 
     /** @return list<array<string, mixed>> */
-    private function sourcesTable(Collection $periodUsers, Collection $paidByUser, \Closure $source): array
+    private function sourcesTable(Collection $periodUsers, Collection $prevUsers, \Closure $source, \Closure $activated, \Closure $paid): array
     {
         $total = max(1, $periodUsers->count());
         $out = [];
         foreach (self::SOURCES as $key => $label) {
             $group = $periodUsers->filter(fn ($u) => $source($u) === $key);
-            $payers = $group->filter(fn ($u) => $paidByUser->has($u->id));
+            $n = $group->count();
             $out[] = [
                 'key' => $key,
                 'label' => $label,
-                'registrations' => $group->count(),
-                'share' => round($group->count() * 100 / $total, 1),
-                'payers' => $payers->count(),
-                'conversion' => $group->count() > 0 ? round($payers->count() * 100 / $group->count(), 1) : null,
-                'revenue' => (int) $payers->sum(fn ($u) => $paidByUser[$u->id]->sum('amount_rub')),
+                'registrations' => $n,
+                'registrations_prev' => $prevUsers->filter(fn ($u) => $source($u) === $key)->count(),
+                'share' => round($n * 100 / $total, 1),
+                'activated' => $group->filter($activated)->count(),
+                'payers' => $group->filter($paid)->count(),
+                'activation' => $n > 0 ? round($group->filter($activated)->count() * 100 / $n, 1) : null,
+                'conversion' => $n > 0 ? round($group->filter($paid)->count() * 100 / $n, 1) : null,
             ];
         }
         usort($out, fn ($a, $b) => $b['registrations'] <=> $a['registrations']);
@@ -330,28 +289,16 @@ final class MarketingStats
     }
 
     /** @return list<array<string, mixed>> */
-    private function campaignsTable(Collection $periodUsers, Collection $paidByUser): array
+    private function campaignsTable(Collection $periodUsers, \Closure $activated, \Closure $paid): array
     {
         return $periodUsers->filter(fn ($u) => filled($u->utm_campaign))
             ->groupBy('utm_campaign')
-            ->map(function (Collection $g, string $name) use ($paidByUser) {
-                $payers = $g->filter(fn ($u) => $paidByUser->has($u->id));
-
-                return [
-                    'campaign' => $name,
-                    'registrations' => $g->count(),
-                    'payers' => $payers->count(),
-                    'conversion' => round($payers->count() * 100 / $g->count(), 1),
-                    'revenue' => (int) $payers->sum(fn ($u) => $paidByUser[$u->id]->sum('amount_rub')),
-                ];
-            })->sortByDesc('registrations')->values()->take(15)->all();
-    }
-
-    /** @return list<array{label: string, count: int, revenue: int}> */
-    private function group(Collection $orders, \Closure $key): array
-    {
-        return $orders->groupBy($key)->map(fn (Collection $g, string $k) => [
-            'label' => $k, 'count' => $g->count(), 'revenue' => (int) $g->sum('amount_rub'),
-        ])->sortByDesc('revenue')->values()->all();
+            ->map(fn (Collection $g, string $name) => [
+                'campaign' => $name,
+                'registrations' => $g->count(),
+                'activated' => $g->filter($activated)->count(),
+                'payers' => $g->filter($paid)->count(),
+                'conversion' => round($g->filter($paid)->count() * 100 / $g->count(), 1),
+            ])->sortByDesc('registrations')->values()->take(15)->all();
     }
 }

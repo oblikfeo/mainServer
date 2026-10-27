@@ -73,34 +73,33 @@ class MarketingDashboardTest extends TestCase
         $d = app(MarketingStats::class)->build(Carbon::parse('2026-10-14'), Carbon::parse('2026-10-27'));
 
         $this->assertSame(3, $d['kpi']['registrations']['value']);
-        $this->assertSame(3, $d['kpi']['payments']['value']);
-        $this->assertSame(1280, $d['kpi']['revenue']['value']);
+        $this->assertSame(2, $d['kpi']['promo']['value']);
         $this->assertSame(2, $d['kpi']['new_payers']['value']);
         $this->assertEqualsWithDelta(66.7, $d['kpi']['conversion']['value'], 0.05);
         $this->assertSame(14, count($d['daily']));
+        $this->assertSame(1, collect($d['daily'])->firstWhere('label', '20.10')['promo']);
 
         $tiktok = collect($d['promo']['codes'])->firstWhere('code', 'TIKTOK');
         $this->assertSame(2, $tiktok['registrations_period']);
         $this->assertSame(1, $tiktok['payers']);
-        $this->assertSame(990, $tiktok['revenue']);
         $this->assertSame(50.0, $tiktok['conversion']);
         $this->assertSame(1, $tiktok['repeat_payers']);
-        $this->assertSame(2, $tiktok['orders']);
-        $this->assertSame(495, $tiktok['arpu']);
-        $this->assertSame(990, $tiktok['ltv']);
         $this->assertSame(1, $tiktok['activated']);
+        $this->assertSame(100.0, $tiktok['conversion_activated']);
         $this->assertSame(1, $tiktok['paid_in_trial']);
 
         $this->assertSame(2, $d['promo']['summary']['registrations']['value']);
-        $this->assertEqualsWithDelta(66.7, $d['promo']['summary']['share'], 0.05);
         $this->assertSame(['TIKTOK'], $d['promo']['series']);
-        $this->assertSame(1, collect($d['promo']['daily'])->firstWhere('label', '20.10')['TIKTOK']);
         $this->assertCount(2, $d['promo']['recent']);
         $this->assertStringContainsString('•', $d['promo']['recent'][0]['email']);
+        $this->assertSame(2, collect($d['sources'])->firstWhere('key', 'promo')['registrations']);
 
-        $promo = collect($d['sources'])->firstWhere('key', 'promo');
-        $this->assertSame(2, $promo['registrations']);
-        $this->assertSame(580, $d['payments']['new_revenue']);
-        $this->assertSame(700, $d['payments']['repeat_revenue']);
+        // Денежных сумм в разделе нет вообще.
+        $flat = json_encode($d, JSON_UNESCAPED_UNICODE);
+        $this->assertStringNotContainsString('revenue', $flat);
+        $this->assertStringNotContainsString('amount', $flat);
+        $this->assertStringNotContainsString('1280', $flat);
+
+        $this->withSession(['marketing_auth' => true])->get('/admin/marketing')->assertOk()->assertDontSee('₽')->assertSee('TIKTOK');
     }
 }
