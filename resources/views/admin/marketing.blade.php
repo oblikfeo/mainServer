@@ -115,6 +115,7 @@
     .mk-step__n { text-align: right; font-size: 0.8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .mk-step__n i { font-style: normal; color: var(--ink-2); margin-left: 0.25rem; }
     .mk-funnel__foot { margin-top: 0.5rem; font-size: 0.6875rem; color: var(--muted); }
+    .mk-promo .mk-pill { white-space: nowrap; }
     .mk-pill.trial { background: #eff6ff; color: #1d4ed8; }
     .mk-pill.off { background: #fef2f2; color: var(--down); }
     .mk details summary { cursor: pointer; font-weight: 700; color: var(--ink-2); font-size: 0.875rem; }
@@ -267,7 +268,7 @@
             </div>
             <div class="mk-card__note" style="margin-top:0.5rem">«На 1 регистрацию» — сколько в среднем приносит один пришедший по коду. «Оплатили в пробный» — первая оплата пришла до конца бесплатных дней. «Подключили устройство» по старым неоплатившим занижено: привязки неактивных аккаунтов очищены при переходе 12.10.2026.</div>
 
-            <div class="mk-grid mk-grid--2" style="margin:1.25rem 0 0">
+            <div class="mk-grid" style="margin:1.25rem 0 0; gap:1.25rem">
                 <div>
                     <div class="mk-card__head" style="margin-bottom:0.5rem">
                         <div class="mk-sub-title" style="margin:0">Регистрации по кодам, по дням</div>
@@ -288,7 +289,7 @@
                     @if (empty($pr['recent']))
                         <div class="mk-empty">За период регистраций по промокодам нет</div>
                     @else
-                        <div class="mk-scroll" style="max-height:260px; overflow-y:auto">
+                        <div class="mk-scroll" style="max-height:340px; overflow-y:auto">
                             <table class="mk-table">
                                 <thead><tr><th>Когда</th><th>Кто</th><th>Код</th><th>Статус</th><th class="n">Оплатил</th></tr></thead>
                                 <tbody>
