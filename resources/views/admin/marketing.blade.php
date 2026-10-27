@@ -309,7 +309,7 @@
         @endif
     </div>
 
-    <div class="mk-grid mk-grid--2">
+    <div class="mk-grid">
         <div class="mk-card">
             <div class="mk-card__head">
                 <div class="mk-card__title">Откуда приходят</div>
@@ -435,7 +435,7 @@
         const maxV = niceMax(Math.max(1, ...daily.flatMap((d) => series.map((s) => d[s.key]))));
         const f = frame(box, daily, maxV, { l: 40, r: 58, t: 10, b: 26 });
         const n = daily.length, x = (i) => f.m.l + (n === 1 ? f.iw / 2 : (i * f.iw) / (n - 1));
-        daily.forEach((d, i) => { if (i % f.every === 0 || i === n - 1) { const t = el('text', { x: x(i), y: f.H - 6, 'text-anchor': 'middle' }, f.axis); t.textContent = d.label; } });
+        daily.forEach((d, i) => { if ((i % f.every === 0 && (n - 1 - i) >= f.every * 0.6) || i === n - 1) { const t = el('text', { x: x(i), y: f.H - 6, 'text-anchor': 'middle' }, f.axis); t.textContent = d.label; } });
         series.forEach((s) => {
             el('polyline', { points: daily.map((d, i) => `${x(i)},${f.y(d[s.key])}`).join(' '), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, f.svg);
         });
@@ -471,7 +471,7 @@
         const tip = tooltip(box);
         rows.forEach((d, i) => {
             const cx = f.m.l + slot * i + slot / 2;
-            if (i % f.every === 0 || i === rows.length - 1) { const t = el('text', { x: cx, y: f.H - 6, 'text-anchor': 'middle' }, f.axis); t.textContent = d.label; }
+            if ((i % f.every === 0 && (rows.length - 1 - i) >= f.every * 0.6) || i === rows.length - 1) { const t = el('text', { x: cx, y: f.H - 6, 'text-anchor': 'middle' }, f.axis); t.textContent = d.label; }
             let acc = 0;
             keys.forEach((k, j) => {
                 const v = d[k] || 0; if (!v) return;
