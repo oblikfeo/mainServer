@@ -15,6 +15,11 @@ class EnsureAdminAuthenticated
         }
 
         if ($request->session()->get('admin_auth') !== true) {
+            // Маркетинговому входу доступен только раздел «Маркетинг».
+            if ($request->session()->get('marketing_auth') === true) {
+                return redirect()->route('admin.marketing');
+            }
+
             return redirect()->guest(route('admin.login'));
         }
 

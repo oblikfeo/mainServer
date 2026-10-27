@@ -32,6 +32,18 @@ class LoginController extends Controller
         $userOk = hash_equals(config('admin.username'), $credentials['username']);
         $passOk = hash_equals(config('admin.password'), $credentials['password']);
 
+        // Маркетинговый вход: только раздел «Маркетинг».
+        $mUser = (string) config('admin.marketing_username');
+        $mPass = (string) config('admin.marketing_password');
+        if (! ($userOk && $passOk) && $mUser !== '' && $mPass !== ''
+            && hash_equals($mUser, $credentials['username']) && hash_equals($mPass, $credentials['password'])) {
+            $request->session()->regenerate();
+            $request->session()->forget('admin_auth');
+            $request->session()->put('marketing_auth', true);
+
+            return redirect()->route('admin.marketing');
+        }
+
         if (! $userOk || ! $passOk) {
             return back()
                 ->withInput($request->only('username'))
@@ -40,13 +52,14 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
         $request->session()->put('admin_auth', true);
+        $request->session()->forget('marketing_auth');
 
         return redirect()->intended(route('admin.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
-        $request->session()->forget('admin_auth');
+        $request->session()->forget(['admin_auth', 'marketing_auth']);
         $request->session()->regenerate();
 
         return redirect()->route('admin.login');

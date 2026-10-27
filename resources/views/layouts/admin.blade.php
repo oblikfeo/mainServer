@@ -15,7 +15,8 @@
         <header class="bg-white border-b border-slate-200 shadow-sm">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10 py-3 sm:py-5 flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-8 min-w-0 flex-1">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 sm:gap-3 group min-w-0">
+                    @php $__marketingOnly = session('admin_auth') !== true && session('marketing_auth') === true; @endphp
+                    <a href="{{ $__marketingOnly ? route('admin.marketing') : route('admin.dashboard') }}" class="flex items-center gap-2 sm:gap-3 group min-w-0">
                         <span class="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-slate-900 text-white text-base sm:text-xl font-bold shadow-md group-hover:bg-slate-800 transition-colors shrink-0" aria-hidden="true">
                             Н
                         </span>
@@ -24,6 +25,9 @@
                         </span>
                     </a>
                     <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm sm:text-base font-semibold" aria-label="Разделы админки">
+                        @if ($__marketingOnly)
+                        <a href="{{ route('admin.marketing') }}" class="text-slate-900 underline decoration-2 underline-offset-4">Маркетинг</a>
+                        @else
                         <a
                             href="{{ route('admin.dashboard') }}"
                             class="{{ request()->routeIs('admin.dashboard') ? 'text-slate-900 underline decoration-2 underline-offset-4' : 'text-slate-600 hover:text-slate-900' }}"
@@ -36,6 +40,11 @@
                             href="{{ route('admin.campaigns') }}"
                             class="{{ request()->routeIs('admin.campaigns') ? 'text-slate-900 underline decoration-2 underline-offset-4' : 'text-slate-600 hover:text-slate-900' }}"
                         >Реклама</a>
+                        <a
+                            href="{{ route('admin.marketing') }}"
+                            class="{{ request()->routeIs('admin.marketing') ? 'text-slate-900 underline decoration-2 underline-offset-4' : 'text-slate-600 hover:text-slate-900' }}"
+                        >Маркетинг</a>
+                        @endif
                     </nav>
                 </div>
                 <form method="POST" action="{{ route('admin.logout') }}" class="shrink-0">

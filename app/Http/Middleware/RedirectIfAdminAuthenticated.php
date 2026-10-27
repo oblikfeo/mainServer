@@ -13,6 +13,9 @@ class RedirectIfAdminAuthenticated
         if ($request->session()->get('admin_auth') === true) {
             return redirect()->route('admin.dashboard');
         }
+        if ($request->session()->get('marketing_auth') === true) {
+            return redirect()->route('admin.marketing');
+        }
 
         return $next($request);
     }

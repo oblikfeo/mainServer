@@ -46,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdminAuthenticated::class,
             'admin.guest' => \App\Http\Middleware\RedirectIfAdminAuthenticated::class,
+            'admin.marketing' => \App\Http\Middleware\EnsureMarketingAuthenticated::class,
             'telegram.link.internal' => \App\Http\Middleware\EnsureTelegramLinkInternalToken::class,
             'chat.access' => \App\Http\Middleware\EnsureChatAccess::class,
         ]);

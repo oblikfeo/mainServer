@@ -190,8 +190,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('login.store');
     });
 
-    Route::middleware('admin')->group(function () {
+    // «Маркетинг» и выход доступны и основному админу, и маркетинговому входу.
+    Route::middleware('admin.marketing')->group(function () {
+        Route::get('marketing', [\App\Http\Controllers\Admin\MarketingController::class, 'index'])->name('marketing');
         Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+    });
+
+    Route::middleware('admin')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('referral', [ReferralController::class, 'index'])->name('referral');
         Route::get('/campaigns', [CampaignsController::class, 'index'])->name('campaigns');
