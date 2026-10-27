@@ -336,11 +336,17 @@
         const maxV = niceMax(Math.max(1, ...daily.flatMap((d) => series.map((s) => d[s.key]))));
         const f = frame(box, maxV, (v) => Math.round(v).toLocaleString('ru-RU'));
         daily.forEach((d, i) => { if (i % f.every === 0 || i === daily.length - 1) { const t = el('text', { x: f.x(i), y: f.H - 6, 'text-anchor': 'middle' }, f.axis); t.textContent = d.label; } });
+        const last = daily[daily.length - 1];
+        // Подписи на концах линий: не даём им наложиться, если значения близки.
+        const ends = series.map((s) => ({ s, y: f.y(last[s.key]) + 4 })).sort((a, b) => a.y - b.y);
+        for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
         series.forEach((s) => {
             const pts = daily.map((d, i) => `${f.x(i)},${f.y(d[s.key])}`).join(' ');
             el('polyline', { points: pts, fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, f.svg);
-            const last = daily[daily.length - 1];
-            const lbl = el('text', { x: f.x(daily.length - 1) + 8, y: f.y(last[s.key]) + 4, class: 'end-label' }, f.svg); lbl.textContent = s.name.slice(0, 4) + '. ' + last[s.key];
+        });
+        ends.forEach(({ s, y }) => {
+            const lbl = el('text', { x: f.x(daily.length - 1) + 8, y, class: 'end-label' }, f.svg);
+            lbl.textContent = s.name.slice(0, 4) + '. ' + last[s.key];
         });
         const hair = el('line', { y1: f.m.t, y2: f.m.t + f.ih, stroke: '#94a3b8', 'stroke-width': 1, opacity: 0 }, f.svg);
         const dots = series.map((s) => el('circle', { r: 4.5, fill: s.color, stroke: '#fff', 'stroke-width': 2, opacity: 0 }, f.svg));
