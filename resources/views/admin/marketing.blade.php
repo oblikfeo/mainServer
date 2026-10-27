@@ -93,6 +93,30 @@
     .mk-split { display: flex; height: 12px; border-radius: 6px; overflow: hidden; gap: 2px; margin: 0.5rem 0 0.6rem; }
     .mk-split span { display: block; height: 100%; }
     .mk-empty { padding: 1.25rem 0; text-align: center; color: var(--muted); font-size: 0.875rem; }
+    .mk { --c3: #1baf7a; }
+    .mk-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
+    @media (min-width: 900px) { .mk-mini { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+    .mk-mini > div { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.8rem; border-radius: 0.75rem; background: #f8fafc; min-width: 0; }
+    .mk-mini span { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+    .mk-mini b { font-size: 1.25rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mk-mini em { font-style: normal; font-size: 0.75rem; color: var(--ink-2); }
+    .mk-mini em.up { color: var(--up); } .mk-mini em.down { color: var(--down); }
+    .mk-sub-title { margin: 0.25rem 0 0.6rem; font-size: 0.8125rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); }
+    .mk-funnels { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (min-width: 900px) { .mk-funnels { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .mk-funnel { border: 1px solid var(--line); border-radius: 0.85rem; padding: 0.85rem; min-width: 0; }
+    .mk-funnel__head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-bottom: 0.6rem; }
+    .mk-funnel__head .mk-pill { margin-left: 0; }
+    .mk-funnel__bonus { margin-left: auto; font-size: 0.75rem; color: var(--ink-2); }
+    .mk-step { display: grid; grid-template-columns: 9.5rem 1fr 5.5rem; align-items: center; gap: 0.5rem; padding: 0.22rem 0; }
+    .mk-step__label { font-size: 0.8125rem; color: var(--ink-2); }
+    .mk-step__bar { height: 10px; border-radius: 5px; background: #f1f5f9; position: relative; }
+    .mk-step__bar span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--s1); }
+    .mk-step__n { text-align: right; font-size: 0.8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .mk-step__n i { font-style: normal; color: var(--ink-2); margin-left: 0.25rem; }
+    .mk-funnel__foot { margin-top: 0.5rem; font-size: 0.6875rem; color: var(--muted); }
+    .mk-pill.trial { background: #eff6ff; color: #1d4ed8; }
+    .mk-pill.off { background: #fef2f2; color: var(--down); }
     .mk details summary { cursor: pointer; font-weight: 700; color: var(--ink-2); font-size: 0.875rem; }
 </style>
 
@@ -148,36 +172,140 @@
         </div>
     </div>
 
-    <div class="mk-card" style="margin-bottom:1rem">
+    @php
+        $pr = $data['promo'];
+        $ps = $pr['summary'];
+        $codeColors = ['var(--s1)', 'var(--s2)', 'var(--c3)'];
+        $seriesColor = [];
+        foreach ($pr['series'] as $i => $name) { $seriesColor[$name] = $name === 'Другие' ? 'var(--muted)' : ($codeColors[$i] ?? 'var(--muted)'); }
+        $pd = $delta($ps['registrations']);
+        $funnelMax = max(1, collect($pr['codes'])->max('registrations_all'));
+        $stateClass = ['платит' => 'on', 'пробный период' => 'trial', 'платил, истекла' => 'off', 'не оплатил' => ''];
+    @endphp
+    <div class="mk-card mk-promo" style="margin-bottom:1rem">
         <div class="mk-card__head">
             <div class="mk-card__title">Промокоды</div>
-            <div class="mk-card__note">регистрации за период и за всё время; оплаты и выручка — по всем, кто пришёл по коду</div>
+            <div class="mk-card__note">регистрации на nadezhda.space/promo · оплаты и выручка — по всем, кто пришёл по коду</div>
         </div>
-        @if (empty($data['promo']))
+
+        <div class="mk-mini">
+            <div><span>Регистрации за период</span><b>{{ $fmt($ps['registrations']['value']) }}</b><em class="{{ $pd['dir'] }}">{{ $pd['text'] }}</em></div>
+            <div><span>Доля от всех регистраций</span><b>{{ $pct($ps['share']) }}</b></div>
+            <div><span>Подключили устройство</span><b>{{ $fmt($ps['activated']) }}</b><em>из {{ $fmt($ps['registrations']['value']) }}</em></div>
+            <div><span>Оплатили</span><b>{{ $fmt($ps['payers']) }}</b><em>конверсия {{ $pct($ps['conversion']) }}</em></div>
+            <div><span>Выручка с них</span><b>{{ $fmt($ps['revenue']) }} ₽</b></div>
+            <div><span>Сейчас</span><b>{{ $fmt($ps['trial_now']) }} · {{ $fmt($ps['paying_now']) }}</b><em>в пробном · платят</em></div>
+        </div>
+
+        @if (empty($pr['codes']))
             <div class="mk-empty">Промокодов пока нет</div>
         @else
+            <div class="mk-sub-title">Воронка по кодам · за всё время</div>
+            <div class="mk-funnels">
+                @foreach ($pr['codes'] as $row)
+                    @php
+                        $steps = [
+                            ['Зарегистрировались', $row['registrations_all'], null],
+                            ['Подключили устройство', $row['activated'], $row['activation']],
+                            ['Оплатили', $row['payers'], $row['conversion']],
+                            ['Платят сейчас', $row['paying_now'], $row['retention']],
+                        ];
+                    @endphp
+                    <div class="mk-funnel">
+                        <div class="mk-funnel__head">
+                            <span class="mk-code">{{ $row['code'] }}</span>
+                            <span class="mk-pill {{ $row['active'] ? 'on' : '' }}">{{ $row['active'] ? 'активен' : 'выключен' }}</span>
+                            <span class="mk-funnel__bonus">{{ $row['bonus'] }}</span>
+                        </div>
+                        @foreach ($steps as [$label, $n, $rate])
+                            <div class="mk-step">
+                                <div class="mk-step__label">{{ $label }}</div>
+                                <div class="mk-step__bar"><span style="width: {{ max($n > 0 ? 2 : 0, $n * 100 / $funnelMax) }}%"></span></div>
+                                <div class="mk-step__n"><b>{{ $fmt($n) }}</b>@if ($rate !== null) <i>{{ $pct($rate) }}</i>@endif</div>
+                            </div>
+                        @endforeach
+                        <div class="mk-funnel__foot">
+                            @if ($row['first_at'])
+                                с {{ $row['first_at']->format('d.m.Y') }} · последняя регистрация {{ $row['last_at']->format('d.m.Y') }}
+                            @else
+                                регистраций ещё не было
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="mk-sub-title">Деньги по кодам</div>
             <div class="mk-scroll">
                 <table class="mk-table">
                     <thead><tr>
-                        <th>Код</th><th>Бонус</th><th class="n">Рег. за период</th><th class="n">Рег. всего</th>
-                        <th class="n">Оплатили</th><th class="n">Конверсия</th><th class="n">Выручка</th><th class="n">До оплаты</th><th class="n">Платят сейчас</th>
+                        <th>Код</th><th class="n">Рег. за период</th><th class="n">прошлый период</th><th class="n">Рег. всего</th>
+                        <th class="n">Оплатили</th><th class="n">Повторно</th><th class="n">Оплат</th><th class="n">Выручка</th>
+                        <th class="n">На 1 регистрацию</th><th class="n">На 1 платящего</th><th class="n">Средний чек</th>
+                        <th class="n">До 1-й оплаты</th><th class="n">Оплатили в пробный</th>
                     </tr></thead>
                     <tbody>
-                        @foreach ($data['promo'] as $row)
+                        @foreach ($pr['codes'] as $row)
                             <tr>
-                                <td><span class="mk-code">{{ $row['code'] }}</span><span class="mk-pill {{ $row['active'] ? 'on' : '' }}">{{ $row['active'] ? 'активен' : 'выключен' }}</span></td>
-                                <td>{{ $row['bonus'] }}</td>
+                                <td class="mk-code">{{ $row['code'] }}</td>
                                 <td class="n"><b>{{ $fmt($row['registrations_period']) }}</b></td>
+                                <td class="n" style="color:var(--muted)">{{ $fmt($row['registrations_prev']) }}</td>
                                 <td class="n">{{ $fmt($row['registrations_all']) }}</td>
                                 <td class="n">{{ $fmt($row['payers']) }}</td>
-                                <td class="n">{{ $pct($row['conversion']) }}</td>
-                                <td class="n">{{ $fmt($row['revenue']) }} ₽</td>
+                                <td class="n">{{ $fmt($row['repeat_payers']) }}</td>
+                                <td class="n">{{ $fmt($row['orders']) }}</td>
+                                <td class="n"><b>{{ $fmt($row['revenue']) }} ₽</b></td>
+                                <td class="n">{{ $row['arpu'] === null ? '—' : $fmt($row['arpu']).' ₽' }}</td>
+                                <td class="n">{{ $row['ltv'] === null ? '—' : $fmt($row['ltv']).' ₽' }}</td>
+                                <td class="n">{{ $row['avg_check'] === null ? '—' : $fmt($row['avg_check']).' ₽' }}</td>
                                 <td class="n">{{ $row['days_to_pay'] === null ? '—' : str_replace('.', ',', (string) $row['days_to_pay']).' дн.' }}</td>
-                                <td class="n">{{ $fmt($row['paying_now']) }}</td>
+                                <td class="n">{{ $row['paid_in_trial'] === null ? '—' : $fmt($row['paid_in_trial']).' из '.$fmt($row['payers']) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="mk-card__note" style="margin-top:0.5rem">«На 1 регистрацию» — сколько в среднем приносит один пришедший по коду. «Оплатили в пробный» — первая оплата пришла до конца бесплатных дней. «Подключили устройство» по старым неоплатившим занижено: привязки неактивных аккаунтов очищены при переходе 12.10.2026.</div>
+
+            <div class="mk-grid mk-grid--2" style="margin:1.25rem 0 0">
+                <div>
+                    <div class="mk-card__head" style="margin-bottom:0.5rem">
+                        <div class="mk-sub-title" style="margin:0">Регистрации по кодам, по дням</div>
+                        <div class="mk-legend">
+                            @foreach ($pr['series'] as $name)
+                                <span><i class="box" style="background: {{ $seriesColor[$name] }}"></i>{{ $name }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    @if (empty($pr['series']))
+                        <div class="mk-empty">За период регистраций по промокодам нет</div>
+                    @else
+                        <div class="mk-chart" id="mk-promo-bars" style="height:220px" role="img" aria-label="Столбчатый график регистраций по промокодам по дням"></div>
+                    @endif
+                </div>
+                <div>
+                    <div class="mk-sub-title" style="margin-top:0">Последние регистрации по промокодам</div>
+                    @if (empty($pr['recent']))
+                        <div class="mk-empty">За период регистраций по промокодам нет</div>
+                    @else
+                        <div class="mk-scroll" style="max-height:260px; overflow-y:auto">
+                            <table class="mk-table">
+                                <thead><tr><th>Когда</th><th>Кто</th><th>Код</th><th>Статус</th><th class="n">Оплатил</th></tr></thead>
+                                <tbody>
+                                    @foreach ($pr['recent'] as $r)
+                                        <tr>
+                                            <td style="white-space:nowrap">{{ $r['at']->format('d.m H:i') }}</td>
+                                            <td>{{ $r['email'] }}</td>
+                                            <td class="mk-code">{{ $r['code'] }}</td>
+                                            <td><span class="mk-pill {{ $stateClass[$r['state']] ?? '' }}">{{ $r['state'] }}</span>@unless ($r['activated'])<span class="mk-pill" title="Устройство не подключено">без устройства</span>@endunless</td>
+                                            <td class="n">{{ $r['paid'] > 0 ? $fmt($r['paid']).' ₽' : '—' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
             </div>
         @endif
     </div>
@@ -396,7 +524,46 @@
         });
     }
 
-    const draw = () => { lines(); bars(); };
+    const promo = @json($pr['daily'] ?? []), promoSeries = @json($pr['series'] ?? []), promoColors = @json(array_values($seriesColor ?? []));
+    function promoBars() {
+        const box = document.getElementById('mk-promo-bars');
+        if (!box || !promoSeries.length) return;
+        const colors = promoColors.map((c) => c.startsWith('var(') ? css.getPropertyValue(c.slice(4, -1)).trim() : c);
+        const totals = promo.map((d) => promoSeries.reduce((a, k) => a + d[k], 0));
+        const maxV = niceMax(Math.max(1, ...totals));
+        box.replaceChildren();
+        const W = box.clientWidth, H = box.clientHeight, m = { l: 34, r: 8, t: 8, b: 24 };
+        const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, height: H }, box);
+        const iw = W - m.l - m.r, ih = H - m.t - m.b, y = (v) => m.t + ih - (v / maxV) * ih;
+        const grid = el('g', { class: 'grid' }, svg), axis = el('g', { class: 'axis' }, svg);
+        for (let i = 0; i <= 4; i++) { const v = maxV * i / 4; el('line', { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v) }, grid); const t = el('text', { x: m.l - 6, y: y(v) + 4, 'text-anchor': 'end' }, axis); t.textContent = Math.round(v); }
+        const slot = iw / promo.length, bw = Math.max(2, Math.min(22, slot - 2));
+        const every = Math.max(1, Math.ceil(promo.length / Math.max(2, Math.floor(iw / 56))));
+        const tip = tooltip(box);
+        promo.forEach((d, i) => {
+            const cx = m.l + slot * i + slot / 2;
+            if (i % every === 0 || i === promo.length - 1) { const t = el('text', { x: cx, y: H - 6, 'text-anchor': 'middle' }, axis); t.textContent = d.label; }
+            let acc = 0;
+            promoSeries.forEach((k, j) => {
+                const v = d[k]; if (!v) return;
+                const y0 = y(acc + v), y1 = y(acc);
+                // 2px просвет между сегментами стопки.
+                el('rect', { x: cx - bw / 2, y: y0, width: bw, height: Math.max(1, y1 - y0 - (acc > 0 ? 2 : 0)), rx: Math.min(2, bw / 4), fill: colors[j] }, svg);
+                acc += v;
+            });
+            const hit = el('rect', { x: m.l + slot * i, y: m.t, width: slot, height: ih, fill: 'transparent', tabindex: 0 }, svg);
+            const show = () => {
+                const r = svg.getBoundingClientRect();
+                tip.show(cx * (r.width / W), 8, d.label, [
+                    ...promoSeries.map((k, j) => ({ color: colors[j], value: String(d[k]), name: k })),
+                    { color: '#94a3b8', value: String(totals[i]), name: 'всего' },
+                ]);
+            };
+            hit.addEventListener('pointerenter', show); hit.addEventListener('focus', show);
+            hit.addEventListener('pointerleave', () => tip.hide()); hit.addEventListener('blur', () => tip.hide());
+        });
+    }
+    const draw = () => { lines(); bars(); promoBars(); };
     draw();
     let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(draw, 150); });
 })();

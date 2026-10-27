@@ -79,11 +79,24 @@ class MarketingDashboardTest extends TestCase
         $this->assertEqualsWithDelta(66.7, $d['kpi']['conversion']['value'], 0.05);
         $this->assertSame(14, count($d['daily']));
 
-        $tiktok = collect($d['promo'])->firstWhere('code', 'TIKTOK');
+        $tiktok = collect($d['promo']['codes'])->firstWhere('code', 'TIKTOK');
         $this->assertSame(2, $tiktok['registrations_period']);
         $this->assertSame(1, $tiktok['payers']);
         $this->assertSame(990, $tiktok['revenue']);
         $this->assertSame(50.0, $tiktok['conversion']);
+        $this->assertSame(1, $tiktok['repeat_payers']);
+        $this->assertSame(2, $tiktok['orders']);
+        $this->assertSame(495, $tiktok['arpu']);
+        $this->assertSame(990, $tiktok['ltv']);
+        $this->assertSame(1, $tiktok['activated']);
+        $this->assertSame(1, $tiktok['paid_in_trial']);
+
+        $this->assertSame(2, $d['promo']['summary']['registrations']['value']);
+        $this->assertEqualsWithDelta(66.7, $d['promo']['summary']['share'], 0.05);
+        $this->assertSame(['TIKTOK'], $d['promo']['series']);
+        $this->assertSame(1, collect($d['promo']['daily'])->firstWhere('label', '20.10')['TIKTOK']);
+        $this->assertCount(2, $d['promo']['recent']);
+        $this->assertStringContainsString('•', $d['promo']['recent'][0]['email']);
 
         $promo = collect($d['sources'])->firstWhere('key', 'promo');
         $this->assertSame(2, $promo['registrations']);
