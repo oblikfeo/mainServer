@@ -20,7 +20,7 @@ use App\Http\Controllers\CabinetReferralController;
 use App\Http\Controllers\CabinetPaymentController;
 use App\Http\Controllers\CabinetSettingsController;
 use App\Http\Controllers\CabinetTestKeysController;
-use App\Http\Controllers\ChatController;
+use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\EmailCodeVerificationController;
 use App\Http\Controllers\PaymentSuccessController;
 use App\Http\Controllers\ProfileController;
@@ -175,11 +175,15 @@ Route::middleware('auth')->group(function () {
     Route::redirect('/profile', '/dashboard/profile')->name('profile.edit');
 });
 
-Route::middleware(['auth', 'chat.access'])->group(function () {
-    Route::get('/chat', [ChatController::class, 'show'])->name('chat.show');
-    Route::post('/chat/message', [ChatController::class, 'message'])
-        ->middleware('throttle:30,1')
-        ->name('chat.message');
+// Чат поддержки — виджет на главной (страница /chat закрыта, старые ссылки ведут на виджет).
+Route::redirect('/chat', '/#support-chat');
+Route::post('/support/chat/message', [SupportChatController::class, 'message'])
+    ->middleware('throttle:30,1')
+    ->name('support.chat.message');
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/support/chat/{chatId}/messages', [SupportChatController::class, 'messages'])->name('support.chat.messages');
+    Route::post('/support/chat/{chatId}/handoff', [SupportChatController::class, 'handoff'])->name('support.chat.handoff');
+    Route::post('/support/chat/{chatId}/contact', [SupportChatController::class, 'contact'])->name('support.chat.contact');
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {

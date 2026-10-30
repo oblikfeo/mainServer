@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\TelegramBotReferralController;
 use App\Http\Controllers\Api\TelegramBotRegisterController;
 use App\Http\Controllers\Api\TelegramBotStatusController;
 use App\Http\Controllers\Api\TelegramBotTrialController;
+use App\Http\Controllers\Api\TelegramBotWebSupportController;
 use App\Http\Controllers\Api\TelegramLinkClaimController;
 use App\Http\Controllers\Api\TelegramStartUtmController;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,10 @@ Route::middleware(['telegram.link.internal', 'throttle:30,1'])
 Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->post('/internal/telegram/bot/chat/summary', [TelegramBotChatController::class, 'summarize'])
     ->name('api.telegram.bot.chat.summary');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/web-support/reply', [TelegramBotWebSupportController::class, 'reply'])
+    ->name('api.telegram.bot.web_support.reply');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/mark-blocked', [TelegramBotMarkBlockedController::class, 'store'])

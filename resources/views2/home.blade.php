@@ -145,9 +145,14 @@
                     <span class="support-time">~7 минут</span>
                     <span class="support-label">среднее время ответа</span>
                 </div>
-                <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="btn-cta lp-support-tg-btn">
-                    Написать в Telegram
-                </a>
+                <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+                    <a href="#support-chat" data-support-chat-open class="btn-cta lp-support-tg-btn">
+                        Чат на сайте
+                    </a>
+                    <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="btn-cta lp-support-tg-btn">
+                        Написать в Telegram
+                    </a>
+                </div>
             </div>
         </section>
 
@@ -183,6 +188,7 @@
         </footer>
     </div>
 </div>
+@include('views2::partials.support-widget')
 @endsection
 
 @push('scripts')

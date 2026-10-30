@@ -11,7 +11,7 @@ namespace App\Services\Chat;
  * должны уходить через WG-туннель на cdn-egress (ANTHROPIC_PROXY,
  * socks5h://…), чтобы выходить не с российского IP.
  */
-final class ChatStreamer
+class ChatStreamer
 {
     /**
      * @param  array<int, array{role: string, content: string}>  $messages

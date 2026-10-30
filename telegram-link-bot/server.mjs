@@ -1460,6 +1460,9 @@ bot.on('message', async (ctx, next) => {
   const bridgeId = reply.message_id;
   const userChat = supportReplyMap.get(bridgeId);
   if (!userChat) {
+    if (await relayWebSupportReply(ctx, reply)) {
+      return;
+    }
     return next();
   }
   try {
@@ -1472,6 +1475,52 @@ bot.on('message', async (ctx, next) => {
     }
   }
 });
+
+const WEB_SUPPORT_PREFIX_RE = /^(🆘 Чат с сайта|💬 Сайт #|📇 Сайт #)/u;
+
+/**
+ * Ответ оператора на сообщение чата с сайта (карточка/реплика клиента, отправленные ботом) —
+ * уходит в Laravel и появляется у клиента в виджете. true — сообщение обработано.
+ */
+async function relayWebSupportReply(ctx, reply) {
+  if (reply.from?.id !== ctx.botInfo?.id) {
+    return false;
+  }
+  const text = (ctx.message?.text ?? ctx.message?.caption ?? '').trim();
+  if (!text) {
+    if (WEB_SUPPORT_PREFIX_RE.test(reply.text ?? '')) {
+      await ctx.reply('На сайт уходят только текстовые ответы.', { reply_parameters: { message_id: ctx.message.message_id } }).catch(() => {});
+      return true;
+    }
+    return false;
+  }
+  try {
+    const r = await apiFetch('/internal/telegram/bot/web-support/reply', {
+      method: 'POST',
+      body: JSON.stringify({
+        reply_to_message_id: reply.message_id,
+        text,
+        operator_name: ctx.from?.first_name || ctx.from?.username || null,
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.matched !== true) {
+      return false;
+    }
+    await bot.telegram
+      .callApi('setMessageReaction', {
+        chat_id: ctx.chat.id,
+        message_id: ctx.message.message_id,
+        reaction: [{ type: 'emoji', emoji: '👍' }],
+      })
+      .catch(() => {});
+    return true;
+  } catch (e) {
+    console.error('relayWebSupportReply', e);
+    await ctx.reply('Не удалось отправить ответ на сайт, попробуйте ещё раз.', { reply_parameters: { message_id: ctx.message.message_id } }).catch(() => {});
+    return true;
+  }
+}
 
 bot.command('ndstats', async (ctx) => {
   const fromId = ctx.from?.id;
@@ -1613,6 +1662,34 @@ app.post('/internal/notify', async (req, res) => {
   } catch (e) {
     console.error('notify', e);
     return res.status(400).json({ ok: false, error: String(e.message) });
+  }
+});
+
+// Чат поддержки с сайта: Laravel присылает текст для группы поддержки, бот отправляет и возвращает message_id
+// (по нему Laravel узнаёт, к какому чату относится reply оператора).
+app.post('/internal/support/web', async (req, res) => {
+  const auth = (req.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!incomingSecret || auth !== incomingSecret) {
+    return res.status(403).json({ ok: false });
+  }
+  if (!supportGroupId) {
+    return res.status(503).json({ ok: false, error: 'no_support_group' });
+  }
+  const text = String(req.body?.text ?? '').slice(0, 4096);
+  const replyTo = Number(req.body?.reply_to_message_id ?? 0);
+  if (!text.trim()) {
+    return res.status(400).json({ ok: false, error: 'bad_request' });
+  }
+  const extra = { link_preview_options: { is_disabled: true } };
+  if (replyTo > 0) {
+    extra.reply_parameters = { message_id: replyTo, allow_sending_without_reply: true };
+  }
+  try {
+    const sent = await bot.telegram.sendMessage(supportGroupId, text, extra);
+    return res.json({ ok: true, message_id: sent.message_id });
+  } catch (e) {
+    console.error('support/web', e?.response ?? e);
+    return res.status(502).json({ ok: false, error: 'send_failed' });
   }
 });
 

@@ -48,7 +48,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.guest' => \App\Http\Middleware\RedirectIfAdminAuthenticated::class,
             'admin.marketing' => \App\Http\Middleware\EnsureMarketingAuthenticated::class,
             'telegram.link.internal' => \App\Http\Middleware\EnsureTelegramLinkInternalToken::class,
-            'chat.access' => \App\Http\Middleware\EnsureChatAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
