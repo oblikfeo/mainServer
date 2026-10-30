@@ -37,6 +37,8 @@ class CabinetPaymentController extends Controller
                 'deviceMonthRub' => AccountPricing::deviceMonthRub(),
                 'deviceMaxMonths' => AccountPricing::deviceMaxMonths(),
                 'terms' => array_values(AccountPricing::terms()),
+                // Подарок по промокоду к первой оплате подписки (дни) — сервер добавит сам, здесь только для показа.
+                'bonusDays' => (int) $request->user()->promo_bonus_days,
             ],
         ]);
     }

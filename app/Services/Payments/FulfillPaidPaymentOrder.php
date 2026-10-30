@@ -7,6 +7,7 @@ use App\Models\PaymentOrder;
 use App\Models\Purchase;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\Promo\PromoCodeService;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Referral\ReferralLinkBuilder;
 use App\Services\Referral\ReferralRewardService;
@@ -61,10 +62,16 @@ final class FulfillPaidPaymentOrder
 
         // «Аккаунт = подписка»: любая оплата продлевает единственную подписку аккаунта (или создаёт первую).
         [$days, $extraDevices, $deviceDays] = $this->purchaseParts($order, $purpose);
-        $result = $this->account->applyPurchase($buyer, $days, $extraDevices, $deviceDays, (int) $order->id);
+        // Подарок по промокоду — к первой оплате, в которой есть срок подписки (докупка одних устройств его не тратит).
+        $bonusDays = $days > 0 ? PromoCodeService::takeFirstPaymentBonus($buyer) : 0;
+        $result = $this->account->applyPurchase($buyer, $days + $bonusDays, $extraDevices, $deviceDays, (int) $order->id);
 
         $renewed = $result['subscription'];
         $order->subscription_id = $renewed->id;
+        if ($bonusDays > 0) {
+            $order->bonus_days = $bonusDays;
+            $order->description = trim((string) $order->description).' + '.$bonusDays.' дн. в подарок ('.$buyer->registration_promo_code.')';
+        }
         $order->save();
 
         if ($result['created']) {

@@ -165,12 +165,26 @@
                     $promoKey = strtoupper((string) Auth::user()->registration_promo_code);
                     $promoDays = (int) (config('promo.codes.'.$promoKey.'.trial_days') ?: 7);
                     $promoDaysWord = ($promoDays % 10 === 1 && $promoDays % 100 !== 11) ? 'день' : (($promoDays % 10 >= 2 && $promoDays % 10 <= 4 && ($promoDays % 100 < 10 || $promoDays % 100 >= 20)) ? 'дня' : 'дней');
+                    $promoDevices = (int) config('promo.codes.'.$promoKey.'.devices', 0);
+                    $promoBonus = (int) Auth::user()->promo_bonus_days;
                 @endphp
                 <div class="lp-promo-welcome" role="dialog" aria-modal="true" aria-labelledby="lp-promo-welcome-title">
                     <div class="lp-promo-welcome__inner">
-                        <p id="lp-promo-welcome-title" class="lp-promo-welcome__title">
-                            Вам доступна тестовая подписка на {{ $promoDays }} {{ $promoDaysWord }}
-                        </p>
+                        @if ($promoBonus > 0)
+                            <p class="lp-promo-welcome__code">Промокод {{ $promoKey }} активирован</p>
+                            <p id="lp-promo-welcome-title" class="lp-promo-welcome__title lp-promo-welcome__title--compact">Ваши условия</p>
+                            <ul class="lp-promo-welcome__list">
+                                <li><b>{{ $promoDays }} {{ $promoDaysWord }}</b> полного доступа — уже сейчас, без оплаты</li>
+                                @if ($promoDevices > 0)
+                                    <li>До <b>{{ $promoDevices }} {{ $promoDevices === 1 ? 'устройства' : 'устройств' }}</b> на одной подписке</li>
+                                @endif
+                                <li><b>{{ $promoBonus === 30 ? '+1 месяц' : '+'.$promoBonus.' дн.' }} в подарок</b> при первой оплате подписки — к любому сроку, автоматически</li>
+                            </ul>
+                        @else
+                            <p id="lp-promo-welcome-title" class="lp-promo-welcome__title">
+                                Вам доступна тестовая подписка на {{ $promoDays }} {{ $promoDaysWord }}
+                            </p>
+                        @endif
                         <div class="lp-promo-welcome__actions">
                             <form method="POST" action="{{ route('cabinet.promo_welcome') }}">
                                 @csrf
@@ -212,6 +226,35 @@
                 text-align: center;
                 margin: 0 0 2rem;
                 line-height: 1.25;
+                color: #FF4500;
+            }
+            .lp-promo-welcome__code {
+                text-align: center;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: .06em;
+                font-size: .85rem;
+                margin: 0 0 .5rem;
+            }
+            .lp-promo-welcome__title--compact {
+                margin-bottom: 1.25rem;
+            }
+            .lp-promo-welcome__list {
+                list-style: none;
+                margin: 0 0 2rem;
+                padding: 0;
+                border: 3px solid #111;
+                background: #fff;
+            }
+            .lp-promo-welcome__list li {
+                padding: .9rem 1.1rem;
+                font-size: 1rem;
+                line-height: 1.4;
+            }
+            .lp-promo-welcome__list li + li {
+                border-top: 2px solid #111;
+            }
+            .lp-promo-welcome__list b {
                 color: #FF4500;
             }
             .lp-promo-welcome__actions {

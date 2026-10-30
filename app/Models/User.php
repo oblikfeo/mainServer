@@ -48,6 +48,7 @@ class User extends Authenticatable
             'telegram_bot_blocked_at' => 'datetime',
             'telegram_id' => 'integer',
             'promo_welcome_pending' => 'boolean',
+            'promo_bonus_days' => 'integer',
             'utm_campaign_at' => 'datetime',
         ];
     }

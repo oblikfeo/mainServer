@@ -17,6 +17,9 @@
                 @elseif ($state === 'inactive')
                     <span class="acc-chip acc-chip--orange">Не активна</span>
                 @endif
+                @if ($payConfig['bonusDays'] > 0)
+                    <span class="acc-chip acc-chip--orange">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к первой оплате</span>
+                @endif
             </div>
             <div class="acc-cards" id="acc-terms"></div>
         </div>
@@ -163,6 +166,7 @@
                 const lines = [];
                 let total = 0;
                 if (t) { lines.push(['Подписка · ' + t.label, t.amount_rub]); total += t.amount_rub; }
+                if (t && cfg.bonusDays > 0) lines.push(['🎁 Подарок по промокоду: +' + cfg.bonusDays + ' ' + plural(cfg.bonusDays, 'день', 'дня', 'дней'), 'бесплатно']);
                 if (t && overBase > 0) {
                     const over = overBase * t.months * cfg.deviceMonthRub;
                     lines.push(['Устройства сверх ' + (base - overBase) + ': ' + overBase + ' × ' + t.months + ' мес. × ' + rub(cfg.deviceMonthRub), over]);
@@ -173,7 +177,7 @@
                     lines.push([(term === '' ? 'Новые доп. устройства: ' : 'Доп. устройства: ') + paidExtraNow + ' × ' + months + ' мес. × ' + rub(cfg.deviceMonthRub), sum]);
                     total += sum;
                 }
-                $('acc-lines').innerHTML = lines.map((l) => '<div class="acc-sum__line"><span>' + l[0] + '</span><span>' + rub(l[1]) + '</span></div>').join('');
+                $('acc-lines').innerHTML = lines.map((l) => '<div class="acc-sum__line"><span>' + l[0] + '</span><span>' + (typeof l[1] === 'number' ? rub(l[1]) : l[1]) + '</span></div>').join('');
                 $('acc-total').textContent = rub(total);
 
                 let until = '';
@@ -182,7 +186,7 @@
                     if (cfg.active && !cfg.expiresAtIso) {
                         until = 'Подписка без срока';
                     } else {
-                        from.setDate(from.getDate() + t.days);
+                        from.setDate(from.getDate() + t.days + (cfg.bonusDays > 0 ? cfg.bonusDays : 0));
                         until = 'Подписка будет до ' + fmtDate(from);
                     }
                 } else if (cfg.active && cfg.expiresAt) {

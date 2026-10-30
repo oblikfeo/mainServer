@@ -176,7 +176,8 @@ final class MarketingStats
             return [
                 'code' => $code,
                 'active' => $def !== null,
-                'bonus' => $def !== null ? $trialDays.' дн. · '.((int) ($def['devices'] ?? config('trial_subscription.devices', 1))).' устр.' : 'код отключён',
+                'bonus' => $def !== null ? $trialDays.' дн. · '.((int) ($def['devices'] ?? config('trial_subscription.devices', 1))).' устр.'
+                    .((int) ($def['first_payment_bonus_days'] ?? 0) > 0 ? ' · +'.(int) $def['first_payment_bonus_days'].' дн. к 1-й оплате' : '') : 'код отключён',
                 'registrations_period' => $periodUsers->filter(fn ($u) => $codeOf($u) === $code)->count(),
                 'registrations_prev' => $prevUsers->filter(fn ($u) => $codeOf($u) === $code)->count(),
                 'registrations_all' => $n,
