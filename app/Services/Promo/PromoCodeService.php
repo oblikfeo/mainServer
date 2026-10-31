@@ -14,7 +14,11 @@ final class PromoCodeService
 
     public function normalize(?string $raw): string
     {
-        return strtoupper(trim((string) $raw));
+        // Русские буквы, похожие на латинские (ОСТ31 на русской раскладке → OCT31).
+        return strtr(mb_strtoupper(trim((string) $raw), 'UTF-8'), [
+            'А' => 'A', 'В' => 'B', 'Е' => 'E', 'К' => 'K', 'М' => 'M', 'Н' => 'H',
+            'О' => 'O', 'Р' => 'P', 'С' => 'C', 'Т' => 'T', 'У' => 'Y', 'Х' => 'X',
+        ]);
     }
 
     /**
