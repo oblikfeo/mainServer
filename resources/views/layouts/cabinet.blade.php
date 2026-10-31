@@ -17,13 +17,19 @@
         @include('partials.favicon')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @include('partials.lp-f1-styles')
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Syne:wght@800&display=swap" rel="stylesheet">
     </head>
     <body class="m-0 p-0">
         <div class="lp-f1 lp-f1-body lp-f1-cabinet" x-data="{ mobileNav: false }">
             <div class="lp-container lp-container--cabinet">
                 <header class="lp-header lp-cabinet-header">
                     <div class="lp-cabinet-header__row">
-                        <a href="{{ url('/') }}" class="lp-logo lp-cabinet-header__brand">{{ $brand }}</a>
+                        <a href="{{ url('/') }}" class="lp-brand-line lp-cabinet-header__brand" aria-label="{{ $brand }} VPN — на главную">
+                            <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
+                            <span class="lp-logo-vpn">VPN</span>
+                        </a>
 
                         <nav class="lp-cab-nav" aria-label="Разделы кабинета">
                             <a
@@ -132,7 +138,10 @@
                         @click.away="mobileNav = false"
                     >
                         <div class="flex items-center justify-between p-4 border-b-4 border-black">
-                            <span class="font-black uppercase text-sm tracking-tight">{{ $brand }}</span>
+                            <span class="lp-brand-line lp-brand-line--sm">
+                                <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
+                                <span class="lp-logo-vpn">VPN</span>
+                            </span>
                             <button type="button" class="lp-header-burger" @click="mobileNav = false" aria-label="Закрыть">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>

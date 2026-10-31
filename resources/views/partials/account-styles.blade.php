@@ -104,12 +104,12 @@
     .lp-f1 .acc-hero__days b { display: block; font-size: 3.5rem; line-height: 0.85; font-weight: 900; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
     @media (min-width: 640px) { .lp-f1 .acc-hero__days b { font-size: 5.5rem; } }
     .lp-f1 .acc-hero__days span { display: block; margin-top: 0.35rem; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; color: #fff; }
-    /* Пробный период — белый блок; скоро закончится — оранжевый; не активна — белый с серым */
+    /* Пробный период — белый чип; скоро закончится — синий, как стикер на главной (оранжевый — только кнопки); не активна — белый с серым */
     .lp-f1 .acc-hero--trial .acc-hero__chip { background: #fff; color: var(--acc-ink); }
-    .lp-f1 .acc-hero--soon { background: var(--acc-orange); box-shadow: 8px 8px 0 var(--acc-ink); }
+    .lp-f1 .acc-hero--soon { background: #2d31fa; box-shadow: 8px 8px 0 var(--acc-ink); }
     .lp-f1 .acc-hero--soon .acc-hero__chip { background: var(--acc-ink); }
-    .lp-f1 .acc-hero--soon .acc-hero__days { color: var(--acc-ink); }
-    .lp-f1 .acc-hero--soon .acc-hero__sub, .lp-f1 .acc-hero--soon .acc-hero__code { color: #fff; }
+    .lp-f1 .acc-hero--soon .acc-hero__days { color: #fff; }
+    .lp-f1 .acc-hero--soon .acc-hero__sub, .lp-f1 .acc-hero--soon .acc-hero__code { color: #dfe0ff; }
     .lp-f1 .acc-hero--inactive, .lp-f1 .acc-hero--none { background: #fff; color: var(--acc-ink); border: 4px solid var(--acc-ink); box-shadow: 8px 8px 0 var(--acc-ink); }
     .lp-f1 .acc-hero--inactive .acc-hero__chip, .lp-f1 .acc-hero--none .acc-hero__chip { background: var(--acc-ink); }
     .lp-f1 .acc-hero--inactive .acc-hero__sub, .lp-f1 .acc-hero--none .acc-hero__sub { color: var(--acc-muted); }

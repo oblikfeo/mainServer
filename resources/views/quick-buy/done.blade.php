@@ -24,7 +24,7 @@
 <div class="lp-f1 lp-f1-body">
     <div class="lp-container">
         <header class="lp-header lp-header-v2">
-            <div class="lp-header__bar">
+            <div class="lp-header__bar" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%;">
                 <a href="{{ url('/') }}" class="lp-brand-line" style="text-decoration:none;">
                     <span class="lp-logo-heavy">{{ mb_strtoupper($brand, 'UTF-8') }}</span>
                     <span class="lp-logo-vpn">VPN</span>
@@ -128,14 +128,17 @@
             </div>
         @endif
 
-        <footer class="lp-footer-mock" style="margin-top:40px;">
-            <div class="footer-bottom">
-                <span>Нужна помощь?</span>
-                <span><a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="text-inherit underline underline-offset-2">Telegram</a></span>
+        <section class="lp-buy-help" aria-label="Помощь">
+            <div class="lp-buy-help__title">Нужна помощь?</div>
+            <p class="lp-buy-help__text">Не получается подключиться или что-то непонятно — напишите нам, поможем с настройкой.</p>
+            <div class="lp-buy-done-actions">
+                <a href="#support-chat" data-support-chat-open class="lp-buy-done-btn">Чат поддержки</a>
+                <a href="{{ $tg }}" target="_blank" rel="noopener noreferrer" class="lp-buy-done-btn lp-buy-done-btn--secondary">Telegram</a>
             </div>
-        </footer>
+        </section>
     </div>
 </div>
+@include('views2::partials.support-widget')
 @endsection
 
 @push('scripts')

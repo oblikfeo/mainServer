@@ -674,6 +674,37 @@
         .lp-f1 .lp-cabinet-header__row { flex-wrap: nowrap; }
     }
     .lp-f1 .lp-cabinet-header__brand { text-decoration: none; color: inherit; }
+    /* Логотип как на главной (views2: lp-header-views2-styles) */
+    .lp-f1 .lp-brand-line { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .lp-f1 .lp-logo-heavy {
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-weight: 800;
+        font-size: clamp(1.125rem, 5.5vw, 1.5rem);
+        text-transform: uppercase;
+        letter-spacing: -1px;
+        color: var(--lp-ink);
+        line-height: 1;
+    }
+    .lp-f1 .lp-logo-vpn {
+        display: inline-flex;
+        align-items: center;
+        font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #fff;
+        background-color: var(--lp-orange);
+        border: 3px solid var(--lp-ink);
+        padding: 0.1rem 0.4rem;
+        line-height: 1;
+    }
+    @media (min-width: 1024px) {
+        .lp-f1 .lp-cabinet-header .lp-logo-heavy { font-size: 28px; letter-spacing: -1.5px; }
+        .lp-f1 .lp-cabinet-header .lp-logo-vpn { font-size: 1rem; }
+    }
+    .lp-f1 .lp-brand-line--sm .lp-logo-heavy { font-size: 1.15rem; }
+    .lp-f1 .lp-brand-line--sm .lp-logo-vpn { font-size: 0.75rem; border-width: 2px; }
     .lp-f1 .lp-cab-marquee {
         width: 100%;
         border-bottom: 4px solid var(--lp-ink);
@@ -744,6 +775,7 @@
         justify-content: center;
         flex: 1 1 auto;
         min-width: 0;
+        max-width: 40rem;
     }
     @media (min-width: 768px) {
         .lp-f1 .lp-cab-nav {
@@ -762,6 +794,13 @@
         text-decoration: none;
         color: var(--lp-ink);
         background: #fff;
+        /* Ровно 4 пункта в верхнем ряду, остальные (3) — по центру нижнего */
+        flex: 0 0 calc((100% - 3 * 0.35rem) / 4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        line-height: 1.2;
     }
     .lp-f1 .lp-cab-nav__link:hover { background: #f5f5f5; }
     .lp-f1 .lp-cab-nav__link--active {

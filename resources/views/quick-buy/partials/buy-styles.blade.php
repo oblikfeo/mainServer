@@ -302,13 +302,40 @@
     }
     .lp-buy-done-btn:hover {
         transform: translate(-2px, -2px);
-        box-shadow: 8px 8px 0 #1a1a1a;
+        box-shadow: 6px 6px 0 #1a1a1a;
+        background: #ff4d00;
         color: #fff;
     }
-    .lp-buy-done-btn--secondary {
+    .lp-buy-done-btn--secondary,
+    .lp-buy-done-btn--secondary:hover {
         background: #fff;
         color: #1a1a1a;
     }
+    .lp-buy-help {
+        margin: 40px auto 8px;
+        max-width: 34rem;
+        text-align: center;
+        padding: 24px 20px;
+        border: 3px solid #1a1a1a;
+        background: #fff;
+        box-shadow: 8px 8px 0 #1a1a1a;
+    }
+    .lp-buy-help__title {
+        font-family: "Syne", ui-sans-serif, system-ui, sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+        color: #1a1a1a;
+    }
+    .lp-buy-help__text {
+        margin: 10px 0 0;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #475569;
+    }
+    .lp-buy-help .lp-buy-done-actions { justify-content: center; }
     .lp-buy-done-creds {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 14px;
