@@ -224,7 +224,7 @@ final class MarketingStats
             ->map(fn ($u) => [
                 'email' => $this->maskEmail((string) $u->email),
                 'code' => $codeOf($u),
-                'at' => Carbon::parse($u->created_at)->timezone($tz),
+                'at' => Carbon::parse($u->created_at)->timezone('Asia/Omsk'),
                 'state' => match (true) {
                     $payingNow($u) => 'платит',
                     $trialNow($u) => 'пробный период',
