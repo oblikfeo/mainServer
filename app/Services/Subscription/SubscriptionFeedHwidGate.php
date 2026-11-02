@@ -90,13 +90,6 @@ final class SubscriptionFeedHwidGate
                 return SubscriptionFeedHwidVerdict::Allowed;
             }
 
-            [$hashes, $metaMap] = SubscriptionHwidBindingStore::dropSameIpAndType(
-                $hashes,
-                $metaMap,
-                $meta['ip'],
-                $meta['type'],
-            );
-
             if (count($hashes) >= $max) {
                 return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
             }
@@ -154,13 +147,6 @@ final class SubscriptionFeedHwidGate
 
                 return SubscriptionFeedHwidVerdict::Allowed;
             }
-
-            [$hashes, $metaMap] = SubscriptionHwidBindingStore::dropSameIpAndType(
-                $hashes,
-                $metaMap,
-                $meta['ip'],
-                $meta['type'],
-            );
 
             if (count($hashes) >= $max) {
                 return SubscriptionFeedHwidVerdict::DeviceLimitExceeded;
