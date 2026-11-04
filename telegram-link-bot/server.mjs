@@ -62,7 +62,7 @@ function mainKeyboard() {
     ['Личный кабинет'],
     ['Оплатить', 'Мои устройства'],
     ['🎁 Пробный доступ', 'Мои бонусы'],
-    ['Поддержка'],
+    ['🎫 Промокод', 'Поддержка'],
   ])
     .resize()
     .persistent();
@@ -78,7 +78,7 @@ function guestKeyboard() {
     .persistent();
 }
 
-const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|🎁 Пробный доступ|Мои бонусы|Поддержка)$/;
+const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|🎁 Пробный доступ|🎫 Промокод|Мои бонусы|Поддержка)$/;
 const GUEST_BUTTONS_RE = /^(У меня уже есть аккаунт|Новый пользователь|↩️ Начать сначала|Поддержка)$/;
 
 const inSupportMode = new Set();
@@ -86,14 +86,18 @@ const inSupportMode = new Set();
 const aiChats = new Map();
 const AI_HISTORY_MAX = 40;
 const pendingBroadcast = new Set();
+/** @type {Map<number, number>} chatId -> до какого момента следующее сообщение считается промокодом */
+const pendingPromo = new Map();
+const PROMO_WAIT_MS = 10 * 60 * 1000;
 
-/** Выход из любого режима поддержки (ИИ-ассистент и живой оператор) при переходе в другой раздел меню. */
+/** Выход из любого режима поддержки (ИИ-ассистент и живой оператор) и ввода промокода при переходе в другой раздел меню. */
 function leaveSupportModes(chatId) {
   if (chatId == null) {
     return;
   }
   inSupportMode.delete(chatId);
   aiChats.delete(chatId);
+  pendingPromo.delete(chatId);
 }
 /** @type {Map<number, number>} forwarded message id in group -> user private chat id */
 const supportReplyMap = new Map();
@@ -250,6 +254,8 @@ function payStatusLine(account) {
   return 'Подписка ещё не оформлена';
 }
 
+const promoBonusText = (days) => (days === 30 ? '+1 месяц' : `+${days} дн.`);
+
 const payBase = (ctxPay) => Number(ctxPay.account?.base_devices ?? ctxPay.catalog?.base_devices ?? 2);
 const payHave = (ctxPay) => payBase(ctxPay) + Number(ctxPay.account?.extra_devices ?? 0);
 const payMax = (ctxPay) => Number(ctxPay.account?.max_devices ?? ctxPay.catalog?.max_devices ?? 10);
@@ -382,6 +388,10 @@ function buildPayMethodView(ctxPay, n, termKey, months) {
         ? `Подписка · ${term.label} · ${have} устр. — ${payTermRub(ctxPay, term)} ₽`
         : `Подписка · ${term.label} — ${term.amount_rub} ₽`,
     );
+  }
+  const promoBonus = Number(ctxPay.account?.promo_bonus_days ?? 0);
+  if (term && promoBonus > 0) {
+    lines.push(`🎁 Подарок по промокоду: ${promoBonusText(promoBonus)} — бесплатно`);
   }
   if (extra > 0 && months > 0) {
     lines.push(`${termKey === 'none' ? 'Новые доп. устройства' : 'Доп. устройства'}: ${extra} × ${months} мес. — ${extra * months * perMonth} ₽`);
@@ -1102,6 +1112,51 @@ bot.hears('🎁 Пробный доступ', async (ctx) => {
   }
 });
 
+async function promoApi(action, body) {
+  const r = await apiFetch(`/internal/telegram/bot/promo/${action}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  let data = {};
+  try {
+    data = await r.json();
+  } catch {
+    data = {};
+  }
+  return { ok: r.ok, data };
+}
+
+bot.hears('🎫 Промокод', async (ctx) => {
+  leaveSupportModes(ctx.chat.id);
+  const uid = ctx.from?.id;
+  if (!uid) {
+    return;
+  }
+  if (!(await ensureLinked(ctx))) {
+    return;
+  }
+  try {
+    const { ok, data } = await promoApi('status', { telegram_user_id: uid });
+    if (!ok || !data.ok) {
+      await safeReply(ctx, 'Не удалось открыть раздел. Попробуйте через минуту.', mainKeyboard());
+      return;
+    }
+    if (data.blocked) {
+      await safeReply(ctx, String(data.message ?? 'Промокод сейчас недоступен.'), mainKeyboard());
+      return;
+    }
+    pendingPromo.set(ctx.chat.id, Date.now() + PROMO_WAIT_MS);
+    await safeReply(
+      ctx,
+      '🎫 Отправьте промокод следующим сообщением.\n\nПромокод вводится один раз на аккаунт, до первой оплаты. Передумали — просто нажмите любую кнопку меню.',
+      mainKeyboard()
+    );
+  } catch (e) {
+    console.error('promo status', e);
+    await safeReply(ctx, 'Сервис временно недоступен. Попробуйте через минуту.', mainKeyboard());
+  }
+});
+
 bot.hears('Оплатить', async (ctx) => {
   leaveSupportModes(ctx.chat.id);
   const uid = ctx.from?.id;
@@ -1322,6 +1377,7 @@ async function escalateToSupport(ctx, chatId, reason) {
 bot.hears('Поддержка', async (ctx) => {
   const chatId = ctx.chat.id;
   inSupportMode.delete(chatId);
+  pendingPromo.delete(chatId);
   aiChats.set(chatId, []);
   const uid = ctx.from?.id;
   const kb = uid ? await replyKeyboardForUser(uid) : guestKeyboard();
@@ -1350,6 +1406,75 @@ bot.action('ai:human', async (ctx) => {
     return; // уже в живой поддержке
   }
   await escalateToSupport(ctx, chatId, 'manual');
+});
+
+/** @type {Set<number>} uid с активацией промокода в процессе — защита от двойной отправки */
+const promoInFlight = new Set();
+
+// Текст после кнопки «🎫 Промокод» — это код. Стоит раньше ИИ-ассистента и поддержки.
+bot.on('message', async (ctx, next) => {
+  const chatId = ctx.chat?.id;
+  const uid = ctx.from?.id;
+  const waitUntil = chatId != null ? pendingPromo.get(chatId) : undefined;
+  if (ctx.chat?.type !== 'private' || !uid || waitUntil === undefined) {
+    return next();
+  }
+  if (Date.now() > waitUntil) {
+    pendingPromo.delete(chatId);
+    return next();
+  }
+  const code = ctx.message?.text?.trim() ?? '';
+  if (code === '') {
+    await safeReply(ctx, 'Отправьте промокод текстом.', mainKeyboard());
+    return;
+  }
+  if (code.startsWith('/')) {
+    return next();
+  }
+  if (promoInFlight.has(uid)) {
+    return;
+  }
+  promoInFlight.add(uid);
+  try {
+    const { ok, data } = await promoApi('redeem', { telegram_user_id: uid, code: code.slice(0, 64) });
+    if (ok && data.ok) {
+      pendingPromo.delete(chatId);
+      const parts = [`🎫 Промокод ${data.code} активирован!`];
+      if (data.expires_at) {
+        parts.push(`Доступ до: ${data.expires_at}`);
+      }
+      if (Number(data.devices) > 0) {
+        parts.push(`Устройств: ${Number(data.devices)}`);
+      }
+      if (Number(data.bonus_days) > 0) {
+        parts.push(
+          `🎁 ${promoBonusText(Number(data.bonus_days))} в подарок при первой оплате подписки — к любому сроку, автоматически.`
+        );
+      }
+      if (data.subscription_url) {
+        parts.push('', 'Ваша ссылка подписки:', data.subscription_url, '');
+        parts.push('Скопируйте ссылку и добавьте её в приложение Happ как подписку — интернет заработает сразу.');
+      }
+      await safeReply(ctx, parts.join('\n'), mainKeyboard());
+      return;
+    }
+    if (data.error !== 'not_found') {
+      pendingPromo.delete(chatId);
+    }
+    await safeReply(
+      ctx,
+      typeof data.message === 'string'
+        ? data.message
+        : 'Не удалось активировать промокод. Попробуйте позже или напишите в поддержку.',
+      mainKeyboard()
+    );
+  } catch (e) {
+    console.error('promo redeem', e);
+    pendingPromo.delete(chatId);
+    await safeReply(ctx, 'Сервис временно недоступен. Попробуйте через минуту.', mainKeyboard());
+  } finally {
+    promoInFlight.delete(uid);
+  }
 });
 
 // Диалог с ИИ-ассистентом (режим «Поддержка» до перевода на человека).

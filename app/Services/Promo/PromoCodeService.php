@@ -3,8 +3,10 @@
 namespace App\Services\Promo;
 
 use App\Models\User;
+use App\Services\Subscription\CreatedSubscriptionResult;
 use App\Services\Subscription\TrialSubscriptionIssuer;
 use App\Services\Xui\XuiPanelException;
+use Illuminate\Support\Facades\DB;
 
 final class PromoCodeService
 {
@@ -54,15 +56,65 @@ final class PromoCodeService
             return;
         }
 
+        $this->apply($user, $code, $def, (bool) ($def['welcome_popup'] ?? false));
+    }
+
+    /**
+     * Почему уже существующему аккаунту нельзя ввести код: already_used, has_paid или null, если можно.
+     * Как и на сайте, код один на аккаунт и только для тех, кто ещё не платил.
+     */
+    public function blockedReason(User $user): ?string
+    {
+        if (filled($user->registration_promo_code)) {
+            return 'already_used';
+        }
+
+        return $user->hasEverPaid() ? 'has_paid' : null;
+    }
+
+    /**
+     * Ввод кода в уже созданном аккаунте (Telegram-бот). Условия показывает сам бот, поэтому окно в кабинете не включаем.
+     * Строка аккаунта блокируется, чтобы двойная отправка не выдала код дважды.
+     *
+     * @return CreatedSubscriptionResult|null null — код уже нельзя применить (проверить blockedReason)
+     *
+     * @throws XuiPanelException
+     */
+    public function redeemForAccount(User $user, string $code): ?CreatedSubscriptionResult
+    {
+        $def = $this->definition($code);
+        if ($def === null) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($user, $code, $def): ?CreatedSubscriptionResult {
+            $locked = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+            if ($this->blockedReason($locked) !== null) {
+                return null;
+            }
+
+            return $this->apply($locked, $code, $def, false);
+        });
+    }
+
+    /**
+     * @param  array{trial_days?: int, devices?: int, first_payment_bonus_days?: int, welcome_popup?: bool}  $def
+     *
+     * @throws XuiPanelException
+     */
+    private function apply(User $user, string $code, array $def, bool $welcomePopup): CreatedSubscriptionResult
+    {
         $days = max(1, (int) ($def['trial_days'] ?? 0));
         $devices = isset($def['devices']) ? max(1, (int) $def['devices']) : null;
-        $this->issuer->issueFromPromo($user, $days, $code, $devices);
+        $result = $this->issuer->issueFromPromo($user, $days, $code, $devices);
 
         $user->forceFill([
             'registration_promo_code' => $code,
-            'promo_welcome_pending' => (bool) ($def['welcome_popup'] ?? false),
+            'promo_welcome_pending' => $welcomePopup,
             'promo_bonus_days' => max(0, (int) ($def['first_payment_bonus_days'] ?? 0)),
         ])->save();
+
+        return $result;
     }
 
     /**

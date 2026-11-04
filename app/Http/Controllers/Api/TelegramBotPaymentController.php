@@ -113,6 +113,7 @@ final class TelegramBotPaymentController extends Controller
                 'over_base_devices' => AccountPricing::overBaseDevices($sub),
                 'max_devices' => (int) $account['base_devices'] + (int) $account['max_extra'],
                 'extra_slots' => $slots,
+                'promo_bonus_days' => (int) $user->promo_bonus_days,
             ],
             'items' => $items,
         ]);

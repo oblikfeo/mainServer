@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TelegramBotPaymentController;
 use App\Http\Controllers\Api\TelegramBotMarkBlockedController;
 use App\Http\Controllers\Api\TelegramBotMirrorController;
 use App\Http\Controllers\Api\TelegramBotNetworkController;
+use App\Http\Controllers\Api\TelegramBotPromoController;
 use App\Http\Controllers\Api\TelegramBotReferralController;
 use App\Http\Controllers\Api\TelegramBotRegisterController;
 use App\Http\Controllers\Api\TelegramBotStatusController;
@@ -75,6 +76,14 @@ Route::middleware(['telegram.link.internal', 'throttle:120,1'])
 Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->post('/internal/telegram/bot/trial/issue', [TelegramBotTrialController::class, 'issue'])
     ->name('api.telegram.bot.trial.issue');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/promo/status', [TelegramBotPromoController::class, 'status'])
+    ->name('api.telegram.bot.promo.status');
+
+Route::middleware(['telegram.link.internal', 'throttle:120,1'])
+    ->post('/internal/telegram/bot/promo/redeem', [TelegramBotPromoController::class, 'redeem'])
+    ->name('api.telegram.bot.promo.redeem');
 
 Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->post('/internal/telegram/bot/chat', [TelegramBotChatController::class, 'reply'])
