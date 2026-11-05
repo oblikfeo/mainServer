@@ -78,10 +78,6 @@ Route::middleware(['telegram.link.internal', 'throttle:30,1'])
     ->name('api.telegram.bot.trial.issue');
 
 Route::middleware(['telegram.link.internal', 'throttle:120,1'])
-    ->post('/internal/telegram/bot/promo/status', [TelegramBotPromoController::class, 'status'])
-    ->name('api.telegram.bot.promo.status');
-
-Route::middleware(['telegram.link.internal', 'throttle:120,1'])
     ->post('/internal/telegram/bot/promo/redeem', [TelegramBotPromoController::class, 'redeem'])
     ->name('api.telegram.bot.promo.redeem');
 

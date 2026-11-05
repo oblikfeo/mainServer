@@ -2,6 +2,7 @@
 
 namespace App\Services\Promo;
 
+use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Subscription\CreatedSubscriptionResult;
 use App\Services\Subscription\TrialSubscriptionIssuer;
@@ -60,8 +61,8 @@ final class PromoCodeService
     }
 
     /**
-     * Почему уже существующему аккаунту нельзя ввести код: already_used, has_paid или null, если можно.
-     * Как и на сайте, код один на аккаунт и только для тех, кто ещё не платил.
+     * Почему код уже нельзя применить: already_used, not_new или null, если можно.
+     * Как и на сайте, код вводится только при регистрации: у аккаунта ещё не было ни подписки, ни пробного, ни оплаты.
      */
     public function blockedReason(User $user): ?string
     {
@@ -69,11 +70,16 @@ final class PromoCodeService
             return 'already_used';
         }
 
-        return $user->hasEverPaid() ? 'has_paid' : null;
+        $id = (int) $user->id;
+        $used = Subscription::query()->where('user_id', $id)->orWhere('archived_from_user_id', $id)->exists()
+            || $user->testKeys()->exists()
+            || $user->paymentOrders()->where('status', 'paid')->exists();
+
+        return $used ? 'not_new' : null;
     }
 
     /**
-     * Ввод кода в уже созданном аккаунте (Telegram-бот). Условия показывает сам бот, поэтому окно в кабинете не включаем.
+     * Ввод кода в окне после регистрации в Telegram-боте. Условия показывает сам бот, поэтому окно в кабинете не включаем.
      * Строка аккаунта блокируется, чтобы двойная отправка не выдала код дважды.
      *
      * @return CreatedSubscriptionResult|null null — код уже нельзя применить (проверить blockedReason)

@@ -62,7 +62,7 @@ function mainKeyboard() {
     ['Личный кабинет'],
     ['Оплатить', 'Мои устройства'],
     ['🎁 Пробный доступ', 'Мои бонусы'],
-    ['🎫 Промокод', 'Поддержка'],
+    ['Поддержка'],
   ])
     .resize()
     .persistent();
@@ -78,7 +78,7 @@ function guestKeyboard() {
     .persistent();
 }
 
-const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|🎁 Пробный доступ|🎫 Промокод|Мои бонусы|Поддержка)$/;
+const MENU_BUTTONS_RE = /^(Личный кабинет|Оплатить|Мои устройства|🎁 Пробный доступ|Мои бонусы|Поддержка)$/;
 const GUEST_BUTTONS_RE = /^(У меня уже есть аккаунт|Новый пользователь|↩️ Начать сначала|Поддержка)$/;
 
 const inSupportMode = new Set();
@@ -703,6 +703,9 @@ async function registerNewUser(ctx) {
 
     if (r.ok && j.ok && j.message_for_chat) {
       await safeSendMessage(chatId, j.message_for_chat, mainKeyboard());
+      if (j.created === true) {
+        await showPromoWindow(chatId);
+      }
       return;
     }
 
@@ -1112,10 +1115,10 @@ bot.hears('🎁 Пробный доступ', async (ctx) => {
   }
 });
 
-async function promoApi(action, body) {
-  const r = await apiFetch(`/internal/telegram/bot/promo/${action}`, {
+async function redeemPromo(uid, code) {
+  const r = await apiFetch('/internal/telegram/bot/promo/redeem', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify({ telegram_user_id: uid, code }),
   });
   let data = {};
   try {
@@ -1126,35 +1129,38 @@ async function promoApi(action, body) {
   return { ok: r.ok, data };
 }
 
-bot.hears('🎫 Промокод', async (ctx) => {
-  leaveSupportModes(ctx.chat.id);
-  const uid = ctx.from?.id;
-  if (!uid) {
+/** Окно после создания аккаунта: промокод, как и на сайте, вводится только при регистрации. */
+async function showPromoWindow(chatId) {
+  await safeSendMessage(chatId, '🎫 Есть промокод?\n\nВведите его сейчас — позже такой возможности не будет.', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🎫 Ввести промокод', callback_data: 'pm:enter' }],
+        [{ text: 'Пропустить', callback_data: 'pm:skip' }],
+      ],
+    },
+  });
+}
+
+bot.action('pm:enter', async (ctx) => {
+  await ctx.answerCbQuery();
+  const chatId = ctx.chat?.id;
+  if (!chatId) {
     return;
   }
-  if (!(await ensureLinked(ctx))) {
-    return;
+  leaveSupportModes(chatId);
+  pendingPromo.set(chatId, Date.now() + PROMO_WAIT_MS);
+  await editPayView(ctx, {
+    text: '🎫 Отправьте промокод следующим сообщением.',
+    keyboard: [[{ text: 'Пропустить', callback_data: 'pm:skip' }]],
+  });
+});
+
+bot.action('pm:skip', async (ctx) => {
+  await ctx.answerCbQuery();
+  if (ctx.chat?.id) {
+    pendingPromo.delete(ctx.chat.id);
   }
-  try {
-    const { ok, data } = await promoApi('status', { telegram_user_id: uid });
-    if (!ok || !data.ok) {
-      await safeReply(ctx, 'Не удалось открыть раздел. Попробуйте через минуту.', mainKeyboard());
-      return;
-    }
-    if (data.blocked) {
-      await safeReply(ctx, String(data.message ?? 'Промокод сейчас недоступен.'), mainKeyboard());
-      return;
-    }
-    pendingPromo.set(ctx.chat.id, Date.now() + PROMO_WAIT_MS);
-    await safeReply(
-      ctx,
-      '🎫 Отправьте промокод следующим сообщением.\n\nПромокод вводится один раз на аккаунт, до первой оплаты. Передумали — просто нажмите любую кнопку меню.',
-      mainKeyboard()
-    );
-  } catch (e) {
-    console.error('promo status', e);
-    await safeReply(ctx, 'Сервис временно недоступен. Попробуйте через минуту.', mainKeyboard());
-  }
+  await editPayView(ctx, { text: 'Хорошо, продолжаем без промокода. Меню — внизу экрана.', keyboard: [] });
 });
 
 bot.hears('Оплатить', async (ctx) => {
@@ -1411,7 +1417,7 @@ bot.action('ai:human', async (ctx) => {
 /** @type {Set<number>} uid с активацией промокода в процессе — защита от двойной отправки */
 const promoInFlight = new Set();
 
-// Текст после кнопки «🎫 Промокод» — это код. Стоит раньше ИИ-ассистента и поддержки.
+// Текст после кнопки «Ввести промокод» — это код. Стоит раньше ИИ-ассистента и поддержки.
 bot.on('message', async (ctx, next) => {
   const chatId = ctx.chat?.id;
   const uid = ctx.from?.id;
@@ -1436,7 +1442,7 @@ bot.on('message', async (ctx, next) => {
   }
   promoInFlight.add(uid);
   try {
-    const { ok, data } = await promoApi('redeem', { telegram_user_id: uid, code: code.slice(0, 64) });
+    const { ok, data } = await redeemPromo(uid, code.slice(0, 64));
     if (ok && data.ok) {
       pendingPromo.delete(chatId);
       const parts = [`🎫 Промокод ${data.code} активирован!`];

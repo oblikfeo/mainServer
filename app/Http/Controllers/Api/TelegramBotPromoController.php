@@ -9,37 +9,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Раздел «Промокод» в Telegram-боте. Коды те же, что на /promo (config/promo.php);
- * условия тоже: один код на аккаунт и только до первой оплаты.
+ * Окно «Есть промокод?» после регистрации в Telegram-боте. Коды те же, что на /promo (config/promo.php);
+ * условие тоже: код вводится только при регистрации нового аккаунта.
  */
 final class TelegramBotPromoController extends Controller
 {
-    private const NOT_LINKED = [
-        'ok' => false,
-        'error' => 'not_linked',
-        'message' => 'Telegram не привязан к аккаунту. Откройте Личный кабинет на сайте и привяжите Telegram.',
-    ];
-
-    public function status(Request $request, PromoCodeService $promo): JsonResponse
-    {
-        $data = $request->validate([
-            'telegram_user_id' => ['required', 'integer'],
-        ]);
-
-        $user = User::query()->where('telegram_id', (int) $data['telegram_user_id'])->first();
-        if ($user === null) {
-            return response()->json(self::NOT_LINKED, 404);
-        }
-
-        $blocked = $promo->blockedReason($user);
-
-        return response()->json([
-            'ok' => true,
-            'blocked' => $blocked,
-            'message' => $blocked !== null ? self::blockedMessage($user, $blocked) : null,
-        ]);
-    }
-
     public function redeem(Request $request, PromoCodeService $promo): JsonResponse
     {
         $data = $request->validate([
@@ -49,12 +23,16 @@ final class TelegramBotPromoController extends Controller
 
         $user = User::query()->where('telegram_id', (int) $data['telegram_user_id'])->first();
         if ($user === null) {
-            return response()->json(self::NOT_LINKED, 404);
+            return response()->json([
+                'ok' => false,
+                'error' => 'not_linked',
+                'message' => 'Telegram не привязан к аккаунту. Откройте Личный кабинет на сайте и привяжите Telegram.',
+            ], 404);
         }
 
         $blocked = $promo->blockedReason($user);
         if ($blocked !== null) {
-            return self::blockedResponse($user, $blocked);
+            return self::blockedResponse($blocked);
         }
 
         $code = $promo->normalize($data['code']);
@@ -81,7 +59,7 @@ final class TelegramBotPromoController extends Controller
         $user->refresh();
         if ($result === null) {
             // Вторая отправка, пришедшая одновременно с первой.
-            return self::blockedResponse($user, (string) $promo->blockedReason($user));
+            return self::blockedResponse((string) $promo->blockedReason($user));
         }
 
         return response()->json([
@@ -96,27 +74,14 @@ final class TelegramBotPromoController extends Controller
         ]);
     }
 
-    private static function blockedResponse(User $user, string $reason): JsonResponse
+    private static function blockedResponse(string $reason): JsonResponse
     {
         return response()->json([
             'ok' => false,
             'error' => $reason,
-            'message' => self::blockedMessage($user, $reason),
+            'message' => $reason === 'already_used'
+                ? 'Промокод уже активирован. На один аккаунт действует один промокод.'
+                : 'Промокод вводится только при регистрации нового аккаунта.',
         ], 422);
-    }
-
-    private static function blockedMessage(User $user, string $reason): string
-    {
-        if ($reason !== 'already_used') {
-            return 'Промокоды действуют только до первой оплаты подписки.';
-        }
-
-        $message = 'На вашем аккаунте уже активирован промокод '.$user->registration_promo_code.'. На один аккаунт действует один промокод.';
-        $bonus = (int) $user->promo_bonus_days;
-        if ($bonus > 0) {
-            $message .= "\n\n🎁 ".($bonus === 30 ? '+1 месяц' : '+'.$bonus.' дн.').' в подарок ждёт вас при первой оплате подписки — начислится автоматически.';
-        }
-
-        return $message;
     }
 }

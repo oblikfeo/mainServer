@@ -127,12 +127,9 @@ final class AccountSubscription
             DeviceSlots::settle($sub);
             $this->calendar->addCalendarDays($sub, $hours / 24);
             $sub->refresh();
-            // Код поверх уже взятого пробного: устройств столько, сколько обещает код (0 — без лимита, не трогаем).
-            // Метку promo_code здесь не ставим: с ней пробный считался бы промо-триалом и самовыдача открылась бы снова.
-            if ($promoCode !== null && $promoCode !== '' && $sub->is_trial && (int) $sub->devices > 0 && $devices > (int) $sub->devices) {
-                $sub->devices = $devices;
+            if ($promoCode !== null && $promoCode !== '') {
+                $sub->promo_code = $promoCode;
                 $sub->save();
-                $this->limitIpSync->syncForSubscription($sub);
             }
 
             return ['subscription' => $sub->fresh(), 'created' => false];
