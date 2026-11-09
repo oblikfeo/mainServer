@@ -177,7 +177,7 @@ final class AutoSubscriptionFeedRenderer
         ));
 
         $doc = $base;
-        $doc['remarks'] = (string) ($cfg['lte_remarks'] ?? '📶 АВТО МОБИЛЬНЫЙ ИНТЕРНЕТ');
+        $doc['remarks'] = (string) ($cfg['lte_remarks'] ?? '🇪🇺 АВТО LTE / 5G');
         $doc['outbounds'] = [...$lte, ['tag' => 'direct', 'protocol' => 'freedom'], ['tag' => 'block', 'protocol' => 'blackhole']];
         $doc['observatory']['subjectSelector'] = ['proxy-lte-'];
         $doc['routing'] = [
