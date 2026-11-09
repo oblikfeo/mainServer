@@ -31,7 +31,15 @@ final class AutoSubscriptionFeedRenderer
         }
 
         try {
-            $docs = $this->wantsSeparateNodes($sub) ? $this->buildSeparateConfigs() : [$this->buildConfig()];
+            if ($this->wantsSeparateNodes($sub)) {
+                $docs = $this->buildSeparateConfigs();
+            } else {
+                $docs = [$this->buildConfig()];
+                $lteOnly = $this->buildLteOnlyConfig();
+                if ($lteOnly !== null) {
+                    $docs[] = $lteOnly;
+                }
+            }
             $docs = [...$docs, ...$this->buildExtraConfigs()];
         } catch (Throwable $e) {
             Log::warning('subscription.auto.error', [
@@ -142,6 +150,48 @@ final class AutoSubscriptionFeedRenderer
             ],
             'routing' => ['domainStrategy' => 'AsIs', 'balancers' => $balancers, 'rules' => $rules],
         ];
+    }
+
+    /**
+     * Вторая кнопка «Авто» только из пула LTE (анти-глушилки): на сотовой сети не тратит время на пул Wi-Fi.
+     * Самый быстрый живой узел (leastPing); пока проверка не дала результата — сразу первый узел, без ожидания.
+     * null — если пул LTE пуст или Wi-Fi пуст (тогда основная кнопка и так только LTE).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function buildLteOnlyConfig(): ?array
+    {
+        $cfg = config('xui.sub_auto', []);
+        if (! ($cfg['lte_button'] ?? true)) {
+            return null;
+        }
+        $lte = $this->convertPool((array) ($cfg['lte'] ?? []), 'proxy-lte-');
+        if ($lte === [] || (array) ($cfg['wifi'] ?? []) === []) {
+            return null;
+        }
+
+        $base = $this->buildConfig();
+        $directRules = array_values(array_filter(
+            $base['routing']['rules'],
+            static fn (array $r): bool => ($r['outboundTag'] ?? '') === 'direct' || ($r['outboundTag'] ?? '') === 'block',
+        ));
+
+        $doc = $base;
+        $doc['remarks'] = (string) ($cfg['lte_remarks'] ?? '📶 АВТО МОБИЛЬНЫЙ ИНТЕРНЕТ');
+        $doc['outbounds'] = [...$lte, ['tag' => 'direct', 'protocol' => 'freedom'], ['tag' => 'block', 'protocol' => 'blackhole']];
+        $doc['observatory']['subjectSelector'] = ['proxy-lte-'];
+        $doc['routing'] = [
+            'domainStrategy' => 'AsIs',
+            'balancers' => [[
+                'tag' => 'lte-auto',
+                'selector' => ['proxy-lte-'],
+                'strategy' => ['type' => 'leastPing'],
+                'fallbackTag' => (string) $lte[0]['tag'],
+            ]],
+            'rules' => [...$directRules, ['type' => 'field', 'network' => 'tcp,udp', 'balancerTag' => 'lte-auto', 'ruleTag' => 'default']],
+        ];
+
+        return $doc;
     }
 
     /**

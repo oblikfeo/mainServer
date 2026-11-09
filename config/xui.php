@@ -293,6 +293,9 @@ return [
     'sub_auto' => [
         'remarks' => trim((string) env('SUB_AUTO_REMARKS', '🚀 Авто')),
         'probe_interval' => trim((string) env('SUB_AUTO_PROBE_INTERVAL', '20s')),
+        /** Вторая кнопка «Авто» только из пула LTE (анти-глушилки), сразу после основной. */
+        'lte_button' => filter_var(env('SUB_AUTO_LTE_BUTTON', true), FILTER_VALIDATE_BOOLEAN),
+        'lte_remarks' => trim((string) env('SUB_AUTO_LTE_REMARKS', '📶 АВТО МОБИЛЬНЫЙ ИНТЕРНЕТ')),
         /** roundRobin — поровну по живым узлам; leastPing — все на самый быстрый. */
         'wifi_strategy' => trim((string) env('SUB_AUTO_WIFI_STRATEGY', 'roundRobin')),
         /** Почты клиентов (через запятую), которым вместо «Авто» отдаются отдельные кнопки на каждый узел. */
