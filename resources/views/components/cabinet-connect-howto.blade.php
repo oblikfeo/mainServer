@@ -1,5 +1,5 @@
 @php
-    $androidAppUrl = config('marketing.apps.android_url', 'https://play.google.com/store/apps/details?id=com.happproxy');
+    $androidAppUrl = config('marketing.apps.android_url', 'https://www.happ.su/main/ru');
     $desktopAppUrl = config('marketing.apps.desktop_url', 'https://www.happ.su/main/ru');
     $newsTgUrl = 'https://t.me/Nadezhda_VPN';
 @endphp
