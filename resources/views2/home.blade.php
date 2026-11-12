@@ -123,6 +123,7 @@
             <div class="lp-pricing-head-mock">
                 <h2 class="lp-section-title">Понятные цены</h2>
             </div>
+            @include('partials.promo-banner', ['mode' => 'home'])
             <div class="pricing-container">
                 @include('views2::partials.pricing-mock-plaques')
             </div>

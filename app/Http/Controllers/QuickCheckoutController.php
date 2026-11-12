@@ -43,18 +43,21 @@ final class QuickCheckoutController extends Controller
         ]);
 
         // Новый аккаунт: доп. устройства оплачиваются на тот же срок, что и подписка.
+        $isPromo = (string) $data['term'] === AccountPricing::PROMO_KEY;
         $term = AccountPricing::terms()[(string) $data['term']] ?? null;
-        if ($term === null) {
+        if ($term === null && ! $isPromo) {
             return response()->json(['error' => 'unknown_tariff'], 422);
         }
         $devices = max(AccountPricing::baseDevices(), (int) ($data['devices'] ?? 0));
         try {
-            $quote = AccountOrderFactory::quote(
-                null,
-                $term['key'],
-                $devices,
-                $devices > AccountPricing::baseDevices() ? $term['months'] : 0,
-            );
+            $quote = $isPromo
+                ? AccountPricing::promoQuote(null)
+                : AccountOrderFactory::quote(
+                    null,
+                    $term['key'],
+                    $devices,
+                    $devices > AccountPricing::baseDevices() ? $term['months'] : 0,
+                );
         } catch (InvalidArgumentException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }

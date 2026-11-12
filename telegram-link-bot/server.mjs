@@ -309,13 +309,56 @@ function buildPayDevicesView(ctxPay) {
   if (row.length > 0) {
     keyboard.push(row);
   }
+  const promo = payPromo(ctxPay);
+  if (promo) {
+    keyboard.unshift([{ text: `🔥 Акция: ${promo.label} · ${promo.amount_rub} ₽`, callback_data: 'py:p' }]);
+  }
   return {
     text:
       `💳 Оплата\n\n${payStatusLine(ctxPay.account)}\n` +
       `Устройств сейчас: ${have}\n\n` +
+      (promo
+        ? `🔥 Акция: ${promo.label} — ${promo.amount_rub} ₽ вместо ${promo.regular_rub} ₽.\n\n`
+        : '') +
       `В подписку входит ${base} устр. Каждое дополнительное — ${perMonth} ₽ в месяц.\n\n` +
       'Сколько устройств нужно?',
     keyboard,
+  };
+}
+
+/** Акция «месяц + 10 устройств», если она есть и подходит этой подписке. */
+function payPromo(ctxPay) {
+  const promo = ctxPay.catalog?.promo;
+  return promo && ctxPay.account?.promo_available ? promo : null;
+}
+
+/** Акция: итог и способ оплаты. */
+function buildPayPromoView(ctxPay) {
+  const promo = payPromo(ctxPay);
+  if (!promo) {
+    return buildPayHomeView(ctxPay);
+  }
+  const lines = [
+    `🔥 Акция: ${promo.label}`,
+    '',
+    `• подписка на ${promo.days} дней`,
+    `• до ${promo.devices} устройств одновременно`,
+    '• трафик без лимита',
+  ];
+  if (payLive(ctxPay) && ctxPay.account?.expires) {
+    lines.push('', `Срок добавится к текущему (сейчас до ${ctxPay.account.expires}).`);
+  }
+  const promoBonus = Number(ctxPay.account?.promo_bonus_days ?? 0);
+  if (promoBonus > 0) {
+    lines.push(`🎁 Подарок по промокоду: ${promoBonusText(promoBonus)} — бесплатно`);
+  }
+  return {
+    text: `${lines.join('\n')}\n\nИтого: ${promo.amount_rub} ₽ (вместо ${promo.regular_rub} ₽)\n\nВыберите способ оплаты:`,
+    keyboard: [
+      [{ text: '📱 СБП', callback_data: 'py:x:0:promo:0:sbp' }],
+      [{ text: '💳 Картой', callback_data: 'py:x:0:promo:0:card' }],
+      [{ text: '← Назад', callback_data: 'py:0' }],
+    ],
   };
 }
 
@@ -1195,6 +1238,14 @@ bot.action(/^py:(0|1|2|n:.*|nt:.*|rs:.*|rt:.*|x:[nr]:.*)$/, async (ctx) => {
   const ctxPay = await payContextOrShowError(ctx);
   if (ctxPay) {
     await editPayView(ctx, buildPayHomeView(ctxPay));
+  }
+});
+
+bot.action('py:p', async (ctx) => {
+  await ctx.answerCbQuery();
+  const ctxPay = await payContextOrShowError(ctx);
+  if (ctxPay) {
+    await editPayView(ctx, buildPayPromoView(ctxPay));
   }
 });
 

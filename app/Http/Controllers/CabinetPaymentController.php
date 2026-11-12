@@ -40,6 +40,8 @@ class CabinetPaymentController extends Controller
                 // Подарок по промокоду к первой оплате подписки (дни) — сервер добавит сам, здесь только для показа.
                 'bonusDays' => (int) $request->user()->promo_bonus_days,
             ],
+            // Акция «месяц + 10 устройств»; null — выключена или этой подписке не подходит.
+            'promo' => AccountPricing::promoAvailableFor($account['subscription']) ? AccountPricing::promo() : null,
         ]);
     }
 }

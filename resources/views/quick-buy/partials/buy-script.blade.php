@@ -109,6 +109,12 @@
         const term = btn.getAttribute('data-term') || '';
         if (!term) return;
 
+        if (term === 'promo') {
+            // Акция: число устройств и цена фиксированы.
+            openEmailModal(term, Number(btn.getAttribute('data-promo-amount') || 0));
+            pendingTariff.devices = Number(btn.getAttribute('data-promo-devices') || 0);
+            return;
+        }
         openEmailModal(term, termAmount(btn));
     }, { passive: true });
 

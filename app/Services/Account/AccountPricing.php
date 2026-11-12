@@ -190,9 +190,98 @@ final class AccountPricing
         ];
     }
 
+    /** Ключ акции в выборе срока (term) — во всех точках оплаты: ЛК, /buy, бот. */
+    public const PROMO_KEY = 'promo';
+
+    /**
+     * Акция «месяц + N устройств за фиксированную цену» или null, если выключена.
+     *
+     * @return array{key: string, label: string, months: int, days: int, devices: int, amount_rub: int, regular_rub: int, saving_rub: int}|null
+     */
+    public static function promo(): ?array
+    {
+        $p = self::config()['promo'] ?? null;
+        if (! is_array($p) || ! ($p['enabled'] ?? false)) {
+            return null;
+        }
+        $amount = (int) ($p['amount_rub'] ?? 0);
+        $days = (int) ($p['days'] ?? 0);
+        $devices = min(self::maxDevices(), (int) ($p['devices'] ?? 0));
+        $months = max(1, (int) ($p['months'] ?? 1));
+        if ($amount < 1 || $days < 1 || $devices <= self::baseDevices()) {
+            return null;
+        }
+        // Обычная цена того же набора: подписка на месяц + доп. устройства на месяц.
+        $monthTerm = collect(self::terms())->firstWhere('months', $months);
+        $regular = (int) ($monthTerm['amount_rub'] ?? 0) + ($devices - self::baseDevices()) * $months * self::deviceMonthRub();
+
+        return [
+            'key' => self::PROMO_KEY,
+            'label' => (string) ($p['label'] ?? ''),
+            'months' => $months,
+            'days' => $days,
+            'devices' => $devices,
+            'amount_rub' => $amount,
+            'regular_rub' => $regular,
+            'saving_rub' => max(0, $regular - $amount),
+        ];
+    }
+
+    /** Можно ли этой подписке (null — новый аккаунт) купить акцию. */
+    public static function promoAvailableFor(?Subscription $sub): bool
+    {
+        $promo = self::promo();
+        if ($promo === null) {
+            return false;
+        }
+        if ($sub === null) {
+            return true;
+        }
+        $base = (int) $sub->devices;
+        if ($base <= 0 || $base >= $promo['devices']) {
+            return false; // без лимита устройств или и так больше — акция ничего не даёт
+        }
+
+        // Подписка без срока: продлевать нечего.
+        return ! (DeviceSlots::subscriptionActive($sub) && (int) $sub->expiry_ms <= 0);
+    }
+
+    /**
+     * Расчёт заказа по акции: срок на месяц + доп. устройства до promo.devices на тот же месяц.
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function promoQuote(?Subscription $sub): array
+    {
+        $promo = self::promo();
+        if ($promo === null || ! self::promoAvailableFor($sub)) {
+            throw new InvalidArgumentException('promo_unavailable');
+        }
+        // Пробная подписка (1 устройство) при оплате становится обычной с базовыми устройствами.
+        $base = max(self::baseDevices(), $sub !== null ? (int) $sub->devices : 0);
+        $extra = max(0, $promo['devices'] - $base);
+
+        return [
+            'term' => self::PROMO_KEY,
+            'term_label' => 'Акция · '.$promo['label'],
+            'days' => $promo['days'],
+            'base_rub' => $promo['amount_rub'],
+            'over_base_devices' => 0,
+            'over_base_rub' => 0,
+            'extra_devices' => $extra,
+            'device_months' => $promo['months'],
+            'device_days' => $promo['days'],
+            'devices_rub' => 0,
+            'amount_rub' => $promo['amount_rub'],
+        ];
+    }
+
     /** Текст для описания заказа и чека. */
     public static function describe(array $quote): string
     {
+        if (($quote['term'] ?? null) === self::PROMO_KEY) {
+            return (string) $quote['term_label'];
+        }
         $parts = [];
         if (($quote['days'] ?? 0) > 0) {
             $parts[] = 'Подписка · '.$quote['term_label']

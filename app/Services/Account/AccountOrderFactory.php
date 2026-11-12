@@ -23,6 +23,10 @@ final class AccountOrderFactory
      */
     public static function quote(?Subscription $sub, ?string $termKey, int $totalDevices, int $deviceMonths): array
     {
+        if ($termKey === AccountPricing::PROMO_KEY) {
+            return AccountPricing::promoQuote($sub); // число устройств и их срок задаёт сама акция
+        }
+
         $base = $sub !== null && (int) $sub->devices > 0 ? (int) $sub->devices : AccountPricing::baseDevices();
         if ($sub !== null && (int) $sub->devices <= 0) {
             $totalDevices = 0; // подписка без лимита устройств

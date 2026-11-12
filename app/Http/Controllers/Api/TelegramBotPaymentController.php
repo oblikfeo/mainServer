@@ -43,6 +43,7 @@ final class TelegramBotPaymentController extends Controller
         return response()->json([
             'ok' => true,
             'terms' => $terms,
+            'promo' => AccountPricing::promo(),
             'base_devices' => AccountPricing::baseDevices(),
             'max_devices' => AccountPricing::maxDevices(),
             'device_month_rub' => AccountPricing::deviceMonthRub(),
@@ -114,6 +115,7 @@ final class TelegramBotPaymentController extends Controller
                 'max_devices' => (int) $account['base_devices'] + (int) $account['max_extra'],
                 'extra_slots' => $slots,
                 'promo_bonus_days' => (int) $user->promo_bonus_days,
+                'promo_available' => AccountPricing::promoAvailableFor($sub),
             ],
             'items' => $items,
         ]);
@@ -320,6 +322,7 @@ final class TelegramBotPaymentController extends Controller
             'devices_out_of_range' => 'Столько устройств подключить нельзя.',
             'device_months_required', 'device_months_out_of_range' => 'Выберите, на сколько месяцев оплатить доп. устройства.',
             'nothing_to_pay' => 'Ничего не выбрано для оплаты.',
+            'promo_unavailable' => 'Акция для этой подписки недоступна. Выберите обычный срок.',
             default => 'Не удалось рассчитать оплату. Откройте меню оплаты заново.',
         };
     }

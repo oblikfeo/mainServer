@@ -66,6 +66,7 @@
             <div class="lp-pricing-head-mock">
                 <h2 class="lp-section-title">Выберите подписку</h2>
             </div>
+            @include('partials.promo-banner', ['mode' => 'buy'])
             <div class="pricing-container">
                 @include('quick-buy.partials.pricing-buy-plaques')
             </div>

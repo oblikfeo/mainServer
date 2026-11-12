@@ -37,6 +37,11 @@ foreach ($account['terms'] as $term) {
 }
 $tariffLines = "- Подписка ({$baseDevices} устройства входят в цену): ".implode('; ', $termRows).".\n"
     ."- Дополнительное устройство — {$deviceRub} ₽ в месяц за каждое, без скидок; всего до {$maxDevices} устройств на аккаунте.\n";
+$promoCfg = $account['promo'] ?? [];
+if (($promoCfg['enabled'] ?? false) && (int) ($promoCfg['amount_rub'] ?? 0) > 0) {
+    $tariffLines .= "- АКЦИЯ: {$promoCfg['label']} за {$promoCfg['amount_rub']} ₽ (подписка на {$promoCfg['days']} дней сразу на {$promoCfg['devices']} устройств). "
+        ."Покупается одной кнопкой «Акция» на странице оплаты в кабинете, на nadezhda.space/buy и в Telegram-боте. Кому нужно много устройств — сначала предлагай акцию.\n";
+}
 
 $trialHours = max(1, (int) env('TRIAL_SUBSCRIPTION_HOURS', 8));
 $trialGb = max(1, (int) env('TRIAL_SUBSCRIPTION_QUOTA_GB', 5));

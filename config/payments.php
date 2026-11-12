@@ -89,6 +89,18 @@ return [
             '3m' => ['label' => '3 месяца', 'months' => 3, 'days' => 90, 'amount_rub' => 700, 'discount_percent' => 20],
             '6m' => ['label' => '6 месяцев', 'months' => 6, 'days' => 180, 'amount_rub' => 1190, 'discount_percent' => 30],
         ],
+        /**
+         * Акция: подписка на месяц сразу на devices устройств за amount_rub (с 12.11.2026).
+         * Доп. устройства до devices оплачиваются на тот же месяц. Выключить: ACCOUNT_PROMO_ENABLED=false.
+         */
+        'promo' => [
+            'enabled' => filter_var(env('ACCOUNT_PROMO_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+            'label' => '1 месяц + 10 устройств',
+            'months' => 1,
+            'days' => 30,
+            'devices' => 10,
+            'amount_rub' => (int) env('ACCOUNT_PROMO_AMOUNT_RUB', 990),
+        ],
     ],
 ];
 
