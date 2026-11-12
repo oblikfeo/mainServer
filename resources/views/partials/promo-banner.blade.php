@@ -11,7 +11,7 @@
         @media (min-width: 768px) {
             .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo { grid-template-columns: minmax(0, 1fr) 280px; gap: 30px; text-align: left; margin-bottom: 50px; }
         }
-        .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo .pricing-price s { font-size: 0.45em; color: #888; text-decoration-thickness: 3px; margin-left: 8px; }
+        .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo .pricing-price s { font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif; font-size: 16px; font-weight: 700; color: #888; text-decoration-thickness: 2px; margin-left: 10px; vertical-align: middle; }
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo__btns { display: flex; flex-direction: column; gap: 10px; }
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo__btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; margin: 0; padding: 14px 16px; border: var(--mock-border); background: var(--mock-primary); color: #fff; font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; }
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-promo__btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--mock-dark); }
