@@ -8,55 +8,35 @@
     @endphp
 
     <style>
-        .lp-f1 .acc-promo { background: #bff000; }
-        .lp-f1 .acc-promo__grid { display: grid; gap: 1rem; margin-top: 0.9rem; align-items: center; }
-        @media (min-width: 640px) { .lp-f1 .acc-promo__grid { grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; } }
-        .lp-f1 .acc-promo__title { font-family: "Syne", ui-sans-serif, system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; line-height: 1.1; text-transform: uppercase; color: var(--acc-ink); }
-        @media (min-width: 640px) { .lp-f1 .acc-promo__title { font-size: 2rem; } }
-        .lp-f1 .acc-promo__list { margin: 0.6rem 0 0; padding: 0; list-style: none; font-size: 0.9375rem; font-weight: 700; color: var(--acc-ink); }
-        .lp-f1 .acc-promo__list li::before { content: "✓ "; font-weight: 900; }
-        .lp-f1 .acc-promo__buy { display: flex; flex-direction: column; gap: 0.5rem; min-width: 14rem; }
-        .lp-f1 .acc-promo__price { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
-        .lp-f1 .acc-promo__new { font-family: "Syne", ui-sans-serif, system-ui, sans-serif; font-size: 2.6rem; font-weight: 800; line-height: 1; color: var(--acc-ink); }
-        .lp-f1 .acc-promo__old { font-size: 1.1rem; font-weight: 800; color: var(--acc-ink); opacity: 0.55; text-decoration: line-through; text-decoration-thickness: 3px; }
-        .lp-f1 .acc-promo__save { align-self: flex-start; background: var(--acc-ink); color: #fff; padding: 0.15rem 0.5rem; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
-        .lp-f1 .acc-promo__until { font-size: 0.8125rem; font-weight: 700; color: var(--acc-ink); }
-        .lp-f1 .acc-or { text-align: center; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; color: var(--acc-muted); margin: -0.25rem 0 1.25rem; }
+        .lp-f1 .acc-promo__row { display: grid; gap: 0.75rem; align-items: center; }
+        @media (min-width: 640px) { .lp-f1 .acc-promo__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; } }
+        .lp-f1 .acc-promo__row .acc-card { min-height: 0; cursor: default; }
+        .lp-f1 .acc-promo__row .acc-card:hover { transform: none; box-shadow: 6px 6px 0 var(--acc-ink); }
+        .lp-f1 .acc-promo__row .acc-card__price s { margin-left: 0.4rem; font-size: 0.875rem; opacity: 0.7; }
+        .lp-f1 .acc-promo__row .acc-sum__until { text-align: left; margin: 0.5rem 0 0; }
     </style>
 
     <div class="max-w-4xl mx-auto acc" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
         @if ($promo)
             {{-- Акция: месяц + 10 устройств одной кнопкой --}}
-            <div class="acc-block acc-promo" id="acc-promo" data-days="{{ $promo['days'] }}">
+            <div class="acc-block" id="acc-promo" data-days="{{ $promo['days'] }}">
                 <div class="acc-chips">
-                    <span class="acc-chip acc-chip--orange">🔥 Акция</span>
-                    <span class="acc-chip">{{ $promo['devices'] }} устройств</span>
+                    <span class="acc-chip">Акция</span>
                 </div>
-                <div class="acc-promo__grid">
-                    <div>
-                        <div class="acc-promo__title">{{ $promo['label'] }}</div>
-                        <ul class="acc-promo__list">
-                            <li>Подписка на {{ $promo['days'] }} дней</li>
-                            <li>До {{ $promo['devices'] }} устройств одновременно — на всю семью</li>
-                            <li>Трафик без лимита</li>
-                        </ul>
-                    </div>
-                    <div class="acc-promo__buy">
-                        <div class="acc-promo__price">
-                            <span class="acc-promo__new">{{ number_format($promo['amount_rub'], 0, ',', ' ') }}&nbsp;₽</span>
-                            @if ($promo['saving_rub'] > 0)
-                                <span class="acc-promo__old">{{ number_format($promo['regular_rub'], 0, ',', ' ') }}&nbsp;₽</span>
-                            @endif
-                        </div>
+                <div class="acc-promo__row">
+                    <div class="acc-card">
+                        <div class="acc-card__big">{{ $promo['months'] }}<small>месяц + {{ $promo['devices'] }} устройств</small></div>
+                        <div class="acc-card__price">{{ number_format($promo['amount_rub'], 0, ',', ' ') }}&nbsp;₽@if ($promo['saving_rub'] > 0)<s>{{ number_format($promo['regular_rub'], 0, ',', ' ') }}&nbsp;₽</s>@endif</div>
                         @if ($promo['saving_rub'] > 0)
-                            <span class="acc-promo__save">Выгода {{ number_format($promo['saving_rub'], 0, ',', ' ') }}&nbsp;₽</span>
+                            <span class="acc-card__badge">Выгода {{ number_format($promo['saving_rub'], 0, ',', ' ') }}&nbsp;₽</span>
                         @endif
+                    </div>
+                    <div>
                         <button type="button" class="acc-btn acc-btn--primary acc-btn--wide" id="acc-promo-btn">Оплатить {{ number_format($promo['amount_rub'], 0, ',', ' ') }}&nbsp;₽</button>
-                        <div class="acc-promo__until" id="acc-promo-until"></div>
+                        <div class="acc-sum__until" id="acc-promo-until"></div>
                     </div>
                 </div>
             </div>
-            <div class="acc-or">или соберите подписку сами</div>
         @endif
 
         {{-- Срок подписки --}}
