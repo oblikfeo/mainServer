@@ -123,10 +123,7 @@
             <div class="lp-pricing-head-mock">
                 <h2 class="lp-section-title">Понятные цены</h2>
             </div>
-            @include('partials.promo-banner', ['mode' => 'home'])
-            <div class="pricing-container">
-                @include('views2::partials.pricing-mock-plaques')
-            </div>
+            @include('views2::partials.pricing-table')
             <div class="lp-pricing-cta-wrap">
                 <a href="{{ route('cabinet.payment') }}" class="btn-cta btn-cta--primary">Подключиться</a>
                 <a href="{{ route('quick_buy.show') }}" class="btn-cta">Купить без регистрации</a>
