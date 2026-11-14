@@ -22,6 +22,7 @@
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-ptable td { padding: 10px; }
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-ptable td.lp-ptable__price { font-size: 22px; }
         .lp-f1 .lp-pricing.lp-pricing-mock .lp-ptable__wide { display: none; }
+        .lp-f1 .lp-pricing.lp-pricing-mock .lp-ptable__tag { display: block; width: max-content; margin: 0 0 4px; }
     }
 </style>
 <p class="lp-ptable-sub">Во всех тарифах {{ $base }} {{ $plural($base, 'устройство', 'устройства', 'устройств') }}. Каждое следующее — +{{ $fmt($deviceRub) }}&nbsp;₽ в месяц.</p>
