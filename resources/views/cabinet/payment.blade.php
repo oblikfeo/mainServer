@@ -29,6 +29,12 @@
         .lp-f1 .acc-pay2 .acc-sum__total { margin-top: 0; padding-top: 0; border-top: 0; }
         .lp-f1 .acc-pay2 .acc-sum__total span:last-child { white-space: nowrap; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .acc-sum__total span:last-child { font-size: 1.75rem; } }
+        /* Активная подписка: срок и оплата в одном блоке — срок слева, итог и кнопка справа */
+        .lp-f1 .pay-merge--on { display: grid; gap: 1rem; }
+        @media (min-width: 640px) { .lp-f1 .pay-merge--on { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: stretch; } }
+        .lp-f1 .pay-merge--on .acc-card { height: 100%; }
+        .lp-f1 .pay-merge--on #pay-sum { margin: 0; padding: 0; border: 0; box-shadow: none; background: transparent; display: flex; flex-direction: column; justify-content: flex-end; }
+        .lp-f1 .pay-merge--on #pay-sum .acc-sum__total { align-items: flex-end; }
     </style>
 
     <div class="max-w-4xl mx-auto acc acc-pay2" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
@@ -57,7 +63,7 @@
 
         <div class="acc-block" id="pay-step-term">
             <div class="pay-step"><span class="pay-step__n" id="pay-term-n">1</span><span class="pay-step__t">Срок</span><span class="acc-hint pay-step__hint" id="pay-term-hint"></span></div>
-            <div class="acc-cards" id="pay-terms"></div>
+            <div id="pay-merge"><div class="acc-cards" id="pay-terms"></div></div>
         </div>
 
         <div class="acc-block" id="pay-step-devices">
@@ -128,6 +134,10 @@
                 $('pay-dev-n').textContent = '1';
                 $('pay-term-n').textContent = '2';
                 $('pay-dev-t').textContent = 'Сколько устройств добавить';
+                // Срок не выбирается — показываем его рядом с итогом и кнопкой оплаты, одним блоком.
+                $('pay-merge').classList.add('pay-merge--on');
+                $('pay-merge').append($('pay-sum'));
+                $('pay-step-term').querySelector('.pay-step__t').textContent = 'Срок и оплата';
             }
 
             function deviceCards() {
