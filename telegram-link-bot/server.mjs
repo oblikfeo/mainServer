@@ -336,13 +336,22 @@ function buildPayDevicesForTermView(ctxPay, key) {
     }
   }
   if (row.length > 0) keyboard.push(row);
+  if (key === 'none') {
+    // Оплаченная активная подписка: срок не выбирается — устройства до конца подписки.
+    const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+    const rest = Number(ctxPay.account?.rest_days ?? 0);
+    return {
+      text:
+        `💳 Оплата\n\n${payStatusLine(ctxPay.account)}\nУстройств сейчас: ${have}\n\n` +
+        'Шаг 1. Сколько устройств будет всего? На кнопке — итог к оплате.\n' +
+        `Шаг 2. Срок — до ${ctxPay.account?.expires ?? 'конца подписки'} (${rest} дн.), считается сам: ${perMonth} ₽ за 30 дней за устройство.`,
+      keyboard: keyboard.length > 0 ? keyboard : [[{ text: '🔄 Обновить', callback_data: 'py:0' }]],
+    };
+  }
   keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
   const terms = Array.isArray(ctxPay.catalog?.terms) ? ctxPay.catalog.terms : [];
   const t = terms.find((x) => x.key === key);
-  const head = key === 'none'
-    ? `Без продления: устройства до ${ctxPay.account?.expires ?? 'конца подписки'}`
-    : `Срок: ${ctxPay.account?.paid_active ? '+' : ''}${t?.label ?? ''}`;
-  return { text: `💳 Оплата · ${head}\n\nШаг 2. Сколько устройств нужно? На кнопке — итог к оплате.`, keyboard };
+  return { text: `💳 Оплата · Срок: ${t?.label ?? ''}\n\nШаг 2. Сколько устройств нужно? На кнопке — итог к оплате.`, keyboard };
 }
 
 /** Акция «месяц + 10 устройств», если она есть и подходит этой подписке. */
@@ -426,13 +435,16 @@ function buildPayMethodView(ctxPay, n, termKey) {
     keyboard: [
       [{ text: '📱 СБП', callback_data: `${base}:sbp` }],
       [{ text: '💳 Картой', callback_data: `${base}:card` }],
-      [{ text: '← Назад', callback_data: termKey === 'promo' ? 'py:k:1m' : `py:k:${termKey}` }],
+      [{ text: '← Назад', callback_data: termKey === 'promo' ? 'py:k:1m' : (termKey === 'none' ? 'py:0' : `py:k:${termKey}`) }],
     ],
   };
 }
 
 function buildPayHomeView(ctxPay) {
-  return payFixedDevices(ctxPay) ? buildPayTermView(ctxPay, 0) : buildPayDevicesView(ctxPay);
+  if (payFixedDevices(ctxPay)) {
+    return buildPayTermView(ctxPay, 0);
+  }
+  return ctxPay.account?.paid_active ? buildPayDevicesForTermView(ctxPay, 'none') : buildPayDevicesView(ctxPay);
 }
 
 const payErrorView = (message) => ({
