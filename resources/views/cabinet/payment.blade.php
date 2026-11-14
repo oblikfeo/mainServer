@@ -9,7 +9,8 @@
     @endphp
 
     {{-- Оплата в два шага. Новая покупка / пробный / закончилась: 1 — срок, 2 — устройства.
-         Оплаченная активная: 1 — сколько устройств добавить, 2 — срок в днях до конца подписки (не выбирается). --}}
+         Оплаченная активная: 1 — сколько устройств добавить, 2 — срок: по умолчанию «N дней до конца подписки», можно продлить.
+         Цвета: выбор — салатовый, итог — чёрный, кнопка — салатовая. --}}
     <style>
         .lp-f1 .pay-title { margin: 0 0 0.9rem; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
         .lp-f1 .pay-now { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; font-weight: 700; color: var(--acc-muted); }
@@ -29,12 +30,23 @@
         .lp-f1 .acc-pay2 .acc-sum__total { margin-top: 0; padding-top: 0; border-top: 0; }
         .lp-f1 .acc-pay2 .acc-sum__total span:last-child { white-space: nowrap; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .acc-sum__total span:last-child { font-size: 1.75rem; } }
-        /* Активная подписка: срок и оплата в одном блоке — срок слева, итог и кнопка справа */
-        .lp-f1 .pay-merge--on { display: grid; gap: 1rem; }
-        @media (min-width: 640px) { .lp-f1 .pay-merge--on { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.5rem; align-items: stretch; } }
-        .lp-f1 .pay-merge--on .acc-card { height: 100%; }
-        .lp-f1 .pay-merge--on #pay-sum { margin: 0; padding: 0; border: 0; box-shadow: none; background: transparent; display: flex; flex-direction: column; justify-content: flex-end; }
-        .lp-f1 .pay-merge--on #pay-sum .acc-sum__total { align-items: flex-end; }
+        /* Салатовый и чёрный: выбранная карточка — салатовая, итог — чёрный блок с салатовой суммой и кнопкой */
+        .lp-f1 .acc-pay2 { --pay-lime: #bff000; }
+        .lp-f1 .acc-pay2 .acc-card.is-on { background: var(--pay-lime); color: var(--acc-ink); }
+        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__radio { background: radial-gradient(circle, var(--acc-ink) 0 38%, #fff 42%); border-color: var(--acc-ink); }
+        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__badge { background: var(--acc-ink); color: var(--pay-lime); }
+        .lp-f1 .acc-pay2 .acc-pill--on { background: var(--pay-lime); color: var(--acc-ink); }
+        .lp-f1 .acc-pay2 .acc-stepper button:not(:disabled):hover { background: var(--pay-lime); }
+        /* Главная карточка срока активной подписки — «N дней до конца подписки», на две колонки */
+        .lp-f1 .acc-pay2 .pay-days { grid-column: span 2; }
+        .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 3.5rem; }
+        .lp-f1 .acc-pay2 .pay-days .acc-card__big small { font-size: 1.1rem; }
+        @media (max-width: 639px) { .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 2.75rem; } }
+        .lp-f1 .acc-pay2 #pay-sum { background: var(--acc-ink); color: #fff; box-shadow: 8px 8px 0 var(--pay-lime); }
+        .lp-f1 .acc-pay2 #pay-sum .acc-sum__total span:last-child { color: var(--pay-lime); font-size: 2.5rem; }
+        .lp-f1 .acc-pay2 #pay-sum .acc-sum__until, .lp-f1 .acc-pay2 #pay-sum .pay-how { color: #9aa3ad; }
+        .lp-f1 .acc .acc-pay2 #pay-btn, .lp-f1 .acc.acc-pay2 #pay-btn { background: var(--pay-lime) !important; color: var(--acc-ink) !important; border-color: var(--pay-lime) !important; box-shadow: 4px 4px 0 #fff !important; }
+        .lp-f1 .acc.acc-pay2 #pay-btn:disabled { background: #3a3f45 !important; color: #9aa3ad !important; border-color: #3a3f45 !important; box-shadow: none !important; }
     </style>
 
     <div class="max-w-4xl mx-auto acc acc-pay2" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
@@ -63,7 +75,7 @@
 
         <div class="acc-block" id="pay-step-term">
             <div class="pay-step"><span class="pay-step__n" id="pay-term-n">1</span><span class="pay-step__t">Срок</span><span class="acc-hint pay-step__hint" id="pay-term-hint"></span></div>
-            <div id="pay-merge"><div class="acc-cards" id="pay-terms"></div></div>
+            <div class="acc-cards" id="pay-terms"></div>
         </div>
 
         <div class="acc-block" id="pay-step-devices">
@@ -125,7 +137,7 @@
             }
 
             // Выбор: key — срок ('' — без продления, до конца текущей подписки); n — сколько устройств всего.
-            // Оплаченной активной подписке срок не выбирается: только добавить устройства до конца подписки.
+            // Оплаченная активная подписка: по умолчанию +1 устройство до конца подписки; продлить можно в шаге 2.
             let n = cfg.unlimitedDevices ? 0 : Math.max(base, current);
             let key = cfg.paidActive ? '' : (cfg.terms[0]?.key || '');
             if (cfg.paidActive && n < maxDev) n += 1;
@@ -133,11 +145,7 @@
                 $('pay-step-term').before($('pay-step-devices'));
                 $('pay-dev-n').textContent = '1';
                 $('pay-term-n').textContent = '2';
-                $('pay-dev-t').textContent = 'Сколько устройств добавить';
-                // Срок не выбирается — показываем его рядом с итогом и кнопкой оплаты, одним блоком.
-                $('pay-merge').classList.add('pay-merge--on');
-                $('pay-merge').append($('pay-sum'));
-                $('pay-step-term').querySelector('.pay-step__t').textContent = 'Срок и оплата';
+                $('pay-dev-t').textContent = 'Сколько устройств';
             }
 
             function deviceCards() {
@@ -145,7 +153,7 @@
                 if (current > base) set.add(current);
                 if (promo) set.add(promo.devices);
                 else if (maxDev > base + 3) set.add(maxDev);
-                const min = cfg.paidActive ? current : base;
+                const min = cfg.paidActive && key === '' ? current : base;
                 if (cfg.paidActive) [1, 2, 3].forEach((d) => set.add(current + d));
                 return [...set].filter((x) => x >= min && x <= maxDev).sort((a, b) => a - b).slice(0, 5);
             }
@@ -165,13 +173,12 @@
                 // Шаг 1 — срок
                 let th = '';
                 if (cfg.paidActive) {
-                    th = '<div class="acc-card acc-card--static" style="grid-column: 1 / -1;">'
-                        + '<div class="acc-card__big">' + cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small></div>'
-                        + '<div class="acc-card__label">до конца подписки</div>'
-                        + '<div class="acc-card__price">до ' + cfg.expiresAt + '</div>'
-                        + '<div class="acc-card__sub">новые устройства работают, пока активна подписка</div></div>';
+                    const q = quote(n, '');
+                    th += termCard({ key: '', on: key === '', cls: ' pay-days',
+                        big: cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small>', label: 'до конца подписки · без продления',
+                        price: q.fresh > 0 ? rub(q.amount) : '—', sub: 'до ' + cfg.expiresAt });
                 }
-                (cfg.paidActive ? [] : cfg.terms).forEach((x) => {
+                cfg.terms.forEach((x) => {
                     const q = quote(n, x.key);
                     th += termCard({ key: x.key, on: key === x.key,
                         big: (cfg.paidActive ? '+' : '') + x.months + '<small>' + monWord(x.months) + '</small>',
@@ -182,8 +189,8 @@
                     });
                 });
                 $('pay-terms').innerHTML = th;
-                $('pay-terms').style.setProperty('--acc-cols', cfg.paidActive ? 2 : cfg.terms.length);
-                $('pay-term-hint').textContent = cfg.paidActive ? 'считается автоматически' : base + ' устройства входят в подписку';
+                $('pay-terms').style.setProperty('--acc-cols', cfg.terms.length + (cfg.paidActive ? 2 : 0));
+                $('pay-term-hint').textContent = cfg.paidActive ? 'или продлите — доп. устройства продлятся вместе с подпиской' : base + ' устройства входят в подписку';
 
                 // Шаг 2 — устройства (доплата считается от выбранного срока)
                 $('pay-step-devices').hidden = cfg.unlimitedDevices;
@@ -209,7 +216,7 @@
                     });
                     $('pay-devices').innerHTML = html;
                     $('pay-count').textContent = n + ' ' + devWord(n);
-                    $('pay-minus').disabled = n <= (cfg.paidActive ? current + 1 : base);
+                    $('pay-minus').disabled = n <= minN();
                     $('pay-plus').disabled = n >= maxDev;
                     $('pay-exact-hint').textContent = 'до ' + maxDev + ' на одной подписке';
                 }
@@ -249,7 +256,7 @@
             }
 
             function termCard(o) {
-                return '<button type="button" class="acc-card' + (o.on ? ' is-on' : '') + '" data-key="' + o.key + '">'
+                return '<button type="button" class="acc-card' + (o.cls || '') + (o.on ? ' is-on' : '') + '" data-key="' + o.key + '">'
                     + '<span class="acc-card__radio"></span>'
                     + '<div class="acc-card__big">' + o.big + '</div>'
                     + (o.label ? '<div class="acc-card__label">' + o.label + '</div>' : '')
@@ -260,12 +267,14 @@
             }
 
             // Меньше устройств, чем сейчас, — только вместе с продлением.
+            // Без продления меньше «сейчас + 1» не выбрать (платить не за что); с продлением — от базовых.
+            function minN() { return cfg.paidActive && key === '' ? Math.min(maxDev, current + 1) : base; }
             const fewerNeedsRenewal = () => { if (cfg.paidActive && n < current && key === '') key = cfg.terms[0]?.key || ''; };
             $('pay-terms').addEventListener('click', (e) => {
                 const b = e.target.closest('[data-key]');
                 if (!b) return;
                 key = b.getAttribute('data-key');
-                if (key === '' && n < current) n = current;
+                if (key === '' && n <= current) n = Math.min(maxDev, current + 1);
                 render();
             });
             $('pay-devices').addEventListener('click', (e) => {
@@ -275,7 +284,7 @@
                 fewerNeedsRenewal();
                 render();
             });
-            $('pay-minus').addEventListener('click', () => { n = Math.max(cfg.paidActive ? current + 1 : base, n - 1); render(); });
+            $('pay-minus').addEventListener('click', () => { n = Math.max(minN(), n - 1); render(); });
             $('pay-plus').addEventListener('click', () => { n = Math.min(maxDev, n + 1); render(); });
 
             $('pay-btn').addEventListener('click', () => {

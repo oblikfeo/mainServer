@@ -326,26 +326,33 @@ function buildPayDevicesForTermView(ctxPay, key) {
   const keyboard = [];
   let row = [];
   const have = payHave(ctxPay);
+  const activeStep1 = key === 'none';
   for (let n = payBase(ctxPay); n <= payMax(ctxPay); n++) {
     const o = payOptionFor(ctxPay, n, key);
-    if (!o) continue;
-    row.push({ text: `${n === have ? '· ' : ''}${n} · ${o.amount_rub} ₽${o.key === 'promo' ? ' 🔥' : ''}`, callback_data: `py:t:${n}:${o.key}` });
+    if (activeStep1) {
+      // Оплаченная активная подписка, шаг 1: любое число устройств; срок (до конца или продление) — на шаге 2.
+      const mark = n === have ? '· ' : '';
+      row.push({ text: o ? `${mark}${n} · +${o.amount_rub} ₽` : `${mark}${n}${n === have ? ' · сейчас' : ''}`, callback_data: `py:d:${n}` });
+    } else {
+      if (!o) continue;
+      row.push({ text: `${n === have ? '· ' : ''}${n} · ${o.amount_rub} ₽${o.key === 'promo' ? ' 🔥' : ''}`, callback_data: `py:t:${n}:${o.key}` });
+    }
     if (row.length === 2) {
       keyboard.push(row);
       row = [];
     }
   }
   if (row.length > 0) keyboard.push(row);
-  if (key === 'none') {
-    // Оплаченная активная подписка: срок не выбирается — устройства до конца подписки.
+  if (activeStep1) {
     const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
     const rest = Number(ctxPay.account?.rest_days ?? 0);
     return {
       text:
         `💳 Оплата\n\n${payStatusLine(ctxPay.account)}\nУстройств сейчас: ${have}\n\n` +
-        'Шаг 1. Сколько устройств будет всего? На кнопке — итог к оплате.\n' +
-        `Шаг 2. Срок — до ${ctxPay.account?.expires ?? 'конца подписки'} (${rest} дн.), считается сам: ${perMonth} ₽ за 30 дней за устройство.`,
-      keyboard: keyboard.length > 0 ? keyboard : [[{ text: '🔄 Обновить', callback_data: 'py:0' }]],
+        `Новое устройство — ${perMonth} ₽ за 30 дней, до конца подписки (осталось ${rest} дн.).\n\n` +
+        'Шаг 1. Сколько устройств будет всего? На кнопке — доплата до конца подписки.\n' +
+        'Шаг 2 — срок: до конца подписки или продление.',
+      keyboard,
     };
   }
   keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
@@ -411,8 +418,13 @@ function buildPayTermView(ctxPay, n) {
   if (options.length === 0) {
     return { text: `${head}\n\nПодписка без срока — продлевать её не нужно. Чтобы добавить устройства, напишите в поддержку.`, keyboard };
   }
-  const note = ctxPay.account?.paid_active ? '\n\nДоп. устройства действуют до конца подписки и продлеваются вместе с ней.' : '';
-  return { text: `${head}${note}\n\nВыберите срок:`, keyboard };
+  if (ctxPay.account?.paid_active) {
+    return {
+      text: `${head}\n\nШаг 2. Срок: до конца подписки (${Number(ctxPay.account?.rest_days ?? 0)} дн.) или продление. Доп. устройства продлеваются вместе с подпиской.`,
+      keyboard,
+    };
+  }
+  return { text: `${head}\n\nВыберите срок:`, keyboard };
 }
 
 /** Шаг 3: итог и способ оплаты. */
@@ -435,7 +447,7 @@ function buildPayMethodView(ctxPay, n, termKey) {
     keyboard: [
       [{ text: '📱 СБП', callback_data: `${base}:sbp` }],
       [{ text: '💳 Картой', callback_data: `${base}:card` }],
-      [{ text: '← Назад', callback_data: termKey === 'promo' ? 'py:k:1m' : (termKey === 'none' ? 'py:0' : `py:k:${termKey}`) }],
+      [{ text: '← Назад', callback_data: ctxPay.account?.paid_active ? `py:d:${n}` : (termKey === 'promo' ? 'py:k:1m' : `py:k:${termKey}`) }],
     ],
   };
 }
@@ -1247,7 +1259,8 @@ bot.action(/^py:d:(\d+)$/, async (ctx) => {
   await ctx.answerCbQuery();
   const ctxPay = await payContextOrShowError(ctx);
   if (ctxPay) {
-    await editPayView(ctx, buildPayHomeView(ctxPay));
+    // Активная оплаченная: выбрано число устройств → шаг 2 «срок» (до конца подписки или продление).
+    await editPayView(ctx, ctxPay.account?.paid_active ? buildPayTermView(ctxPay, Number(ctx.match[1])) : buildPayHomeView(ctxPay));
   }
 });
 
