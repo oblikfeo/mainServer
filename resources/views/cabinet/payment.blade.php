@@ -9,8 +9,7 @@
     @endphp
 
     {{-- Оплата в два шага. Новая покупка / пробный / закончилась: 1 — срок, 2 — устройства.
-         Оплаченная активная: 1 — сколько устройств добавить, 2 — срок: по умолчанию «N дней до конца подписки», можно продлить.
-         Цвета: выбор — салатовый, итог — чёрный, кнопка — салатовая. --}}
+         Оплаченная активная: 1 — сколько устройств добавить, 2 — срок: по умолчанию «N дней до конца подписки», можно продлить. --}}
     <style>
         .lp-f1 .pay-title { margin: 0 0 0.9rem; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
         .lp-f1 .pay-now { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; font-weight: 700; color: var(--acc-muted); }
@@ -30,23 +29,11 @@
         .lp-f1 .acc-pay2 .acc-sum__total { margin-top: 0; padding-top: 0; border-top: 0; }
         .lp-f1 .acc-pay2 .acc-sum__total span:last-child { white-space: nowrap; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .acc-sum__total span:last-child { font-size: 1.75rem; } }
-        /* Салатовый и чёрный: выбранная карточка — салатовая, итог — чёрный блок с салатовой суммой и кнопкой */
-        .lp-f1 .acc-pay2 { --pay-lime: #bff000; }
-        .lp-f1 .acc-pay2 .acc-card.is-on { background: var(--pay-lime); color: var(--acc-ink); }
-        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__radio { background: radial-gradient(circle, var(--acc-ink) 0 38%, #fff 42%); border-color: var(--acc-ink); }
-        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__badge { background: var(--acc-ink); color: var(--pay-lime); }
-        .lp-f1 .acc-pay2 .acc-pill--on { background: var(--pay-lime); color: var(--acc-ink); }
-        .lp-f1 .acc-pay2 .acc-stepper button:not(:disabled):hover { background: var(--pay-lime); }
         /* Главная карточка срока активной подписки — «N дней до конца подписки», на две колонки */
         .lp-f1 .acc-pay2 .pay-days { grid-column: span 2; }
         .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 3.5rem; }
         .lp-f1 .acc-pay2 .pay-days .acc-card__big small { font-size: 1.1rem; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 2.75rem; } }
-        .lp-f1 .acc-pay2 #pay-sum { background: var(--acc-ink); color: #fff; box-shadow: 8px 8px 0 var(--pay-lime); }
-        .lp-f1 .acc-pay2 #pay-sum .acc-sum__total span:last-child { color: var(--pay-lime); font-size: 2.5rem; }
-        .lp-f1 .acc-pay2 #pay-sum .acc-sum__until, .lp-f1 .acc-pay2 #pay-sum .pay-how { color: #9aa3ad; }
-        .lp-f1 .acc .acc-pay2 #pay-btn, .lp-f1 .acc.acc-pay2 #pay-btn { background: var(--pay-lime) !important; color: var(--acc-ink) !important; border-color: var(--pay-lime) !important; box-shadow: 4px 4px 0 #fff !important; }
-        .lp-f1 .acc.acc-pay2 #pay-btn:disabled { background: #3a3f45 !important; color: #9aa3ad !important; border-color: #3a3f45 !important; box-shadow: none !important; }
     </style>
 
     <div class="max-w-4xl mx-auto acc acc-pay2" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
