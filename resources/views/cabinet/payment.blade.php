@@ -9,7 +9,7 @@
     @endphp
 
     {{-- Оплата в два шага. Новая покупка / пробный / закончилась: 1 — срок, 2 — устройства.
-         Оплаченная активная: 1 — сколько устройств добавить, 2 — срок: по умолчанию «N дней до конца подписки», можно продлить. --}}
+         Оплаченная активная: сверху выбор «Продлить подписку» / «Добавить устройства» (см. applyMode в скрипте). --}}
     <style>
         .lp-f1 .pay-title { margin: 0 0 0.9rem; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
         .lp-f1 .pay-now { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; font-weight: 700; color: var(--acc-muted); }
@@ -30,10 +30,19 @@
         .lp-f1 .acc-pay2 .acc-sum__total span:last-child { white-space: nowrap; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .acc-sum__total span:last-child { font-size: 1.75rem; } }
         /* Главная карточка срока активной подписки — «N дней до конца подписки», на две колонки */
-        .lp-f1 .acc-pay2 .pay-days { grid-column: span 2; }
         .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 3.5rem; }
         .lp-f1 .acc-pay2 .pay-days .acc-card__big small { font-size: 1.1rem; }
         @media (max-width: 639px) { .lp-f1 .acc-pay2 .pay-days .acc-card__big { font-size: 2.75rem; } }
+        .lp-f1 .acc-pay2 .pay-days { grid-column: 1 / -1; }
+        /* Активная подписка: сначала выбор действия — продлить или добавить устройства */
+        .lp-f1 .pay-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+        @media (min-width: 640px) { .lp-f1 .pay-mode { gap: 1rem; } }
+        .lp-f1 .pay-mode__btn { display: block; width: 100%; text-align: left; padding: 0.85rem 0.9rem; border: 4px solid var(--acc-ink); background: #fff; color: var(--acc-ink); box-shadow: 6px 6px 0 var(--acc-ink); font-family: inherit; cursor: pointer; }
+        .lp-f1 .pay-mode__btn b { display: block; font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.15; }
+        .lp-f1 .pay-mode__btn span { display: block; margin-top: 0.3rem; font-size: 0.75rem; font-weight: 700; opacity: 0.8; }
+        .lp-f1 .pay-mode__btn.is-on { background: var(--acc-orange); color: #fff; }
+        .lp-f1 .pay-mode__btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+        @media (max-width: 639px) { .lp-f1 .pay-mode__btn b { font-size: 0.875rem; } .lp-f1 .pay-mode__btn { padding: 0.7rem; } }
     </style>
 
     <div class="max-w-4xl mx-auto acc acc-pay2" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
@@ -56,6 +65,11 @@
             @if ($payConfig['bonusDays'] > 0)
                 <span class="acc-chip acc-chip--orange">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к первой оплате</span>
             @endif
+        </div>
+
+        <div class="pay-mode" id="pay-mode" hidden>
+            <button type="button" class="pay-mode__btn" data-mode="renew"><b>Продлить подписку</b><span>на 1, 3 или 6 месяцев</span></button>
+            <button type="button" class="pay-mode__btn" data-mode="add"><b>Добавить устройства</b><span id="pay-mode-add-sub"></span></button>
         </div>
 
         <div class="acc-note" id="pay-noexpiry" hidden>Подписка без срока — продлевать её не нужно. Чтобы добавить устройства, напишите в поддержку.</div>
@@ -124,15 +138,36 @@
             }
 
             // Выбор: key — срок ('' — без продления, до конца текущей подписки); n — сколько устройств всего.
-            // Оплаченная активная подписка: по умолчанию +1 устройство до конца подписки; продлить можно в шаге 2.
+            // Оплаченная активная подписка — сначала действие:
+            //   renew — «Продлить подписку»: 1 срок (+1/+3/+6 мес.), 2 устройства (можно и меньше, чем сейчас);
+            //   add   — «Добавить устройства»: 1 сколько устройств (от «сейчас + 1»), 2 срок — дни до конца подписки, без выбора.
             let n = cfg.unlimitedDevices ? 0 : Math.max(base, current);
-            let key = cfg.paidActive ? '' : (cfg.terms[0]?.key || '');
-            if (cfg.paidActive && n < maxDev) n += 1;
-            if (cfg.paidActive) {
-                $('pay-step-term').before($('pay-step-devices'));
-                $('pay-dev-n').textContent = '1';
-                $('pay-term-n').textContent = '2';
-                $('pay-dev-t').textContent = 'Сколько устройств';
+            let key = cfg.terms[0]?.key || '';
+            const canAdd = cfg.paidActive && !cfg.unlimitedDevices && current < maxDev;
+            let mode = cfg.paidActive ? (root.dataset.add === '1' && canAdd ? 'add' : 'renew') : null;
+
+            function applyMode(m) {
+                mode = m;
+                const add = mode === 'add';
+                key = add ? '' : (cfg.terms[0]?.key || '');
+                n = cfg.unlimitedDevices ? 0 : (add ? Math.min(maxDev, current + 1) : Math.max(base, current));
+                if (add) $('pay-step-term').before($('pay-step-devices'));
+                else $('pay-step-devices').before($('pay-step-term'));
+                $('pay-dev-n').textContent = add ? '1' : '2';
+                $('pay-term-n').textContent = add ? '2' : '1';
+                document.querySelectorAll('#pay-mode [data-mode]').forEach((b) => b.classList.toggle('is-on', b.dataset.mode === mode));
+            }
+            if (cfg.paidActive && !cfg.noExpiry) {
+                $('pay-mode').hidden = false;
+                $('pay-mode-add-sub').textContent = canAdd ? 'до конца подписки, ' + cfg.restDays + ' ' + plural(cfg.restDays, 'день', 'дня', 'дней') : 'уже максимум — ' + maxDev;
+                document.querySelector('#pay-mode [data-mode="add"]').disabled = !canAdd;
+                $('pay-mode').addEventListener('click', (e) => {
+                    const b = e.target.closest('[data-mode]');
+                    if (!b || b.disabled || b.dataset.mode === mode) return;
+                    applyMode(b.dataset.mode);
+                    render();
+                });
+                applyMode(mode);
             }
 
             function deviceCards() {
@@ -140,8 +175,8 @@
                 if (current > base) set.add(current);
                 if (promo) set.add(promo.devices);
                 else if (maxDev > base + 3) set.add(maxDev);
-                const min = cfg.paidActive && key === '' ? current : base;
-                if (cfg.paidActive) [1, 2, 3].forEach((d) => set.add(current + d));
+                const min = mode === 'add' ? current + 1 : base;
+                if (mode === 'add') [1, 2, 3, 4].forEach((d) => set.add(current + d));
                 return [...set].filter((x) => x >= min && x <= maxDev).sort((a, b) => a - b).slice(0, 5);
             }
 
@@ -159,13 +194,14 @@
 
                 // Шаг 1 — срок
                 let th = '';
-                if (cfg.paidActive) {
-                    const q = quote(n, '');
-                    th += termCard({ key: '', on: key === '', cls: ' pay-days',
-                        big: cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small>', label: 'до конца подписки · без продления',
-                        price: q.fresh > 0 ? rub(q.amount) : '—', sub: 'до ' + cfg.expiresAt });
+                if (mode === 'add') {
+                    th = '<div class="acc-card acc-card--static pay-days">'
+                        + '<div class="acc-card__big">' + cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small></div>'
+                        + '<div class="acc-card__label">до конца подписки</div>'
+                        + '<div class="acc-card__price">до ' + cfg.expiresAt + '</div>'
+                        + '<div class="acc-card__sub">срок подписки не меняется, устройства работают до её конца</div></div>';
                 }
-                cfg.terms.forEach((x) => {
+                (mode === 'add' ? [] : cfg.terms).forEach((x) => {
                     const q = quote(n, x.key);
                     th += termCard({ key: x.key, on: key === x.key,
                         big: (cfg.paidActive ? '+' : '') + x.months + '<small>' + monWord(x.months) + '</small>',
@@ -176,8 +212,8 @@
                     });
                 });
                 $('pay-terms').innerHTML = th;
-                $('pay-terms').style.setProperty('--acc-cols', cfg.terms.length + (cfg.paidActive ? 2 : 0));
-                $('pay-term-hint').textContent = cfg.paidActive ? 'или продлите — доп. устройства продлятся вместе с подпиской' : base + ' устройства входят в подписку';
+                $('pay-terms').style.setProperty('--acc-cols', mode === 'add' ? 1 : cfg.terms.length);
+                $('pay-term-hint').textContent = mode === 'add' ? 'считается сам' : (cfg.paidActive ? 'доп. устройства продлятся вместе с подпиской' : base + ' устройства входят в подписку');
 
                 // Шаг 2 — устройства (доплата считается от выбранного срока)
                 $('pay-step-devices').hidden = cfg.unlimitedDevices;
@@ -191,9 +227,7 @@
                     deviceCards().forEach((x) => {
                         const q = quote(x, key);
                         let price, sub, tag = '', off = false;
-                        if (key === '' && x === current) { price = 'есть'; sub = 'подключены сейчас'; off = cfg.paidActive; }
-                        else if (key === '' && x < current) { price = 'меньше'; sub = 'только при продлении'; off = true; }
-                        else if (x === base) { price = 'входят'; sub = 'в подписку'; }
+                        if (x === base) { price = 'входят'; sub = 'в подписку'; }
                         else if (q.promo) { price = rub(q.amount); sub = 'акция: всё вместе'; tag = '<span class="acc-card__tag">Акция</span>'; }
                         else { price = '+' + rub(q.amount - fromAmount); sub = t ? (t.months === 1 ? 'за месяц' : 'за ' + t.months + ' мес.') : 'до ' + cfg.expiresAt; }
                         if (!tag && x === current && (cfg.state === 'active' || cfg.state === 'inactive')) tag = '<span class="acc-card__tag">Сейчас</span>';
@@ -253,22 +287,18 @@
                     + '</button>';
             }
 
-            // Меньше устройств, чем сейчас, — только вместе с продлением.
-            // Без продления меньше «сейчас + 1» не выбрать (платить не за что); с продлением — от базовых.
-            function minN() { return cfg.paidActive && key === '' ? Math.min(maxDev, current + 1) : base; }
-            const fewerNeedsRenewal = () => { if (cfg.paidActive && n < current && key === '') key = cfg.terms[0]?.key || ''; };
+            // «Добавить устройства»: меньше «сейчас + 1» не выбрать (платить не за что); иначе — от базовых.
+            function minN() { return mode === 'add' ? Math.min(maxDev, current + 1) : base; }
             $('pay-terms').addEventListener('click', (e) => {
                 const b = e.target.closest('[data-key]');
                 if (!b) return;
                 key = b.getAttribute('data-key');
-                if (key === '' && n <= current) n = Math.min(maxDev, current + 1);
                 render();
             });
             $('pay-devices').addEventListener('click', (e) => {
                 const b = e.target.closest('[data-n]');
                 if (!b || b.classList.contains('is-off')) return;
                 n = parseInt(b.getAttribute('data-n'), 10);
-                fewerNeedsRenewal();
                 render();
             });
             $('pay-minus').addEventListener('click', () => { n = Math.max(minN(), n - 1); render(); });
