@@ -270,44 +270,79 @@ function payOffers(ctxPay, n) {
   return Array.isArray(row?.options) ? row.options : [];
 }
 
-/** Шаг 1: сколько устройств нужно. */
+/** Сколько устройств подставлять по умолчанию: оплаченной — сколько есть, остальным — базовые. */
+const payDefaultN = (ctxPay) => Math.max(payBase(ctxPay), ctxPay.account?.paid_active ? payHave(ctxPay) : 0);
+
+/** Вариант срока key для n устройств (акция подставляется вместо месяца при её числе устройств). */
+function payOptionFor(ctxPay, n, key) {
+  const options = payOffers(ctxPay, n);
+  return options.find((o) => o.key === key)
+    ?? (key === '1m' ? options.find((o) => o.key === 'promo') : null)
+    ?? null;
+}
+
+/** Шаг 1: срок (как на сайте). Цены — для числа устройств по умолчанию. */
 function buildPayDevicesView(ctxPay) {
-  const base = payBase(ctxPay);
-  const have = payHave(ctxPay);
-  const max = payMax(ctxPay);
+  const n = payDefaultN(ctxPay);
   const perMonth = Number(ctxPay.catalog?.device_month_rub ?? 150);
+  const keys = [...(ctxPay.account?.paid_active ? ['none'] : []), ...(Array.isArray(ctxPay.catalog?.terms) ? ctxPay.catalog.terms.map((t) => t.key) : [])];
   const keyboard = [];
-  let row = [];
-  for (let n = base; n <= max; n++) {
-    row.push({ text: n === have ? `· ${n} ·` : String(n), callback_data: `py:d:${n}` });
-    if (row.length === 4) {
-      keyboard.push(row);
-      row = [];
+  for (const key of keys) {
+    const terms = Array.isArray(ctxPay.catalog?.terms) ? ctxPay.catalog.terms : [];
+    const t = terms.find((x) => x.key === key);
+    if (key === 'none') {
+      keyboard.push([{ text: `Без продления — добавить устройства (до ${ctxPay.account?.expires ?? 'конца подписки'})`, callback_data: 'py:k:none' }]);
+      continue;
     }
+    const o = payOptionFor(ctxPay, n, key);
+    if (!t || !o) continue;
+    const discount = Number(t.discount_percent ?? 0);
+    keyboard.push([{
+      text: `${ctxPay.account?.paid_active ? 'Продлить на ' : ''}${t.label} · ${o.amount_rub} ₽${discount > 0 ? ` (−${discount}%)` : ''}`,
+      callback_data: `py:k:${key}`,
+    }]);
   }
-  if (row.length > 0) {
-    keyboard.push(row);
-  }
-  // Оплаченной активной подписке акция показывается в шаге «срок» при 10 устройствах — со своей ценой
-  // (там к ней добавляются новые устройства за остаток срока), а не отдельной кнопкой «990 ₽».
   const promo = ctxPay.account?.paid_active ? null : payPromo(ctxPay);
-  const promoAmount = promo ? Number(ctxPay.account?.promo_amount_rub ?? promo.amount_rub) : 0;
   if (promo) {
-    keyboard.unshift([{ text: `🔥 Акция: ${promo.label} · ${promoAmount} ₽`, callback_data: 'py:p' }]);
+    keyboard.unshift([{ text: `🔥 Акция: ${promo.label} · ${Number(ctxPay.account?.promo_amount_rub ?? promo.amount_rub)} ₽`, callback_data: 'py:p' }]);
   }
   const rest = Number(ctxPay.account?.rest_days ?? 0);
   const rule = ctxPay.account?.paid_active
     ? `Новое устройство — ${perMonth} ₽ за 30 дней, действует до конца подписки (осталось ${rest} дн.).`
-    : `В подписку входит ${base} устр. Каждое дополнительное — ${perMonth} ₽ в месяц.`;
+    : `В подписку входит ${payBase(ctxPay)} устр. Каждое дополнительное — ${perMonth} ₽ в месяц.`;
   return {
     text:
       `💳 Оплата\n\n${payStatusLine(ctxPay.account)}\n` +
-      `Устройств сейчас: ${have}\n\n` +
+      `Устройств сейчас: ${payHave(ctxPay)}\n\n` +
       (promo ? `🔥 Акция: ${promo.label} — ${promo.amount_rub} ₽ вместо ${promo.regular_rub} ₽.\n\n` : '') +
       `${rule}\n\n` +
-      'Сколько устройств нужно?',
+      `Шаг 1. Выберите срок (цены — за ${n} устр., число устройств выберете дальше):`,
     keyboard,
   };
+}
+
+/** Шаг 2: сколько устройств для выбранного срока, с итоговой ценой на каждой кнопке. */
+function buildPayDevicesForTermView(ctxPay, key) {
+  const keyboard = [];
+  let row = [];
+  const have = payHave(ctxPay);
+  for (let n = payBase(ctxPay); n <= payMax(ctxPay); n++) {
+    const o = payOptionFor(ctxPay, n, key);
+    if (!o) continue;
+    row.push({ text: `${n === have ? '· ' : ''}${n} · ${o.amount_rub} ₽${o.key === 'promo' ? ' 🔥' : ''}`, callback_data: `py:t:${n}:${o.key}` });
+    if (row.length === 2) {
+      keyboard.push(row);
+      row = [];
+    }
+  }
+  if (row.length > 0) keyboard.push(row);
+  keyboard.push([{ text: '← Назад', callback_data: 'py:0' }]);
+  const terms = Array.isArray(ctxPay.catalog?.terms) ? ctxPay.catalog.terms : [];
+  const t = terms.find((x) => x.key === key);
+  const head = key === 'none'
+    ? `Без продления: устройства до ${ctxPay.account?.expires ?? 'конца подписки'}`
+    : `Срок: ${ctxPay.account?.paid_active ? '+' : ''}${t?.label ?? ''}`;
+  return { text: `💳 Оплата · ${head}\n\nШаг 2. Сколько устройств нужно? На кнопке — итог к оплате.`, keyboard };
 }
 
 /** Акция «месяц + 10 устройств», если она есть и подходит этой подписке. */
@@ -391,7 +426,7 @@ function buildPayMethodView(ctxPay, n, termKey) {
     keyboard: [
       [{ text: '📱 СБП', callback_data: `${base}:sbp` }],
       [{ text: '💳 Картой', callback_data: `${base}:card` }],
-      [{ text: '← Назад', callback_data: `py:d:${n}` }],
+      [{ text: '← Назад', callback_data: termKey === 'promo' ? 'py:k:1m' : `py:k:${termKey}` }],
     ],
   };
 }
@@ -1195,11 +1230,20 @@ bot.action('py:p', async (ctx) => {
   }
 });
 
+// py:d:N — шаг «устройства» прежнего порядка в уже отправленных сообщениях: ведём на шаг 1 (срок).
 bot.action(/^py:d:(\d+)$/, async (ctx) => {
   await ctx.answerCbQuery();
   const ctxPay = await payContextOrShowError(ctx);
   if (ctxPay) {
-    await editPayView(ctx, buildPayTermView(ctxPay, Number(ctx.match[1])));
+    await editPayView(ctx, buildPayHomeView(ctxPay));
+  }
+});
+
+bot.action(/^py:k:([a-z0-9]+)$/, async (ctx) => {
+  await ctx.answerCbQuery();
+  const ctxPay = await payContextOrShowError(ctx);
+  if (ctxPay) {
+    await editPayView(ctx, buildPayDevicesForTermView(ctxPay, ctx.match[1]));
   }
 });
 
