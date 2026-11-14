@@ -93,17 +93,23 @@ class AccountBotApiTest extends TestCase
         ])->assertStatus(422)->assertJsonPath('error', 'term_required');
     }
 
-    public function test_create_refuses_more_devices_without_paying_for_them(): void
+    public function test_account_state_gives_bot_server_prices_for_every_device_count(): void
     {
-        $this->linkedUser();
+        $user = $this->linkedUser();
+        app(AccountSubscription::class)->applyPurchase($user, 90, 0, 0);
+        Carbon::setTestNow(Carbon::now()->addDays(14)); // осталось 76 дней
 
-        $this->postJson('/api/internal/telegram/bot/payment/create', [
-            'telegram_user_id' => 777001,
-            'term' => '1m',
-            'devices' => 4,
-            'device_months' => 0,
-            'payment_method' => 'sbp',
-        ])->assertStatus(422)->assertJsonPath('error', 'device_months_required');
+        $r = $this->postJson('/api/internal/telegram/bot/payment/subscriptions', ['telegram_user_id' => 777001])
+            ->assertOk()
+            ->assertJsonPath('account.paid_active', true)
+            ->assertJsonPath('account.rest_days', 76)
+            ->assertJsonPath('account.base_devices', 2);
+
+        $offers = collect($r->json('account.offers'))->keyBy('devices');
+        $three = collect($offers[3]['options'])->keyBy('key');
+        $this->assertSame(380, $three['none']['amount_rub']);           // 1 новое × 76 дн. × 150/30
+        $this->assertSame(290 + 150 + 380, $three['1m']['amount_rub']); // продление + новое за остаток
+        $this->assertArrayNotHasKey('none', collect($offers[2]['options'])->keyBy('key')->all()); // без новых — платить не за что
     }
 
     public function test_old_bot_family_request_is_told_to_reopen_menu(): void
@@ -132,6 +138,6 @@ class AccountBotApiTest extends TestCase
     public function test_landing_and_buy_pages_render_new_prices(): void
     {
         $this->get('/buy')->assertOk()->assertSee('Сколько устройств')->assertSee('data-term="3m"', false);
-        $this->get('/')->assertOk()->assertSee('Больше устройств');
+        $this->get('/')->assertOk()->assertSee('Во всех тарифах')->assertSee('lp-ptable__promo', false);
     }
 }

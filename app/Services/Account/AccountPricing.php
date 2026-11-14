@@ -119,10 +119,27 @@ final class AccountPricing
         return max(0, $over - $gifted);
     }
 
+    /**
+     * Базовые устройства подписки для расчёта цены. Пробная подписка (1 устройство) при оплате
+     * становится обычной, поэтому для неё база — стандартная. 0 — подписка без лимита устройств.
+     */
+    public static function effectiveBase(?Subscription $sub): int
+    {
+        if ($sub === null) {
+            return self::baseDevices();
+        }
+        $devices = (int) $sub->devices;
+        if ($devices <= 0) {
+            return 0;
+        }
+
+        return $sub->is_trial ? max($devices, self::baseDevices()) : $devices;
+    }
+
     /** Сколько доп. устройств можно иметь на этой подписке (с учётом её базовых). */
     public static function maxExtraDevices(?Subscription $sub): int
     {
-        $base = $sub !== null ? (int) $sub->devices : self::baseDevices();
+        $base = self::effectiveBase($sub);
         if ($base <= 0) {
             return 0; // подписка без лимита устройств — докупать нечего
         }
@@ -130,15 +147,44 @@ final class AccountPricing
         return max(0, self::maxDevices() - $base);
     }
 
+    /** Оплаченная (не пробная) подписка со сроком, который ещё не кончился. */
+    public static function isPaidActive(?Subscription $sub): bool
+    {
+        return $sub !== null && ! $sub->is_trial && (int) $sub->expiry_ms > 0 && DeviceSlots::subscriptionActive($sub);
+    }
+
+    /** Сколько дней осталось оплаченной подписке (неполный день считается целым); 0 — нет оплаченного срока. */
+    public static function paidDaysLeft(?Subscription $sub): int
+    {
+        if (! self::isPaidActive($sub)) {
+            return 0;
+        }
+
+        return max(1, (int) ceil(((int) $sub->expiry_ms - DeviceSlots::nowMs()) / DeviceSlots::DAY_MS));
+    }
+
+    /** Цена $count новых устройств до конца подписки ($days дней) — по device_month_rub за device_month_days, до рубля. */
+    public static function restOfTermRub(int $count, int $days): int
+    {
+        if ($count < 1 || $days < 1) {
+            return 0;
+        }
+
+        return (int) round($count * self::deviceMonthRub() * $days / self::deviceMonthDays());
+    }
+
     /**
-     * @param  string|null  $termKey  ключ срока подписки или null — «не продлевать»
-     * @param  int  $extraDevices  сколько доп. устройств оплачивается этим заказом
-     * @param  int  $deviceMonths  на сколько месяцев оплачиваются эти устройства
-     * @return array{term: string|null, term_label: string|null, days: int, base_rub: int, extra_devices: int, device_months: int, device_days: int, devices_rub: int, amount_rub: int}
+     * Расчёт заказа. Доп. устройство живёт столько же, сколько подписка:
+     * — со сроком ($termKey): подписка продлевается, все доп. устройства оплачиваются на этот срок,
+     *   а новые — ещё и за остаток текущей оплаченной подписки;
+     * — без срока (null, только для оплаченной активной подписки): новые устройства до конца подписки.
+     *
+     * @param  int  $totalDevices  сколько устройств всего хочет аккаунт (базовые + доп.)
+     * @return array<string, mixed>
      *
      * @throws InvalidArgumentException с кодом ошибки в сообщении
      */
-    public static function quote(?Subscription $sub, ?string $termKey, int $extraDevices, int $deviceMonths): array
+    public static function quote(?Subscription $sub, ?string $termKey, int $totalDevices): array
     {
         $term = null;
         if ($termKey !== null && $termKey !== '') {
@@ -148,46 +194,104 @@ final class AccountPricing
             }
         }
 
-        $active = $sub !== null && DeviceSlots::subscriptionActive($sub);
-        if ($term !== null && $active && (int) $sub->expiry_ms <= 0) {
-            throw new InvalidArgumentException('no_expiry'); // подписка без срока — продлевать нечего
+        $noExpiry = $sub !== null && DeviceSlots::subscriptionActive($sub) && (int) $sub->expiry_ms <= 0;
+        if ($noExpiry) {
+            throw new InvalidArgumentException('no_expiry'); // подписка без срока — ни продлевать, ни считать остаток
         }
-        if ($term === null && ! $active) {
+        if ($term === null && ! self::isPaidActive($sub)) {
             throw new InvalidArgumentException('term_required');
         }
 
-        if ($extraDevices < 0 || $extraDevices > self::maxExtraDevices($sub)) {
-            throw new InvalidArgumentException('devices_out_of_range');
+        $base = self::effectiveBase($sub);
+        $extras = 0;
+        $newDevices = 0;
+        if ($base > 0) {
+            $total = max($base, $totalDevices);
+            if ($total > max($base, self::maxDevices())) {
+                throw new InvalidArgumentException('devices_out_of_range');
+            }
+            $extras = $total - $base;
+            $newDevices = max(0, $extras - AccountOrderFactory::paidSlots($sub));
         }
 
-        if ($extraDevices === 0) {
-            $deviceMonths = 0;
-        } elseif ($deviceMonths < 1 || $deviceMonths > self::deviceMaxMonths()) {
-            throw new InvalidArgumentException('device_months_out_of_range');
-        }
-
-        $baseRub = $term['amount_rub'] ?? 0;
-        $devicesRub = $extraDevices * $deviceMonths * self::deviceMonthRub();
+        $months = (int) ($term['months'] ?? 0);
+        $restDays = self::paidDaysLeft($sub);
+        $baseRub = (int) ($term['amount_rub'] ?? 0);
         $overBase = $term !== null ? self::overBaseDevices($sub) : 0;
-        $overBaseRub = $overBase * ($term['months'] ?? 0) * self::deviceMonthRub();
-        $amount = $baseRub + $overBaseRub + $devicesRub;
-        if ($amount < 1) {
+        $overBaseRub = $overBase * $months * self::deviceMonthRub();
+        $devicesRub = $term !== null ? $extras * $months * self::deviceMonthRub() : 0;
+        $restRub = self::restOfTermRub($newDevices, $restDays);
+        $amount = $baseRub + $overBaseRub + $devicesRub + $restRub;
+        if ($term === null && $newDevices === 0) {
             throw new InvalidArgumentException('nothing_to_pay');
         }
 
         return [
             'term' => $term['key'] ?? null,
             'term_label' => $term['label'] ?? null,
-            'days' => $term['days'] ?? 0,
+            'months' => $months,
+            'days' => (int) ($term['days'] ?? 0),
             'base_rub' => $baseRub,
             'over_base_devices' => $overBase,
             'over_base_rub' => $overBaseRub,
-            'extra_devices' => $extraDevices,
-            'device_months' => $deviceMonths,
-            'device_days' => $deviceMonths * self::deviceMonthDays(),
+            'total_devices' => $base > 0 ? $base + $extras : 0,
+            // Сколько доп. устройств заказ продлевает или создаёт (до конца нового срока подписки).
+            'extra_devices' => $term !== null ? $extras : $newDevices,
+            'new_devices' => $newDevices,
+            'device_months' => 0, // 0 = устройства до конца подписки (см. AccountSubscription::applyPurchase)
+            'device_days' => $restDays,
             'devices_rub' => $devicesRub,
-            'amount_rub' => $amount,
+            'rest_days' => $restDays,
+            'rest_rub' => $restRub,
+            'amount_rub' => max(1, $amount),
         ];
+    }
+
+    /**
+     * Все варианты оплаты по числу устройств — так же, как их показывает страница «Оплата»
+     * (акция подставляется вместо месяца, когда выбрано её число устройств). Для бота: цены считает сервер.
+     *
+     * @return list<array{devices: int, options: list<array{key: string, label: string, amount_rub: int, regular_rub: int}>}>
+     */
+    public static function offers(?Subscription $sub): array
+    {
+        $base = self::effectiveBase($sub);
+        $counts = $base > 0 ? range($base, max($base, self::maxDevices())) : [0];
+        $promo = self::promoAvailableFor($sub) ? self::promo() : null;
+        $paidActive = self::isPaidActive($sub);
+        $keys = array_keys(self::terms());
+        if ($paidActive) {
+            array_unshift($keys, null);
+        }
+
+        $out = [];
+        foreach ($counts as $n) {
+            $options = [];
+            foreach ($keys as $key) {
+                try {
+                    $regular = (int) self::quote($sub, $key, $n)['amount_rub'];
+                    $term = $key !== null ? self::terms()[$key] : null;
+                    if ($promo !== null && $term !== null && $term['months'] === $promo['months'] && $n === $promo['devices']) {
+                        $options[] = ['key' => self::PROMO_KEY, 'label' => 'Акция · '.$promo['label'], 'amount_rub' => (int) self::promoQuote($sub)['amount_rub'], 'regular_rub' => $regular];
+
+                        continue;
+                    }
+                    $options[] = [
+                        'key' => $key ?? 'none',
+                        'label' => $key === null
+                            ? 'До конца подписки ('.self::paidDaysLeft($sub).' дн.)'
+                            : ($paidActive ? 'Продлить на '.$term['label'] : $term['label']),
+                        'amount_rub' => $regular,
+                        'regular_rub' => $regular,
+                    ];
+                } catch (InvalidArgumentException) {
+                    continue; // например, «до конца подписки» без новых устройств — платить не за что
+                }
+            }
+            $out[] = ['devices' => $n, 'options' => $options];
+        }
+
+        return $out;
     }
 
     /** Ключ акции в выборе срока (term) — во всех точках оплаты: ЛК, /buy, бот. */
@@ -237,7 +341,7 @@ final class AccountPricing
         if ($sub === null) {
             return true;
         }
-        $base = (int) $sub->devices;
+        $base = self::effectiveBase($sub);
         if ($base <= 0 || $base >= $promo['devices']) {
             return false; // без лимита устройств или и так больше — акция ничего не даёт
         }
@@ -247,7 +351,9 @@ final class AccountPricing
     }
 
     /**
-     * Расчёт заказа по акции: срок на месяц + доп. устройства до promo.devices на тот же месяц.
+     * Расчёт заказа по акции: подписка +1 месяц и promo.devices устройств на весь срок подписки.
+     * Цена акции заменяет «месяц + доп. устройства на месяц»; новые устройства на оплаченной активной
+     * подписке, как и в обычном заказе, доплачиваются за остаток текущего срока.
      *
      * @throws InvalidArgumentException
      */
@@ -257,38 +363,52 @@ final class AccountPricing
         if ($promo === null || ! self::promoAvailableFor($sub)) {
             throw new InvalidArgumentException('promo_unavailable');
         }
-        // Пробная подписка (1 устройство) при оплате становится обычной с базовыми устройствами.
-        $base = max(self::baseDevices(), $sub !== null ? (int) $sub->devices : 0);
+        $base = self::effectiveBase($sub);
         $extra = max(0, $promo['devices'] - $base);
+        $newDevices = max(0, $extra - AccountOrderFactory::paidSlots($sub));
+        $restDays = self::paidDaysLeft($sub);
+        $restRub = self::restOfTermRub($newDevices, $restDays);
 
         return [
             'term' => self::PROMO_KEY,
             'term_label' => 'Акция · '.$promo['label'],
+            'months' => $promo['months'],
             'days' => $promo['days'],
             'base_rub' => $promo['amount_rub'],
             'over_base_devices' => 0,
             'over_base_rub' => 0,
+            'total_devices' => $base + $extra,
             'extra_devices' => $extra,
-            'device_months' => $promo['months'],
-            'device_days' => $promo['days'],
+            'new_devices' => $newDevices,
+            'device_months' => 0, // устройства до конца подписки
+            'device_days' => $restDays,
             'devices_rub' => 0,
-            'amount_rub' => $promo['amount_rub'],
+            'rest_days' => $restDays,
+            'rest_rub' => $restRub,
+            'amount_rub' => $promo['amount_rub'] + $restRub,
         ];
     }
 
     /** Текст для описания заказа и чека. */
     public static function describe(array $quote): string
     {
-        if (($quote['term'] ?? null) === self::PROMO_KEY) {
-            return (string) $quote['term_label'];
-        }
         $parts = [];
-        if (($quote['days'] ?? 0) > 0) {
+        if (($quote['term'] ?? null) === self::PROMO_KEY) {
+            $parts[] = (string) $quote['term_label'];
+        } elseif (($quote['days'] ?? 0) > 0) {
             $parts[] = 'Подписка · '.$quote['term_label']
                 .(($quote['over_base_devices'] ?? 0) > 0 ? ' · '.(self::baseDevices() + (int) $quote['over_base_devices']).' устр.' : '');
+            if (($quote['extra_devices'] ?? 0) > 0) {
+                $parts[] = 'доп. устройств: '.$quote['extra_devices'];
+            }
         }
-        if (($quote['extra_devices'] ?? 0) > 0) {
-            $parts[] = 'Доп. устройства: '.$quote['extra_devices'].' × '.$quote['device_months'].' мес.';
+        $rest = (int) ($quote['rest_rub'] ?? 0);
+        if (($quote['days'] ?? 0) > 0) {
+            if ($rest > 0) {
+                $parts[] = 'новые устройства за остаток срока ('.$quote['new_devices'].' × '.$quote['rest_days'].' дн.)';
+            }
+        } elseif (($quote['extra_devices'] ?? 0) > 0) {
+            $parts[] = 'Доп. устройства: '.$quote['extra_devices'].' до конца подписки ('.$quote['rest_days'].' дн.)';
         }
 
         return implode(' + ', $parts);

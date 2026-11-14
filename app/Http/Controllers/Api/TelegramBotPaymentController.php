@@ -108,14 +108,21 @@ final class TelegramBotPaymentController extends Controller
                 'expires' => $account['expires_at']?->format('d.m.Y'),
                 'days_left' => $account['days_left'],
                 'unlimited_devices' => (bool) $account['unlimited_devices'],
-                'base_devices' => (int) $account['base_devices'],
+                // Базовые для расчёта: у пробной (1 устройство) — стандартные, она станет обычной при оплате.
+                'base_devices' => AccountPricing::effectiveBase($sub),
+                'current_devices' => (int) $account['device_limit'],
                 'extra_devices' => (int) $account['extra_total'],
                 'paid_extra_devices' => AccountOrderFactory::paidSlots($sub),
                 'over_base_devices' => AccountPricing::overBaseDevices($sub),
-                'max_devices' => (int) $account['base_devices'] + (int) $account['max_extra'],
+                'max_devices' => AccountPricing::effectiveBase($sub) + AccountPricing::maxExtraDevices($sub),
+                'paid_active' => AccountPricing::isPaidActive($sub),
+                'rest_days' => AccountPricing::paidDaysLeft($sub),
                 'extra_slots' => $slots,
                 'promo_bonus_days' => (int) $user->promo_bonus_days,
                 'promo_available' => AccountPricing::promoAvailableFor($sub),
+                'promo_amount_rub' => AccountPricing::promoAvailableFor($sub) ? (int) AccountPricing::promoQuote($sub)['amount_rub'] : null,
+                // Варианты оплаты с ценами по числу устройств (как на странице «Оплата»).
+                'offers' => AccountPricing::offers($sub),
             ],
             'items' => $items,
         ]);

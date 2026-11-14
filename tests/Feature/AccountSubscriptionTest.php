@@ -50,18 +50,20 @@ class AccountSubscriptionTest extends TestCase
 
     public function test_price_is_term_discount_plus_flat_device_price(): void
     {
-        $q = AccountPricing::quote(null, '3m', 2, 2);
+        // 4 устройства на 3 месяца: срок со скидкой + 2 доп. устройства на те же 3 месяца.
+        $q = AccountPricing::quote(null, '3m', 4);
 
         $this->assertSame(700, $q['base_rub']);
-        $this->assertSame(600, $q['devices_rub']);
-        $this->assertSame(1300, $q['amount_rub']);
+        $this->assertSame(900, $q['devices_rub']);
+        $this->assertSame(1600, $q['amount_rub']);
         $this->assertSame(90, $q['days']);
-        $this->assertSame(60, $q['device_days']);
+        $this->assertSame(2, $q['extra_devices']);
+        $this->assertSame(0, $q['device_months']); // устройства до конца подписки
     }
 
     public function test_six_months_devices_have_no_discount(): void
     {
-        $q = AccountPricing::quote(null, '6m', 1, 6);
+        $q = AccountPricing::quote(null, '6m', 3);
 
         $this->assertSame(1190 + 900, $q['amount_rub']);
     }
@@ -71,7 +73,7 @@ class AccountSubscriptionTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('term_required');
 
-        AccountPricing::quote(null, null, 1, 1);
+        AccountPricing::quote(null, null, 3);
     }
 
     public function test_first_purchase_creates_subscription_and_second_extends_it(): void

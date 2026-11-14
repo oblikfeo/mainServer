@@ -78,7 +78,11 @@ final class AccountSubscription
                 }
             }
 
-            if ($extraDevices > 0 && $deviceDays > 0) {
+            if ($extraDevices > 0 && $deviceDays === 0) {
+                // Заказы с 14.11.2026: доп. устройства действуют до конца подписки.
+                $this->alignDevicesToTerm($sub, $extraDevices, $days, $paymentOrderId);
+            } elseif ($extraDevices > 0 && $deviceDays > 0) {
+                // Старые заказы: у каждого устройства свой срок в днях.
                 if ($days > 0) {
                     // Продление: сначала продлеваем уже оплаченные доп. устройства, остальное — новые.
                     $extended = DeviceSlots::extend($sub, $extraDevices, $deviceDays);
@@ -94,6 +98,37 @@ final class AccountSubscription
 
             return ['subscription' => $sub, 'created' => $created];
         });
+    }
+
+    /**
+     * Доп. устройства до конца подписки. Со сроком ($days > 0): продлеваются уже оплаченные
+     * (сначала с большим остатком), недостающие создаются. Без срока — только новые.
+     * Остаток каждого — не меньше времени до конца подписки (старые «короткие» слоты подтягиваются),
+     * а у продлённых ещё и не меньше прежнего остатка плюс оплаченные дни.
+     */
+    private function alignDevicesToTerm(Subscription $sub, int $count, int $days, ?int $paymentOrderId): void
+    {
+        $nowMs = DeviceSlots::nowMs();
+        $expiry = (int) $sub->expiry_ms;
+        $untilEndMs = $expiry > 0 ? max(0, $expiry - $nowMs) : 0;
+        if ($untilEndMs < 1) {
+            // Подписка без срока или уже кончилась к моменту оплаты: устройство на месяц, его время пойдёт с продлением.
+            $untilEndMs = AccountPricing::deviceMonthDays() * DeviceSlots::DAY_MS;
+        }
+
+        $extended = 0;
+        if ($days > 0) {
+            foreach (DeviceSlots::overview($sub, $nowMs)->take($count) as $row) {
+                /** @var \App\Models\DeviceSlot $slot */
+                $slot = $row['slot'];
+                $slot->paid_ms_left = max($row['left_ms'] + $days * DeviceSlots::DAY_MS, $untilEndMs);
+                $slot->anchor_ms = $nowMs;
+                $slot->save();
+                $extended++;
+            }
+            $sub->unsetRelation('deviceSlots');
+        }
+        DeviceSlots::addMs($sub, $count - $extended, $untilEndMs, $paymentOrderId, $nowMs);
     }
 
     /**

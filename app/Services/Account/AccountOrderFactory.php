@@ -9,47 +9,25 @@ use InvalidArgumentException;
 
 /**
  * Создаёт заказ новой схемы (purpose = account) из выбора на странице оплаты, в боте или на /buy.
- * Выбор задаётся так: срок подписки (или «не продлевать»), сколько всего устройств нужно
- * и на сколько месяцев оплатить доп. устройства (0 — не оплачивать их сейчас).
+ * Выбор задаётся так: срок подписки (или «не продлевать») и сколько всего устройств нужно.
+ * Доп. устройства действуют до конца подписки.
  */
 final class AccountOrderFactory
 {
     /**
      * @param  int  $totalDevices  сколько устройств всего хочет аккаунт (базовые + доп.)
-     * @param  int  $deviceMonths  на сколько месяцев оплатить доп. устройства; 0 — не оплачивать
+     * @param  int  $deviceMonths  не используется: доп. устройства всегда до конца подписки (параметр оставлен для старых клиентов API)
      * @return array<string, mixed> расчёт AccountPricing::quote
      *
      * @throws InvalidArgumentException
      */
-    public static function quote(?Subscription $sub, ?string $termKey, int $totalDevices, int $deviceMonths): array
+    public static function quote(?Subscription $sub, ?string $termKey, int $totalDevices, int $deviceMonths = 0): array
     {
         if ($termKey === AccountPricing::PROMO_KEY) {
-            return AccountPricing::promoQuote($sub); // число устройств и их срок задаёт сама акция
+            return AccountPricing::promoQuote($sub); // число устройств задаёт сама акция
         }
 
-        $base = $sub !== null && (int) $sub->devices > 0 ? (int) $sub->devices : AccountPricing::baseDevices();
-        if ($sub !== null && (int) $sub->devices <= 0) {
-            $totalDevices = 0; // подписка без лимита устройств
-            $base = 0;
-        }
-        $extraWanted = max(0, $totalDevices - $base);
-        $have = self::paidSlots($sub);
-
-        if ($termKey === null || $termKey === '') {
-            // Без продления оплачиваются только НОВЫЕ доп. устройства; уже оплаченные дорабатывают свой срок.
-            $extraWanted = max(0, $extraWanted - $have);
-            if ($extraWanted > 0 && $deviceMonths < 1) {
-                throw new InvalidArgumentException('device_months_required');
-            }
-        } elseif ($deviceMonths < 1) {
-            // Продление без оплаты устройств: нельзя просить больше, чем уже оплачено слотов.
-            if ($extraWanted > $have) {
-                throw new InvalidArgumentException('device_months_required');
-            }
-            $extraWanted = 0;
-        }
-
-        return AccountPricing::quote($sub, $termKey, $extraWanted, max(0, $deviceMonths));
+        return AccountPricing::quote($sub, $termKey, $totalDevices);
     }
 
     /** Сколько доп. устройств уже оплачено и ещё не израсходовано. */

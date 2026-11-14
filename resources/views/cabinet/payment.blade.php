@@ -5,90 +5,109 @@
         /** @var array<string, mixed> $account */
         /** @var array<string, mixed> $payConfig */
         $state = $account['state'];
+        $devWord = static fn (int $n): string => ($n % 10 === 1 && $n % 100 !== 11) ? 'устройство' : (($n % 10 >= 2 && $n % 10 <= 4 && ($n % 100 < 10 || $n % 100 >= 20)) ? 'устройства' : 'устройств');
     @endphp
 
+    {{-- Оплата в два шага: устройства → срок. Синий — выбор, чёрный — статус и итог, оранжевый — только кнопка оплаты. --}}
     <style>
-        .lp-f1 .acc-promo__row { display: grid; gap: 0.75rem; align-items: center; }
-        @media (min-width: 640px) { .lp-f1 .acc-promo__row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; } }
-        .lp-f1 .acc-promo__row .acc-card { min-height: 0; cursor: default; }
-        .lp-f1 .acc-promo__row .acc-card:hover { transform: none; box-shadow: 6px 6px 0 var(--acc-ink); }
-        .lp-f1 .acc-promo__row .acc-card__price s { margin-left: 0.4rem; font-size: 0.875rem; opacity: 0.7; }
-        .lp-f1 .acc-promo__row .acc-sum__until { text-align: left; margin: 0.5rem 0 0; }
+        .lp-f1 .acc { --pay-blue: #2d31fa; --pay-lime: #bff000; }
+        .lp-f1 .pay-title { margin: 0 0 1rem; font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
+        .lp-f1 .pay-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-bottom: 1.5rem; padding: 0.9rem 1.1rem; background: var(--acc-ink); color: #fff; box-shadow: 8px 8px 0 var(--pay-blue); }
+        .lp-f1 .pay-status__l { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; }
+        .lp-f1 .pay-status__t { font-size: 0.9375rem; font-weight: 800; }
+        .lp-f1 .pay-status__r { font-size: 0.8125rem; font-weight: 700; color: #aeb4ff; }
+        .lp-f1 .pay-chip { display: inline-block; padding: 0.25rem 0.55rem; background: #fff; color: var(--acc-ink); font-size: 0.6875rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+        .lp-f1 .pay-chip--lime { background: var(--pay-lime); }
+
+        .lp-f1 .pay-step { margin-bottom: 1.5rem; border: 4px solid var(--acc-ink); background: #fff; box-shadow: 8px 8px 0 var(--acc-ink); }
+        .lp-f1 .pay-step__head { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 1.1rem; background: var(--pay-blue); color: #fff; border-bottom: 4px solid var(--acc-ink); }
+        .lp-f1 .pay-step__n { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; background: #fff; color: var(--acc-ink); font-weight: 900; }
+        .lp-f1 .pay-step__t { font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
+        .lp-f1 .pay-step__hint { margin-left: auto; font-size: 0.8125rem; font-weight: 700; color: #dfe0ff; text-align: right; }
+        .lp-f1 .pay-step__body { padding: 1.1rem; }
+        @media (min-width: 640px) { .lp-f1 .pay-step__body { padding: 1.35rem 1.5rem 1.5rem; } }
+        @media (max-width: 639px) { .lp-f1 .pay-step__hint { display: none; } }
+
+        .lp-f1 .acc-pay2 .acc-card { min-height: 7rem; }
+        .lp-f1 .acc-pay2 .acc-card.is-on { background: var(--pay-blue); color: #fff; }
+        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__radio { background: radial-gradient(circle, var(--pay-blue) 0 38%, #fff 42%); border-color: #fff; }
+        .lp-f1 .acc-pay2 .acc-card__badge,
+        .lp-f1 .acc-pay2 .acc-card.is-on .acc-card__badge { background: var(--pay-lime); color: var(--acc-ink); }
+        .lp-f1 .acc-pay2 .acc-card__tag--promo { background: var(--pay-lime); color: var(--acc-ink); }
+        .lp-f1 .acc-pay2 .acc-card__price s { margin-left: 0.35rem; font-size: 0.8125rem; opacity: 0.7; }
+        .lp-f1 .acc-pay2 .acc-card.is-off { opacity: 0.45; }
+        .lp-f1 .acc-pay2 .acc-stepper button:not(:disabled):hover { background: var(--pay-blue); color: #fff; }
+        @media (max-width: 639px) {
+            .lp-f1 .acc-pay2 .acc-card__big { font-size: 2rem; }
+            .lp-f1 .acc-pay2 .acc-card__big small { font-size: 0.8125rem; margin-left: 0.15rem; }
+        }
+
+        .lp-f1 .pay-sum { margin-bottom: 1.5rem; }
+        .lp-f1 .pay-sum__box { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.5rem 1rem; padding: 1rem 1.1rem; background: var(--acc-ink); color: #fff; }
+        .lp-f1 .pay-sum__k { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: #aeb4ff; }
+        .lp-f1 .pay-sum__v { font-size: 2.5rem; line-height: 1; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .lp-f1 .pay-sum__what { font-size: 0.875rem; font-weight: 700; text-align: right; }
+        .lp-f1 .pay-sum__what b { color: var(--pay-lime); }
+        @media (max-width: 639px) { .lp-f1 .pay-sum__what { text-align: left; } }
+        .lp-f1 .pay-sum__how { margin: 0.6rem 0 0.9rem; font-size: 0.8125rem; font-weight: 700; color: var(--acc-muted); }
     </style>
 
-    <div class="max-w-4xl mx-auto acc" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
-        @if ($promo)
-            {{-- Акция: месяц + 10 устройств одной кнопкой --}}
-            <div class="acc-block" id="acc-promo" data-days="{{ $promo['days'] }}">
-                <div class="acc-chips">
-                    <span class="acc-chip">Акция</span>
-                </div>
-                <div class="acc-promo__row">
-                    <div class="acc-card">
-                        <div class="acc-card__big">{{ $promo['months'] }}<small>месяц + {{ $promo['devices'] }} устройств</small></div>
-                        <div class="acc-card__price">{{ number_format($promo['amount_rub'], 0, ',', ' ') }}&nbsp;₽@if ($promo['saving_rub'] > 0)<s>{{ number_format($promo['regular_rub'], 0, ',', ' ') }}&nbsp;₽</s>@endif</div>
-                        @if ($promo['saving_rub'] > 0)
-                            <span class="acc-card__badge">Выгода {{ number_format($promo['saving_rub'], 0, ',', ' ') }}&nbsp;₽</span>
-                        @endif
-                    </div>
-                    <div>
-                        <button type="button" class="acc-btn acc-btn--primary acc-btn--wide" id="acc-promo-btn">Оплатить {{ number_format($promo['amount_rub'], 0, ',', ' ') }}&nbsp;₽</button>
-                        <div class="acc-sum__until" id="acc-promo-until"></div>
-                    </div>
-                </div>
-            </div>
-        @endif
+    <div class="max-w-4xl mx-auto acc acc-pay2" id="acc-pay" data-config="{{ json_encode($payConfig, JSON_UNESCAPED_UNICODE) }}" data-link="{{ route('cabinet.payment.link') }}" data-add="{{ request('add') === 'device' ? '1' : '0' }}">
+        <h1 class="pay-title">Оплата</h1>
 
-        {{-- Срок подписки --}}
-        <div class="acc-block">
-            <div class="acc-chips">
-                <span class="acc-chip">Срок подписки</span>
-                @if ($state === 'active' || $state === 'trial')
-                    <span class="acc-chip acc-chip--ghost">{{ $state === 'trial' ? 'Пробный период' : 'Активна' }} {{ $account['expires_at'] ? 'до '.$account['expires_at']->format('d.m.Y') : '· без срока' }}</span>
+        <div class="pay-status">
+            <div class="pay-status__l">
+                @if ($state === 'trial')
+                    <span class="pay-chip">Пробный период</span>
+                    <span class="pay-status__t">до {{ $account['expires_at']?->format('d.m.Y') }} · {{ $account['device_limit'] }} {{ $devWord((int) $account['device_limit']) }}</span>
+                @elseif ($state === 'active')
+                    <span class="pay-chip">Активна</span>
+                    <span class="pay-status__t">{{ $account['expires_at'] ? 'до '.$account['expires_at']->format('d.m.Y') : 'без срока' }}@if (! $account['unlimited_devices']) · {{ $account['device_limit'] }} {{ $devWord((int) $account['device_limit']) }}@endif</span>
                 @elseif ($state === 'inactive')
-                    <span class="acc-chip acc-chip--orange">Не активна</span>
+                    <span class="pay-chip">Не активна</span>
+                    <span class="pay-status__t">{{ $account['expires_at'] ? 'закончилась '.$account['expires_at']->format('d.m.Y') : '' }}</span>
+                @else
+                    <span class="pay-chip">Подписки пока нет</span>
                 @endif
                 @if ($payConfig['bonusDays'] > 0)
-                    <span class="acc-chip acc-chip--orange">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к первой оплате</span>
+                    <span class="pay-chip pay-chip--lime">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к первой оплате</span>
                 @endif
             </div>
-            <div class="acc-cards" id="acc-terms"></div>
+            <span class="pay-status__r" id="pay-status-r"></span>
         </div>
 
-        {{-- Устройства --}}
-        <div class="acc-block" id="acc-devices-block">
-            <div class="acc-chips">
-                <span class="acc-chip">Устройства</span>
-                <span class="acc-chip acc-chip--orange" id="acc-device-price"></span>
-            </div>
-            <div class="acc-cards" id="acc-devices" style="--acc-cols: 5;"></div>
+        <div class="acc-note" id="pay-noexpiry" hidden>Подписка без срока — продлевать её не нужно. Чтобы добавить устройства, напишите в поддержку.</div>
 
-            <div class="acc-row" id="acc-more-row" hidden>
-                <span class="acc-row__label">Всего устройств</span>
-                <div class="acc-stepper">
-                    <button type="button" id="acc-more-minus" aria-label="Меньше устройств">−</button>
-                    <output id="acc-more-value"></output>
-                    <button type="button" id="acc-more-plus" aria-label="Больше устройств">+</button>
+        <div class="pay-step" id="pay-step-devices">
+            <div class="pay-step__head"><span class="pay-step__n">1</span><span class="pay-step__t">Сколько устройств</span><span class="pay-step__hint" id="pay-devices-hint"></span></div>
+            <div class="pay-step__body">
+                <div class="acc-cards" id="pay-devices" style="--acc-cols: 5;"></div>
+                <div class="acc-row">
+                    <span class="acc-row__label">Точное число</span>
+                    <div class="acc-stepper">
+                        <button type="button" id="pay-minus" aria-label="Меньше устройств">−</button>
+                        <output id="pay-count"></output>
+                        <button type="button" id="pay-plus" aria-label="Больше устройств">+</button>
+                    </div>
+                    <span class="acc-hint" id="pay-exact-hint"></span>
                 </div>
-            </div>
-
-            <div class="acc-row" id="acc-months-row" hidden>
-                <span class="acc-row__label">Доп. устройства оплатить на</span>
-                <div class="acc-stepper">
-                    <button type="button" id="acc-months-minus" aria-label="Меньше месяцев">−</button>
-                    <output id="acc-months-value"></output>
-                    <button type="button" id="acc-months-plus" aria-label="Больше месяцев">+</button>
-                </div>
-                <span class="acc-hint" id="acc-months-hint"></span>
             </div>
         </div>
 
-        {{-- Итог --}}
-        <div class="acc-block acc-sum">
-            <div id="acc-lines"></div>
-            <div class="acc-sum__total"><span>К оплате</span><span id="acc-total">0 ₽</span></div>
-            <div class="acc-sum__until" id="acc-until"></div>
-            <button type="button" class="acc-btn acc-btn--primary acc-btn--wide" id="acc-pay-btn">Оплатить</button>
+        <div class="pay-step" id="pay-step-term">
+            <div class="pay-step__head"><span class="pay-step__n" id="pay-term-n">2</span><span class="pay-step__t">Срок</span><span class="pay-step__hint" id="pay-term-hint"></span></div>
+            <div class="pay-step__body">
+                <div class="acc-cards" id="pay-terms"></div>
+            </div>
+        </div>
+
+        <div class="pay-sum" id="pay-sum">
+            <div class="pay-sum__box">
+                <div><div class="pay-sum__k">К оплате</div><div class="pay-sum__v" id="pay-total">0 ₽</div></div>
+                <div class="pay-sum__what" id="pay-what"></div>
+            </div>
+            <div class="pay-sum__how" id="pay-how"></div>
+            <button type="button" class="acc-btn acc-btn--primary acc-btn--wide" id="pay-btn">Оплатить</button>
         </div>
     </div>
 
@@ -100,178 +119,172 @@
             const $ = (id) => document.getElementById(id);
             const rub = (n) => n.toLocaleString('ru-RU') + ' ₽';
             const plural = (n, a, b, c) => (n % 10 === 1 && n % 100 !== 11) ? a : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? b : c;
+            const devWord = (n) => plural(n, 'устройство', 'устройства', 'устройств');
             const fmtDate = (d) => d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
             const base = cfg.baseDevices;
-            const currentTotal = base + cfg.paidExtra;
-            const cardMax = Math.min(cfg.maxDevices, Math.max(5, base));
+            const have = cfg.paidExtra;
+            const current = cfg.currentDevices;
+            const maxDev = cfg.maxDevices;
+            const promo = cfg.promo;
             const termByKey = Object.fromEntries(cfg.terms.map((t) => [t.key, t]));
-            // Базовые устройства сверх стандартных входят в цену срока: каждое — как доп. устройство.
-            const overBase = cfg.overBase || 0;
-            const termPrice = (x) => x.amount_rub + overBase * x.months * cfg.deviceMonthRub;
 
-            // Выбор: term — ключ срока или '' («не продлевать»); devices — сколько устройств всего; months — срок оплаты доп. устройств.
-            // Подписка без срока: продлевать нечего, срок не выбирается.
-            const noExpiry = cfg.active && !cfg.expiresAtIso;
-            const atCap = cfg.maxDevices <= base;
-            let term = cfg.terms.length && !noExpiry ? cfg.terms[0].key : '';
-            let devices = Math.max(base, currentTotal);
-            let months = 0;
-            let moreOpen = devices > cardMax;
-
-            if (root.dataset.add === '1' && cfg.active && devices < cfg.maxDevices) {
-                term = '';
-                devices += 1;
+            // Те же правила, что AccountPricing::quote / promoQuote на сервере.
+            const restRub = (count) => (count > 0 && cfg.restDays > 0) ? Math.round(count * cfg.deviceMonthRub * cfg.restDays / cfg.deviceMonthDays) : 0;
+            function quote(n, key) {
+                const extras = cfg.unlimitedDevices ? 0 : Math.max(0, n - base);
+                const fresh = Math.max(0, extras - have);
+                const rest = restRub(fresh);
+                if (key === '') {
+                    return { amount: fresh > 0 ? Math.max(1, rest) : 0, fresh, rest, extras, promo: false };
+                }
+                const t = termByKey[key];
+                const regular = t.amount_rub + cfg.overBase * t.months * cfg.deviceMonthRub + extras * t.months * cfg.deviceMonthRub + rest;
+                if (promo && t.months === promo.months && n === promo.devices) {
+                    return { amount: promo.amount_rub + rest, regular, fresh, rest, extras, promo: true };
+                }
+                return { amount: regular, regular, fresh, rest, extras, promo: false };
             }
-            months = defaultMonths();
 
-            function defaultMonths() {
-                if (devices <= base) return 0;
-                const t = termByKey[term];
-                return Math.min(cfg.deviceMaxMonths, t ? t.months : 1);
-            }
-            function minMonths() {
-                // «Не оплачивать» можно, только если не просим устройств сверх уже оплаченных.
-                return devices - base > cfg.paidExtra ? 1 : 0;
+            // Выбор: n — сколько устройств всего; key — срок ('' — без продления, до конца текущей подписки).
+            let n = cfg.unlimitedDevices ? 0 : Math.max(base, current);
+            let key = cfg.paidActive ? '' : (cfg.terms[0]?.key || '');
+            if (root.dataset.add === '1' && cfg.paidActive && n < maxDev) n += 1;
+
+            function deviceCards() {
+                const set = new Set([base, base + 1, base + 2, base + 3]);
+                if (current > base) set.add(current);
+                if (promo) set.add(promo.devices);
+                else if (maxDev > base + 3) set.add(maxDev);
+                return [...set].filter((x) => x >= base && x <= maxDev).sort((a, b) => a - b);
             }
 
             function render() {
-                const t = termByKey[term] || null;
-                const extra = Math.max(0, devices - base);
-                if (extra === 0) months = 0;
-                months = Math.max(minMonths(), Math.min(cfg.deviceMaxMonths, months));
-                // Без продления платим только за новые доп. устройства; с продлением — за все.
-                const chargeable = term === '' ? Math.max(0, extra - cfg.paidExtra) : extra;
-                const paidExtraNow = months > 0 ? chargeable : 0;
-
-                // Срок
-                let html = '';
-                if (cfg.active) {
-                    html += card({ on: term === '', attr: 'data-term=""', big: noExpiry ? '∞' : '—', label: noExpiry ? 'Без срока' : 'Не продлевать', price: '', sub: noExpiry ? 'продлевать не нужно' : cfg.expiresAt ? 'действует до ' + cfg.expiresAt : 'без срока' });
+                if (cfg.noExpiry) {
+                    $('pay-noexpiry').hidden = false;
+                    ['pay-step-devices', 'pay-step-term', 'pay-sum'].forEach((id) => { $(id).hidden = true; });
+                    return;
                 }
-                (noExpiry ? [] : cfg.terms).forEach((x) => {
-                    html += card({
-                        on: term === x.key, attr: 'data-term="' + x.key + '"',
-                        big: x.months + '<small>' + plural(x.months, 'месяц', 'месяца', 'месяцев') + '</small>', label: '',
-                        price: rub(termPrice(x)),
-                        sub: x.months > 1 ? '≈ ' + rub(Math.round(termPrice(x) / x.months)) + ' в месяц' : 'в месяц',
-                        badge: x.discount_percent > 0 ? 'Скидка −' + x.discount_percent + '%' : '',
+
+                $('pay-status-r').textContent = cfg.paidActive
+                    ? 'осталось ' + cfg.restDays + ' ' + plural(cfg.restDays, 'день', 'дня', 'дней')
+                    : (cfg.state === 'trial' ? 'после оплаты — ' + base + ' ' + devWord(base) : '');
+
+                // Шаг 1 — устройства
+                $('pay-step-devices').hidden = cfg.unlimitedDevices;
+                $('pay-term-n').textContent = cfg.unlimitedDevices ? '1' : '2';
+                if (!cfg.unlimitedDevices) {
+                    $('pay-devices-hint').textContent = cfg.paidActive
+                        ? 'новое — ' + rub(cfg.deviceMonthRub) + ' за 30 дней, до конца подписки'
+                        : base + ' входят в подписку, каждое следующее +' + rub(cfg.deviceMonthRub) + ' в месяц';
+                    let html = '';
+                    deviceCards().forEach((x) => {
+                        let price, sub, tag = '', off = false;
+                        if (cfg.paidActive) {
+                            if (x === current) { price = 'есть'; sub = 'подключены сейчас'; }
+                            else if (x < current) { price = 'меньше'; sub = 'только при продлении'; off = key === ''; }
+                            else { price = '+' + rub(restRub(Math.max(0, x - base - have))); sub = 'до ' + cfg.expiresAt; }
+                        } else if (x === base) { price = 'входят'; sub = 'в любой срок'; }
+                        else if (promo && x === promo.devices) { price = rub(promo.amount_rub); sub = 'акция: месяц с подпиской'; }
+                        else { price = '+' + rub((x - base) * cfg.deviceMonthRub); sub = 'в месяц'; }
+                        if (x === current && (cfg.state === 'active' || cfg.state === 'inactive')) tag = '<span class="acc-card__tag">Сейчас</span>';
+                        else if (promo && x === promo.devices && !cfg.paidActive) tag = '<span class="acc-card__tag acc-card__tag--promo">Акция</span>';
+                        html += '<button type="button" class="acc-card' + (n === x ? ' is-on' : '') + (off ? ' is-off' : '') + '" data-n="' + x + '">' + tag
+                            + '<span class="acc-card__radio"></span><div class="acc-card__big">' + x + '</div><div class="acc-card__label">' + devWord(x) + '</div>'
+                            + '<div class="acc-card__price">' + price + '</div><div class="acc-card__sub">' + sub + '</div></button>';
+                    });
+                    $('pay-devices').innerHTML = html;
+                    $('pay-count').textContent = n + ' ' + devWord(n);
+                    $('pay-minus').disabled = n <= base;
+                    $('pay-plus').disabled = n >= maxDev;
+                    $('pay-exact-hint').textContent = 'до ' + maxDev + ' на одной подписке';
+                }
+
+                // Шаг 2 — срок
+                let th = '';
+                if (cfg.paidActive) {
+                    const q = quote(n, '');
+                    th += termCard({ key: '', on: key === '', big: cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small>', label: 'Без продления',
+                        price: q.fresh > 0 ? rub(q.amount) : '—', sub: 'до ' + cfg.expiresAt });
+                }
+                cfg.terms.forEach((t) => {
+                    const q = quote(n, t.key);
+                    th += termCard({ key: t.key, on: key === t.key,
+                        big: (cfg.paidActive ? '+' : '') + t.months + '<small>' + plural(t.months, 'месяц', 'месяца', 'месяцев') + '</small>',
+                        label: cfg.paidActive ? 'Продлить' : '',
+                        price: rub(q.amount) + (q.promo ? '<s>' + rub(q.regular) + '</s>' : ''),
+                        sub: q.promo ? 'акция' : (t.months > 1 ? '≈ ' + rub(Math.round(q.amount / t.months)) + ' в месяц' : 'за ' + (cfg.unlimitedDevices ? 'все устройства' : n + ' ' + devWord(n))),
+                        badge: q.promo ? 'Выгода ' + rub(q.regular - q.amount) : (t.discount_percent > 0 ? 'Скидка −' + t.discount_percent + '%' : ''),
                     });
                 });
-                $('acc-terms').innerHTML = html;
-                $('acc-terms').style.setProperty('--acc-cols', noExpiry ? 3 : (cfg.active ? 4 : 3));
-
-                // Устройства
-                const block = $('acc-devices-block');
-                block.hidden = cfg.unlimitedDevices;
-                if (!block.hidden) {
-                    $('acc-device-price').textContent = atCap ? 'Максимум устройств' : 'Доп. устройство ' + rub(cfg.deviceMonthRub) + ' в месяц';
-                    let dh = '';
-                    for (let n = base; n <= cardMax; n++) {
-                        dh += card({
-                            on: !moreOpen && devices === n, attr: 'data-devices="' + n + '"', tag: n === currentTotal ? 'Сейчас' : '', cls: atCap ? ' acc-card--static' : '',
-                            big: String(n), label: plural(n, 'устройство', 'устройства', 'устройств'),
-                            price: n === base ? '' : '+' + rub((n - base) * cfg.deviceMonthRub),
-                            sub: n === base ? (overBase > 0 ? (base - overBase) + ' + ' + overBase + ' по ' + rub(cfg.deviceMonthRub) : 'входит в подписку') : 'в месяц',
-                        });
-                    }
-                    if (cfg.maxDevices > cardMax) {
-                        dh += '<button type="button" class="acc-card acc-card--dashed' + (moreOpen ? ' is-on' : '') + '" data-more="1"><span class="acc-card__plus">+</span><span class="acc-card__label">Ещё устройства</span><span class="acc-card__sub">до ' + cfg.maxDevices + ' на подписке</span></button>';
-                    }
-                    $('acc-devices').innerHTML = dh;
-                    $('acc-more-row').hidden = !moreOpen;
-                    $('acc-more-value').textContent = devices + ' ' + plural(devices, 'устройство', 'устройства', 'устройств');
-                    $('acc-more-minus').disabled = devices <= cardMax + 1;
-                    $('acc-more-plus').disabled = devices >= cfg.maxDevices;
-
-                    $('acc-months-row').hidden = (term === '' ? Math.max(0, extra - cfg.paidExtra) : extra) === 0;
-                    $('acc-months-value').textContent = months === 0 ? 'не оплачивать' : months + ' ' + plural(months, 'месяц', 'месяца', 'месяцев');
-                    $('acc-months-minus').disabled = months <= minMonths();
-                    $('acc-months-plus').disabled = months >= cfg.deviceMaxMonths;
-                    $('acc-months-hint').textContent = months === 0
-                        ? 'Оплаченные доп. устройства доработают свой срок.'
-                        : 'У каждого доп. устройства свой счётчик. Он идёт, только пока подписка активна.';
-                }
+                $('pay-terms').innerHTML = th;
+                $('pay-terms').style.setProperty('--acc-cols', cfg.terms.length + (cfg.paidActive ? 1 : 0));
+                $('pay-term-hint').textContent = cfg.paidActive ? 'доп. устройства продлеваются вместе с подпиской' : '';
 
                 // Итог
-                const lines = [];
-                let total = 0;
-                if (t) { lines.push(['Подписка · ' + t.label, t.amount_rub]); total += t.amount_rub; }
-                if (t && cfg.bonusDays > 0) lines.push(['🎁 Подарок по промокоду: +' + cfg.bonusDays + ' ' + plural(cfg.bonusDays, 'день', 'дня', 'дней'), 'бесплатно']);
-                if (t && overBase > 0) {
-                    const over = overBase * t.months * cfg.deviceMonthRub;
-                    lines.push(['Устройства сверх ' + (base - overBase) + ': ' + overBase + ' × ' + t.months + ' мес. × ' + rub(cfg.deviceMonthRub), over]);
-                    total += over;
-                }
-                if (paidExtraNow > 0) {
-                    const sum = paidExtraNow * months * cfg.deviceMonthRub;
-                    lines.push([(term === '' ? 'Новые доп. устройства: ' : 'Доп. устройства: ') + paidExtraNow + ' × ' + months + ' мес. × ' + rub(cfg.deviceMonthRub), sum]);
-                    total += sum;
-                }
-                $('acc-lines').innerHTML = lines.map((l) => '<div class="acc-sum__line"><span>' + l[0] + '</span><span>' + (typeof l[1] === 'number' ? rub(l[1]) : l[1]) + '</span></div>').join('');
-                $('acc-total').textContent = rub(total);
-
-                let until = '';
+                const q = quote(n, key);
+                const t = termByKey[key] || null;
+                let what, how;
+                const devs = cfg.unlimitedDevices ? '' : '<b>' + n + ' ' + devWord(n) + '</b> · ';
                 if (t) {
                     const from = cfg.active && cfg.expiresAtIso ? new Date(cfg.expiresAtIso) : new Date();
-                    if (cfg.active && !cfg.expiresAtIso) {
-                        until = 'Подписка без срока';
-                    } else {
-                        from.setDate(from.getDate() + t.days + (cfg.bonusDays > 0 ? cfg.bonusDays : 0));
-                        until = 'Подписка будет до ' + fmtDate(from);
-                    }
-                } else if (cfg.active && cfg.expiresAt) {
-                    until = 'Срок подписки не меняется: до ' + cfg.expiresAt;
+                    from.setDate(from.getDate() + t.days + (cfg.bonusDays > 0 ? cfg.bonusDays : 0));
+                    what = devs + 'подписка до ' + fmtDate(from);
+                    const parts = [q.promo ? 'акция ' + rub(promo.amount_rub) : 'подписка ' + rub(t.amount_rub)];
+                    if (!q.promo && cfg.overBase > 0) parts.push('устройства сверх ' + (base - cfg.overBase) + ': ' + rub(cfg.overBase * t.months * cfg.deviceMonthRub));
+                    if (!q.promo && q.extras > 0) parts.push(q.extras + ' доп. ' + devWord(q.extras) + ' на ' + t.months + ' мес.: ' + rub(q.extras * t.months * cfg.deviceMonthRub));
+                    if (q.rest > 0) parts.push(q.fresh + ' ' + plural(q.fresh, 'новое', 'новых', 'новых') + ' за оставшиеся ' + cfg.restDays + ' дн.: ' + rub(q.rest));
+                    if (cfg.bonusDays > 0) parts.push('🎁 +' + cfg.bonusDays + ' дн. в подарок');
+                    how = 'Из чего: ' + parts.join(' + ');
+                } else if (q.fresh > 0) {
+                    what = devs + 'до ' + cfg.expiresAt;
+                    how = q.fresh + ' ' + plural(q.fresh, 'новое устройство', 'новых устройства', 'новых устройств') + ' × ' + cfg.restDays + ' дн. по ' + rub(cfg.deviceMonthRub) + ' за 30 дней';
+                } else {
+                    what = 'Срок подписки не меняется: до ' + cfg.expiresAt;
+                    how = 'Добавьте устройства в шаге 1 или выберите продление.';
                 }
-                $('acc-until').textContent = until;
-
-                const btn = $('acc-pay-btn');
-                btn.disabled = total === 0;
-                btn.textContent = total === 0 ? (noExpiry && atCap ? 'Оплачивать нечего' : 'Выберите, что оплатить') : 'Оплатить ' + rub(total);
+                $('pay-total').textContent = rub(q.amount);
+                $('pay-what').innerHTML = what;
+                $('pay-how').textContent = how;
+                const btn = $('pay-btn');
+                btn.disabled = q.amount === 0;
+                btn.textContent = q.amount === 0 ? 'Выберите, что оплатить' : 'Оплатить ' + rub(q.amount);
             }
 
-            function card(o) {
-                return '<button type="button" class="acc-card' + (o.on ? ' is-on' : '') + (o.cls || '') + '" ' + o.attr + '>'
-                    + (o.tag ? '<span class="acc-card__tag">' + o.tag + '</span>' : '')
+            function termCard(o) {
+                return '<button type="button" class="acc-card' + (o.on ? ' is-on' : '') + '" data-key="' + o.key + '">'
                     + '<span class="acc-card__radio"></span>'
                     + '<div class="acc-card__big">' + o.big + '</div>'
                     + (o.label ? '<div class="acc-card__label">' + o.label + '</div>' : '')
-                    + (o.price ? '<div class="acc-card__price">' + o.price + '</div>' : '<div class="acc-card__price">&nbsp;</div>')
+                    + '<div class="acc-card__price">' + o.price + '</div>'
                     + '<div class="acc-card__sub">' + (o.sub || '') + '</div>'
                     + (o.badge ? '<span class="acc-card__badge">' + o.badge + '</span>' : '')
                     + '</button>';
             }
 
-            $('acc-terms').addEventListener('click', (e) => {
-                const b = e.target.closest('[data-term]');
+            // Меньше устройств, чем сейчас, — только вместе с продлением.
+            const fewerNeedsRenewal = () => { if (cfg.paidActive && n < current && key === '') key = cfg.terms[0]?.key || ''; };
+            $('pay-devices').addEventListener('click', (e) => {
+                const b = e.target.closest('[data-n]');
                 if (!b) return;
-                term = b.getAttribute('data-term');
-                if (devices > base && months > 0) months = defaultMonths();
+                n = parseInt(b.getAttribute('data-n'), 10);
+                fewerNeedsRenewal();
                 render();
             });
-            $('acc-devices').addEventListener('click', (e) => {
-                const more = e.target.closest('[data-more]');
-                const b = e.target.closest('[data-devices]');
-                if (more) { moreOpen = true; devices = Math.max(devices, cardMax + 1); }
-                else if (b) { moreOpen = false; devices = parseInt(b.getAttribute('data-devices'), 10); }
-                else return;
-                if (months === 0) months = defaultMonths();
+            $('pay-minus').addEventListener('click', () => { n = Math.max(base, n - 1); fewerNeedsRenewal(); render(); });
+            $('pay-plus').addEventListener('click', () => { n = Math.min(maxDev, n + 1); render(); });
+            $('pay-terms').addEventListener('click', (e) => {
+                const b = e.target.closest('[data-key]');
+                if (!b) return;
+                key = b.getAttribute('data-key');
+                if (key === '' && n < current) n = current;
                 render();
             });
-            $('acc-more-minus').addEventListener('click', () => { devices--; render(); });
-            $('acc-more-plus').addEventListener('click', () => { devices++; if (months === 0) months = defaultMonths(); render(); });
-            $('acc-months-minus').addEventListener('click', () => { months--; render(); });
-            $('acc-months-plus').addEventListener('click', () => { months++; render(); });
 
-            const promoBox = $('acc-promo');
-            if (promoBox) {
-                const from = cfg.active && cfg.expiresAtIso ? new Date(cfg.expiresAtIso) : new Date();
-                from.setDate(from.getDate() + Number(promoBox.dataset.days) + (cfg.bonusDays > 0 ? cfg.bonusDays : 0));
-                $('acc-promo-until').textContent = (cfg.active ? 'Подписка продлится до ' : 'Подписка будет до ') + fmtDate(from);
-                $('acc-promo-btn').addEventListener('click', () => pay($('acc-promo-btn'), { term: 'promo', devices: 0, device_months: 0 }));
-            }
-
-            $('acc-pay-btn').addEventListener('click', () => pay($('acc-pay-btn'), { term: term || null, devices: cfg.unlimitedDevices ? 0 : devices, device_months: months }));
+            $('pay-btn').addEventListener('click', () => {
+                const q = quote(n, key);
+                pay($('pay-btn'), { term: q.promo ? 'promo' : (key || null), devices: cfg.unlimitedDevices ? 0 : n, device_months: 0 });
+            });
 
             async function pay(btn, body) {
                 const old = btn.textContent;
@@ -291,8 +304,8 @@
                     btn.textContent = old;
                     const messages = {
                         term_required: 'Подписка не активна — выберите срок.',
-                        no_expiry: 'Подписка без срока — продлевать её не нужно.',
-                        device_months_required: 'Укажите, на сколько месяцев оплатить новые устройства.',
+                        no_expiry: 'Подписка без срока — напишите в поддержку.',
+                        nothing_to_pay: 'Добавьте устройства или выберите продление.',
                         devices_out_of_range: 'Столько устройств на одной подписке подключить нельзя.',
                         payments_not_configured: 'Оплата временно недоступна. Напишите в поддержку.',
                         promo_unavailable: 'Акция для вашей подписки недоступна. Выберите обычный срок.',
