@@ -155,7 +155,7 @@
                 // Шаг 1 — срок
                 let th = '';
                 if (cfg.paidActive) {
-                    th = '<div class="acc-card acc-card--static">'
+                    th = '<div class="acc-card acc-card--static" style="grid-column: 1 / -1;">'
                         + '<div class="acc-card__big">' + cfg.restDays + '<small>' + plural(cfg.restDays, 'день', 'дня', 'дней') + '</small></div>'
                         + '<div class="acc-card__label">до конца подписки</div>'
                         + '<div class="acc-card__price">до ' + cfg.expiresAt + '</div>'
