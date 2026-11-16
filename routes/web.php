@@ -4,9 +4,8 @@ use App\Http\Controllers\Admin\BotChatController;
 use App\Http\Controllers\Admin\CampaignsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoginController;
-use App\Http\Controllers\Admin\PaymentsController;
+use App\Http\Controllers\Admin\ClientsController;
 use App\Http\Controllers\Admin\ReferralController;
-use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
@@ -213,12 +212,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/what-works/run', [WhatWorksController::class, 'run'])
             ->middleware('throttle:6,1')
             ->name('what_works.run');
-        Route::get('/report', [ReportController::class, 'index'])->name('report');
+        // «Отчёт» и «Платежи» объединены в «Клиенты и платежи» (16.11.2026).
+        Route::get('/clients', [ClientsController::class, 'index'])->name('clients');
+        Route::get('/clients/{user}', [ClientsController::class, 'show'])->name('clients.show');
+        Route::redirect('/report', '/admin/clients?tab=clients')->name('report');
         Route::get('/bot-chats', [BotChatController::class, 'index'])->name('bot_chats');
         Route::get('/bot-chats/{telegramUserId}', [BotChatController::class, 'show'])
             ->whereNumber('telegramUserId')
             ->name('bot_chats.show');
-        Route::get('/payments', [PaymentsController::class, 'index'])->name('payments');
+        Route::redirect('/payments', '/admin/clients')->name('payments');
         Route::get('/test-keys', [TestKeysController::class, 'index'])->name('test_keys');
         Route::post('/test-keys', [TestKeysController::class, 'store'])
             ->middleware('throttle:30,1')

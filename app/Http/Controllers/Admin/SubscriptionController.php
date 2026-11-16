@@ -189,12 +189,12 @@ class SubscriptionController extends Controller
             $destroyer->destroy($subscription);
         } catch (\Throwable $e) {
             return redirect()
-                ->route('admin.report')
+                ->route('admin.clients')
                 ->withErrors(['xui' => $e->getMessage()]);
         }
 
         return redirect()
-            ->route('admin.report')
+            ->route('admin.clients')
             ->with('status', 'Подписка удалена (все узлы и запись в БД).');
     }
 }
