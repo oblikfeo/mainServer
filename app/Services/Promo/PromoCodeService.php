@@ -132,8 +132,9 @@ final class PromoCodeService
         if ($days < 1) {
             return 0;
         }
-        $taken = User::query()->whereKey($user->id)->where('promo_bonus_days', $days)->update(['promo_bonus_days' => 0]);
+        $taken = User::query()->whereKey($user->id)->where('promo_bonus_days', $days)->update(['promo_bonus_days' => 0, 'promo_bonus_note' => null]);
         $user->promo_bonus_days = 0;
+        $user->promo_bonus_note = null;
 
         return $taken === 1 ? $days : 0;
     }

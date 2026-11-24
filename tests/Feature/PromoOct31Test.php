@@ -72,7 +72,7 @@ class PromoOct31Test extends TestCase
             ->assertSee('при первой оплате подписки', false);
 
         $this->actingAs($user)->get(route('cabinet.payment'))->assertOk()
-            ->assertSee('в подарок к первой оплате')
+            ->assertSee('в подарок к оплате')
             ->assertSee('"bonusDays":30');
     }
 
@@ -94,7 +94,7 @@ class PromoOct31Test extends TestCase
         $this->assertSame('01.02.2027 12:00', $this->expires($user));
 
         $this->actingAs($user->fresh())->get(route('cabinet.payment'))->assertOk()
-            ->assertDontSee('в подарок к первой оплате')
+            ->assertDontSee('в подарок к оплате')
             ->assertSee('"bonusDays":0');
     }
 
@@ -126,5 +126,20 @@ class PromoOct31Test extends TestCase
         $this->assertSame(0, (int) $this->pay($user, 30)->bonus_days);
 
         $this->actingAs($user)->get('/dashboard')->assertSee('Вам доступна тестовая подписка на 3 дня');
+    }
+
+    public function test_comeback_gift_is_labelled_by_campaign_and_spent_once(): void
+    {
+        // Акция «Возвращайтесь» (24.11.2026): подарок ставится уже оплачивавшему, у которого был свой промокод.
+        $user = $this->register('back@example.com');
+        $this->pay($user, 30);
+        User::query()->whereKey($user->id)->update(['promo_bonus_days' => 30, 'promo_bonus_note' => 'акция Возвращайтесь']);
+
+        $order = $this->pay($user->fresh(), 30, id: 'ord_oct_2');
+        $this->assertSame(30, (int) $order->bonus_days);
+        $this->assertStringContainsString('+ 30 дн. в подарок (акция Возвращайтесь)', (string) $order->description);
+        $this->assertSame(0, $user->fresh()->promo_bonus_days);
+        $this->assertNull($user->fresh()->promo_bonus_note);
+        $this->assertSame(0, (int) $this->pay($user->fresh(), 30, id: 'ord_oct_3')->bonus_days);
     }
 }

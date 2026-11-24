@@ -384,7 +384,7 @@ function buildPayPromoView(ctxPay) {
   }
   const promoBonus = Number(ctxPay.account?.promo_bonus_days ?? 0);
   if (promoBonus > 0) {
-    lines.push(`🎁 Подарок по промокоду: ${promoBonusText(promoBonus)} — бесплатно`);
+    lines.push(`🎁 Подарок: ${promoBonusText(promoBonus)} — бесплатно`);
   }
   return {
     text: `${lines.join('\n')}\n\nИтого: ${amount} ₽\n\nВыберите способ оплаты:`,
@@ -435,7 +435,7 @@ function buildPayMethodView(ctxPay, n, termKey) {
   }
   const promoBonus = Number(ctxPay.account?.promo_bonus_days ?? 0);
   if (termKey !== 'none' && promoBonus > 0) {
-    lines.push(`🎁 Подарок по промокоду: ${promoBonusText(promoBonus)} — бесплатно`);
+    lines.push(`🎁 Подарок: ${promoBonusText(promoBonus)} — бесплатно`);
   }
   const base = `py:x:${n}:${termKey}:0`;
   return {

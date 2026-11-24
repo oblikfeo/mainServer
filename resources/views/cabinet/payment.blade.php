@@ -63,7 +63,7 @@
             @endif
             <span id="pay-now-r"></span>
             @if ($payConfig['bonusDays'] > 0)
-                <span class="acc-chip acc-chip--orange">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к первой оплате</span>
+                <span class="acc-chip acc-chip--orange">🎁 {{ $payConfig['bonusDays'] === 30 ? '+1 месяц' : '+'.$payConfig['bonusDays'].' дн.' }} в подарок к оплате</span>
             @endif
         </div>
 

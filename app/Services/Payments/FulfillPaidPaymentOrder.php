@@ -62,7 +62,8 @@ final class FulfillPaidPaymentOrder
 
         // «Аккаунт = подписка»: любая оплата продлевает единственную подписку аккаунта (или создаёт первую).
         [$days, $extraDevices, $deviceDays] = $this->purchaseParts($order, $purpose);
-        // Подарок по промокоду — к первой оплате, в которой есть срок подписки (докупка одних устройств его не тратит).
+        // Подарок (промокод или акция) — к ближайшей оплате, в которой есть срок подписки (докупка одних устройств его не тратит).
+        $bonusLabel = (string) ($buyer->promo_bonus_note ?: $buyer->registration_promo_code);
         $bonusDays = $days > 0 ? PromoCodeService::takeFirstPaymentBonus($buyer) : 0;
         $result = $this->account->applyPurchase($buyer, $days + $bonusDays, $extraDevices, $deviceDays, (int) $order->id);
 
@@ -70,7 +71,7 @@ final class FulfillPaidPaymentOrder
         $order->subscription_id = $renewed->id;
         if ($bonusDays > 0) {
             $order->bonus_days = $bonusDays;
-            $order->description = trim((string) $order->description).' + '.$bonusDays.' дн. в подарок ('.$buyer->registration_promo_code.')';
+            $order->description = trim((string) $order->description).' + '.$bonusDays.' дн. в подарок'.($bonusLabel !== '' ? ' ('.$bonusLabel.')' : '');
         }
         $order->save();
 
