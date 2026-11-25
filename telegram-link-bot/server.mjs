@@ -480,10 +480,19 @@ function buildPayLinkView(data) {
 }
 
 async function editPayView(ctx, view) {
+  const markup = { reply_markup: { inline_keyboard: view.keyboard } };
+  // Кнопка под картинкой (рассылка): у фото нет текста, editMessageText не сработает — шлём экран новым сообщением.
+  const src = ctx.callbackQuery?.message;
+  if (src && typeof src.text !== 'string') {
+    try {
+      await ctx.reply(view.text, markup);
+    } catch (e) {
+      console.error('pay view reply', e);
+    }
+    return;
+  }
   try {
-    await ctx.editMessageText(view.text, {
-      reply_markup: { inline_keyboard: view.keyboard },
-    });
+    await ctx.editMessageText(view.text, markup);
   } catch {
     // message may be stale
   }
