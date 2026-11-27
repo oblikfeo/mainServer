@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\PaymentOrder;
 use App\Services\Account\AccountOrderFactory;
 use App\Services\Account\AccountSubscription;
+use App\Services\Payments\PaymentProviders;
 use App\Services\Platega\PlategaClient;
+use App\Services\Wata\WataH2hClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
@@ -15,9 +17,10 @@ use InvalidArgumentException;
  */
 class CabinetCreatePaymentLinkController extends Controller
 {
-    public function __invoke(Request $request, PlategaClient $platega): JsonResponse
+    public function __invoke(Request $request, PlategaClient $platega, WataH2hClient $wata): JsonResponse
     {
-        if (! $platega->isConfigured()) {
+        $provider = PaymentProviders::site();
+        if (! PaymentProviders::isConfigured($provider)) {
             return response()->json(['error' => 'payments_not_configured'], 503);
         }
 
@@ -45,7 +48,19 @@ class CabinetCreatePaymentLinkController extends Controller
         $order = AccountOrderFactory::create($quote, [
             'user_id' => $user->id,
             'subscription_id' => $sub?->id,
+            'provider' => $provider,
         ]);
+
+        if ($provider === 'wata') {
+            return response()->json([
+                'url' => PaymentProviders::startWataLink(
+                    $wata,
+                    $order,
+                    $this->paymentDoneUrl($request, (string) $order->claim_token),
+                    (string) config('platega.site_failed_url'),
+                ),
+            ]);
+        }
 
         return $this->startPayment($platega, $order, $request, (string) $order->claim_token, $user);
     }

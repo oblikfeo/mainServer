@@ -282,7 +282,7 @@ final class TelegramBotPaymentController extends Controller
     /** Платёжка для оплат из бота: wata (по умолчанию) или platega. */
     private static function provider(): string
     {
-        return config('payments.telegram_bot_provider') === 'platega' ? 'platega' : 'wata';
+        return \App\Services\Payments\PaymentProviders::bot();
     }
 
     /**

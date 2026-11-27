@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\ClientsController;
 use App\Http\Controllers\Admin\ReferralController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\PaymentProvidersController;
 use App\Http\Controllers\Admin\SubscriptionSettingsController;
 use App\Http\Controllers\Admin\TestKeysController;
 use App\Http\Controllers\Admin\SubscriptionNodesController;
@@ -235,6 +236,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/subscription/routing', [SubscriptionSettingsController::class, 'editRouting'])->name('subscription.routing');
         Route::post('/subscription/routing', [SubscriptionSettingsController::class, 'updateRouting'])->name('subscription.routing.update');
         Route::get('/subscription/announce', [SubscriptionSettingsController::class, 'editAnnounce'])->name('subscription.announce');
+        Route::get('/payment-providers', [PaymentProvidersController::class, 'edit'])->name('payment_providers');
+        Route::post('/payment-providers', [PaymentProvidersController::class, 'update'])->name('payment_providers.update');
         Route::post('/subscription/announce', [SubscriptionSettingsController::class, 'updateAnnounce'])->name('subscription.announce.update');
         Route::post('/subscription', [SubscriptionController::class, 'store'])
             ->middleware('throttle:8,1')

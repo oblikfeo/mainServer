@@ -9,7 +9,7 @@ return [
     /**
      * Быстрая покупка без регистрации (/buy).
      */
-    /** Платёжка для оплат в Telegram-боте: wata | platega. Сайт всегда на Platega. */
+    /** Платёжка бота по умолчанию: wata | platega. Переключается в админке «Платёжки» (сайт и бот), см. PaymentProviders. */
     'telegram_bot_provider' => env('TELEGRAM_BOT_PAYMENT_PROVIDER', 'wata'),
 
     'quick_buy' => [

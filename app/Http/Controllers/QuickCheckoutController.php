@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Account\AccountOrderFactory;
 use App\Services\Account\AccountPricing;
 use App\Services\Payments\PaymentDonePage;
+use App\Services\Payments\PaymentProviders;
 use App\Services\Platega\PlategaClient;
 use App\Services\QuickBuy\QuickCheckoutUserCreator;
 use App\Services\Wata\WataH2hClient;
@@ -30,9 +31,10 @@ final class QuickCheckoutController extends Controller
         return view('quick-buy.index');
     }
 
-    public function pay(Request $request, PlategaClient $platega, QuickCheckoutUserCreator $userCreator): JsonResponse
+    public function pay(Request $request, PlategaClient $platega, WataH2hClient $wata, QuickCheckoutUserCreator $userCreator): JsonResponse
     {
-        if (! $platega->isConfigured()) {
+        $provider = PaymentProviders::site();
+        if (! PaymentProviders::isConfigured($provider)) {
             return response()->json(['error' => 'payments_not_configured'], 503);
         }
 
@@ -74,7 +76,7 @@ final class QuickCheckoutController extends Controller
         }
 
         try {
-            return DB::transaction(function () use ($request, $platega, $quote, $email): JsonResponse {
+            return DB::transaction(function () use ($request, $platega, $wata, $provider, $quote, $email): JsonResponse {
                 $plainPassword = Str::password(12, symbols: false);
                 $claimToken = Str::random(48);
 
@@ -83,6 +85,7 @@ final class QuickCheckoutController extends Controller
                     'user_id' => null,
                     'email' => $email,
                     'quick_buy_password' => Crypt::encryptString($plainPassword),
+                    'provider' => $provider,
                 ]);
                 $orderId = (string) $order->order_id;
                 $amountRub = (int) $order->amount_rub;
@@ -92,6 +95,13 @@ final class QuickCheckoutController extends Controller
                 $failUrl = route('quick_buy.show', [], absolute: true);
 
                 $request->session()->put('quick_buy_pw:'.$claimToken, $plainPassword);
+
+                if ($provider === 'wata') {
+                    return response()->json([
+                        'url' => PaymentProviders::startWataLink($wata, $order, $returnUrl, $failUrl),
+                        'doneUrl' => $returnUrl,
+                    ]);
+                }
 
                 // Аккаунта ещё нет (создаём после оплаты) — для антифрода Platega передаём номер заказа.
                 $tx = $platega->createTransaction(
